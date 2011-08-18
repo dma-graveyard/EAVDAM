@@ -8,4 +8,5 @@
 	<classpathentry kind="lib" path="lib/omsvg.jar"/>
 	<classpathentry kind="lib" path="lib/openmap.jar"/>
 	<classpathentry kind="output" path="build/classes"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
 </classpath>
