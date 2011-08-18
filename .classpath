@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<classpath>
+	<classpathentry kind="src" path="src/main/java"/>
+	<classpathentry kind="lib" path="lib/aislib-1.1.jar"/>
+	<classpathentry kind="lib" path="lib/milStd2525_png.jar"/>
+	<classpathentry kind="lib" path="lib/omcorba.jar"/>
+	<classpathentry kind="lib" path="lib/omj3d.jar"/>
+	<classpathentry kind="lib" path="lib/omsvg.jar"/>
+	<classpathentry kind="lib" path="lib/openmap.jar"/>
+	<classpathentry kind="output" path="build/classes"/>
+</classpath>
