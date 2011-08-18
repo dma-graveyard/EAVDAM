@@ -102,5 +102,10 @@ public class SimpleLayer extends OMGraphicHandlerLayer implements MapMouseListen
 		// TODO Auto-generated method stub
 		return false;
 	}
+	
+	@Override
+	public void findAndInit(Object obj) {
+		System.out.println("Other object in MapHandler: " + obj.getClass());
+	}
 
 }

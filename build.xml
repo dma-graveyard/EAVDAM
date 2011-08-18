@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project name="eavdm" default="compile">
+
+	<property name="libdir" value="${basedir}/lib" />
+
+	<property name="build.dir" value="${basedir}/build" />
+	<property name="build.classes.dir" value="${build.dir}/classes" />
+	<property name="build.final.name" value="${ant.project.name}.jar" />
+
+	<property name="src.dir" value="${basedir}/src" />
+	<property name="src.main.dir" value="${src.dir}/main" />
+	<property name="src.main.java.dir" value="${src.main.dir}/java" />
+
+	<path id="compile.class.path">
+		<fileset dir="${libdir}" >
+			<include name="**/*.jar"/>
+		</fileset>
+	</path>
+
+	<target name="clean">
+		<delete dir="${build.dir}" />
+	</target>
+
+	<target name="init">
+		<mkdir dir="${build.classes.dir}" />
+	</target>
+
+	<target name="compile" depends="init">
+		<javac destdir="${build.classes.dir}" debug="on" encoding="UTF-8" includeantruntime="false">
+			<compilerarg value="-Xlint" />
+			<includesfile />
+			<classpath refid="compile.class.path" />
+			<src path="${src.main.java.dir}" />
+		</javac>
+	</target>
+
+	<target name="run" depends="compile">
+		<java classname="com.bbn.openmap.app.OpenMap" fork="true" dir="${basedir}">
+			<classpath>
+				<pathelement path="${basedir}"/>
+				<pathelement path="${basedir}/share"/>
+				<pathelement path="${build.classes.dir}"/>
+				<fileset dir="${libdir}">
+					<include name="**/*.jar" />
+				</fileset>
+			</classpath>
+		</java>
+	</target>
+
+</project>
