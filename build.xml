@@ -37,7 +37,7 @@
 	</target>
 
 	<target name="run" depends="compile">
-		<java classname="com.bbn.openmap.app.OpenMap" fork="true" dir="${basedir}">
+		<java classname="dk.frv.eavdam.app.MainApp" fork="true" dir="${basedir}">
 			<classpath>
 				<pathelement path="${basedir}" />
 				<pathelement path="${basedir}/share" />
