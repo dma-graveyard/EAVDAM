@@ -35,6 +35,7 @@ import com.bbn.openmap.gui.MapPanel;
 import com.bbn.openmap.gui.OpenMapFrame;
 import com.bbn.openmap.util.ArgParser;
 import com.bbn.openmap.util.Debug;
+import dk.frv.eavdam.layers.StationLayer;
 
 /**
  * The OpenMap application framework. This class creates a PropertyHandler that
@@ -86,160 +87,8 @@ public class MainApp {
         OpenMapFrame omf = new OpenMapFrame();
         setWindowListenerOnFrame(omf);
         getMapHandler().add(omf);
-
-        JPanel mainPanel = new JPanel();        
-        mainPanel.setLayout(new BoxLayout(mainPanel, BoxLayout.PAGE_AXIS));             
-              
-        // choose maps title      
-              
-        JPanel chooseMapsPanel = new JPanel();  
-        chooseMapsPanel.setLayout(new BorderLayout());
-        chooseMapsPanel.setBorder(BorderFactory.createEmptyBorder(10,10,10,10));
-        JLabel chooseMapsLabel = new JLabel("Choose Map(s)", null, JLabel.CENTER);
-        chooseMapsLabel.setFont(new Font("Serif", Font.BOLD, 16));
-        chooseMapsLabel.setVerticalTextPosition(JLabel.BOTTOM);
-        chooseMapsLabel.setHorizontalTextPosition(JLabel.CENTER);               
-        chooseMapsPanel.add(chooseMapsLabel);
-        chooseMapsPanel.setPreferredSize(new Dimension(250, 40));
-        chooseMapsPanel.setMaximumSize(new Dimension(250, 40));
-        mainPanel.add(chooseMapsPanel);
-                   
-        // map names list           
-                              
-        String[] mapNames = { "Bornholm2W4mEu", "Bornholm2W4mEz", "Bornholm2W4mEz1", "Bornholm2W10mEu", "Bornholm2W10mEz" };
-        JList<String> mapList = new JList<String>(mapNames);
-        mapList.setSelectionMode(ListSelectionModel.MULTIPLE_INTERVAL_SELECTION);
-        mapList.setLayoutOrientation(JList.VERTICAL);
-        mapList.setVisibleRowCount(4);
-        JScrollPane mapListScroller = new JScrollPane(mapList);
-        mapListScroller.setBorder(new CompoundBorder
-            (BorderFactory.createEmptyBorder(0,10,10,10),
-            BorderFactory.createLineBorder(new Color(122, 138, 153), 1)));
-        mapListScroller.setPreferredSize(new Dimension(250, 90));
-        mapListScroller.setMaximumSize(new Dimension(250, 90));
-        mainPanel.add(mapListScroller);
-     
-        // add map and remove map buttons
-     
-        JPanel mapButtonsPanel = new JPanel();
-        mapButtonsPanel.setBorder(BorderFactory.createEmptyBorder(0,10,10,10)); 
-        GridLayout gridLayout = new GridLayout(1,2);               
-        gridLayout.setHgap(10);
-        mapButtonsPanel.setLayout(gridLayout);
-        JButton addMapButton = new JButton("Add map", null);        
-        addMapButton.setVerticalTextPosition(AbstractButton.BOTTOM);
-        addMapButton.setHorizontalTextPosition(AbstractButton.CENTER);
-        addMapButton.setPreferredSize(new Dimension(100, 35));
-        addMapButton.setMaximumSize(new Dimension(100, 35));
-        mapButtonsPanel.add(addMapButton);
-        JButton removeMapButton = new JButton("Remove map", null);        
-        removeMapButton.setVerticalTextPosition(AbstractButton.BOTTOM);
-        removeMapButton.setHorizontalTextPosition(AbstractButton.CENTER);
-        removeMapButton.setPreferredSize(new Dimension(130, 35));
-        removeMapButton.setMaximumSize(new Dimension(130, 35));
-        mapButtonsPanel.add(removeMapButton);        
-        mapButtonsPanel.setMinimumSize(new Dimension(250, 35));
-        mapButtonsPanel.setPreferredSize(new Dimension(250, 35));
-        mapButtonsPanel.setMaximumSize(new Dimension(250, 35));        
-        mainPanel.add(mapButtonsPanel);
-
-        // empty textarea
-
-        JTextArea textArea = new JTextArea("");
-        textArea.setLineWrap(true);
-        textArea.setWrapStyleWord(true);
-        textArea.setEditable(false);
-        JScrollPane areaScrollPane = new JScrollPane(textArea);
-        areaScrollPane.setBorder(new CompoundBorder
-            (BorderFactory.createEmptyBorder(0,10,10,10),
-            BorderFactory.createLineBorder(new Color(122, 138, 153), 1)));
-        areaScrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
-        areaScrollPane.setPreferredSize(new Dimension(250, 90));
-        areaScrollPane.setMaximumSize(new Dimension(250, 90));
-        mainPanel.add(areaScrollPane);
         
-        // display maps button
-        
-        JPanel displayMapsButtonPanel = new JPanel();
-        displayMapsButtonPanel.setBorder(BorderFactory.createEmptyBorder(0,10,10,10));                
-        displayMapsButtonPanel.setLayout(new GridLayout(1,1));
-        JButton displayMapsButton = new JButton("Display map(s)", null);        
-        displayMapsButton.setVerticalTextPosition(AbstractButton.BOTTOM);
-        displayMapsButton.setHorizontalTextPosition(AbstractButton.CENTER);
-        displayMapsButtonPanel.add(displayMapsButton);        
-        displayMapsButtonPanel.setPreferredSize(new Dimension(150, 35));
-        displayMapsButtonPanel.setMaximumSize(new Dimension(150, 35));        
-        mainPanel.add(displayMapsButtonPanel);        
-
-        // base station parameters title
-
-        JPanel baseStationParametersPanel = new JPanel();  
-        baseStationParametersPanel.setLayout(new BorderLayout());
-        baseStationParametersPanel.setBorder(BorderFactory.createEmptyBorder(15,10,10,10));
-        JLabel baseStationParametersLabel = new JLabel("Base station parameters", null, JLabel.CENTER);
-        baseStationParametersLabel.setFont(new Font("Serif", Font.BOLD, 16));
-        baseStationParametersLabel.setVerticalTextPosition(JLabel.BOTTOM);
-        baseStationParametersLabel.setHorizontalTextPosition(JLabel.CENTER);               
-        baseStationParametersPanel.add(baseStationParametersLabel);
-        baseStationParametersPanel.setPreferredSize(new Dimension(250, 40));
-        baseStationParametersPanel.setMaximumSize(new Dimension(250, 40));
-        mainPanel.add(baseStationParametersPanel);
-
-        // base station parameters content        
-        
-        JEditorPane infoPane = new JEditorPane("text/html",
-            "<table cellspacing=1 cellpadding=1><tr><td>Localization:</td><td>...</td></tr>" +
-            "<tr><td>Frequency:</td><td>...</td></tr>" +
-            "<tr><td>Height of the transmitting antenna:</td><td>...</td></tr>" +
-            "<tr><td>Transmitter antenna's gain:</td><td>...</td></tr>" +
-            "<tr><td>Receiver sensitivity:</td><td>...</td></tr>" +
-            "<tr><td>Receiver antenna's gain:</td><td>...</td></tr>" +
-            "<tr><td>Power of the transmitter:</td><td>...</td></tr>" +
-            "<tr><td>Height of the receiving antenna:</td><td>...</td></tr></table>");
-        infoPane.setBorder(new CompoundBorder
-            (BorderFactory.createLineBorder(new Color(122, 138, 153), 1),
-            BorderFactory.createEmptyBorder(0,10,10,10)));
-        infoPane.setPreferredSize(new Dimension(230, 180));
-        infoPane.setMaximumSize(new Dimension(230, 180));
-        mainPanel.add(infoPane);        
-        
-        // efficiensea logo
-        
-        URL efficienSeaImgURL = getClass().getResource("/share/data/images/efficiensea.png");        
-        if (efficienSeaImgURL != null) {
-            ImageIcon icon = new ImageIcon(efficienSeaImgURL, "");           
-            JLabel iconLabel = new JLabel(icon);
-            JPanel iconPanel = new JPanel();  
-            iconPanel.setLayout(new BorderLayout());
-            iconPanel.setBorder(BorderFactory.createEmptyBorder(10,10,10,10));             
-            iconPanel.add(iconLabel);
-            iconPanel.setMinimumSize(new Dimension(250, 75));
-            iconPanel.setPreferredSize(new Dimension(250, 75));
-            iconPanel.setMaximumSize(new Dimension(250, 75));
-            mainPanel.add(iconPanel);
-        } else {
-            System.err.println("Couldn't find efficiensea.png file");
-        }     
-        
-        // eu baltic logo
-        
-        URL euBalticImgURL = getClass().getResource("/share/data/images/euBaltic.png");        
-        if (euBalticImgURL != null) {
-            ImageIcon icon = new ImageIcon(euBalticImgURL, "");           
-            JLabel iconLabel = new JLabel(icon);
-            JPanel iconPanel = new JPanel();  
-            iconPanel.setLayout(new BorderLayout());
-            iconPanel.setBorder(BorderFactory.createEmptyBorder(0,10,0,10));             
-            iconPanel.add(iconLabel);
-            iconPanel.setMinimumSize(new Dimension(250, 50));
-            iconPanel.setPreferredSize(new Dimension(250, 50));
-            iconPanel.setMaximumSize(new Dimension(250, 50));
-            mainPanel.add(iconPanel);
-        } else {
-            System.err.println("Couldn't find euBaltic.png file");
-        }             
-        
-        omf.getContentPane().add(mainPanel, BorderLayout.EAST); 
+        //omf.getContentPane().add(mainPanel, BorderLayout.EAST); 
 
         omf.setVisible(true);
         mapPanel.getMapBean().showLayerPalettes();
