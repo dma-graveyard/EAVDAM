@@ -19,7 +19,7 @@ public class SimpleLayer extends OMGraphicHandlerLayer implements MapMouseListen
 	private OMGraphicList graphics = new OMGraphicList();
 
 	public SimpleLayer() {
-		circle = new OMCircle(55f, 11f, 0, 0, 18, 18);
+		circle = new OMCircle(59.6f, 24.1f, 0.1f);
 		graphics.add(circle);
 		graphics.project(getProjection(), true);
 	}
