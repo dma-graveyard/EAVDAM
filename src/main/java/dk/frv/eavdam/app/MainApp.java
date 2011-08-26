@@ -35,7 +35,7 @@ import com.bbn.openmap.gui.MapPanel;
 import com.bbn.openmap.gui.OpenMapFrame;
 import com.bbn.openmap.util.ArgParser;
 import com.bbn.openmap.util.Debug;
-import dk.frv.eavdam.layers.StationLayer;
+//import dk.frv.eavdam.layers.StationLayer;
 
 /**
  * The OpenMap application framework. This class creates a PropertyHandler that

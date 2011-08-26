@@ -1,7 +1,7 @@
 package dk.frv.eavdam.app;
 
 import com.bbn.openmap.gui.MapPanelChild;
-import dk.frv.eavdam.layers.StationLayer;
+//import dk.frv.eavdam.layers.StationLayer;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
