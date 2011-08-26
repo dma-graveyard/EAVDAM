@@ -13,8 +13,8 @@ public class Antenna {
 	 */
 	private Integer heading;
 	/**
-	 * Field of view angle degrees for AntennaType.DIRECTIONAL. Null for AntennaType.
-	 * OMNIDIRECTIONAL.
+	 * Field of view angle degrees for AntennaType.DIRECTIONAL. Null for
+	 * AntennaType. OMNIDIRECTIONAL.
 	 */
 	private Integer fieldOfViewAngle;
 	/**
@@ -34,12 +34,62 @@ public class Antenna {
 	 */
 	private AntennaType antennaType;
 
-	public Antenna(){
-
+	public Antenna() {
 	}
 
-	public void finalize() throws Throwable {
-
+	public Integer getHeading() {
+		return heading;
 	}
 
+	public void setHeading(Integer heading) {
+		this.heading = heading;
+	}
+
+	public Integer getFieldOfViewAngle() {
+		return fieldOfViewAngle;
+	}
+
+	public void setFieldOfViewAngle(Integer fieldOfViewAngle) {
+		this.fieldOfViewAngle = fieldOfViewAngle;
+	}
+
+	public Double getGain() {
+		return gain;
+	}
+
+	public void setGain(Double gain) {
+		this.gain = gain;
+	}
+
+	public double getAntennaHeight() {
+		return antennaHeight;
+	}
+
+	public void setAntennaHeight(double antennaHeight) {
+		this.antennaHeight = antennaHeight;
+	}
+
+	public double getTerrainHeight() {
+		return terrainHeight;
+	}
+
+	public void setTerrainHeight(double terrainHeight) {
+		this.terrainHeight = terrainHeight;
+	}
+
+	public AntennaType getAntennaType() {
+		return antennaType;
+	}
+
+	public void setAntennaType(AntennaType antennaType) {
+		this.antennaType = antennaType;
+	}
+
+	@Override
+	public String toString() {
+		return "Antenna [heading=" + heading + ", fieldOfViewAngle="
+				+ fieldOfViewAngle + ", gain=" + gain + ", antennaHeight="
+				+ antennaHeight + ", terrainHeight=" + terrainHeight
+				+ ", antennaType=" + antennaType + "]";
+	}
 }
