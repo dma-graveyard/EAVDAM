@@ -381,9 +381,13 @@ class UserInformationActionListener implements ActionListener {
                 user.setPostalAddress(address);
                 user.setPhone(telephoneNumberTextField.getText());
                 user.setFax(faxNumberTextField.getText());
-                try {
-                    user.setWww(new URL(websiteTextField.getText()));
-                } catch (MalformedURLException ex) {}
+                if (websiteTextField.getText().isEmpty()) {
+                    user.setWww(null);
+                } else {
+                    try {
+                        user.setWww(new URL(websiteTextField.getText()));
+                    } catch (MalformedURLException ex) {}
+                }
                 Person contact = user.getContact();
                 if (contact == null) {
                     contact = new Person();
