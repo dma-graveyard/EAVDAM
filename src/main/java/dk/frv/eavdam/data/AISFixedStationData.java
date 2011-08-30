@@ -1,5 +1,19 @@
 package dk.frv.eavdam.data;
 
+import java.io.StringWriter;
+import java.util.List;
+
+import javax.xml.transform.OutputKeys;
+import javax.xml.transform.Transformer;
+import javax.xml.transform.TransformerConfigurationException;
+import javax.xml.transform.TransformerException;
+import javax.xml.transform.TransformerFactory;
+import javax.xml.transform.dom.DOMSource;
+import javax.xml.transform.stream.StreamResult;
+
+import org.w3c.dom.Element;
+import org.w3c.dom.NodeList;
+
 /**
  * A class for holding all properties of an AIS base station.
  * 
@@ -29,7 +43,7 @@ public class AISFixedStationData {
 	/**
 	 * Transmission power in Watts.
 	 */
-	private double transmissionPower;
+	private Double transmissionPower;
 	/**
 	 * A free text description of the station.
 	 */
@@ -59,9 +73,10 @@ public class AISFixedStationData {
 	 */
 	private AISFixedStationStatus status;
 	/**
-	 * Anything can go in here...
+	 * Anything can go in here. The schema allows unknown XML content in the
+	 * end.
 	 */
-	private String freeText;
+	private List<Element> anything;
 
 	public AISFixedStationData() {
 	}
@@ -98,11 +113,11 @@ public class AISFixedStationData {
 		this.mmsi = mmsi;
 	}
 
-	public double getTransmissionPower() {
+	public Double getTransmissionPower() {
 		return transmissionPower;
 	}
 
-	public void setTransmissionPower(double transmissionPower) {
+	public void setTransmissionPower(Double transmissionPower) {
 		this.transmissionPower = transmissionPower;
 	}
 
@@ -162,12 +177,36 @@ public class AISFixedStationData {
 		this.status = status;
 	}
 
-	public String getFreeText() {
-		return freeText;
+	public List<Element> getAnything() {
+		return anything;
 	}
 
-	public void setFreeText(String freeText) {
-		this.freeText = freeText;
+	public void setAnything(List<Element> anything) {
+		this.anything = anything;
+	}
+
+	public String getAnythingString() throws TransformerException {
+		if (this.anything != null) {
+			TransformerFactory transFactory = TransformerFactory.newInstance();
+			Transformer transformer = transFactory.newTransformer();
+			transformer.setOutputProperty(OutputKeys.OMIT_XML_DECLARATION, "yes");
+
+			StringBuilder sb = new StringBuilder();
+			for (Element e:this.anything) {
+				sb.append(e.getLocalName());
+				sb.append(" = ");
+				NodeList children = e.getChildNodes();
+				StringWriter buffer = new StringWriter();
+				for (int i = 0; i < children.getLength(); i++) {
+					transformer.transform(new DOMSource(children.item(i)),
+							new StreamResult(buffer));
+				}
+				sb.append(buffer.toString());
+				sb.append("\n");
+			}
+			return sb.toString();
+		}
+		return null;
 	}
 
 	@Override
@@ -178,6 +217,6 @@ public class AISFixedStationData {
 				+ description + ", coverage=" + coverage + ", antenna="
 				+ antenna + ", fatdmaAllocation=" + fatdmaAllocation
 				+ ", stationType=" + stationType + ", operator=" + operator
-				+ ", status=" + status + ", freeText=" + freeText + "]";
+				+ ", status=" + status + ", anything=" + anything + "]";
 	}
 }

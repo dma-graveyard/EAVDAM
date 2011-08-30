@@ -1,5 +1,9 @@
 package dk.frv.eavdam.data;
 
+import java.util.List;
+
+import org.w3c.dom.Element;
+
 /**
  * A class for storing EAVDAM user specific data.
  * 
@@ -23,9 +27,10 @@ public class EAVDAMUser {
 	private Address visitingAddress;
 	private Address postalAddress;
 	/**
-	 * Anything can go in here...
+	 * Anything can go in here. The schema allows unknown XML content in the
+	 * end.
 	 */
-	private String freeText;
+	private List<Element> anything;
 
 	public EAVDAMUser() {
 	}
@@ -110,12 +115,12 @@ public class EAVDAMUser {
 		this.postalAddress = postalAddress;
 	}
 
-	public String getFreeText() {
-		return freeText;
+	public List<Element> getAnything() {
+		return anything;
 	}
 
-	public void setFreeText(String freeText) {
-		this.freeText = freeText;
+	public void setAnything(List<Element> anything) {
+		this.anything = anything;
 	}
 
 	@Override
@@ -125,7 +130,7 @@ public class EAVDAMUser {
 				+ fax + ", www=" + www + ", description=" + description
 				+ ", contact=" + contact + ", technicalContact="
 				+ technicalContact + ", visitingAddress=" + visitingAddress
-				+ ", postalAddress=" + postalAddress + ", freeText=" + freeText
+				+ ", postalAddress=" + postalAddress + ", anything=" + anything
 				+ "]";
 	}
 }

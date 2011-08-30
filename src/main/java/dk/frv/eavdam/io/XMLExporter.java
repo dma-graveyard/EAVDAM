@@ -64,6 +64,9 @@ public class XMLExporter {
 		xUser.setTechnicalContact(convert(user.getTechnicalContact()));
 		xUser.setVisitingAddress(convert(user.getVisitingAddress()));
 		xUser.setPostalAddress(convert(user.getPostalAddress()));
+		if (user.getAnything() != null) {
+			xUser.getAny().addAll(user.getAnything());
+		}
 		xData.setUser(xUser);
 		// Stations
 		List<AisFixedStationData> xStations = xData.getStation();
@@ -73,56 +76,68 @@ public class XMLExporter {
 		// Create file
 		JAXBContext jc = JAXBContext.newInstance("dk.frv.eavdam.io.jaxb");
 		Marshaller marshaller = jc.createMarshaller();
-		marshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, new Boolean(
-				true));
-		marshaller.marshal(xData, new FileOutputStream("jaxbOutput.xml"));
+		//marshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, new Boolean(
+		//		true));
+		marshaller.marshal(xData, new FileOutputStream(file));
 	}
 
 	private static Person convert(dk.frv.eavdam.data.Person person) {
-		Person xPerson = new Person();
-		xPerson.setName(person.getName());
-		xPerson.setEmail(person.getEmail());
-		xPerson.setPhone(person.getPhone());
-		xPerson.setFax(person.getFax());
-		xPerson.setDescription(person.getDescription());
-		xPerson.setVisitingAddress(convert(person.getVisitingAddress()));
-		xPerson.setPostalAddress(convert(person.getPostalAddress()));
-		return xPerson;
+		if (person != null) {
+			Person xPerson = new Person();
+			xPerson.setName(person.getName());
+			xPerson.setEmail(person.getEmail());
+			xPerson.setPhone(person.getPhone());
+			xPerson.setFax(person.getFax());
+			xPerson.setDescription(person.getDescription());
+			xPerson.setVisitingAddress(convert(person.getVisitingAddress()));
+			xPerson.setPostalAddress(convert(person.getPostalAddress()));
+			return xPerson;
+		}
+		return null;
 	}
 
 	private static Address convert(dk.frv.eavdam.data.Address address) {
-		Address xAddress = new Address();
-		xAddress.setAddressline1(address.getAddressline1());
-		xAddress.setAddressline2(address.getAddressline2());
-		xAddress.setZip(address.getZip());
-		xAddress.setCity(address.getCity());
-		xAddress.setCountry(address.getCountry());
-		return xAddress;
+		if (address != null) {
+			Address xAddress = new Address();
+			xAddress.setAddressline1(address.getAddressline1());
+			xAddress.setAddressline2(address.getAddressline2());
+			xAddress.setZip(address.getZip());
+			xAddress.setCity(address.getCity());
+			xAddress.setCountry(address.getCountry());
+			return xAddress;
+		}
+		return null;
 	}
 
 	private static AisFixedStationData convert(AISFixedStationData data) {
-		AisFixedStationData xData = new AisFixedStationData();
-		xData.setStationName(data.getStationName());
-		xData.setLat(data.getLat());
-		xData.setLon(data.getLon());
-		xData.setMmsi(data.getMmsi());
-		xData.setTransmissionPower(data.getTransmissionPower());
-		xData.setDescription(data.getDescription());
-		if (data.getCoverage() != null) {
-			xData.getCoverage().addAll(convert(data.getCoverage()));
-		}
-		xData.setAntenna(convert(data.getAntenna()));
-		xData.setFatdmaAllocation(convert(data.getFatdmaAllocation()));
-		if (data.getStationType() != null) {
-			xData.setStationType(AisFixedStationType.valueOf(data
-					.getStationType().toString()));
-		}
-		if (data.getStatus() != null) {
-			xData.setStatus(AisFixedStationStatus.valueOf(data.getStatus()
-					.toString()));
-		}
+		if (data != null) {
+			AisFixedStationData xData = new AisFixedStationData();
+			xData.setStationName(data.getStationName());
+			xData.setLat(data.getLat());
+			xData.setLon(data.getLon());
+			xData.setMmsi(data.getMmsi());
+			xData.setTransmissionPower(data.getTransmissionPower());
+			xData.setDescription(data.getDescription());
+			if (data.getCoverage() != null) {
+				xData.getCoverage().addAll(convert(data.getCoverage()));
+			}
+			xData.setAntenna(convert(data.getAntenna()));
+			xData.setFatdmaAllocation(convert(data.getFatdmaAllocation()));
+			if (data.getStationType() != null) {
+				xData.setStationType(AisFixedStationType.valueOf(data
+						.getStationType().toString()));
+			}
+			if (data.getStatus() != null) {
+				xData.setStatus(AisFixedStationStatus.valueOf(data.getStatus()
+						.toString()));
+			}
+			if (data.getAnything() != null) {
+				xData.getAny().addAll(data.getAnything());
+			}
 
-		return xData;
+			return xData;
+		}
+		return null;
 	}
 
 	private static List<AisFixedStationCoverage> convert(
@@ -163,15 +178,4 @@ public class XMLExporter {
 		}
 		return null;
 	}
-
-//	public static void main(String[] args) {
-//		try {
-//			EAVDAMData data = XMLImporter.readXML(new File(
-//					"C:\\Projects\\Damsa\\generated\\data.xml"));
-//			System.out.println(data);
-//			XMLExporter.writeXML(data, null);
-//		} catch (Exception e) {
-//			e.printStackTrace();
-//		}
-//	}
 }
