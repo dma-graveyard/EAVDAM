@@ -59,7 +59,7 @@ public class XMLImporter {
 			user.setVisitingAddress(convert(xUser.getVisitingAddress()));
 			user.setPostalAddress(convert(xUser.getPostalAddress()));
 			List<Element> anything = xUser.getAny();
-			// TODO any
+			user.setAnything(anything);
 
 			return user;
 		}
@@ -116,7 +116,8 @@ public class XMLImporter {
 						.toString()));
 			}
 			List<Element> anything = xData.getAny();
-			// TODO any
+			data.setAnything(anything);
+			
 			return data;
 		}
 		return null;
@@ -169,14 +170,4 @@ public class XMLImporter {
 			throw new RuntimeException("Invalid file");
 		}
 	}
-
-//	public static void main(String[] args) {
-//		try {
-//			EAVDAMData data = readXML(new File(
-//					"C:\\Projects\\Damsa\\generated\\data.xml"));
-//			System.out.println(data);
-//		} catch (Exception e) {
-//			e.printStackTrace();
-//		}
-//	}
 }
