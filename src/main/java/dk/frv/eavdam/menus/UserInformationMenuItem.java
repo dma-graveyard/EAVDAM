@@ -4,6 +4,7 @@ import dk.frv.eavdam.data.Address;
 import dk.frv.eavdam.data.EAVDAMData;
 import dk.frv.eavdam.data.EAVDAMUser;
 import dk.frv.eavdam.data.Person;
+import dk.frv.eavdam.io.XMLExporter;
 import dk.frv.eavdam.io.XMLImporter;
 
 import java.awt.BorderLayout;
@@ -19,15 +20,18 @@ import java.io.BufferedWriter;
 import java.io.DataInputStream;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.InputStreamReader;
 import java.net.MalformedURLException;
+import java.net.URL;
 import javax.swing.AbstractButton;
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JDialog;
+import javax.swing.JOptionPane;
 import javax.swing.GroupLayout;
 import javax.swing.GroupLayout.Alignment;
 import javax.swing.JFrame;
@@ -341,33 +345,79 @@ class UserInformationActionListener implements ActionListener {
             dialog.setVisible(true);
         
         } else if (saveButton != null && e.getSource() == saveButton) {
-                                
+
+            // validates                    
+            
+            boolean errors = false;
+                              
             try {
-                if (!new File("data").exists()) {
-                    new File("data").mkdir();
+                if (!websiteTextField.getText().isEmpty()) {
+                    URL temp = new URL(websiteTextField.getText());
                 }
-                // just for testing
-                FileWriter fstream = new FileWriter("data/eavdam_user.txt");
-                BufferedWriter out = new BufferedWriter(fstream);
-                out.write("<1>" + organizationNameTextField.getText() + "</1>\n");
-                out.write("<2>" + postalAddressTextField.getText() + "</2>\n");
-                out.write("<3>" + zipCodeTextField.getText() + "</3>\n");
-                out.write("<4>" + (String) countryComboBox.getSelectedItem() + "</4>\n");
-                out.write("<5>" + telephoneNumberTextField.getText() + "</5>\n");
-                out.write("<6>" + faxNumberTextField.getText() + "</6>\n");
-                out.write("<7>" + websiteTextField.getText() + "</7>\n");
-                out.write("<8>" + pointOfContactNameTextField.getText() + "</8>\n");
-                out.write("<9>" + pointOfContactPhoneTextField.getText() + "</9>\n");
-                out.write("<10>" + pointOfContactEmailTextField.getText() + "</10>\n");
-                out.write("<11>" + pointOfTechnicalContactNameTextField.getText() + "</11>\n");
-                out.write("<12>" + pointOfTechnicalContactPhoneTextField.getText() + "</12>\n");
-                out.write("<13>" + pointOfTechnicalContactEmailTextField.getText() + "</13>\n");                                                                                                                                                                                                                                                                                                
-                out.write("<14>" + additionalInformationJTextArea.getText() + "</14>\n");
-                out.close();
-            } catch (Exception ex) {
-                System.err.println("Error: " + ex.getMessage());
+            } catch (MalformedURLException ex) {
+                errors = true;
+                JOptionPane.showMessageDialog(dialog, "Website address is not a valid URL.");
             }
-            dialog.dispose();
+
+            if (!errors) {
+                 
+                if (data == null) {
+                    data = new EAVDAMData();
+                }
+    
+                EAVDAMUser user = data.getUser();
+                if (user == null) {
+                    user = new EAVDAMUser();
+                }
+                
+                user.setOrganizationName(organizationNameTextField.getText());
+                Address address = user.getPostalAddress();
+                if (address == null) {
+                    address = new Address();
+                }
+                address.setAddressline1(postalAddressTextField.getText());
+                address.setZip(zipCodeTextField.getText());
+                address.setCountry((String) countryComboBox.getSelectedItem());
+                user.setPostalAddress(address);
+                user.setPhone(telephoneNumberTextField.getText());
+                user.setFax(faxNumberTextField.getText());
+                try {
+                    user.setWww(new URL(websiteTextField.getText()));
+                } catch (MalformedURLException ex) {}
+                Person contact = user.getContact();
+                if (contact == null) {
+                    contact = new Person();
+                }
+                contact.setName(pointOfContactNameTextField.getText());
+                contact.setPhone(pointOfContactPhoneTextField.getText());
+                contact.setEmail(pointOfContactEmailTextField.getText());
+                user.setContact(contact);
+                Person technicalContact = user.getTechnicalContact();
+                if (technicalContact == null) {
+                    technicalContact = new Person();
+                }
+                technicalContact.setName(pointOfTechnicalContactNameTextField.getText());
+                technicalContact.setPhone(pointOfTechnicalContactPhoneTextField.getText());
+                technicalContact.setEmail(pointOfTechnicalContactEmailTextField.getText());
+                user.setTechnicalContact(technicalContact);                
+                user.setDescription(additionalInformationJTextArea.getText());
+                
+                data.setUser(user);                                
+                
+                try {
+                    File file = new File("data");
+                    if (!file.exists()) {
+                        file.mkdir();
+                    }
+                    XMLExporter.writeXML(data, new File("data/eavdam_data.xml"));
+                } catch (FileNotFoundException ex) {
+                    System.out.println(ex.getMessage());
+                } catch (JAXBException ex) {
+                    System.out.println(ex.getMessage());
+                }
+    
+                dialog.dispose();
+            }
             
         } else if (cancelButton != null && e.getSource() == cancelButton) {
             dialog.dispose();  
