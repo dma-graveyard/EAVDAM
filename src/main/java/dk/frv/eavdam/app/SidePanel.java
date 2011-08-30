@@ -39,6 +39,8 @@ public class SidePanel extends JPanel implements MapPanelChild, ActionListener {
 	public SidePanel() {
 	        
         setLayout(new BoxLayout(this, BoxLayout.PAGE_AXIS));             
+
+/*
               
         // choose maps title      
               
@@ -152,6 +154,8 @@ public class SidePanel extends JPanel implements MapPanelChild, ActionListener {
         infoPane.setPreferredSize(new Dimension(230, 180));
         infoPane.setMaximumSize(new Dimension(230, 180));
         add(infoPane);        
+
+*/
         
         // efficiensea logo
         
