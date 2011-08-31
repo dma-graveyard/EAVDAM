@@ -1,12 +1,5 @@
 package dk.frv.eavdam.layers;
 
-import java.awt.Color;
-import java.awt.event.MouseEvent;
-import java.awt.geom.Point2D;
-import java.io.DataInputStream;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import com.bbn.openmap.InformationDelegator;
 import com.bbn.openmap.event.InfoDisplayEvent;
 import com.bbn.openmap.event.MapMouseEvent;
@@ -21,7 +14,21 @@ import com.bbn.openmap.omGraphics.OMGraphicList;
 import com.bbn.openmap.omGraphics.OMList;
 import com.bbn.openmap.omGraphics.OMRect;
 import com.bbn.openmap.proj.Length;
+import dk.frv.eavdam.data.AISFixedStationData;
 import dk.frv.eavdam.data.AISFixedStationType;
+import dk.frv.eavdam.data.EAVDAMData;
+import dk.frv.eavdam.io.XMLImporter;
+import dk.frv.eavdam.menus.EavdamMenu;
+import dk.frv.eavdam.menus.StationInformationMenuItem;
+import java.awt.Color;
+import java.awt.event.MouseEvent;
+import java.awt.geom.Point2D;
+import java.io.DataInputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.net.MalformedURLException;
+import javax.xml.bind.JAXBException;
 
 public class StationLayer extends OMGraphicHandlerLayer implements MapMouseListener {
 
@@ -31,9 +38,14 @@ public class StationLayer extends OMGraphicHandlerLayer implements MapMouseListe
 	private InformationDelegator infoDelegator;
 	//private SidePanel sidePanel;
 	private OMAISBaseStationReachLayerA reachLayerA;
+	private EavdamMenu eavdamMenu;
 	
     public StationLayer() {
 //		this.addBaseStation(60.1, 23.8, "base 1", 10);
+    }
+
+    public OMAISBaseStationReachLayerA getReachLayer() {
+        return reachLayerA;
     }
 
     public void addBaseStation(double lat, double lon, String name, AISFixedStationType stationType) {
@@ -55,8 +67,9 @@ public class StationLayer extends OMGraphicHandlerLayer implements MapMouseListe
 		
 		base.setFillPaint(Color.blue);
 		graphics.add(base);
-		//graphics.project(getProjection(), true);
+		graphics.project(getProjection(), true);
 		this.repaint();
+		this.validate();
 
 		//this.addBaseStationReachArea(base);
 		reachLayerA.addBaseStationReachArea(base);
@@ -99,6 +112,8 @@ public class StationLayer extends OMGraphicHandlerLayer implements MapMouseListe
 		for (OMGraphic omGraphic : allClosest) {
 			if (omGraphic instanceof OMBaseStation) {
 				System.out.println("Mouse clicked on omGraphic: " + omGraphic);
+				OMBaseStation omBaseStation = (OMBaseStation) omGraphic;
+				new StationInformationMenuItem(eavdamMenu, omBaseStation.getName()).doClick();
 
 				/*
 				if (this.sidePanel != null) {
@@ -217,10 +232,14 @@ public class StationLayer extends OMGraphicHandlerLayer implements MapMouseListe
 			this.reachLayerA = (OMAISBaseStationReachLayerA) obj;
 //			this.sidePanel.setStationLayer(this);
 
+            updateStations();
+        
+            /*
             this.addBaseStation(60.1, 23.8, "base 1", AISFixedStationType.BASESTATION);
             this.addBaseStation(60.3, 23.6, "base 2", AISFixedStationType.REPEATER);
             this.addBaseStation(60.5, 24.0, "base 3", AISFixedStationType.RECEIVER);            
             this.addBaseStation(61.0, 23.8, "base 4", AISFixedStationType.ATON);  
+            */
                         
             /*
             OMCircle o1 = new OMCircle(60.1, 23.8, 0.01);
@@ -234,6 +253,8 @@ public class StationLayer extends OMGraphicHandlerLayer implements MapMouseListe
             graphics.add(o3);
             this.repaint();
             */
+		} else if (obj instanceof EavdamMenu) {
+		    this.eavdamMenu = (EavdamMenu) obj;
 		}
 	}
 
@@ -253,6 +274,27 @@ public class StationLayer extends OMGraphicHandlerLayer implements MapMouseListe
             System.out.println(e.getMessage());
         }
         return null;
+    }
+
+    public void updateStations() {
+        try {
+            graphics.clear();
+            reachLayerA.getGraphicsList().clear();           
+            EAVDAMData data = XMLImporter.readXML(new File("data/eavdam_data.xml"));
+            if (data != null) {
+                AISFixedStationData[] stations = data.getStations();
+                if (stations != null) {
+                    for (AISFixedStationData station : stations) {
+                        this.addBaseStation(station.getLat(), station.getLon(), station.getStationName(), station.getStationType());                    
+                    }
+                }
+            }
+        } catch (MalformedURLException ex) {
+            System.out.println(ex.getMessage());
+        } catch (JAXBException ex) {
+            System.out.println(ex.getMessage());
+        }
+        
     }
 
 }

@@ -35,6 +35,8 @@ public class OMBaseStation extends ByteRasterLocation {
 		this.name = name;		
 		this.lat = lat;
 		this.lon = lon;
+		
+        this.setShowName(false);
 	}
 
 	public String getName() {

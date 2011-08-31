@@ -31,6 +31,10 @@ public class OMAISBaseStationReachLayerA extends OMGraphicHandlerLayer implement
 	public void addReachArea(OMBaseStation base) {	
 		this.addBaseStationReachArea(base);		
 	}
+	
+	public OMGraphicList getGraphicsList() {
+	    return graphics;
+	}
 
 	// public void addRect(double latN, double lonW, double latS, double lonE) {
 	// OMRect r = new OMRect(latN, lonW, latS, lonE, OMGraphic.LINETYPE_RHUMB);
@@ -67,8 +71,9 @@ public class OMAISBaseStationReachLayerA extends OMGraphicHandlerLayer implement
 			Color c = new Color(0, 255, 0, 100);
 			baseCircle.setFillPaint(c);
 			graphics.add(baseCircle);
-			//graphics.project(getProjection(), true);
+			graphics.project(getProjection(), true);
 			this.repaint();
+			this.validate();
 			
 		} else if (bs.getReachArea().size() == 2) {
 			return;
@@ -155,7 +160,7 @@ public class OMAISBaseStationReachLayerA extends OMGraphicHandlerLayer implement
 				System.out.println("Mouse dragged on omGraphic: " + omGraphic);
 				OMBaseStation r = (OMBaseStation) omGraphic;
 				Point2D p = ((MapMouseEvent) e).getLatLon();
-				r.setLatLon(p.getY(), p.getX());
+				r.setLocation(p.getY(), p.getX());
 				r.generate(getProjection());
 				this.repaint();
 

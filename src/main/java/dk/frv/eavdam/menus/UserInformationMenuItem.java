@@ -41,6 +41,8 @@ import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
 import javax.xml.bind.JAXBException;
 
 /**
@@ -58,7 +60,7 @@ public class UserInformationMenuItem extends JMenuItem {
 
 }
  
-class UserInformationActionListener implements ActionListener {
+class UserInformationActionListener implements ActionListener, DocumentListener {
 
     private EavdamMenu eavdamMenu;
                                                          
@@ -67,6 +69,7 @@ class UserInformationActionListener implements ActionListener {
     private JTextField organizationNameTextField;
     private JTextField postalAddressTextField;
     private JTextField zipCodeTextField;
+    private JTextField cityTextField;
     private JComboBox countryComboBox;
     private JTextField telephoneNumberTextField;
     private JTextField faxNumberTextField;
@@ -86,7 +89,7 @@ class UserInformationActionListener implements ActionListener {
     private JButton cancelButton;
     
     private EAVDAMData data;                   
-                   
+              
     public UserInformationActionListener(EavdamMenu eavdamMenu) {
         super();
         this.eavdamMenu = eavdamMenu;
@@ -99,20 +102,36 @@ class UserInformationActionListener implements ActionListener {
             dialog = new JDialog(eavdamMenu.getOpenMapFrame(), "User Information", true);
         
             organizationNameTextField = new JTextField(16);
+            organizationNameTextField.getDocument().addDocumentListener(this);
             postalAddressTextField = new JTextField(16);             
+            postalAddressTextField.getDocument().addDocumentListener(this);
             zipCodeTextField = new JTextField(16);             
+            zipCodeTextField.getDocument().addDocumentListener(this);
+            cityTextField = new JTextField(16);
+            cityTextField.getDocument().addDocumentListener(this);
             countryComboBox = new JComboBox
                 (new String[] {"Denmark", "Finland", "Norway" , "Sweden"});
+            countryComboBox.addActionListener(this);
             telephoneNumberTextField = new JTextField(16);
+            telephoneNumberTextField.getDocument().addDocumentListener(this);
             faxNumberTextField = new JTextField(16);
+            faxNumberTextField.getDocument().addDocumentListener(this);
             websiteTextField = new JTextField(16);  
+            websiteTextField.getDocument().addDocumentListener(this);
             pointOfContactNameTextField = new JTextField(16);  
+            pointOfContactNameTextField.getDocument().addDocumentListener(this);
             pointOfContactPhoneTextField = new JTextField(16);                                                                                                
+            pointOfContactPhoneTextField.getDocument().addDocumentListener(this);
             pointOfContactEmailTextField = new JTextField(16);  
+            pointOfContactEmailTextField.getDocument().addDocumentListener(this);
             pointOfTechnicalContactNameTextField = new JTextField(16);  
+            pointOfTechnicalContactNameTextField.getDocument().addDocumentListener(this);
             pointOfTechnicalContactPhoneTextField = new JTextField(16);                                          
+            pointOfTechnicalContactPhoneTextField.getDocument().addDocumentListener(this);
             pointOfTechnicalContactEmailTextField = new JTextField(16); 
+            pointOfTechnicalContactEmailTextField.getDocument().addDocumentListener(this);
             additionalInformationJTextArea = new JTextArea("");                
+            additionalInformationJTextArea.getDocument().addDocumentListener(this);
 
             try {
                 data = XMLImporter.readXML(new File("data/eavdam_data.xml"));
@@ -141,6 +160,12 @@ class UserInformationActionListener implements ActionListener {
                     Address address = user.getPostalAddress();
                     if (address.getZip() != null) {
                         zipCodeTextField.setText(address.getZip());
+                    }                            
+                }
+                if (user.getPostalAddress() != null) {
+                    Address address = user.getPostalAddress();
+                    if (address.getCity() != null) {
+                        cityTextField.setText(address.getCity());
                     }                            
                 }
                 if (user.getPostalAddress() != null) {
@@ -221,24 +246,29 @@ class UserInformationActionListener implements ActionListener {
             c.gridy = 2;                  
             p1.add(new JLabel("Zip code:"), c);
             c.gridx = 1;                    
-            p1.add(zipCodeTextField, c);        
+            p1.add(zipCodeTextField, c);
             c.gridx = 0;
             c.gridy = 3;                  
+            p1.add(new JLabel("City:"), c);
+            c.gridx = 1;                    
+            p1.add(cityTextField, c);                    
+            c.gridx = 0;
+            c.gridy = 4;                  
             p1.add(new JLabel("Country:"), c);
             c.gridx = 1;                    
             p1.add(countryComboBox, c);
             c.gridx = 0;
-            c.gridy = 4;                  
+            c.gridy = 5;                  
             p1.add(new JLabel("Telephone number:"), c);
             c.gridx = 1;                    
             p1.add(telephoneNumberTextField, c);  
             c.gridx = 0;
-            c.gridy = 5;                  
+            c.gridy = 6;                  
             p1.add(new JLabel("Fax number:"), c);
             c.gridx = 1;                    
             p1.add(faxNumberTextField, c);  
             c.gridx = 0;
-            c.gridy = 6;                  
+            c.gridy = 7;                  
             p1.add(new JLabel("Website:"), c);
             c.gridx = 1;                    
             p1.add(websiteTextField, c);  
@@ -328,6 +358,7 @@ class UserInformationActionListener implements ActionListener {
 
             JPanel buttonPanel = new JPanel();
             buttonPanel.add(saveButton);
+            saveButton.setEnabled(false);
             buttonPanel.add(cancelButton);                    
             c.gridx = 0;
             c.gridy = 3;
@@ -345,88 +376,303 @@ class UserInformationActionListener implements ActionListener {
             dialog.setVisible(true);
         
         } else if (saveButton != null && e.getSource() == saveButton) {
-
-            // validates                    
             
-            boolean errors = false;
-                              
-            try {
-                if (!websiteTextField.getText().isEmpty()) {
-                    URL temp = new URL(websiteTextField.getText());
-                }
-            } catch (MalformedURLException ex) {
-                errors = true;
-                JOptionPane.showMessageDialog(dialog, "Website address is not a valid URL.");
-            }
-
-            if (!errors) {
-                 
-                if (data == null) {
-                    data = new EAVDAMData();
-                }
-    
-                EAVDAMUser user = data.getUser();
-                if (user == null) {
-                    user = new EAVDAMUser();
-                }
-                
-                user.setOrganizationName(organizationNameTextField.getText());
-                Address address = user.getPostalAddress();
-                if (address == null) {
-                    address = new Address();
-                }
-                address.setAddressline1(postalAddressTextField.getText());
-                address.setZip(zipCodeTextField.getText());
-                address.setCountry((String) countryComboBox.getSelectedItem());
-                user.setPostalAddress(address);
-                user.setPhone(telephoneNumberTextField.getText());
-                user.setFax(faxNumberTextField.getText());
-                if (websiteTextField.getText().isEmpty()) {
-                    user.setWww(null);
-                } else {
-                    try {
-                        user.setWww(new URL(websiteTextField.getText()));
-                    } catch (MalformedURLException ex) {}
-                }
-                Person contact = user.getContact();
-                if (contact == null) {
-                    contact = new Person();
-                }
-                contact.setName(pointOfContactNameTextField.getText());
-                contact.setPhone(pointOfContactPhoneTextField.getText());
-                contact.setEmail(pointOfContactEmailTextField.getText());
-                user.setContact(contact);
-                Person technicalContact = user.getTechnicalContact();
-                if (technicalContact == null) {
-                    technicalContact = new Person();
-                }
-                technicalContact.setName(pointOfTechnicalContactNameTextField.getText());
-                technicalContact.setPhone(pointOfTechnicalContactPhoneTextField.getText());
-                technicalContact.setEmail(pointOfTechnicalContactEmailTextField.getText());
-                user.setTechnicalContact(technicalContact);                
-                user.setDescription(additionalInformationJTextArea.getText());
-                
-                data.setUser(user);                                
-                
-                try {
-                    File file = new File("data");
-                    if (!file.exists()) {
-                        file.mkdir();
-                    }
-                    XMLExporter.writeXML(data, new File("data/eavdam_data.xml"));
-                } catch (FileNotFoundException ex) {
-                    System.out.println(ex.getMessage());
-                } catch (JAXBException ex) {
-                    System.out.println(ex.getMessage());
-                }
-    
+            boolean success = saveUser();
+            
+            if (success) {
+                saveButton.setEnabled(false);
                 dialog.dispose();
             }
-            
+
         } else if (cancelButton != null && e.getSource() == cancelButton) {
-            dialog.dispose();  
-        }            
+            if (saveButton.isEnabled()) {
+                int response = JOptionPane.showConfirmDialog(dialog, "Do you want to save the changes before exiting?", "Confirm action", JOptionPane.YES_NO_OPTION);
+                if (response == JOptionPane.YES_OPTION) {
+                    boolean success = saveUser();
+                    if (success) {
+                        dialog.dispose();
+                    }
+                } else if (response == JOptionPane.NO_OPTION) {                    
+                    dialog.dispose();
+                }
+            } else {
+                dialog.dispose();                  
+            }
+        
+        } else if (saveButton != null) {
+            if (isChanged()) {
+                saveButton.setEnabled(true);
+            } else {
+                saveButton.setEnabled(false);
+            }
+        }
+    }
+
+    public void changedUpdate(DocumentEvent e) {
+        if (saveButton != null) {
+            if (isChanged()) {
+                saveButton.setEnabled(true);
+            } else {
+                saveButton.setEnabled(false);
+            }
+        }
+    }  
+    
+    public void insertUpdate(DocumentEvent e) {
+        if (saveButton != null) {
+            if (isChanged()) {
+                saveButton.setEnabled(true);
+            } else {
+                saveButton.setEnabled(false);
+            }
+        }
+    } 
+    
+    public void removeUpdate(DocumentEvent e) {
+        if (saveButton != null) {
+            if (isChanged()) {
+                saveButton.setEnabled(true);
+            } else {
+                saveButton.setEnabled(false);
+            }
+        }
     }
         
+    private boolean saveUser() {
+    
+        // validates                    
+        
+        boolean errors = false;
+                 
+        if (!errors && organizationNameTextField.getText().trim().isEmpty()) {
+            errors = true;
+            JOptionPane.showMessageDialog(dialog, "Organisation name is mandatory.");                
+        }
+        if (!errors && (!postalAddressTextField.getText().trim().isEmpty() ||
+                !cityTextField.getText().trim().isEmpty() ||
+                !zipCodeTextField.getText().trim().isEmpty()) &&
+                (postalAddressTextField.getText().trim().isEmpty() ||
+                cityTextField.getText().trim().isEmpty() ||
+                zipCodeTextField.getText().trim().isEmpty())) {
+            JOptionPane.showMessageDialog(dialog, "Postal address, city and zip code must be all given.");                  
+        }
+        if (!errors && pointOfContactNameTextField.getText().trim().isEmpty() && 
+                (!pointOfContactPhoneTextField.getText().trim().isEmpty() ||
+                !pointOfContactEmailTextField.getText().trim().isEmpty())) {
+            JOptionPane.showMessageDialog(dialog, "Point of contact's name must be given.");                  
+        }
+        if (!errors && pointOfTechnicalContactNameTextField.getText().trim().isEmpty() && 
+                (!pointOfTechnicalContactPhoneTextField.getText().trim().isEmpty() ||
+                !pointOfTechnicalContactEmailTextField.getText().trim().isEmpty())) {
+            JOptionPane.showMessageDialog(dialog, "Point of technical contact's name must be given.");                  
+        }            
+        if (!errors && organizationNameTextField.getText().trim().isEmpty()) {
+            errors = true;
+            JOptionPane.showMessageDialog(dialog, "Organisation name is mandatory.");                
+        }
+
+        if (!errors && organizationNameTextField.getText().trim().isEmpty()) {
+            errors = true;
+            JOptionPane.showMessageDialog(dialog, "Organisation name is mandatory.");                
+        }
+            
+        if (!errors && organizationNameTextField.getText().trim().isEmpty()) {
+            errors = true;
+            JOptionPane.showMessageDialog(dialog, "Organisation name is mandatory.");                
+        }                                                
+                          
+        try {
+            if (!errors && !websiteTextField.getText().trim().isEmpty()) {
+                URL temp = new URL(websiteTextField.getText().trim());
+            }
+        } catch (MalformedURLException ex) {
+            errors = true;
+            JOptionPane.showMessageDialog(dialog, "Website address is not a valid URL.");
+        }
+
+        if (errors) {                     
+            return false;
+        }
+
+        if (data == null) {
+            data = new EAVDAMData();
+        }
+
+        EAVDAMUser user = data.getUser();
+        if (user == null) {
+            user = new EAVDAMUser();
+        }
+        
+        user.setOrganizationName(organizationNameTextField.getText().trim());
+        Address address = user.getPostalAddress();
+        if (address == null) {
+            address = new Address();
+        }
+        address.setAddressline1(postalAddressTextField.getText().trim());
+        address.setCity(cityTextField.getText().trim());
+        address.setZip(zipCodeTextField.getText().trim());
+        address.setCountry((String) countryComboBox.getSelectedItem());
+        user.setPostalAddress(address);
+        user.setPhone(telephoneNumberTextField.getText().trim());
+        user.setFax(faxNumberTextField.getText().trim());
+        if (websiteTextField.getText().trim().isEmpty()) {
+            user.setWww(null);
+        } else {
+            try {
+                user.setWww(new URL(websiteTextField.getText().trim()));
+            } catch (MalformedURLException ex) {}
+        }
+        Person contact = user.getContact();
+        if (contact == null) {
+            contact = new Person();
+        }
+        contact.setName(pointOfContactNameTextField.getText().trim());
+        contact.setPhone(pointOfContactPhoneTextField.getText().trim());
+        contact.setEmail(pointOfContactEmailTextField.getText().trim());
+        user.setContact(contact);
+        Person technicalContact = user.getTechnicalContact();
+        if (technicalContact == null) {
+            technicalContact = new Person();
+        }
+        technicalContact.setName(pointOfTechnicalContactNameTextField.getText().trim());
+        technicalContact.setPhone(pointOfTechnicalContactPhoneTextField.getText().trim());
+        technicalContact.setEmail(pointOfTechnicalContactEmailTextField.getText().trim());
+        user.setTechnicalContact(technicalContact);                
+        user.setDescription(additionalInformationJTextArea.getText().trim());
+        
+        data.setUser(user);                                
+        
+        try {
+            File file = new File("data");
+            if (!file.exists()) {
+                file.mkdir();
+            }
+            XMLExporter.writeXML(data, new File("data/eavdam_data.xml"));
+        } catch (FileNotFoundException ex) {
+            System.out.println(ex.getMessage());
+        } catch (JAXBException ex) {
+            System.out.println(ex.getMessage());
+        } 
+        
+        return true;
+    
+    }
+    
+    private boolean isChanged() {
+        
+        if (data == null) {
+            return true;
+        }
+        
+        EAVDAMUser user = data.getUser();
+        if (user == null) {
+            user = new EAVDAMUser();
+        }
+        
+        if (user.getOrganizationName() == null && !organizationNameTextField.getText().trim().isEmpty()) {
+            return true;
+        }
+        if (!user.getOrganizationName().equals(organizationNameTextField.getText().trim())) {
+            return true;
+        }        
+        
+        Address address = user.getPostalAddress();
+        if (address == null) {
+            address = new Address();
+        }
+        if (address.getAddressline1() == null && !postalAddressTextField.getText().trim().isEmpty()) {
+            return true;
+        }
+        if (!address.getAddressline1().equals(postalAddressTextField.getText().trim())) {
+            return true;
+        }
+        if (address.getCity() == null && !cityTextField.getText().trim().isEmpty()) {
+            return true;
+        }
+        if (!address.getCity().equals(cityTextField.getText().trim())) {
+            return true;
+        }
+        if (address.getZip() == null && !zipCodeTextField.getText().trim().isEmpty()) {
+            return true;
+        }
+        if (!address.getZip().equals(zipCodeTextField.getText().trim())) {
+            return true;
+        }
+        if (address.getCountry() == null) {
+            return true;
+        }
+        if (!address.getCountry().equals((String) countryComboBox.getSelectedItem())) {
+            return true;
+        }
+        if (user.getPhone() == null && !telephoneNumberTextField.getText().trim().isEmpty()) {
+            return true;
+        }
+        if (!user.getPhone().equals(telephoneNumberTextField.getText().trim())) {
+            return true;
+        }
+        if (user.getFax() == null && !faxNumberTextField.getText().trim().isEmpty()) {
+            return true;
+        }
+        if (!user.getFax().equals(faxNumberTextField.getText().trim())) {
+            return true;
+        }
+        if (user.getWww() == null && !websiteTextField.getText().trim().isEmpty()) {
+            return true;
+        }
+        if (user.getWww() != null && !user.getWww().toString().equals(websiteTextField.getText().trim())) {
+            return true;
+        }
+        Person contact = user.getContact();
+        if (contact == null) {
+            contact = new Person();
+        }
+        if (contact.getName() == null && !pointOfContactNameTextField.getText().trim().isEmpty()) {
+            return true;
+        }
+        if (!contact.getName().equals(pointOfContactNameTextField.getText().trim())) {
+            return true;
+        }
+        if (contact.getPhone() == null && !pointOfContactPhoneTextField.getText().trim().isEmpty()) {
+            return true;
+        }
+        if (!contact.getPhone().equals(pointOfContactPhoneTextField.getText().trim())) {
+            return true;
+        }
+        if (contact.getEmail() == null && !pointOfContactEmailTextField.getText().trim().isEmpty()) {
+            return true;
+        }
+        if (!contact.getEmail().equals(pointOfContactEmailTextField.getText().trim())) {
+            return true;
+        }        
+        Person technicalContact = user.getTechnicalContact();
+        if (technicalContact == null) {
+            technicalContact = new Person();
+        }
+        if (technicalContact.getName() == null && !pointOfTechnicalContactNameTextField.getText().trim().isEmpty()) {
+            return true;
+        }
+        if (!technicalContact.getName().equals(pointOfTechnicalContactNameTextField.getText().trim())) {
+            return true;
+        }
+        if (technicalContact.getPhone() == null && !pointOfTechnicalContactPhoneTextField.getText().trim().isEmpty()) {
+            return true;
+        }
+        if (!technicalContact.getPhone().equals(pointOfTechnicalContactPhoneTextField.getText().trim())) {
+            return true;
+        }
+        if (technicalContact.getEmail() == null && !pointOfTechnicalContactEmailTextField.getText().trim().isEmpty()) {
+            return true;
+        }
+        if (!technicalContact.getEmail().equals(pointOfTechnicalContactEmailTextField.getText().trim())) {
+            return true;
+        }       
+        if (user.getDescription() == null && !additionalInformationJTextArea.getText().trim().isEmpty()) {
+            return true;
+        }                 
+        if (!user.getDescription().equals(additionalInformationJTextArea.getText().trim())) {
+            return true;
+        }
+        return false;        
+    }
 }
 
