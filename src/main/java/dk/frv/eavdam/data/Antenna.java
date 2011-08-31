@@ -42,6 +42,9 @@ public class Antenna {
 	}
 
 	public void setHeading(Integer heading) {
+		if (heading != null && (heading < 0 || heading > 359)) {
+			throw new IllegalArgumentException("Heading not in range [0 359]");
+		}
 		this.heading = heading;
 	}
 
@@ -50,6 +53,11 @@ public class Antenna {
 	}
 
 	public void setFieldOfViewAngle(Integer fieldOfViewAngle) {
+		if (fieldOfViewAngle != null
+				&& (fieldOfViewAngle < 0 || fieldOfViewAngle > 359)) {
+			throw new IllegalArgumentException(
+					"Field of view angle not in range [0 359]");
+		}
 		this.fieldOfViewAngle = fieldOfViewAngle;
 	}
 
@@ -58,6 +66,9 @@ public class Antenna {
 	}
 
 	public void setGain(Double gain) {
+		if (gain != null && gain < 0) {
+			throw new IllegalArgumentException("Gain must be non-negative");
+		}
 		this.gain = gain;
 	}
 
@@ -66,6 +77,9 @@ public class Antenna {
 	}
 
 	public void setAntennaHeight(double antennaHeight) {
+		if (antennaHeight < 0) {
+			throw new IllegalArgumentException("Antenna height must be non-negative");
+		}
 		this.antennaHeight = antennaHeight;
 	}
 

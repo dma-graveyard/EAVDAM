@@ -21,7 +21,11 @@ public class Address {
 	}
 
 	public void setAddressline1(String addressline1) {
-		this.addressline1 = addressline1;
+		if (addressline1 != null) {
+			this.addressline1 = addressline1.trim();
+		} else {
+			this.addressline1 = null;
+		}
 	}
 
 	public String getAddressline2() {
@@ -29,7 +33,11 @@ public class Address {
 	}
 
 	public void setAddressline2(String addressline2) {
-		this.addressline2 = addressline2;
+		if (addressline2 != null) {
+			this.addressline2 = addressline2.trim();
+		} else {
+			this.addressline2 = null;
+		}
 	}
 
 	public String getZip() {
@@ -37,7 +45,11 @@ public class Address {
 	}
 
 	public void setZip(String zip) {
-		this.zip = zip;
+		if (zip != null) {
+			this.zip = zip.trim();
+		} else {
+			this.zip = null;
+		}
 	}
 
 	public String getCity() {
@@ -45,7 +57,11 @@ public class Address {
 	}
 
 	public void setCity(String city) {
-		this.city = city;
+		if (city != null) {
+			this.city = city.trim();
+		} else {
+			this.city = null;
+		}
 	}
 
 	public String getCountry() {
@@ -53,7 +69,11 @@ public class Address {
 	}
 
 	public void setCountry(String country) {
-		this.country = country;
+		if (country != null) {
+			this.country = country.trim();
+		} else {
+			this.country = null;
+		}
 	}
 
 	@Override

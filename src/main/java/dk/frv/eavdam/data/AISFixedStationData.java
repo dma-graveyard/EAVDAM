@@ -5,7 +5,6 @@ import java.util.List;
 
 import javax.xml.transform.OutputKeys;
 import javax.xml.transform.Transformer;
-import javax.xml.transform.TransformerConfigurationException;
 import javax.xml.transform.TransformerException;
 import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
@@ -86,7 +85,10 @@ public class AISFixedStationData {
 	}
 
 	public void setStationName(String stationName) {
-		this.stationName = stationName;
+		if (stationName == null || stationName.trim().length() == 0) {
+			throw new IllegalArgumentException("Station name must be given");
+		}
+		this.stationName = stationName.trim();
 	}
 
 	public double getLat() {
@@ -94,6 +96,9 @@ public class AISFixedStationData {
 	}
 
 	public void setLat(double lat) {
+		if (lat < -90 || lat > 90) {
+			throw new IllegalArgumentException("Latitude not in range [-90 90]");
+		}
 		this.lat = lat;
 	}
 
@@ -102,6 +107,10 @@ public class AISFixedStationData {
 	}
 
 	public void setLon(double lon) {
+		if (lon < -180 || lon > 180) {
+			throw new IllegalArgumentException(
+					"Longitude not in range [-180 180]");
+		}
 		this.lon = lon;
 	}
 
@@ -110,6 +119,10 @@ public class AISFixedStationData {
 	}
 
 	public void setMmsi(String mmsi) {
+		if (mmsi != null && !mmsi.matches("\\d{9}")) {
+			throw new IllegalArgumentException(
+					"MMSI invalid, must contain 9 digits");
+		}
 		this.mmsi = mmsi;
 	}
 
@@ -118,6 +131,10 @@ public class AISFixedStationData {
 	}
 
 	public void setTransmissionPower(Double transmissionPower) {
+		if (transmissionPower != null && transmissionPower < 0) {
+			throw new IllegalArgumentException(
+					"Transmission power must be non-negative");
+		}
 		this.transmissionPower = transmissionPower;
 	}
 
@@ -126,7 +143,11 @@ public class AISFixedStationData {
 	}
 
 	public void setDescription(String description) {
-		this.description = description;
+		if (description != null) {
+			this.description = description.trim();
+		} else {
+			this.description = null;
+		}
 	}
 
 	public AISFixedStationCoverage getCoverage() {
@@ -189,10 +210,11 @@ public class AISFixedStationData {
 		if (this.anything != null) {
 			TransformerFactory transFactory = TransformerFactory.newInstance();
 			Transformer transformer = transFactory.newTransformer();
-			transformer.setOutputProperty(OutputKeys.OMIT_XML_DECLARATION, "yes");
+			transformer.setOutputProperty(OutputKeys.OMIT_XML_DECLARATION,
+					"yes");
 
 			StringBuilder sb = new StringBuilder();
-			for (Element e:this.anything) {
+			for (Element e : this.anything) {
 				sb.append(e.getLocalName());
 				sb.append(" = ");
 				NodeList children = e.getChildNodes();

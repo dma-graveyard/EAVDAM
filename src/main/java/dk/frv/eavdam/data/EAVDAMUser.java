@@ -40,7 +40,11 @@ public class EAVDAMUser {
 	}
 
 	public void setOrganizationName(String organizationName) {
-		this.organizationName = organizationName;
+		if (organizationName == null || organizationName.trim().length() == 0) {
+			throw new IllegalArgumentException(
+					"Organization name must be given");
+		}
+		this.organizationName = organizationName.trim();
 	}
 
 	public String getCountryID() {
@@ -48,6 +52,10 @@ public class EAVDAMUser {
 	}
 
 	public void setCountryID(String countryID) {
+		if (countryID == null || !countryID.matches("\\p{Lu}\\p{Lu}")) {
+			throw new IllegalArgumentException(
+					"Country ID of two capital letters must be given");
+		}
 		this.countryID = countryID;
 	}
 
@@ -56,6 +64,10 @@ public class EAVDAMUser {
 	}
 
 	public void setPhone(String phone) {
+		if (phone != null && !phone.matches("\\+[0-9 -]+")) {
+			throw new IllegalArgumentException(
+					"Phone number invalid, must start with + followed by digits, space and dashes allowed.");
+		}
 		this.phone = phone;
 	}
 
@@ -64,6 +76,10 @@ public class EAVDAMUser {
 	}
 
 	public void setFax(String fax) {
+		if (fax != null && !fax.matches("\\+[0-9 -]+")) {
+			throw new IllegalArgumentException(
+					"Fax number invalid, must start with + followed by digits, space and dashes allowed.");
+		}
 		this.fax = fax;
 	}
 
@@ -80,7 +96,11 @@ public class EAVDAMUser {
 	}
 
 	public void setDescription(String description) {
-		this.description = description;
+		if (description != null) {
+			this.description = description.trim();
+		} else {
+			this.description = null;
+		}
 	}
 
 	public Person getContact() {

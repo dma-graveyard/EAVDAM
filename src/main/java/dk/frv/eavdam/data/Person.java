@@ -25,7 +25,10 @@ public class Person {
 	}
 
 	public void setName(String name) {
-		this.name = name;
+		if (name == null || name.trim().length() == 0) {
+			throw new IllegalArgumentException("Name must be given");
+		}
+		this.name = name.trim();
 	}
 
 	public String getEmail() {
@@ -33,7 +36,11 @@ public class Person {
 	}
 
 	public void setEmail(String email) {
-		this.email = email;
+		if (email != null) {
+			this.email = email.trim();
+		} else {
+			this.email = null;
+		}
 	}
 
 	public String getPhone() {
@@ -41,6 +48,10 @@ public class Person {
 	}
 
 	public void setPhone(String phone) {
+		if (phone != null && !phone.matches("\\+[0-9 -]+")) {
+			throw new IllegalArgumentException(
+					"Phone number invalid, must start with + followed by digits, space and dashes allowed.");
+		}
 		this.phone = phone;
 	}
 
@@ -49,6 +60,10 @@ public class Person {
 	}
 
 	public void setFax(String fax) {
+		if (fax != null && !fax.matches("\\+[0-9 -]+")) {
+			throw new IllegalArgumentException(
+					"Fax number invalid, must start with + followed by digits, space and dashes allowed.");
+		}
 		this.fax = fax;
 	}
 
@@ -57,7 +72,11 @@ public class Person {
 	}
 
 	public void setDescription(String description) {
-		this.description = description;
+		if (description != null) {
+			this.description = description.trim();
+		} else {
+			this.description = null;
+		}
 	}
 
 	public Address getVisitingAddress() {
