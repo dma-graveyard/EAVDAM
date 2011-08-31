@@ -137,6 +137,7 @@ public class XMLImporter {
 						.getFieldOfViewAngle());
 				data.setGain(xData.getDirectionalAntenna().getGain());
 			}
+			return data;
 		}
 		return null;
 	}
