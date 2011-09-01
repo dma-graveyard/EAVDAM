@@ -80,7 +80,9 @@ class AddStationActionListener implements ActionListener {
     private JComboBox stationStatusComboBox;
 
     private JComboBox antennaTypeComboBox;
+    private JLabel antennaHeightLabel;
     private JTextField antennaHeightTextField;
+    private JLabel terrainHeightLabel;
     private JTextField terrainHeightTextField;    
     private JLabel headingLabel;
     private JTextField headingTextField;
@@ -116,9 +118,12 @@ class AddStationActionListener implements ActionListener {
             transmissionPowerTextField = new JTextField(16);
             stationStatusComboBox = new JComboBox(new String[] {"Operative", "Inoperative"});
     
-            antennaTypeComboBox = new JComboBox(new String[] {"Omnidirectional", "Directional"});
+            antennaTypeComboBox = new JComboBox(new String[] {"No antenna", "Omnidirectional", "Directional"});
+            antennaTypeComboBox.setSelectedIndex(0);
             antennaTypeComboBox.addActionListener(this);
+            antennaHeightLabel = new JLabel("Antenna height above terrain (meters):");            
             antennaHeightTextField = new JTextField(16);
+            terrainHeightLabel = new JLabel("Terrain height above sealevel (meters):");
             terrainHeightTextField = new JTextField(16);
             headingLabel = new JLabel("Heading (degrees - integer):");
             headingTextField = new JTextField(16);
@@ -129,22 +134,8 @@ class AddStationActionListener implements ActionListener {
             
             additionalInformationJTextArea = new JTextArea("");
             
-            if (antennaTypeComboBox.getSelectedIndex() == 0) {  // omnidirectional
-                headingLabel.setVisible(false);
-                headingTextField.setVisible(false);
-                fieldOfViewAngleLabel.setVisible(false);
-                fieldOfViewAngleTextField.setVisible(false);
-                gainLabel.setVisible(false);
-                gainTextField.setVisible(false);                        
-            } else if (antennaTypeComboBox.getSelectedIndex() == 1) {  // directional
-                headingLabel.setVisible(true);
-                headingTextField.setVisible(true);
-                fieldOfViewAngleLabel.setVisible(true);
-                fieldOfViewAngleTextField.setVisible(true);
-                gainLabel.setVisible(true);
-                gainTextField.setVisible(true);
-            } 
-
+            updateAntennaTypeComboBox();
+            
             JPanel panel = new JPanel();
             panel.setLayout(new GridBagLayout());
                               
@@ -156,6 +147,7 @@ class AddStationActionListener implements ActionListener {
             c.gridy = 0;                   
             c.anchor = GridBagConstraints.LINE_START;
             c.fill = GridBagConstraints.NONE;
+            c.weightx = 0.5;
             p2.add(new JLabel("Descriptive name for the station:"), c);
             c.gridx = 1;                
             p2.add(stationNameTextField, c);                    
@@ -203,36 +195,36 @@ class AddStationActionListener implements ActionListener {
             c.anchor = GridBagConstraints.LINE_START;                    
             c.fill = GridBagConstraints.NONE;
             p3.add(new JLabel("Antenna type:"), c);
-            c.gridx = 1;                    
+            c.gridx = 1;                     
             p3.add(antennaTypeComboBox, c);
             c.gridx = 0;
-            c.gridy = 1;                  
-            p3.add(new JLabel("Antenna height above terrain (meters):"), c);
+            c.gridy = 1;                       
+            p3.add(antennaHeightLabel, c);
             c.gridx = 1;                    
             p3.add(antennaHeightTextField, c);                    
             c.gridx = 0;
-            c.gridy = 2;                  
-            p3.add(new JLabel("Terrain height above sealevel (meters):"), c);
+            c.gridy = 2;                                      
+            p3.add(terrainHeightLabel, c);
             c.gridx = 1;                    
             p3.add(terrainHeightTextField, c); 
             c.gridx = 0;
-            c.gridy = 3;
+            c.gridy = 3;                      
             p3.add(headingLabel, c);
-            c.gridx = 1;                    
+            c.gridx = 1;                                
             p3.add(headingTextField, c); 
             c.gridx = 0;
-            c.gridy = 4;                  
+            c.gridy = 4;                                         
             p3.add(fieldOfViewAngleLabel, c);
-            c.gridx = 1;                    
+            c.gridx = 1;                            
             p3.add(fieldOfViewAngleTextField, c);                                         
             c.gridx = 0;
-            c.gridy = 5;                  
+            c.gridy = 5;                                     
             p3.add(gainLabel, c);
-            c.gridx = 1;                    
+            c.gridx = 1;                        
             p3.add(gainTextField, c);                       
 
             c.gridx = 0;
-            c.gridy = 1;
+            c.gridy = 1;           
             c.anchor = GridBagConstraints.FIRST_LINE_START;
             c.fill = GridBagConstraints.HORIZONTAL;
             panel.add(p3, c);                      
@@ -300,213 +292,241 @@ class AddStationActionListener implements ActionListener {
             }
         
         } else if (antennaTypeComboBox != null && e.getSource() == antennaTypeComboBox) {
-            if (antennaTypeComboBox.getSelectedIndex() == 0) {  // omnidirectional
-                headingLabel.setVisible(false);
-                headingTextField.setText("");
-                headingTextField.setVisible(false);
-                fieldOfViewAngleLabel.setVisible(false);
-                fieldOfViewAngleTextField.setText("");
-                fieldOfViewAngleTextField.setVisible(false);
-                gainLabel.setVisible(false);
-                gainTextField.setText("");
-                gainTextField.setVisible(false);                        
-            } else if (antennaTypeComboBox.getSelectedIndex() == 1) {  // directional
-                headingLabel.setVisible(true);
-                headingTextField.setVisible(true);
-                fieldOfViewAngleLabel.setVisible(true);
-                fieldOfViewAngleTextField.setVisible(true);
-                gainLabel.setVisible(true);
-                gainTextField.setVisible(true);
-            }
+            updateAntennaTypeComboBox(); 
         }   
     }    
     
+    private void updateAntennaTypeComboBox() {
+        if (antennaTypeComboBox.getSelectedIndex() == 0) {  // no antenna
+            antennaHeightLabel.setVisible(false);
+            antennaHeightTextField.setText("");
+            antennaHeightTextField.setVisible(false);
+            terrainHeightLabel.setVisible(false);
+            terrainHeightTextField.setText("");
+            terrainHeightTextField.setVisible(false);
+            headingLabel.setVisible(false);
+            headingTextField.setText("");
+            headingTextField.setVisible(false);
+            fieldOfViewAngleLabel.setVisible(false);
+            fieldOfViewAngleTextField.setText("");
+            fieldOfViewAngleTextField.setVisible(false);
+            gainLabel.setVisible(false);
+            gainTextField.setText("");
+            gainTextField.setVisible(false); 
+        } else if (antennaTypeComboBox.getSelectedIndex() == 1) {  // omnidirectional
+            antennaHeightLabel.setVisible(true);
+            antennaHeightTextField.setVisible(true);
+            terrainHeightLabel.setVisible(true);
+            terrainHeightTextField.setVisible(true);
+            headingLabel.setVisible(false);
+            headingTextField.setText("");
+            headingTextField.setVisible(false);
+            fieldOfViewAngleLabel.setVisible(false);
+            fieldOfViewAngleTextField.setText("");
+            fieldOfViewAngleTextField.setVisible(false);
+            gainLabel.setVisible(false);
+            gainTextField.setText("");
+            gainTextField.setVisible(false);                        
+        } else if (antennaTypeComboBox.getSelectedIndex() == 2) {  // directional
+            antennaHeightLabel.setVisible(true);
+            antennaHeightTextField.setVisible(true);
+            terrainHeightLabel.setVisible(true);
+            terrainHeightTextField.setVisible(true);
+            headingLabel.setVisible(true);
+            headingTextField.setVisible(true);
+            fieldOfViewAngleLabel.setVisible(true);
+            fieldOfViewAngleTextField.setVisible(true);
+            gainLabel.setVisible(true);
+            gainTextField.setVisible(true);
+        } 
+    }        
+    
     private boolean saveStation() {
 
-        // validates                    
-        
-        boolean errors = false;
-
-        if (!errors && stationNameTextField.getText().trim().isEmpty()) {
-            errors = true;
-            JOptionPane.showMessageDialog(dialog, "Station name is mandatory.");                                          
-        }
         if (data == null) {
             data = new EAVDAMData();
         }
         AISFixedStationData[] stations = data.getStations();
         for (int i=0; i<stations.length; i++) {
             if (stations[i].getStationName().equals(stationNameTextField.getText().trim())) {
-                errors = true;
                 JOptionPane.showMessageDialog(dialog, "A station with the given name already exists. " +
                     "Please, select another name for the station.");                 
-                break;
+                return false;
             }
         }
-        if (!errors && latitudeTextField.getText().trim().isEmpty()) {
-            errors = true;
+        if (latitudeTextField.getText().trim().isEmpty()) {
             JOptionPane.showMessageDialog(dialog, "Latitude is mandatory.");
+            return false;
         } else {
-            if (!errors && !latitudeTextField.getText().trim().isEmpty()) {
+            if (!latitudeTextField.getText().trim().isEmpty()) {
                 try {
                     Double.parseDouble(latitudeTextField.getText().trim());                    
-                } catch (NumberFormatException ex) {
-                    errors = true;
+                } catch (NumberFormatException ex) {                
                     JOptionPane.showMessageDialog(dialog, "Latitude is not a valid number.");
+                    return false;
                 }
             }
         }            
-        if (!errors && longitudeTextField.getText().trim().isEmpty()) {
-            errors = true;
+        if (longitudeTextField.getText().trim().isEmpty()) {            
             JOptionPane.showMessageDialog(dialog, "Longitude is mandatory.");                    
+            return false;
         } else {                                                        
-            if (!errors && !longitudeTextField.getText().trim().isEmpty()) {
+            if (!longitudeTextField.getText().trim().isEmpty()) {
                 try {
                     Double.parseDouble(longitudeTextField.getText().trim());
-                } catch (NumberFormatException ex) {
-                    errors = true;
+                } catch (NumberFormatException ex) {                
                     JOptionPane.showMessageDialog(dialog, "Longitude is not a valid number.");
+                    return false;
                 }
             }
         }                    
         try {
-            if (!errors && !transmissionPowerTextField.getText().trim().isEmpty()) {
+            if (!transmissionPowerTextField.getText().trim().isEmpty()) {
                 Double.parseDouble(transmissionPowerTextField.getText().trim());
             }
         } catch (NumberFormatException ex) {
-            errors = true;
             JOptionPane.showMessageDialog(dialog, "Transmission power is not a valid number.");
+            return false;
         }   
-        if (!errors && antennaTypeComboBox.getSelectedIndex() == 0 &&
-                (!antennaHeightTextField.getText().trim().isEmpty() ||
-                !terrainHeightTextField.getText().trim().isEmpty()) &&
+        if (antennaTypeComboBox.getSelectedIndex() == 1 &&
                 (antennaHeightTextField.getText().trim().isEmpty() ||
                 terrainHeightTextField.getText().trim().isEmpty())) {
-            errors = true;
-            JOptionPane.showMessageDialog(dialog, "Antenna height and terrain height must both be given.");                        
+            JOptionPane.showMessageDialog(dialog, "Antenna height and terrain height must both be given.");
+            return false;
         }
-        if (!errors && antennaTypeComboBox.getSelectedIndex() == 1 &&
-                (!antennaHeightTextField.getText().trim().isEmpty() ||
-                !terrainHeightTextField.getText().trim().isEmpty() ||
-                !headingTextField.getText().trim().isEmpty() ||
-                !fieldOfViewAngleTextField.getText().trim().isEmpty() ||
-                !gainTextField.getText().trim().isEmpty()) &&
+        if (antennaTypeComboBox.getSelectedIndex() == 2 &&
                 (antennaHeightTextField.getText().trim().isEmpty() ||
                 terrainHeightTextField.getText().trim().isEmpty() ||
                 headingTextField.getText().trim().isEmpty() ||
                 fieldOfViewAngleTextField.getText().trim().isEmpty() ||
                 gainTextField.getText().trim().isEmpty())) {
-            errors = true;
             JOptionPane.showMessageDialog(dialog, "Antenna height, terrain height, heading, field of view angle and gain must all be given.");
+            return false;
         }
         try {
-            if (!errors && !antennaHeightTextField.getText().trim().isEmpty()) {
+            if (!antennaHeightTextField.getText().trim().isEmpty()) {
                 Double.parseDouble(antennaHeightTextField.getText().trim());
             }
         } catch (NumberFormatException ex) {
-            errors = true;
             JOptionPane.showMessageDialog(dialog, "Antenna height is not a valid number.");                     
+            return false;
         }  
         try {
-            if (!errors && !terrainHeightTextField.getText().trim().isEmpty()) {
+            if (!terrainHeightTextField.getText().trim().isEmpty()) {
                 Double.parseDouble(terrainHeightTextField.getText().trim());
             }
-        } catch (NumberFormatException ex) {
-            errors = true;
+        } catch (NumberFormatException ex) {        
             JOptionPane.showMessageDialog(dialog, "Terrain height is not a valid number.");
+            return false;
         }                                 
         try {
-            if (!errors && !headingTextField.getText().trim().isEmpty()) {
+            if (!headingTextField.getText().trim().isEmpty()) {
                 Integer.parseInt(headingTextField.getText().trim());
             }
-        } catch (NumberFormatException ex) {
-            errors = true;
+        } catch (NumberFormatException ex) {        
             JOptionPane.showMessageDialog(dialog, "Heading is not a valid integer.");
+            return false;
         }  
         try {
-            if (!errors && !fieldOfViewAngleTextField.getText().trim().isEmpty()) {
+            if (!fieldOfViewAngleTextField.getText().trim().isEmpty()) {
                 Integer.parseInt(fieldOfViewAngleTextField.getText().trim());
             }
         } catch (NumberFormatException ex) {
-            errors = true;
             JOptionPane.showMessageDialog(dialog, "Field of view angle is not a valid integer.");                        
+            return false;
         }      
         try {
-            if (!errors && !gainTextField.getText().trim().isEmpty()) {
+            if (!gainTextField.getText().trim().isEmpty()) {
                 Double.parseDouble(gainTextField.getText().trim());
             }
         } catch (NumberFormatException ex) {
-            errors = true;
             JOptionPane.showMessageDialog(dialog, "Gain is not a valid number.");
-        }                          
-    
-        if (errors) {
             return false;
         }
         
         AISFixedStationData station = new AISFixedStationData();
-                          
-        station.setStationName(stationNameTextField.getText().trim());
-        if (stationTypeComboBox.getSelectedIndex() == 0) {
-            station.setStationType(AISFixedStationType.BASESTATION);
-        } else if (stationTypeComboBox.getSelectedIndex() == 1) {
-            station.setStationType(AISFixedStationType.REPEATER); 
-        } else if (stationTypeComboBox.getSelectedIndex() == 2) {
-            station.setStationType(AISFixedStationType.RECEIVER); 
-        } else if (stationTypeComboBox.getSelectedIndex() == 3) {
-            station.setStationType(AISFixedStationType.ATON); 
-        }  
-        station.setLat(new Double(latitudeTextField.getText().trim()).doubleValue());                                
-        station.setLon(new Double(longitudeTextField.getText().trim()).doubleValue());  
-        station.setMmsi(mmsiNumberTextField.getText().trim());
-        if (!transmissionPowerTextField.getText().trim().isEmpty()) {
-            station.setTransmissionPower(new Double(transmissionPowerTextField.getText().trim()));
-        }
-        if (stationStatusComboBox.getSelectedIndex() == 0) {
-            station.setStatus(AISFixedStationStatus.OPERATIVE);
-        } else if (stationStatusComboBox.getSelectedIndex() == 1) {
-            station.setStatus(AISFixedStationStatus.INOPERATIVE);
-        }
-        Antenna antenna = station.getAntenna();
-        if (antennaTypeComboBox.getSelectedIndex() == 0) {
-            if (!antennaHeightTextField.getText().trim().isEmpty() && !terrainHeightTextField.getText().trim().isEmpty()) {
+         
+        try {                 
+            station.setStationName(stationNameTextField.getText().trim());
+            if (stationTypeComboBox.getSelectedIndex() == 0) {
+                station.setStationType(AISFixedStationType.BASESTATION);
+            } else if (stationTypeComboBox.getSelectedIndex() == 1) {
+                station.setStationType(AISFixedStationType.REPEATER); 
+            } else if (stationTypeComboBox.getSelectedIndex() == 2) {
+                station.setStationType(AISFixedStationType.RECEIVER); 
+            } else if (stationTypeComboBox.getSelectedIndex() == 3) {
+                station.setStationType(AISFixedStationType.ATON); 
+            }  
+            station.setLat(new Double(latitudeTextField.getText().trim()).doubleValue());                                
+            station.setLon(new Double(longitudeTextField.getText().trim()).doubleValue());  
+            if (mmsiNumberTextField.getText().trim().isEmpty()) {
+                station.setMmsi(null);
+            } else {
+                station.setMmsi(mmsiNumberTextField.getText().trim());
+            }
+            if (transmissionPowerTextField.getText().trim().isEmpty()) {
+                station.setTransmissionPower(null);
+            } else {
+                station.setTransmissionPower(new Double(transmissionPowerTextField.getText().trim()));
+            }
+            if (stationStatusComboBox.getSelectedIndex() == 0) {
+                station.setStatus(AISFixedStationStatus.OPERATIVE);
+            } else if (stationStatusComboBox.getSelectedIndex() == 1) {
+                station.setStatus(AISFixedStationStatus.INOPERATIVE);
+            }
+            Antenna antenna = station.getAntenna();
+            if (antennaTypeComboBox.getSelectedIndex() == 0) {
+                station.setAntenna(null);
+            } else if (antennaTypeComboBox.getSelectedIndex() == 1) {
                 if (antenna == null) {
                     antenna = new Antenna();
                 }
                 antenna.setAntennaType(AntennaType.OMNIDIRECTIONAL);                    
-            }
-        } else if (antennaTypeComboBox.getSelectedIndex() == 1) {
-            if (!antennaHeightTextField.getText().trim().isEmpty() && !terrainHeightTextField.getText().trim().isEmpty() &&
-                    !headingTextField.getText().trim().isEmpty() && !fieldOfViewAngleTextField.getText().trim().isEmpty() &&
-                    !gainTextField.getText().trim().isEmpty()) {
+            } else if (antennaTypeComboBox.getSelectedIndex() == 2) {
                 if (antenna == null) {
                     antenna = new Antenna();
                 }
                 antenna.setAntennaType(AntennaType.DIRECTIONAL);
             }
-        }
-        if (antenna != null && antenna.getAntennaType() != null) {
-            if (!antennaHeightTextField.getText().trim().isEmpty()) {
-                antenna.setAntennaHeight(new Double(antennaHeightTextField.getText().trim()).doubleValue());
+            if (antennaTypeComboBox.getSelectedIndex() == 1 ||
+                    antennaTypeComboBox.getSelectedIndex() == 2) {
+                if (!antennaHeightTextField.getText().trim().isEmpty()) {
+                    antenna.setAntennaHeight(new Double(antennaHeightTextField.getText().trim()).doubleValue());
+                }
+                if (!terrainHeightTextField.getText().trim().isEmpty()) {
+                    antenna.setTerrainHeight(new Double(terrainHeightTextField.getText().trim()).doubleValue());
+                }
             }
-            if (!terrainHeightTextField.getText().trim().isEmpty()) {
-                antenna.setTerrainHeight(new Double(terrainHeightTextField.getText().trim()).doubleValue());
-            }
-            if (antenna.getAntennaType() == AntennaType.DIRECTIONAL) {
-                if (!headingTextField.getText().trim().isEmpty()) {                        
+            if (antennaTypeComboBox.getSelectedIndex() == 2) {
+                if (headingTextField.getText().trim().isEmpty()) {                        
+                    antenna.setHeading(null);
+                } else {
                     antenna.setHeading(new Integer(headingTextField.getText().trim()));
                 }
-                if (!fieldOfViewAngleTextField.getText().trim().isEmpty()) { 
+                if (fieldOfViewAngleTextField.getText().trim().isEmpty()) { 
+                    antenna.setFieldOfViewAngle(null);
+                } else {
                     antenna.setFieldOfViewAngle(new Integer(fieldOfViewAngleTextField.getText().trim()));
                 }
-                if (!gainTextField.getText().trim().isEmpty()) {             
+                if (gainTextField.getText().trim().isEmpty()) {             
+                    antenna.setGain(null);
+                } else {
                     antenna.setGain(new Double(gainTextField.getText().trim()));
                 }
-            }        
-            station.setAntenna(antenna);
-        }
-        
-        station.setDescription(additionalInformationJTextArea.getText().trim());
+            }
+            if (antennaTypeComboBox.getSelectedIndex() == 1 ||
+                    antennaTypeComboBox.getSelectedIndex() == 2) {
+                station.setAntenna(antenna);
+            }
+            if (additionalInformationJTextArea.getText().trim().isEmpty()) {
+                station.setDescription(null);
+            } else {
+                station.setDescription(additionalInformationJTextArea.getText().trim());
+            }
+        } catch (IllegalArgumentException e) {
+            JOptionPane.showMessageDialog(dialog, e.getMessage());              
+            return false;
+        }            
                         
         if (stations == null) {                        
             stations = new AISFixedStationData[1];
