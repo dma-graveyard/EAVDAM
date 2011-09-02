@@ -548,6 +548,7 @@ class StationInformationActionListener implements ActionListener, DocumentListen
                     break;
                 }
             }
+            initiallySelectedStationName = null;
         }
         
         if (stationIndex < stations.length) {
@@ -607,6 +608,8 @@ class StationInformationActionListener implements ActionListener, DocumentListen
                     } else if (antenna.getAntennaType() == AntennaType.DIRECTIONAL) {
                         antennaTypeComboBox.setSelectedIndex(2);
                     }
+                } else {
+                    antennaTypeComboBox.setSelectedIndex(0);
                 }
                 if (!Double.isNaN(antenna.getAntennaHeight())) {
                     antennaHeightTextField.setText(String.valueOf(antenna.getAntennaHeight()));
@@ -623,7 +626,9 @@ class StationInformationActionListener implements ActionListener, DocumentListen
                 if (antenna.getGain() != null) {
                     gainTextField.setText(antenna.getGain().toString());
                 }                    
-            }            
+            } else {           
+                antennaTypeComboBox.setSelectedIndex(0);
+            }
             if (station.getDescription() != null) {
                 additionalInformationJTextArea.setText(station.getDescription());
             }            
