@@ -1,51 +1,31 @@
 package dk.frv.eavdam.layers;
 
-import java.util.ArrayList;
 import com.bbn.openmap.layer.location.ByteRasterLocation;
+import dk.frv.eavdam.data.AISFixedStationData;
+import java.util.ArrayList;
+
 
 public class OMBaseStation extends ByteRasterLocation {
 
 	private static final long serialVersionUID = 1L;
 
 	private ArrayList<double[]> workingArea;
-	private String name;
-	private double lat, lon;
-	
-	
-	public double getLat() {
-		return lat;
-	}
+	private AISFixedStationData stationData;	
 
-	public void setLat(double lat) {
-		this.lat = lat;
-	}
-
-	public double getLon() {
-		return lon;
-	}
-
-	public void setLon(double lon) {
-		this.lon = lon;
-	}
-
-	public OMBaseStation(double lat, double lon, String name, byte[] bytearr) {
-	    	    
-		super(lat, lon, name, bytearr);
-		
-		this.name = name;		
-		this.lat = lat;
-		this.lon = lon;
-		
+	public OMBaseStation(AISFixedStationData stationData, byte[] bytearr) {	    	    
+		super(stationData.getLat(), stationData.getLon(), stationData.getStationName(), bytearr);		
+		this.stationData = stationData;		
         this.setShowName(false);
 	}
 
-	public String getName() {
-		return name;
+	public AISFixedStationData getStationData() {
+		return stationData;
 	}
 
-	public void setName(String name) {
-		this.name = name;
+	public void setStationData(AISFixedStationData stationData) {
+		this.stationData = stationData;
 	}
+
 
 	public ArrayList<double[]> getReachArea() {
 		return workingArea;
@@ -65,8 +45,8 @@ public class OMBaseStation extends ByteRasterLocation {
 			int r1 = (Math.random() < 0.5 ? -1 : 1);
 			int r2 = (Math.random() < 0.5 ? -1 : 1);
 			
-			points[0] = 0.5*r1 + lat;
-			points[1] = 0.5*r2 + lon;
+			points[0] = 0.5*r1 + stationData.getLat();
+			points[1] = 0.5*r2 + stationData.getLon();
 			this.workingArea.add(points);
 		}
 	}

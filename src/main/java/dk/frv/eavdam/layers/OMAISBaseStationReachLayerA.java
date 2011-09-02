@@ -1,9 +1,5 @@
 package dk.frv.eavdam.layers;
 
-import java.awt.Color;
-import java.awt.event.MouseEvent;
-import java.awt.geom.Point2D;
-
 import com.bbn.openmap.InformationDelegator;
 import com.bbn.openmap.event.MapMouseEvent;
 import com.bbn.openmap.event.MapMouseListener;
@@ -15,6 +11,10 @@ import com.bbn.openmap.omGraphics.OMGraphic;
 import com.bbn.openmap.omGraphics.OMGraphicList;
 import com.bbn.openmap.omGraphics.OMList;
 import com.bbn.openmap.omGraphics.OMPoly;
+import dk.frv.eavdam.data.AISFixedStationData;
+import java.awt.Color;
+import java.awt.event.MouseEvent;
+import java.awt.geom.Point2D;
 
 public class OMAISBaseStationReachLayerA extends OMGraphicHandlerLayer implements MapMouseListener {
 
@@ -62,11 +62,13 @@ public class OMAISBaseStationReachLayerA extends OMGraphicHandlerLayer implement
 
 		if (bs.getReachArea().size() < 2) {
 			
+			AISFixedStationData stationData = bs.getStationData();
+			
 			//Get the radius
-			double radius = Math.min(Math.abs(bs.getLat()-bs.getReachArea().get(0)[0]),Math.abs(bs.getLon()-bs.getReachArea().get(0)[1]));
+			double radius = Math.min(Math.abs(stationData.getLat()-bs.getReachArea().get(0)[0]),Math.abs(stationData.getLon()-bs.getReachArea().get(0)[1]));
 
 			//Create a circle
-			OMCircle baseCircle = new OMCircle(bs.getLat(), bs.getLon(), radius);
+			OMCircle baseCircle = new OMCircle(stationData.getLat(), stationData.getLon(), radius);
 			
 			Color c = new Color(0, 255, 0, 100);
 			baseCircle.setFillPaint(c);

@@ -343,6 +343,12 @@ class StationInformationActionListener implements ActionListener, DocumentListen
 
             if (success) {
                 selectStationComboBox.removeActionListener(this);
+                selectStationComboBox.removeItemAt(selectedStationIndex);
+                if (selectedStationIndex < selectStationComboBox.getItemCount()) {
+                    selectStationComboBox.insertItemAt(stationNameTextField.getText(), selectedStationIndex);
+                } else {
+                    selectStationComboBox.addItem(stationNameTextField.getText());
+                }
                 selectStationComboBox.setSelectedItem(stationNameTextField.getText());
                 saveButton.setEnabled(false);
                 deleteButton.setVisible(true);

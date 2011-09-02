@@ -1,7 +1,11 @@
 package dk.frv.eavdam.app;
 
 import com.bbn.openmap.gui.MapPanelChild;
-//import dk.frv.eavdam.layers.StationLayer;
+import dk.frv.eavdam.data.AISFixedStationData;
+import dk.frv.eavdam.data.AISFixedStationType;
+import dk.frv.eavdam.data.Antenna;
+import dk.frv.eavdam.data.AntennaType;
+import dk.frv.eavdam.layers.OMBaseStation;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
@@ -35,6 +39,8 @@ import javax.swing.SwingConstants;
 public class SidePanel extends JPanel implements MapPanelChild, ActionListener {
 
 	private static final long serialVersionUID = 1L;
+
+    private JEditorPane infoPane;
 
 	public SidePanel() {
 	        
@@ -122,7 +128,7 @@ public class SidePanel extends JPanel implements MapPanelChild, ActionListener {
         displayMapsButtonPanel.setPreferredSize(new Dimension(150, 35));
         displayMapsButtonPanel.setMaximumSize(new Dimension(150, 35));        
         add(displayMapsButtonPanel);        
-
+          
         // base station parameters title
 
         JPanel baseStationParametersPanel = new JPanel();  
@@ -136,26 +142,39 @@ public class SidePanel extends JPanel implements MapPanelChild, ActionListener {
         baseStationParametersPanel.setPreferredSize(new Dimension(250, 40));
         baseStationParametersPanel.setMaximumSize(new Dimension(250, 40));
         add(baseStationParametersPanel);
-
-        // base station parameters content        
+        */
         
-        JEditorPane infoPane = new JEditorPane("text/html",
-            "<table cellspacing=1 cellpadding=1><tr><td>Localization:</td><td>...</td></tr>" +
-            "<tr><td>Frequency:</td><td>...</td></tr>" +
-            "<tr><td>Height of the transmitting antenna:</td><td>...</td></tr>" +
-            "<tr><td>Transmitter antenna's gain:</td><td>...</td></tr>" +
-            "<tr><td>Receiver sensitivity:</td><td>...</td></tr>" +
-            "<tr><td>Receiver antenna's gain:</td><td>...</td></tr>" +
-            "<tr><td>Power of the transmitter:</td><td>...</td></tr>" +
-            "<tr><td>Height of the receiving antenna:</td><td>...</td></tr></table>");
-        infoPane.setBorder(new CompoundBorder
-            (BorderFactory.createLineBorder(new Color(122, 138, 153), 1),
-            BorderFactory.createEmptyBorder(0,10,10,10)));
-        infoPane.setPreferredSize(new Dimension(230, 180));
-        infoPane.setMaximumSize(new Dimension(230, 180));
-        add(infoPane);        
-
-*/
+        // station information
+        
+        infoPane = new JEditorPane("text/html",
+            "<p><strong>Click a station to view data:<strong></p>" +
+            "<table cellspacing=1 cellpadding=1><tr><td>Name:</td><td>...</td></tr>" +
+            "<tr><td>Type:</td><td>...</td></tr>" +
+            "<tr><td>Latitude:</td><td>...</td></tr>" +
+            "<tr><td>Longitude:</td><td>...</td></tr>" +
+            "<tr><td>MMSI:</td><td>...</td></tr>" +
+            "<tr><td>Power:</td><td>...</td></tr>" +
+            "<tr><td>Antenna type:</td><td>...</td></tr>" +
+            "<tr><td>Antenna height:</td><td>...</td></tr>" +
+            "<tr><td>Terrain height:</td><td>...</td></tr>" +
+            "<tr><td>Heading:</td><td>...</td></tr>" +
+            "<tr><td>Angle:</td><td>...</td></tr>" +            
+            "<tr><td>Gain:</td><td>...</td></tr></table>");
+        infoPane.setBackground(new Color(238, 238, 238));
+        //infoPane.setBorder(new CompoundBorder
+        //    (BorderFactory.createLineBorder(new Color(122, 138, 153), 1),
+        //    BorderFactory.createEmptyBorder(0,10,0,10)));
+        infoPane.setBorder(BorderFactory.createEmptyBorder(0,0,0,0));
+        infoPane.setPreferredSize(new Dimension(230, 350));
+        infoPane.setMaximumSize(new Dimension(230, 350));
+        infoPane.setEditable(false);
+        JScrollPane infoScrollPane = new JScrollPane(infoPane);
+        infoScrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
+        infoScrollPane.setBorder(BorderFactory.createEmptyBorder(0,10,0,10));
+        infoScrollPane.setPreferredSize(new Dimension(230, 350));
+        infoScrollPane.setMaximumSize(new Dimension(230, 350));
+        add(infoScrollPane);
+        //add(infoPane);        
         
         // efficiensea logo
         
@@ -210,5 +229,90 @@ public class SidePanel extends JPanel implements MapPanelChild, ActionListener {
 
 	@Override
 	public void actionPerformed(ActionEvent e) {}
+	
+	public void showInfo(OMBaseStation omBaseStation) {
+	    AISFixedStationData stationData = omBaseStation.getStationData();
+	    
+	    String infoText = "<p><strong>Click a station to view data:</strong></p>" +
+            "<table cellspacing=1 cellpadding=1><tr><td>Name:</td><td>";
+        if (stationData.getStationName() != null) {
+            infoText += stationData.getStationName();
+        } else {
+            infoText += "...";
+        }
+        infoText += "</td></tr><tr><td>Type:</td><td>";
+        if (stationData.getStationType() != null) {
+            if (stationData.getStationType() == AISFixedStationType.BASESTATION) {
+                infoText += "AIS Base Station";
+            } else if (stationData.getStationType() == AISFixedStationType.REPEATER) {
+                infoText += "AIS Repeater";
+            } else if (stationData.getStationType() == AISFixedStationType.RECEIVER) {
+                infoText += "AIS Receiver station";
+            } else if (stationData.getStationType() == AISFixedStationType.ATON) {
+                infoText += "AIS AtoN station";
+            }
+        } else {
+            infoText += "...";
+        }
+        infoText += "</td></tr><tr><td>Latitude:</td><td>" + stationData.getLat() +
+            "</td></tr><tr><td>Longitude:</td><td>" + stationData.getLon() + "</td></tr>" +
+            "<tr><td>MMSI:</td><td>";
+        if (stationData.getMmsi() != null) {    
+            infoText += stationData.getMmsi();
+        } else {
+            infoText += "...";
+        }
+        infoText += "</td></tr><tr><td>Power:</td><td>";
+        if (stationData.getTransmissionPower() != null) {
+            infoText += stationData.getTransmissionPower().toString();
+        } else {
+            infoText += "...";
+        }
+        infoText +="</td></tr><tr><td>Antenna type:</td><td>";
+        if (stationData.getAntenna() != null) {
+            Antenna antenna = stationData.getAntenna();            
+            if (antenna.getAntennaType() != null) {
+                AntennaType antennaType = antenna.getAntennaType();
+                if (antenna.getAntennaType() == AntennaType.OMNIDIRECTIONAL) {
+                    infoText += "Omnidirectional";
+                } else if (antenna.getAntennaType() == AntennaType.DIRECTIONAL) {
+                    infoText += "Directional";
+                }
+            } else {
+                infoText += "...";
+            }
+            infoText += "</td></tr><tr><td>Antenna height:</td><td>" +
+                antenna.getAntennaHeight() + "</td></tr>" +
+                "<tr><td>Terrain height:</td><td>" + antenna.getTerrainHeight() +
+                "</td></tr><tr><td>Heading:</td><td>";
+            if (antenna.getHeading() != null) {                
+                infoText += antenna.getHeading().toString();
+            } else {
+                infoText += "...";
+            }
+            infoText += "</td></tr><tr><td>Angle:</td><td>";
+            if (antenna.getFieldOfViewAngle() != null) {                
+                infoText += antenna.getFieldOfViewAngle().toString();
+            } else {
+                infoText += "...";
+            }  
+            infoText += "</td></tr><tr><td>Gain:</td><td>";
+            if (antenna.getGain() != null) {                
+                infoText += antenna.getGain().toString();
+            } else {
+                infoText += "...";
+            }
+            infoText += "</td></tr></table>";         
+        } else {
+            infoText += "...</td></tr>" +
+            "<tr><td>Antenna height:</td><td>...</td></tr>" +
+            "<tr><td>Terrain height:</td><td>...</td></tr>" +
+            "<tr><td>Heading:</td><td>...</td></tr>" +
+            "<tr><td>Angle:</td><td>...</td></tr>" +            
+            "<tr><td>Gain:</td><td>...</td></tr></table>";
+        }
+                    
+        infoPane.setText(infoText);
+	}
 	
 }
