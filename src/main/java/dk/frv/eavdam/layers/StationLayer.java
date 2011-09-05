@@ -19,8 +19,10 @@ import dk.frv.eavdam.app.SidePanel;
 import dk.frv.eavdam.data.AISFixedStationData;
 import dk.frv.eavdam.data.AISFixedStationType;
 import dk.frv.eavdam.data.EAVDAMData;
+import dk.frv.eavdam.data.Options;
 import dk.frv.eavdam.io.XMLImporter;
 import dk.frv.eavdam.menus.EavdamMenu;
+import dk.frv.eavdam.menus.OptionsMenuItem;
 import dk.frv.eavdam.menus.StationInformationMenuItem;
 import java.awt.Color;
 import java.awt.event.ActionListener;
@@ -50,6 +52,9 @@ public class StationLayer extends OMGraphicHandlerLayer implements MapMouseListe
 	private JMenuItem editStationMenuItem;
 	private OMBaseStation currentlySelectedOMBaseStation;
 	
+	private EAVDAMData data;
+	private int currentIcons = -1;
+	
     public StationLayer() {}
 
     public OMAISBaseStationReachLayerA getReachLayer() {
@@ -60,27 +65,54 @@ public class StationLayer extends OMGraphicHandlerLayer implements MapMouseListe
 
 	    byte[] bytearr = null;
 	    if (stationData.getStationType() == AISFixedStationType.BASESTATION) {
-            bytearr = getImage("share/data/images/ais_base_station.png");
+	        if (currentIcons == Options.LARGE_ICONS) {
+                bytearr = getImage("share/data/images/ais_base_station.png");
+            } else if (currentIcons == Options.SMALL_ICONS) {
+                bytearr = getImage("share/data/images/ais_base_station_small.png");
+            } else {
+                currentIcons = Options.LARGE_ICONS;
+                bytearr = getImage("share/data/images/ais_base_station.png");
+            }                
 	    } else if (stationData.getStationType() == AISFixedStationType.REPEATER) {
-            bytearr = getImage("share/data/images/ais_repeater_station.png");	        
+	        if (currentIcons == Options.LARGE_ICONS) {
+                bytearr = getImage("share/data/images/ais_repeater_station.png");
+            } else if (currentIcons == Options.SMALL_ICONS) {
+                bytearr = getImage("share/data/images/ais_repeater_station_small.png");
+            } else {
+                currentIcons = Options.LARGE_ICONS;
+                bytearr = getImage("share/data/images/ais_repeater_station.png");
+            }          
 	    } else if (stationData.getStationType() == AISFixedStationType.RECEIVER) {
-            bytearr = getImage("share/data/images/ais_receiver_station.png");	        
+	        if (currentIcons == Options.LARGE_ICONS) {
+                bytearr = getImage("share/data/images/ais_receiver_station.png");
+            } else if (currentIcons == Options.SMALL_ICONS) {
+                bytearr = getImage("share/data/images/ais_receiver_station_small.png");
+            } else {
+                currentIcons = Options.LARGE_ICONS;
+                bytearr = getImage("share/data/images/ais_receiver_station.png");
+            }  	        
 	    } else if (stationData.getStationType() == AISFixedStationType.ATON) {
-            bytearr = getImage("share/data/images/ais_aton_station.png");	        
+	        if (currentIcons == Options.LARGE_ICONS) {
+                bytearr = getImage("share/data/images/ais_aton_station.png");
+            } else if (currentIcons == Options.SMALL_ICONS) {
+                bytearr = getImage("share/data/images/ais_aton_station_small.png");
+            } else {
+                currentIcons = Options.LARGE_ICONS;
+                bytearr = getImage("share/data/images/ais_aton_station.png");
+            }
         }
         
         OMBaseStation base = new OMBaseStation(stationData, bytearr);
-		base.randomReachArea(1);
+//		base.randomReachArea(1);
 //		base.orderReachArea();
 		
-		base.setFillPaint(Color.blue);
 		graphics.add(base);
 		graphics.project(getProjection(), true);
 		this.repaint();
 		this.validate();
 
 		//this.addBaseStationReachArea(base);
-		reachLayerA.addBaseStationReachArea(base);
+		//reachLayerA.addBaseStationReachArea(base);
 		
 	}
 
@@ -286,15 +318,10 @@ public class StationLayer extends OMGraphicHandlerLayer implements MapMouseListe
     public void updateStations() {
         try {
             graphics.clear();
-            reachLayerA.getGraphicsList().clear();           
-            EAVDAMData data = XMLImporter.readXML(new File("data/eavdam_data.xml"));
+            //reachLayerA.getGraphicsList().clear();           
+            data = XMLImporter.readXML(new File("data/eavdam_data.xml"));            
             if (data != null) {
-                AISFixedStationData[] stations = data.getStations();
-                if (stations != null) {
-                    for (AISFixedStationData station : stations) {
-                        this.addBaseStation(station);                    
-                    }
-                }
+                updateIconsOnMap();
             }
         } catch (MalformedURLException ex) {
             System.out.println(ex.getMessage());
@@ -302,6 +329,33 @@ public class StationLayer extends OMGraphicHandlerLayer implements MapMouseListe
             System.out.println(ex.getMessage());
         }
         
+    }
+    
+    public void updateIconsOnMap() {        
+        Options options = OptionsMenuItem.loadOptions();
+        if (options.getIconsSize() == Options.LARGE_ICONS && currentIcons != Options.LARGE_ICONS) {
+            if (data != null) {
+                currentIcons = Options.LARGE_ICONS;
+                graphics.clear();
+                AISFixedStationData[] stations = data.getStations();
+                if (stations != null) {
+                    for (AISFixedStationData station : stations) {
+                        this.addBaseStation(station);                    
+                    }
+                }
+            }
+        } else if (options.getIconsSize() == Options.SMALL_ICONS && currentIcons != Options.SMALL_ICONS) {
+            if (data != null) {
+                currentIcons = Options.SMALL_ICONS;
+                graphics.clear();
+                AISFixedStationData[] stations = data.getStations();
+                if (stations != null) {
+                    for (AISFixedStationData station : stations) {
+                        this.addBaseStation(station);                    
+                    }
+                }
+            }
+        }        
     }
 
 }
