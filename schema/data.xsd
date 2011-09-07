@@ -1,0 +1,291 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:ns="http://eavdam.frv.dk/schema" targetNamespace="http://eavdam.frv.dk/schema">
+	<xs:element name="eavdamData" type="ns:eavdamData"/>
+	<xs:complexType name="eavdamData">
+		<xs:sequence>
+			<xs:element name="user" type="ns:eavdamUser"/>
+			<xs:element name="station" type="ns:aisFixedStationData" minOccurs="0" maxOccurs="unbounded"/>
+		</xs:sequence>
+	</xs:complexType>
+	<xs:complexType name="eavdamUser">
+		<xs:annotation>
+			<xs:documentation>A class for storing EAVDAM user specific data.</xs:documentation>
+		</xs:annotation>
+		<xs:sequence>
+			<xs:element name="organizationName" type="ns:nonEmptyString">
+				<xs:annotation>
+					<xs:documentation>Name of the organization. Mandatory field.</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="countryID" type="ns:countryID">
+				<xs:annotation>
+					<xs:documentation>Country code for the organization, e.g. DK for Denmark. Mandatory field.</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="phone" type="ns:intlPhoneNumber" nillable="true">
+				<xs:annotation>
+					<xs:documentation>Phone number of the organization in international format, starting with character +. Nillable field.</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="fax" type="ns:intlPhoneNumber" nillable="true">
+				<xs:annotation>
+					<xs:documentation>Fax number of the organization in international format, starting with character +. Nillable field.</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="www" type="ns:httpUrl" nillable="true">
+				<xs:annotation>
+					<xs:documentation>URL of the organization, e.g. http://example.com/. Nillable field.</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="description" type="xs:string" nillable="true">
+				<xs:annotation>
+					<xs:documentation>Free text description of the organization. Nillable field.</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="contact" type="ns:person" nillable="true">
+				<xs:annotation>
+					<xs:documentation>Contact point of the organization. Nillable field.</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="technicalContact" type="ns:person" nillable="true">
+				<xs:annotation>
+					<xs:documentation>Technical contact point of the organization. Nillable field.</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="visitingAddress" type="ns:address" nillable="true">
+				<xs:annotation>
+					<xs:documentation>Visiting address of the organization. Nillable field.</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="postalAddress" type="ns:address" nillable="true">
+				<xs:annotation>
+					<xs:documentation>Postal address of the organization. Nillable field.</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:any processContents="skip" minOccurs="0" maxOccurs="unbounded">
+				<xs:annotation>
+					<xs:documentation>Any other XML can be used to add new user details.</xs:documentation>
+				</xs:annotation>
+			</xs:any>
+		</xs:sequence>
+	</xs:complexType>
+	<xs:simpleType name="aisFixedStationType">
+		<xs:restriction base="xs:string">
+			<xs:enumeration value="BASESTATION"/>
+			<xs:enumeration value="REPEATER"/>
+			<xs:enumeration value="RECEIVER"/>
+			<xs:enumeration value="ATON"/>
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="intlPhoneNumber">
+		<xs:annotation>
+			<xs:documentation>A phone number in international format, whitespace and dash separator allowed.</xs:documentation>
+		</xs:annotation>
+		<xs:restriction base="xs:string">
+			<xs:pattern value="\+[0-9 \-]+"/>
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="mmsiNumber">
+		<xs:annotation>
+			<xs:documentation>MMSI number</xs:documentation>
+		</xs:annotation>
+		<xs:restriction base="xs:string">
+			<xs:pattern value="[0-9]{9}"/>
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="countryID">
+		<xs:annotation>
+			<xs:documentation>2-letter country identifier</xs:documentation>
+		</xs:annotation>
+		<xs:restriction base="xs:string">
+			<xs:pattern value="\p{Lu}\p{Lu}"/>
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="nonEmptyString">
+		<xs:restriction base="xs:string">
+			<xs:minLength value="1"/>
+			<xs:pattern value="\S.*"/>
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="httpUrl">
+		<xs:restriction base="xs:string">
+			<xs:pattern value="http(s)?://.+"/>
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="heading">
+		<xs:restriction base="xs:int">
+			<xs:minInclusive value="0"/>
+			<xs:maxInclusive value="359"/>
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="lat">
+		<xs:restriction base="xs:double">
+			<xs:minInclusive value="-90"/>
+			<xs:maxInclusive value="90"/>
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="lon">
+		<xs:restriction base="xs:double">
+			<xs:minInclusive value="-180"/>
+			<xs:maxInclusive value="180"/>
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="nonNegativeDouble">
+		<xs:restriction base="xs:double">
+			<xs:minInclusive value="0"/>
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:complexType name="person">
+		<xs:annotation>
+			<xs:documentation>Class for one contact point information</xs:documentation>
+		</xs:annotation>
+		<xs:sequence>
+			<xs:element name="name" type="xs:string"/>
+			<xs:element name="email" type="xs:string" minOccurs="0"/>
+			<xs:element name="phone" type="ns:intlPhoneNumber" minOccurs="0"/>
+			<xs:element name="fax" type="ns:intlPhoneNumber" minOccurs="0"/>
+			<xs:element name="description" type="xs:string" minOccurs="0"/>
+			<xs:element name="visitingAddress" type="ns:address" minOccurs="0"/>
+			<xs:element name="postalAddress" type="ns:address" minOccurs="0"/>
+		</xs:sequence>
+	</xs:complexType>
+	<xs:complexType name="address">
+		<xs:sequence>
+			<xs:element name="addressline1" type="xs:string"/>
+			<xs:element name="addressline2" type="xs:string" minOccurs="0"/>
+			<xs:element name="zip" type="xs:string"/>
+			<xs:element name="city" type="xs:string"/>
+			<xs:element name="country" type="xs:string"/>
+		</xs:sequence>
+	</xs:complexType>
+	<xs:complexType name="omnidirectionalAntenna">
+		<xs:sequence/>
+	</xs:complexType>
+	<xs:complexType name="directionalAntenna">
+		<xs:sequence>
+			<xs:element name="heading" type="ns:heading">
+				<xs:annotation>
+					<xs:documentation>Heading degrees</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="fieldOfViewAngle" type="ns:heading">
+				<xs:annotation>
+					<xs:documentation>Field of view angle degrees</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="gain" type="ns:nonNegativeDouble">
+				<xs:annotation>
+					<xs:documentation>Antenna gain (dB)</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+		</xs:sequence>
+	</xs:complexType>
+	<xs:complexType name="antenna">
+		<xs:sequence>
+			<xs:choice>
+				<xs:element name="directionalAntenna" type="ns:directionalAntenna"/>
+				<xs:element name="omnidirectionalAntenna" type="ns:omnidirectionalAntenna"/>
+			</xs:choice>
+			<xs:element name="antennaHeight" type="ns:nonNegativeDouble">
+				<xs:annotation>
+					<xs:documentation>Antenna height above terrain (meters).</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="terrainHeight" type="xs:double">
+				<xs:annotation>
+					<xs:documentation>Terrain height above sealevel (meters).</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+		</xs:sequence>
+	</xs:complexType>
+	<xs:complexType name="fatdmaSlotAllocation">
+		<xs:sequence/>
+	</xs:complexType>
+	<xs:complexType name="aisFixedStationData">
+		<xs:annotation>
+			<xs:documentation>A class for holding all properties of an AIS base station.</xs:documentation>
+		</xs:annotation>
+		<xs:sequence>
+			<xs:element name="stationName" type="ns:nonEmptyString">
+				<xs:annotation>
+					<xs:documentation>Descriptive name for the station (E.g. 'Bornholm AIS Base Station' or 'W24 AIS AtoN Station'). Mandatory field.</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="lat" type="ns:lat">
+				<xs:annotation>
+					<xs:documentation>Latitude in decimal degrees, datum must be WGS84. Mandatory field.</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="lon" type="ns:lon">
+				<xs:annotation>
+					<xs:documentation>Longitude in decimal degrees, datum must be WGS84. Mandatory field.</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="mmsi" type="ns:mmsiNumber" nillable="true">
+				<xs:annotation>
+					<xs:documentation>MMSI number (optional for receivers). Nillable field.</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="transmissionPower" type="ns:nonNegativeDouble" nillable="true">
+				<xs:annotation>
+					<xs:documentation>Transmission power in Watts. Nillable field.</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="description" type="xs:string" nillable="true">
+				<xs:annotation>
+					<xs:documentation>A free text description of the station. Nillable field.</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="coverage" type="ns:aisFixedStationCoverage" nillable="true" maxOccurs="unbounded">
+				<xs:annotation>
+					<xs:documentation>Coverage information for the station. Nillable field.</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="antenna" type="ns:antenna" nillable="true">
+				<xs:annotation>
+					<xs:documentation>Antenna information for the station. Nillable field.</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="fatdmaAllocation" type="ns:fatdmaSlotAllocation" nillable="true">
+				<xs:annotation>
+					<xs:documentation>FATDMA allocation information for the station. Nillable field.</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="stationType" type="ns:aisFixedStationType">
+				<xs:annotation>
+					<xs:documentation>Type of the fixed AIS station. Mandatory field.</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="status" type="ns:aisFixedStationStatus" nillable="true">
+				<xs:annotation>
+					<xs:documentation>Status of the station (operative/inoperative). Nillable field.</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:any processContents="skip" minOccurs="0" maxOccurs="unbounded">
+				<xs:annotation>
+					<xs:documentation>Any other XML can be used to add new station details.</xs:documentation>
+				</xs:annotation>
+			</xs:any>
+		</xs:sequence>
+	</xs:complexType>
+	<xs:complexType name="aisFixedStationCoverage">
+		<xs:annotation>
+			<xs:documentation>A class for holding all information for AIS base station coverage area.</xs:documentation>
+		</xs:annotation>
+		<xs:sequence/>
+	</xs:complexType>
+	<xs:simpleType name="aisFixedStationStatus">
+		<xs:restriction base="xs:string">
+			<xs:enumeration value="OPERATIVE">
+				<xs:annotation>
+					<xs:documentation>Indicator that the station is in operative use.</xs:documentation>
+				</xs:annotation>
+			</xs:enumeration>
+			<xs:enumeration value="INOPERATIVE">
+				<xs:annotation>
+					<xs:documentation>Indicator that the station is not in operative use, e.g. exists only on paper for scenario testing.</xs:documentation>
+				</xs:annotation>
+			</xs:enumeration>
+		</xs:restriction>
+	</xs:simpleType>
+</xs:schema>

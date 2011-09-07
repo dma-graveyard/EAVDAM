@@ -1,8 +1,5 @@
-package dk.frv.eavdam.layers;
 
-import java.awt.Color;
-import java.awt.event.MouseEvent;
-import java.awt.geom.Point2D;
+package dk.frv.eavdam.layers;
 
 import com.bbn.openmap.InformationDelegator;
 import com.bbn.openmap.event.MapMouseEvent;
@@ -10,30 +7,34 @@ import com.bbn.openmap.event.MapMouseListener;
 import com.bbn.openmap.event.NavMouseMode;
 import com.bbn.openmap.event.SelectMouseMode;
 import com.bbn.openmap.layer.OMGraphicHandlerLayer;
+import com.bbn.openmap.omGraphics.OMCircle;
 import com.bbn.openmap.omGraphics.OMGraphic;
 import com.bbn.openmap.omGraphics.OMGraphicList;
 import com.bbn.openmap.omGraphics.OMList;
+import com.bbn.openmap.omGraphics.OMPoly;
+import dk.frv.eavdam.data.AISFixedStationData;
+import java.awt.Color;
+import java.awt.event.MouseEvent;
+import java.awt.geom.Point2D;
 
-
-public class OMAISBaseStationReachLayerA  extends OMGraphicHandlerLayer implements
-MapMouseListener {
+public class OMAISBaseStationReachLayerA extends OMGraphicHandlerLayer implements MapMouseListener {
 
 	private static final long serialVersionUID = 1L;
 
 	private OMGraphicList graphics = new OMGraphicList();
 	private InformationDelegator infoDelegator;
-	private SidePanel sidePanel;
+	//private SidePanel sidePanel;
 
 	public OMAISBaseStationReachLayerA() {
 		// TODO Auto-generated constructor stub
 	}
 
-
-
-	public void addReachArea(OMBaseStation base) {
-		
-		this.addBaseStationReachArea(base);
-		
+	public void addReachArea(OMBaseStation base) {	
+		this.addBaseStationReachArea(base);		
+	}
+	
+	public OMGraphicList getGraphicsList() {
+	    return graphics;
 	}
 
 	// public void addRect(double latN, double lonW, double latS, double lonE) {
@@ -54,25 +55,33 @@ MapMouseListener {
 		return this;
 	}
 
-	public void addBaseStationReachArea(OMBaseStation bs){
-		if(bs.getReachArea() == null) return;
+	public void addBaseStationReachArea(OMBaseStation bs) {
+	    
+		if (bs.getReachArea() == null) {
+		    return;
+		}
 
-		if(bs.getReachArea().size() < 2){
+		if (bs.getReachArea().size() < 2) {
+			
+			AISFixedStationData stationData = bs.getStationData();
+			
 			//Get the radius
-			double radius = Math.min(Math.abs(bs.getLat()-bs.getReachArea().get(0)[0]),Math.abs(bs.getLon()-bs.getReachArea().get(0)[1]));
+			double radius = Math.min(Math.abs(stationData.getLat()-bs.getReachArea().get(0)[0]),Math.abs(stationData.getLon()-bs.getReachArea().get(0)[1]));
 
 			//Create a circle
-			OMBaseStationReachCircle baseCircle = new OMBaseStationReachCircle(bs.getLat(), bs.getLon(), radius);
-
+			OMCircle baseCircle = new OMCircle(stationData.getLat(), stationData.getLon(), radius);
 			
 			Color c = new Color(0, 255, 0, 100);
 			baseCircle.setFillPaint(c);
 			graphics.add(baseCircle);
 			graphics.project(getProjection(), true);
 			this.repaint();
-		} else if(bs.getReachArea().size() == 2){
+			this.validate();
+			
+		} else if (bs.getReachArea().size() == 2) {
 			return;
-		}else{
+			
+		} else {
 
 			double[] latlon = new double[bs.getReachArea().size()*2+2];
 			int ith = 0;
@@ -86,7 +95,7 @@ MapMouseListener {
 			latlon[latlon.length-2] = bs.getReachArea().get(0)[0];
 			latlon[latlon.length-1] = bs.getReachArea().get(0)[1];
 
-			OMBaseStationReachPoly baseReach = new OMBaseStationReachPoly(latlon);
+			OMPoly baseReach = new OMPoly(latlon, OMGraphic.DECIMAL_DEGREES, OMGraphic.LINETYPE_GREATCIRCLE);
 
 			System.out.println("Drawing reach area. There are "+latlon.length+" coordinates...");
 
@@ -108,16 +117,15 @@ MapMouseListener {
 
 	@Override
 	public boolean mouseClicked(MouseEvent e) {
-		if (this.sidePanel != null) {
-			this.sidePanel.setText(null);
-		}
-		OMList<OMGraphic> allClosest = graphics.findAll(e.getX(), e.getY(),
-				5.0f);
+		//if (this.sidePanel != null) {
+		//	this.sidePanel.setText(null);
+		//}
+		OMList<OMGraphic> allClosest = graphics.findAll(e.getX(), e.getY(), 5.0f);
 		for (OMGraphic omGraphic : allClosest) {
 			if (omGraphic instanceof OMBaseStation) {
-				// System.out.println("Mouse clicked on omGraphic: " +
-				// omGraphic);
+				System.out.println("Mouse clicked on omGraphic: " + omGraphic);
 
+                /*
 				if (this.sidePanel != null) {
 					OMBaseStation r = (OMBaseStation) omGraphic;
 					String text = 
@@ -138,6 +146,7 @@ MapMouseListener {
 					text+= "</html>";
 					this.sidePanel.setText(text);
 				}
+				*/
 				// Consumed by this
 				return true;
 			}
@@ -151,11 +160,10 @@ MapMouseListener {
 				5.0f);
 		for (OMGraphic omGraphic : allClosest) {
 			if (omGraphic instanceof OMBaseStation) {
-				// System.out.println("Mouse dragged on omGraphic: " +
-				// omGraphic);
+				System.out.println("Mouse dragged on omGraphic: " + omGraphic);
 				OMBaseStation r = (OMBaseStation) omGraphic;
 				Point2D p = ((MapMouseEvent) e).getLatLon();
-				r.setLatLon(p.getY(), p.getX());
+				r.setLocation(p.getY(), p.getX());
 				r.generate(getProjection());
 				this.repaint();
 
@@ -217,10 +225,10 @@ MapMouseListener {
 	public void findAndInit(Object obj) {
 		System.out.println("Other object in MapHandler: " + obj.getClass());
 		if (obj instanceof InformationDelegator) {
-			this.infoDelegator = (InformationDelegator) obj;
-		} else if (obj instanceof SidePanel) {
-			this.sidePanel = (SidePanel) obj;
-			this.sidePanel.setStationReachLayerA(this);
+			this.infoDelegator = (InformationDelegator) obj;	    
+		//} else if (obj instanceof SidePanel) {
+		//	this.sidePanel = (SidePanel) obj;
+		//	this.sidePanel.setStationReachLayerA(this);
 		}
 	}
 
