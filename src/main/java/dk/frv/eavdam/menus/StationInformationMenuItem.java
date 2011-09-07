@@ -12,6 +12,7 @@ import dk.frv.eavdam.data.Person;
 import dk.frv.eavdam.io.XMLExporter;
 import dk.frv.eavdam.io.XMLImporter;
 import java.awt.BorderLayout;
+import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
@@ -34,8 +35,10 @@ import java.util.Arrays;
 import java.util.List;
 import javax.swing.AbstractButton;
 import javax.swing.BorderFactory;
+import javax.swing.ComboBoxEditor;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
+import javax.swing.JComponent;
 import javax.swing.JDialog;
 import javax.swing.GroupLayout;
 import javax.swing.GroupLayout.Alignment;
@@ -45,8 +48,12 @@ import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
+import javax.swing.JTabbedPane;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
+import javax.swing.UIManager;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import javax.xml.bind.JAXBException;
@@ -61,49 +68,59 @@ public class StationInformationMenuItem extends JMenuItem {
 
     public StationInformationMenuItem(EavdamMenu eavdamMenu) {
         super("Edit Station Information");       
-        addActionListener(new StationInformationActionListener(eavdamMenu, null));
+        addActionListener(new StationInformationMenuItemActionListener(eavdamMenu, null));
     }
 
     public StationInformationMenuItem(EavdamMenu eavdamMenu, String stationName) {
         super("Edit Station Information");       
-        addActionListener(new StationInformationActionListener(eavdamMenu, stationName));
+        addActionListener(new StationInformationMenuItemActionListener(eavdamMenu, stationName));
     }
 }
         
         
-class StationInformationActionListener implements ActionListener, DocumentListener {
+class StationInformationMenuItemActionListener implements ActionListener, ChangeListener, DocumentListener {
 
     private EavdamMenu eavdamMenu;
 
     private JDialog dialog;
     
-    private JComboBox selectStationComboBox;
+    private JPanel selectStationPanel;
+    private JTabbedPane tabbedPane;
+    
+    private JComboBox selectDatasetComboBox;
+    private JButton deleteSimulationButton;
+    private JTextField newSimulationTextField;
+    private JButton addNewSimulationButton;
+    
+    private JComboBox selectStationComboBox;    
+    
     private JTextField stationNameTextField;
     private JComboBox stationTypeComboBox;
     private JTextField latitudeTextField;
     private JTextField longitudeTextField;    
     private JTextField mmsiNumberTextField;
     private JTextField transmissionPowerTextField;
-    private JComboBox stationStatusComboBox;
-
+    
     private JComboBox antennaTypeComboBox;
-    private JLabel antennaHeightLabel;
     private JTextField antennaHeightTextField;
-    private JLabel terrainHeightLabel;
     private JTextField terrainHeightTextField;    
-    private JLabel headingLabel;
     private JTextField headingTextField;
-    private JLabel fieldOfViewAngleLabel;
-    private JTextField fieldOfViewAngleTextField;                    
-    private JLabel gainLabel;
+    private JTextField fieldOfViewAngleTextField;
     private JTextField gainTextField;   
     
     private JTextArea additionalInformationJTextArea;
-    
-    private JButton saveButton;
-    private JButton deleteButton;
-    private JButton cancelButton;
 
+    private JButton planChangesButton;    
+    private JButton deleteOperativeButton;
+    private JButton makeOperativeButton;
+    private JButton savePlansButton;
+    private JButton deletePlansButton;
+    private JButton acceptProposalButton;
+
+    private JButton cancelButton;
+    
+    private JPanel notYetImplementedPanel;
+    
     private EAVDAMData data;  
     
     private String initiallySelectedStationName;
@@ -111,7 +128,10 @@ class StationInformationActionListener implements ActionListener, DocumentListen
     
     private boolean noListeners = false;
 
-    public StationInformationActionListener(EavdamMenu eavdamMenu, String stationName) {
+    private static int OPERATIVE = 1;
+    private static int PLANNED = 2;
+
+    public StationInformationMenuItemActionListener(EavdamMenu eavdamMenu, String stationName) {
         this.eavdamMenu = eavdamMenu;
         this.initiallySelectedStationName = stationName;
     }
@@ -120,47 +140,51 @@ class StationInformationActionListener implements ActionListener, DocumentListen
         
         if (e.getSource() instanceof StationInformationMenuItem) {
                                         
-            dialog = new JDialog(eavdamMenu.getOpenMapFrame(), "Station Information", true);
+            dialog = new JDialog(eavdamMenu.getOpenMapFrame(), "Edit Station Information", true);
 
-            selectStationComboBox = new JComboBox();
-            selectStationComboBox.addActionListener(this);
-            stationNameTextField = new JTextField(16);
-            stationNameTextField.getDocument().addDocumentListener(this);
-            stationTypeComboBox = new JComboBox(new String[] {"AIS Base Station", "AIS Repeater", "AIS Receiver station", "AIS AtoN station"});
-            stationTypeComboBox.addActionListener(this);
-            latitudeTextField = new JTextField(16);
-            latitudeTextField.getDocument().addDocumentListener(this);
-            longitudeTextField = new JTextField(16);
-            longitudeTextField.getDocument().addDocumentListener(this);
-            mmsiNumberTextField = new JTextField(16);
-            mmsiNumberTextField.getDocument().addDocumentListener(this);
-            transmissionPowerTextField = new JTextField(16);
-            transmissionPowerTextField.getDocument().addDocumentListener(this);
-            stationStatusComboBox = new JComboBox(new String[] {"Operative", "Inoperative"});
-            stationStatusComboBox.addActionListener(this);
+            selectDatasetComboBox = getComboBox(null);
+            // testing
+            selectDatasetComboBox.addItem("Own active stations");
+            selectDatasetComboBox.addItem("Simulation 1");
+            selectDatasetComboBox.addItem("Simulation 2");
+            selectDatasetComboBox.addItem("Stations of organisation XXX");
+            selectDatasetComboBox.addItem("Stations of organisation YYY");
+            selectDatasetComboBox.addActionListener(this);
+
+            deleteSimulationButton = getButton("Delete selected simulation", 200);        
+            deleteSimulationButton.setVisible(false);
+            newSimulationTextField = new JTextField(20);
+            addNewSimulationButton = getButton("Add new simulation dataset", 200);
+
+            selectStationComboBox = getComboBox(null);
+            
+            stationNameTextField = getTextField(16);
+            stationTypeComboBox = getComboBox(new String[] {"AIS Base Station", "AIS Repeater", "AIS Receiver station", "AIS AtoN station"});
+            latitudeTextField = getTextField(16);          
+            longitudeTextField = getTextField(16);
+            mmsiNumberTextField = getTextField(16);
+            transmissionPowerTextField = getTextField(16);            
     
-            antennaTypeComboBox = new JComboBox(new String[] {"No antenna", "Omnidirectional", "Directional"});
-            antennaTypeComboBox.setSelectedIndex(0);
-            antennaTypeComboBox.addActionListener(this);
-            antennaHeightLabel = new JLabel("Antenna height above terrain (meters):");
-            antennaHeightTextField = new JTextField(16);
-            antennaHeightTextField.getDocument().addDocumentListener(this);
-            terrainHeightLabel = new JLabel("Terrain height above sealevel (meters):");
-            terrainHeightTextField = new JTextField(16);
-            terrainHeightTextField.getDocument().addDocumentListener(this);
-            headingLabel = new JLabel("Heading (degrees - integer):");
-            headingTextField = new JTextField(16);
-            headingTextField.getDocument().addDocumentListener(this);
-            fieldOfViewAngleLabel = new JLabel("Field of View angle (degrees - integer)");
-            fieldOfViewAngleTextField = new JTextField(16);           
-            fieldOfViewAngleTextField.getDocument().addDocumentListener(this);
-            gainLabel = new JLabel("Gain (dB)");
-            gainTextField = new JTextField(16);
-            gainTextField.getDocument().addDocumentListener(this);
+            antennaTypeComboBox = getComboBox(new String[] {"No antenna", "Omnidirectional", "Directional"});                     
+            antennaHeightTextField = getTextField(16);           
+            terrainHeightTextField = getTextField(16);
+            headingTextField = getTextField(16);
+            fieldOfViewAngleTextField = getTextField(16);           
+            gainTextField = getTextField(16);
             
-            additionalInformationJTextArea = new JTextArea("");                
-            additionalInformationJTextArea.getDocument().addDocumentListener(this);
-            
+            additionalInformationJTextArea = getTextArea("");
+
+            cancelButton = getButton("Cancel", 80);            
+            planChangesButton = getButton("Plan changes", 120);    
+            deleteOperativeButton = getButton("Delete operative station", 200);   
+            makeOperativeButton = getButton("Make operative", 140);    
+            savePlansButton = getButton("Save plans", 120);    
+            deletePlansButton = getButton("Delete plans", 120);                
+            acceptProposalButton = getButton("Accept proposal", 120);                                      
+         
+            notYetImplementedPanel = new JPanel();
+            notYetImplementedPanel.add(new JLabel("Not yet implemented!"));            
+         
             loadStation(selectedStationIndex);
             
             if (data == null || (data != null && data.getStations() == null) ||
@@ -173,171 +197,108 @@ class StationInformationActionListener implements ActionListener, DocumentListen
             } else {
                 JPanel panel = new JPanel();
                 panel.setLayout(new GridBagLayout());                  
-                
+
                 JPanel p1 = new JPanel(new GridBagLayout());
-                p1.setBorder(BorderFactory.createTitledBorder("Select station"));
+                p1.setBorder(BorderFactory.createTitledBorder("Select dataset"));
                 GridBagConstraints c = new GridBagConstraints();
                 c.insets = new Insets(5,5,5,5);
                 c.gridx = 0;
                 c.gridy = 0;                  
                 c.anchor = GridBagConstraints.LINE_START;     
                 c.weightx = 0.5;
-                p1.add(selectStationComboBox, c);
-    
-                c.gridx = 0;
-                c.gridy = 0;
-                c.gridheight = 1;
+                p1.add(selectDatasetComboBox, c);
+                c.gridx = 1;
+                c.anchor = GridBagConstraints.LINE_END;   
+                c.weightx = 0;
+                p1.add(deleteSimulationButton, c);
+                c.gridx = 2;
+                p1.add(newSimulationTextField, c);
+                c.gridx = 3;
+                p1.add(addNewSimulationButton, c);
+                                              
+                c.gridx = 0; 
+                c.weightx = 0.5;
                 c.anchor = GridBagConstraints.FIRST_LINE_START;
                 c.fill = GridBagConstraints.HORIZONTAL;
-                panel.add(p1, c);
-                                  
-                JPanel p2 = new JPanel(new GridBagLayout());
-                p2.setBorder(BorderFactory.createTitledBorder("General information"));
+                panel.add(p1, c);                                                             
+                
+                selectStationPanel = new JPanel(new GridBagLayout());
+                selectStationPanel.setBorder(BorderFactory.createTitledBorder("Select station"));                
                 c.gridx = 0;
-                c.gridy = 0;                   
-                c.anchor = GridBagConstraints.LINE_START;
+                c.gridy = 0;                  
                 c.fill = GridBagConstraints.NONE;
-                p2.add(new JLabel("Descriptive name for the station:"), c);
-                c.gridx = 1;                
-                p2.add(stationNameTextField, c);                    
-                c.gridx = 0;
-                c.gridy = 1;                  
-                p2.add(new JLabel("Type of the fixed AIS station:"), c);
-                c.gridx = 1;
-                p2.add(stationTypeComboBox, c);                                                                       
-                c.gridx = 0;
-                c.gridy = 2;                                         
-                p2.add(new JLabel("Latitude in decimal degrees, datum must be WGS84:"), c);
-                c.gridx = 1;                    
-                p2.add(latitudeTextField, c);                    
-                c.gridx = 0;
-                c.gridy = 3;                  
-                p2.add(new JLabel("Longitude in decimal degrees, datum must be WGS84:"), c);
-                c.gridx = 1;                    
-                p2.add(longitudeTextField, c);        
-                c.gridx = 0;
-                c.gridy = 4;                  
-                p2.add(new JLabel("MMSI number (optional for receivers):"), c);
-                c.gridx = 1;                    
-                p2.add(mmsiNumberTextField, c);
-                c.gridx = 0;
-                c.gridy = 5;                 
-                p2.add(new JLabel("Transmission power (Watt):"), c);
-                c.gridx = 1;                    
-                p2.add(transmissionPowerTextField, c);
-                c.gridx = 0;
-                c.gridy = 6;                 
-                p2.add(new JLabel("Status of the fixed AIS station:"), c);
-                c.gridx = 1;                    
-                p2.add(stationStatusComboBox, c);
-    
+                selectStationPanel.add(selectStationComboBox, c);    
                 c.gridx = 0;
                 c.gridy = 1;
                 c.anchor = GridBagConstraints.FIRST_LINE_START;
                 c.fill = GridBagConstraints.HORIZONTAL;
-                panel.add(p2, c);                    
-                  
-                JPanel p3 = new JPanel(new GridBagLayout());
-                p3.setBorder(BorderFactory.createTitledBorder("Antenna information"));
-                c.gridx = 0;
-                c.gridy = 0;                 
-                c.anchor = GridBagConstraints.LINE_START;                    
-                c.fill = GridBagConstraints.NONE;
-                p3.add(new JLabel("Antenna type:"), c);
-                c.gridx = 1;                    
-                p3.add(antennaTypeComboBox, c);
-                c.gridx = 0;
-                c.gridy = 1;                  
-                p3.add(antennaHeightLabel, c);
-                c.gridx = 1;                    
-                p3.add(antennaHeightTextField, c);                    
-                c.gridx = 0;
-                c.gridy = 2;                  
-                p3.add(terrainHeightLabel, c);
-                c.gridx = 1;                    
-                p3.add(terrainHeightTextField, c); 
-                c.gridx = 0;
-                c.gridy = 3;
-                p3.add(headingLabel, c);
-                c.gridx = 1;                    
-                p3.add(headingTextField, c); 
-                c.gridx = 0;
-                c.gridy = 4;                  
-                p3.add(fieldOfViewAngleLabel, c);
-                c.gridx = 1;                    
-                p3.add(fieldOfViewAngleTextField, c);                                         
-                c.gridx = 0;
-                c.gridy = 5;                  
-                p3.add(gainLabel, c);
-                c.gridx = 1;                    
-                p3.add(gainTextField, c);                       
-    
-                c.gridx = 0;
+                panel.add(selectStationPanel, c);
+
+                tabbedPane = new JTabbedPane();
+                tabbedPane.addTab("Operative", null, new JPanel(), "Operative");
+                tabbedPane.addTab("Planned", null, new JPanel(), "Planned");
+                tabbedPane.addTab("1. proposal", null, new JPanel(), "1. proposal");  // testing
+                tabbedPane.addTab("2. proposal", null, new JPanel(), "2. proposal");  // testing
+                tabbedPane.setSelectedIndex(1);
+                tabbedPane.addChangeListener(this);
+                tabbedPane.setSelectedIndex(0);
                 c.gridy = 2;
-                c.anchor = GridBagConstraints.FIRST_LINE_START;
-                c.fill = GridBagConstraints.HORIZONTAL;
-                panel.add(p3, c);                      
-                                                         
-                additionalInformationJTextArea.setLineWrap(true);
-                additionalInformationJTextArea.setWrapStyleWord(true);                    
-                JScrollPane p4 = new JScrollPane(additionalInformationJTextArea);
-                p4.setBorder(BorderFactory.createTitledBorder("Additional information"));
-                p4.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
-                p4.setPreferredSize(new Dimension(580, 90));
-                p4.setMaximumSize(new Dimension(580, 90));
+                panel.add(tabbedPane, c);
                 
-                c.gridx = 0;
                 c.gridy = 3;
-                c.anchor = GridBagConstraints.FIRST_LINE_START;
-                c.fill = GridBagConstraints.HORIZONTAL;
-                panel.add(p4, c);
-                
-                saveButton = new JButton("Save", null);        
-                saveButton.setVerticalTextPosition(AbstractButton.BOTTOM);
-                saveButton.setHorizontalTextPosition(AbstractButton.CENTER);
-                saveButton.setPreferredSize(new Dimension(100, 20));
-                saveButton.setMaximumSize(new Dimension(100, 20));
-                saveButton.addActionListener(this);
-                
-                deleteButton = new JButton("Delete", null);        
-                deleteButton.setVerticalTextPosition(AbstractButton.BOTTOM);
-                deleteButton.setHorizontalTextPosition(AbstractButton.CENTER);
-                deleteButton.setPreferredSize(new Dimension(100, 20));
-                deleteButton.setMaximumSize(new Dimension(100, 20));
-                deleteButton.addActionListener(this);            
-                
-                cancelButton = new JButton("Cancel", null);        
-                cancelButton.setVerticalTextPosition(AbstractButton.BOTTOM);
-                cancelButton.setHorizontalTextPosition(AbstractButton.CENTER);
-                cancelButton.setPreferredSize(new Dimension(100, 20));
-                cancelButton.setMaximumSize(new Dimension(100, 20));                              
-                cancelButton.addActionListener(this);
-    
-                JPanel buttonPanel = new JPanel();
-                buttonPanel.add(saveButton);          
-                saveButton.setEnabled(false);              
-                buttonPanel.add(deleteButton);
-                if (data.getStations() == null || data.getStations().length == 0) {
-                    deleteButton.setVisible(false);
-                }
-                buttonPanel.add(cancelButton);                    
-                c.gridx = 0;
-                c.gridy = 4;
-                c.fill = GridBagConstraints.NONE;
-                c.anchor = GridBagConstraints.CENTER;                    
-                panel.add(buttonPanel, c);
-    
-                dialog.getContentPane().add(panel);
+                panel.add(notYetImplementedPanel, c);
+                notYetImplementedPanel.setVisible(false);
+
+                JPanel contentPanel = new JPanel();
+                contentPanel.add(panel, BorderLayout.NORTH);
+                dialog.getContentPane().add(contentPanel);
             }
-                                                                         
-            int frameWidth = 620;
-            int frameHeight = 770;
+            
+            int frameWidth = 920;
+            int frameHeight = 660;
             Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
             dialog.setBounds((int) screenSize.getWidth()/2 - frameWidth/2,
                 (int) screenSize.getHeight()/2 - frameHeight/2, frameWidth, frameHeight);
             dialog.setVisible(true);
         
-        } else if (saveButton != null && e.getSource() == saveButton) {
+        } else if (e.getSource() == selectDatasetComboBox) {
+            
+            if (((String) selectDatasetComboBox.getSelectedItem()).startsWith("Own active stations")) {
+                if (selectStationPanel != null && tabbedPane != null && deleteSimulationButton != null) {
+                    notYetImplementedPanel.setVisible(false);
+                    selectStationPanel.setVisible(true);
+                    tabbedPane.setVisible(true);
+                    deleteSimulationButton.setVisible(false);
+                }
+            } else if (((String) selectDatasetComboBox.getSelectedItem()).startsWith("Simulation")) {
+                if (selectStationPanel != null && tabbedPane != null && deleteSimulationButton != null) {
+                    selectStationPanel.setVisible(false);  // simulations not yet implemented
+                    tabbedPane.setVisible(false);
+                    deleteSimulationButton.setVisible(true);
+                    notYetImplementedPanel.setVisible(true);
+                }
+            } else if (((String) selectDatasetComboBox.getSelectedItem()).startsWith("Stations of organisation")) {
+                if (selectStationPanel != null && tabbedPane != null && deleteSimulationButton != null) {
+                    selectStationPanel.setVisible(false);  // stations of other organisations not yet implemented
+                    tabbedPane.setVisible(false);
+                    deleteSimulationButton.setVisible(false);
+                    notYetImplementedPanel.setVisible(true);
+                }
+            }       
+        
+        } else if (deleteSimulationButton != null && e.getSource() == deleteSimulationButton) {            
+            JOptionPane.showMessageDialog(dialog, "Not yet implemented!");
+
+        } else if (addNewSimulationButton != null && e.getSource() == addNewSimulationButton) {            
+            JOptionPane.showMessageDialog(dialog, "Not yet implemented!");
+
+        } else if (planChangesButton != null && e.getSource() == planChangesButton) {            
+            JOptionPane.showMessageDialog(dialog, "Not yet implemented!");
+
+        } else if (makeOperativeButton != null && e.getSource() == makeOperativeButton) {            
+            JOptionPane.showMessageDialog(dialog, "Not yet implemented!");            
+                
+        } else if (savePlansButton != null && e.getSource() == savePlansButton) {
          
             boolean success = saveStation(selectedStationIndex);
 
@@ -350,13 +311,13 @@ class StationInformationActionListener implements ActionListener, DocumentListen
                     selectStationComboBox.addItem(stationNameTextField.getText());
                 }
                 selectStationComboBox.setSelectedItem(stationNameTextField.getText());
-                saveButton.setEnabled(false);
-                deleteButton.setVisible(true);
+                savePlansButton.setEnabled(false);;
                 selectStationComboBox.addActionListener(this);
                 eavdamMenu.getStationLayer().updateStations();
             }
             
-        } else if (deleteButton != null && e.getSource() == deleteButton) {
+        } else if ((deleteOperativeButton != null && e.getSource() == deleteOperativeButton) ||
+                (deletePlansButton != null && e.getSource() == deletePlansButton)) {
             int response = JOptionPane.showConfirmDialog(dialog, "Are you sure you want to delete the current station?", "Confirm action", JOptionPane.YES_NO_OPTION);
             if (response == JOptionPane.YES_OPTION) {
                 noListeners = true;
@@ -377,7 +338,7 @@ class StationInformationActionListener implements ActionListener, DocumentListen
                 } else {
                     selectedStationIndex = 0;
                     loadStation(selectedStationIndex);
-                    saveButton.setEnabled(false);
+                    savePlansButton.setEnabled(false);
                 }
                 noListeners = false;
                 eavdamMenu.getStationLayer().updateStations();
@@ -385,7 +346,7 @@ class StationInformationActionListener implements ActionListener, DocumentListen
                 // do nothing
             }    
         } else if (cancelButton != null && e.getSource() == cancelButton) {
-            if (saveButton.isEnabled()) {
+            if (savePlansButton.isEnabled()) {
                 int response = JOptionPane.showConfirmDialog(dialog,
                     "Do you want to save the changes made to the current station?",
                     "Confirm action", JOptionPane.YES_NO_OPTION);
@@ -400,123 +361,465 @@ class StationInformationActionListener implements ActionListener, DocumentListen
                 }
             } else {       
                 dialog.dispose();                  
-            }
-        
+            }        
         } else if (!noListeners && selectStationComboBox != null && e.getSource() == selectStationComboBox) {
             if (selectStationComboBox.getSelectedIndex() != selectedStationIndex) {
                 noListeners = true;
-                if (saveButton.isEnabled()) {
-                    int response = JOptionPane.showConfirmDialog(dialog,
-                        "Do you want to save the changes made to the current station?",
-                        "Confirm action", JOptionPane.YES_NO_CANCEL_OPTION);
-                    if (response == JOptionPane.YES_OPTION) {
-                        boolean success = saveStation(selectedStationIndex);
-                        if (success) {
+                if (((String) selectDatasetComboBox.getSelectedItem()).startsWith("Own active stations") &&
+                        tabbedPane.getSelectedIndex() == 1) {
+                    if (savePlansButton.isEnabled()) {
+                        int response = JOptionPane.showConfirmDialog(dialog,
+                            "Do you want to save the changes made to the current planned station?",
+                            "Confirm action", JOptionPane.YES_NO_CANCEL_OPTION);
+                        if (response == JOptionPane.YES_OPTION) {
+                            boolean success = saveStation(selectedStationIndex);
+                            if (success) {
+                                selectedStationIndex = selectStationComboBox.getSelectedIndex();
+                                loadStation(selectedStationIndex);
+                                updateView();
+                                savePlansButton.setEnabled(false);
+                            }
+                        } else if (response == JOptionPane.NO_OPTION) {                        
                             selectedStationIndex = selectStationComboBox.getSelectedIndex();
                             loadStation(selectedStationIndex);
-                            saveButton.setEnabled(false); 
-                        }
-                    } else if (response == JOptionPane.NO_OPTION) {                        
+                            updateView();
+                            savePlansButton.setEnabled(false); 
+                        } else if (response == JOptionPane.CANCEL_OPTION) {
+                            // do nothing
+                        }                    
+                    } else {
                         selectedStationIndex = selectStationComboBox.getSelectedIndex();
-                        loadStation(selectedStationIndex);
-                        saveButton.setEnabled(false); 
-                    } else if (response == JOptionPane.CANCEL_OPTION) {
-                        // do nothing
+                        loadStation(selectedStationIndex);                    
+                        updateView();
                     }
                 } else {
                     selectedStationIndex = selectStationComboBox.getSelectedIndex();
-                    loadStation(selectedStationIndex);                    
+                    loadStation(selectedStationIndex);                     
+                    updateView();
                 }
                 noListeners = false;
-            }
+            }                  
         
         } else if (!noListeners && antennaTypeComboBox != null && e.getSource() == antennaTypeComboBox) {
-            saveButton.setEnabled(true);
-            updateAntennaTypeComboBox();                   
+            if (((String) selectDatasetComboBox.getSelectedItem()).startsWith("Own active stations") &&
+                    tabbedPane.getSelectedIndex() == 1) {
+                savePlansButton.setEnabled(true);
+                updateAntennaTypeComboBox();
+            }
         
-        } else if (saveButton != null) {
-            if (saveButton != null) {
+        } else if (savePlansButton != null && tabbedPane != null && selectDatasetComboBox != null) {            
+            if (((String) selectDatasetComboBox.getSelectedItem()).startsWith("Own active stations") &&
+                    tabbedPane.getSelectedIndex() == 1) {
                 if (isChanged(selectedStationIndex)) {
-                    saveButton.setEnabled(true);
+                    savePlansButton.setEnabled(true);
                 } else {
-                    saveButton.setEnabled(false);
+                    savePlansButton.setEnabled(false);
                 }
             }
         }
     }
     
-    public void changedUpdate(DocumentEvent e) {
-        if (saveButton != null) {
-            if (isChanged(selectedStationIndex)) {
-                saveButton.setEnabled(true);
-            } else {
-                saveButton.setEnabled(false);
+    private JButton getButton(String title, int width) {
+        JButton b = new JButton(title, null);        
+        b.setVerticalTextPosition(AbstractButton.BOTTOM);
+        b.setHorizontalTextPosition(AbstractButton.CENTER);
+        b.setPreferredSize(new Dimension(width, 20));
+        b.setMaximumSize(new Dimension(width, 20));
+        b.addActionListener(this);     
+        return b;
+    }
+    
+    private JComboBox getComboBox(String[] components) {
+        JComboBox cb = new JComboBox();
+        if (components != null) {
+            for (String c : components) {
+                cb.addItem(c);
             }
         }
-    }  
+        cb.addActionListener(this);
+        return cb;
+    }
+    
+    private JTextField getTextField(int width) {
+        JTextField tf = new JTextField(width);
+        tf.getDocument().addDocumentListener(this);
+        return tf;
+    }
+    
+    private JTextArea getTextArea(String contents) {
+        JTextArea ta = new JTextArea("");
+        ta.getDocument().addDocumentListener(this);
+        return ta;
+    }
+    
+    private JComponent makeStationPanel(int status) {
+        
+        JPanel panel = new JPanel(new GridBagLayout());                      
+    
+        // adds form fields
+    
+        JPanel p1 = new JPanel(new GridBagLayout());
+        p1.setBorder(BorderFactory.createTitledBorder("General information"));
+        GridBagConstraints c = new GridBagConstraints();
+        c.insets = new Insets(5,5,5,5);
+        c.gridx = 0;
+        c.gridy = 0;                   
+        c.anchor = GridBagConstraints.LINE_START;
+        c.fill = GridBagConstraints.NONE;
+        c.weightx = 0.5;
+        p1.add(new JLabel("Station name:"), c);
+        c.gridx = 1;                
+        p1.add(stationNameTextField, c);                    
+        c.gridx = 0;
+        c.gridy = 1;                  
+        p1.add(new JLabel("Station type:"), c);
+        c.gridx = 1;
+        p1.add(stationTypeComboBox, c);                                                                       
+        c.gridx = 0;
+        c.gridy = 2;                                         
+        p1.add(new JLabel("Latitude (WGS84):"), c);
+        c.gridx = 1;
+        p1.add(latitudeTextField, c);                    
+        c.gridx = 0;
+        c.gridy = 3;                  
+        p1.add(new JLabel("Longitude (WGS84):"), c);
+        c.gridx = 1;       
+        p1.add(longitudeTextField, c);        
+        c.gridx = 0;
+        c.gridy = 4;                  
+        p1.add(new JLabel("MMSI number:"), c);
+        c.gridx = 1;        
+        p1.add(mmsiNumberTextField, c);
+        c.gridx = 0;
+        c.gridy = 5;                 
+        p1.add(new JLabel("Transmission power (Watt):"), c);
+        c.gridx = 1;                          
+        p1.add(transmissionPowerTextField, c);
+
+        c.gridx = 0;
+        c.gridy = 0;
+        c.anchor = GridBagConstraints.FIRST_LINE_START;
+        c.fill = GridBagConstraints.HORIZONTAL;
+        panel.add(p1, c);                    
+          
+        JPanel p2 = new JPanel(new GridBagLayout());
+        p2.setBorder(BorderFactory.createTitledBorder("Antenna information"));        
+        c.gridx = 0;
+        c.gridy = 0;                 
+        c.anchor = GridBagConstraints.LINE_START;                    
+        c.fill = GridBagConstraints.NONE;
+        p2.add(new JLabel("Antenna type:"), c);
+        c.gridx = 1;                    
+        p2.add(antennaTypeComboBox, c);
+        c.gridx = 0;
+        c.gridy = 1;                  
+        p2.add(new JLabel("Antenna height above terrain (m):"), c);
+        c.gridx = 1;                    
+        p2.add(antennaHeightTextField, c);                    
+        c.gridx = 0;
+        c.gridy = 2;                  
+        p2.add(new JLabel("Terrain height above sealevel (m):"), c);
+        c.gridx = 1;                    
+        p2.add(terrainHeightTextField, c); 
+        c.gridx = 0;
+        c.gridy = 3;
+        p2.add(new JLabel("Heading (degrees - integer):"), c);
+        c.gridx = 1;                    
+        p2.add(headingTextField, c); 
+        c.gridx = 0;
+        c.gridy = 4;                  
+        p2.add(new JLabel("Field of View angle (degrees - integer):"), c);
+        c.gridx = 1;                    
+        p2.add(fieldOfViewAngleTextField, c);                                         
+        c.gridx = 0;
+        c.gridy = 5;                  
+        p2.add(new JLabel("Gain (dB):"), c);
+        c.gridx = 1;                    
+        p2.add(gainTextField, c);                       
+
+        c.gridx = 1;
+        c.gridy = 0;
+        c.anchor = GridBagConstraints.FIRST_LINE_START;
+        c.fill = GridBagConstraints.HORIZONTAL;
+        panel.add(p2, c);                      
+                                                 
+        additionalInformationJTextArea.setLineWrap(true);
+        additionalInformationJTextArea.setWrapStyleWord(true);
+        JScrollPane p3 = new JScrollPane(additionalInformationJTextArea);
+        p3.setBorder(BorderFactory.createTitledBorder("Additional information"));
+        p3.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
+        p3.setPreferredSize(new Dimension(580, 90));
+        p3.setMaximumSize(new Dimension(580, 90));
+        
+        c.gridx = 0;
+        c.gridy = 1;
+        c.gridwidth = 2;
+        c.anchor = GridBagConstraints.FIRST_LINE_START;
+        c.fill = GridBagConstraints.HORIZONTAL;
+        panel.add(p3, c);
+
+        JPanel buttonPanel = new JPanel(new GridBagLayout());
+        c.gridx = 0;
+        c.gridy = 0;
+        c.gridwidth = 1;
+        c.anchor = GridBagConstraints.LINE_START;
+        c.fill = GridBagConstraints.NONE;             
+        if (status == OPERATIVE) {
+            buttonPanel.add(planChangesButton, c);
+            c.gridx = 1;
+            buttonPanel.add(deleteOperativeButton, c);
+            c.gridx = 2;
+            buttonPanel.add(cancelButton, c);                    
+        } else if (status == PLANNED) {
+            buttonPanel.add(savePlansButton, c);
+            c.gridx = 1;
+            buttonPanel.add(makeOperativeButton, c);
+            c.gridx = 2;
+            buttonPanel.add(deletePlansButton, c);
+            c.gridx = 3;
+            buttonPanel.add(cancelButton, c);
+        }
+        c.gridx = 0;
+        c.gridy = 2;
+        c.gridwidth = 2;
+        c.fill = GridBagConstraints.NONE;
+        c.anchor = GridBagConstraints.CENTER;                    
+        panel.add(buttonPanel, c);
+        
+        // updates form fields' statuses (enabled or disabled)
+        
+        if (status == OPERATIVE) {
+            stationNameTextField.setEnabled(false);
+            configureDisabledTextField(stationNameTextField);
+            stationTypeComboBox.setEnabled(false);                            
+            configureDisabledComboBox(stationTypeComboBox);
+            latitudeTextField.setEnabled(false);                            
+            configureDisabledTextField(latitudeTextField);
+            longitudeTextField.setEnabled(false);                             
+            configureDisabledTextField(longitudeTextField);            
+            mmsiNumberTextField.setEnabled(false);
+            configureDisabledTextField(mmsiNumberTextField);            
+            transmissionPowerTextField.setEnabled(false);  
+            configureDisabledTextField(transmissionPowerTextField);
+            antennaTypeComboBox.setEnabled(false);   
+            configureDisabledComboBox(antennaTypeComboBox);
+            antennaHeightTextField.setEnabled(false);   
+            configureDisabledTextField(antennaHeightTextField); 
+            terrainHeightTextField.setEnabled(false);   
+            configureDisabledTextField(terrainHeightTextField); 
+            headingTextField.setEnabled(false);   
+            configureDisabledTextField(headingTextField); 
+            fieldOfViewAngleTextField.setEnabled(false);                                                   
+            configureDisabledTextField(fieldOfViewAngleTextField); 
+            gainTextField.setEnabled(false); 
+            configureDisabledTextField(gainTextField); 
+            additionalInformationJTextArea.setEnabled(false);               
+            configureDisabledTextArea(additionalInformationJTextArea);            
+        } else if (status == PLANNED) {
+            stationNameTextField.setEnabled(true);
+            stationTypeComboBox.setEnabled(true);   
+            stationTypeComboBox.setEditable(false);                                     
+            latitudeTextField.setEnabled(true);                            
+            longitudeTextField.setEnabled(true);                                         
+            mmsiNumberTextField.setEnabled(true);           
+            transmissionPowerTextField.setEnabled(true);         
+            antennaTypeComboBox.setEnabled(true);   
+            antennaTypeComboBox.setEditable(false); 
+            antennaHeightTextField.setEnabled(true);   
+            terrainHeightTextField.setEnabled(true);   
+            headingTextField.setEnabled(true);   
+            fieldOfViewAngleTextField.setEnabled(true);                                                   
+            gainTextField.setEnabled(true); 
+            additionalInformationJTextArea.setEnabled(true);                          
+        }
+
+        // updates form fields contents
+                
+        noListeners = true;
+
+        if (data != null && selectedStationIndex < data.getStations().length) {
+            AISFixedStationData station = data.getStations()[selectedStationIndex];
+
+            if (station.getStationName() != null) {
+                stationNameTextField.setText(station.getStationName());
+            } else {
+                stationNameTextField.setText("");                
+            }
+            if (station.getStationType() != null) {
+                if (station.getStationType() == AISFixedStationType.BASESTATION) {
+                    stationTypeComboBox.setSelectedIndex(0);
+                } else if (station.getStationType() == AISFixedStationType.REPEATER) {
+                    stationTypeComboBox.setSelectedIndex(1);
+                } else if (station.getStationType() == AISFixedStationType.RECEIVER) {
+                    stationTypeComboBox.setSelectedIndex(2);
+                } else if (station.getStationType() == AISFixedStationType.ATON) {
+                    stationTypeComboBox.setSelectedIndex(3);
+                }
+            } else {
+                stationTypeComboBox.setSelectedIndex(0);
+            }
+            if (!Double.isNaN(station.getLat())) {                
+                latitudeTextField.setText(String.valueOf(station.getLat()));                         
+            } else {
+                latitudeTextField.setText("");
+            }
+            if (!Double.isNaN(station.getLon())) {  
+                longitudeTextField.setText(String.valueOf(station.getLon()));
+            } else {
+                longitudeTextField.setText("");
+            }
+            if (station.getMmsi() != null) {
+                mmsiNumberTextField.setText(station.getMmsi());
+            } else {
+                mmsiNumberTextField.setText("");
+            }
+            if (station.getTransmissionPower() != null) {
+                transmissionPowerTextField.setText(station.getTransmissionPower().toString());
+            } else {
+                transmissionPowerTextField.setText("");
+            }
+            if (station.getAntenna() != null) {
+                Antenna antenna = station.getAntenna();
+                if (antenna.getAntennaType() != null) {
+                    if (antenna.getAntennaType() == AntennaType.OMNIDIRECTIONAL) {
+                        antennaTypeComboBox.setSelectedIndex(1);
+                    } else if (antenna.getAntennaType() == AntennaType.DIRECTIONAL) {
+                        antennaTypeComboBox.setSelectedIndex(2);
+                    }
+                } else {
+                    antennaTypeComboBox.setSelectedIndex(0);
+                }
+                if (!Double.isNaN(antenna.getAntennaHeight())) {
+                    antennaHeightTextField.setText(String.valueOf(antenna.getAntennaHeight()));
+                } else {
+                    antennaHeightTextField.setText("");
+                }
+                if (!Double.isNaN(antenna.getTerrainHeight())) {
+                    terrainHeightTextField.setText(String.valueOf(antenna.getTerrainHeight()));
+                } else {
+                    terrainHeightTextField.setText("");
+                }                
+                if (antenna.getHeading() != null) {
+                    headingTextField.setText(antenna.getHeading().toString());
+                } else {
+                    headingTextField.setText("");
+                }
+                if (antenna.getFieldOfViewAngle() != null) {
+                    fieldOfViewAngleTextField.setText(antenna.getFieldOfViewAngle().toString());
+                } else {
+                    fieldOfViewAngleTextField.setText("");
+                }
+                if (antenna.getGain() != null) {
+                    gainTextField.setText(antenna.getGain().toString());
+                } else {
+                    gainTextField.setText("");
+                }                    
+            } else {           
+                antennaTypeComboBox.setSelectedIndex(0);
+            }
+            if (station.getDescription() != null) {
+                additionalInformationJTextArea.setText(station.getDescription());
+            } else {
+                additionalInformationJTextArea.setText("");
+            }
+            updateAntennaTypeComboBox();
+        }
+        
+        noListeners = false;
+        
+        return panel;    
+    }
+
+    private void configureDisabledTextField(JTextField textField) {
+        Color bgColor = UIManager.getColor("TextField.background");  
+        textField.setBackground(bgColor);  
+        Color fgColor = UIManager.getColor("TextField.foreground");  
+        textField.setDisabledTextColor(fgColor);
+    }
+    
+    private void configureDisabledComboBox(JComboBox comboBox) {
+        comboBox.setEditable(true);
+        ComboBoxEditor editor = comboBox.getEditor();
+        JTextField temp = (JTextField) editor.getEditorComponent();
+        temp.setDisabledTextColor(UIManager.getColor("ComboBox.foreground"));
+        temp.setBackground(UIManager.getColor("ComboBox.background"));
+        comboBox.setEnabled(false);
+    }    
+    
+    private void configureDisabledTextArea(JTextArea textArea) {
+        Color bgColor = UIManager.getColor("TextArea.background");  
+        textArea.setBackground(bgColor);  
+        Color fgColor = UIManager.getColor("TextArea.foreground");  
+        textArea.setDisabledTextColor(fgColor);
+    }
+
+    public void changedUpdate(DocumentEvent e) {
+        checkForChanges();
+    }
     
     public void insertUpdate(DocumentEvent e) {
-        if (saveButton != null) {
-            if (isChanged(selectedStationIndex)) {
-                saveButton.setEnabled(true);
-            } else {
-                saveButton.setEnabled(false);
-            }
-        }
+        checkForChanges();
     } 
     
     public void removeUpdate(DocumentEvent e) {
-        if (saveButton != null) {
-            if (isChanged(selectedStationIndex)) {
-                saveButton.setEnabled(true);
-            } else {
-                saveButton.setEnabled(false);
+        checkForChanges();
+    }    
+    
+    private void checkForChanges() {
+        if (savePlansButton != null) {                    
+            if (((String) selectDatasetComboBox.getSelectedItem()).startsWith("Own active stations") &&
+                tabbedPane.getSelectedIndex() == 1) {
+                if (isChanged(selectedStationIndex)) {
+                    savePlansButton.setEnabled(true);
+                } else {
+                    savePlansButton.setEnabled(false);
+                }
             }
         }
-    }       
+    }
+    
+    public void stateChanged(ChangeEvent evt) {
+        updateView();
+    }
+    
+    private void updateView() {
+        int sel = tabbedPane.getSelectedIndex();    
+        if (sel == 0) {  // operative
+            JComponent operativePanel = makeStationPanel(OPERATIVE);            
+            tabbedPane.setComponentAt(0, operativePanel);        
+        } else if (sel == 1) {  // planned
+            JComponent plannedPanel = makeStationPanel(PLANNED);
+            tabbedPane.setComponentAt(1, plannedPanel);  
+        }        
+    }    
 
     private void updateAntennaTypeComboBox() {
-        if (antennaTypeComboBox.getSelectedIndex() == 0) {  // no antenna
-            antennaHeightLabel.setVisible(false);
+        if (antennaTypeComboBox.getSelectedIndex() == 0) {  // no antenna         
             antennaHeightTextField.setText("");
-            antennaHeightTextField.setVisible(false);
-            terrainHeightLabel.setVisible(false);
+            antennaHeightTextField.setEnabled(false);
             terrainHeightTextField.setText("");
-            terrainHeightTextField.setVisible(false);
-            headingLabel.setVisible(false);
+            terrainHeightTextField.setEnabled(false);
             headingTextField.setText("");
-            headingTextField.setVisible(false);
-            fieldOfViewAngleLabel.setVisible(false);
+            headingTextField.setEnabled(false);
             fieldOfViewAngleTextField.setText("");
-            fieldOfViewAngleTextField.setVisible(false);
-            gainLabel.setVisible(false);
+            fieldOfViewAngleTextField.setEnabled(false);
             gainTextField.setText("");
-            gainTextField.setVisible(false); 
+            gainTextField.setEnabled(false); 
         } else if (antennaTypeComboBox.getSelectedIndex() == 1) {  // omnidirectional
-            antennaHeightLabel.setVisible(true);
-            antennaHeightTextField.setVisible(true);
-            terrainHeightLabel.setVisible(true);
-            terrainHeightTextField.setVisible(true);
-            headingLabel.setVisible(false);
+            antennaHeightTextField.setEnabled(true);
+            terrainHeightTextField.setEnabled(true);
             headingTextField.setText("");
-            headingTextField.setVisible(false);
-            fieldOfViewAngleLabel.setVisible(false);
+            headingTextField.setEnabled(false);
             fieldOfViewAngleTextField.setText("");
-            fieldOfViewAngleTextField.setVisible(false);
-            gainLabel.setVisible(false);
+            fieldOfViewAngleTextField.setEnabled(false);
             gainTextField.setText("");
-            gainTextField.setVisible(false);                        
+            gainTextField.setEnabled(false); 
         } else if (antennaTypeComboBox.getSelectedIndex() == 2) {  // directional
-            antennaHeightLabel.setVisible(true);
-            antennaHeightTextField.setVisible(true);
-            terrainHeightLabel.setVisible(true);
-            terrainHeightTextField.setVisible(true);
-            headingLabel.setVisible(true);
-            headingTextField.setVisible(true);
-            fieldOfViewAngleLabel.setVisible(true);
-            fieldOfViewAngleTextField.setVisible(true);
-            gainLabel.setVisible(true);
-            gainTextField.setVisible(true);
+            antennaHeightTextField.setEnabled(true);
+            terrainHeightTextField.setEnabled(true);
+            headingTextField.setEnabled(true);
+            fieldOfViewAngleTextField.setEnabled(true);
+            gainTextField.setEnabled(true); 
         } 
     }    
 
@@ -569,77 +872,9 @@ class StationInformationActionListener implements ActionListener, DocumentListen
                     selectStationComboBox.addItem("Undefined");
                 }
             }
-            selectStationComboBox.setSelectedIndex(stationIndex);
-            
-            if (station.getStationName() != null) {
-                stationNameTextField.setText(station.getStationName());
-            } else {
-                stationNameTextField.setText("Undefined");                
-            }
-            if (station.getStationType() != null) {
-                if (station.getStationType() == AISFixedStationType.BASESTATION) {
-                    stationTypeComboBox.setSelectedIndex(0);
-                } else if (station.getStationType() == AISFixedStationType.REPEATER) {
-                    stationTypeComboBox.setSelectedIndex(1);
-                } else if (station.getStationType() == AISFixedStationType.RECEIVER) {
-                    stationTypeComboBox.setSelectedIndex(2);
-                } else if (station.getStationType() == AISFixedStationType.ATON) {
-                    stationTypeComboBox.setSelectedIndex(3);
-                }
-            }
-            if (!Double.isNaN(station.getLat())) {                
-                latitudeTextField.setText(String.valueOf(station.getLat()));                         
-            }
-            if (!Double.isNaN(station.getLon())) {  
-                longitudeTextField.setText(String.valueOf(station.getLon()));
-            }
-            if (station.getMmsi() != null) {
-                mmsiNumberTextField.setText(station.getMmsi());
-            }
-            if (station.getTransmissionPower() != null) {
-                transmissionPowerTextField.setText(station.getTransmissionPower().toString());
-            }
-            if (station.getStatus() != null) {
-                if (station.getStatus() == AISFixedStationStatus.OPERATIVE) {
-                    stationStatusComboBox.setSelectedIndex(0);
-                } else if (station.getStatus() == AISFixedStationStatus.INOPERATIVE) {
-                    stationStatusComboBox.setSelectedIndex(1);
-                }
-            }
-            if (station.getAntenna() != null) {
-                Antenna antenna = station.getAntenna();
-                if (antenna.getAntennaType() != null) {
-                    if (antenna.getAntennaType() == AntennaType.OMNIDIRECTIONAL) {
-                        antennaTypeComboBox.setSelectedIndex(1);
-                    } else if (antenna.getAntennaType() == AntennaType.DIRECTIONAL) {
-                        antennaTypeComboBox.setSelectedIndex(2);
-                    }
-                } else {
-                    antennaTypeComboBox.setSelectedIndex(0);
-                }
-                if (!Double.isNaN(antenna.getAntennaHeight())) {
-                    antennaHeightTextField.setText(String.valueOf(antenna.getAntennaHeight()));
-                }
-                if (!Double.isNaN(antenna.getTerrainHeight())) {
-                    terrainHeightTextField.setText(String.valueOf(antenna.getTerrainHeight()));
-                }
-                if (antenna.getHeading() != null) {
-                    headingTextField.setText(antenna.getHeading().toString());
-                }
-                if (antenna.getFieldOfViewAngle() != null) {
-                    fieldOfViewAngleTextField.setText(antenna.getFieldOfViewAngle().toString());
-                }
-                if (antenna.getGain() != null) {
-                    gainTextField.setText(antenna.getGain().toString());
-                }                    
-            } else {           
-                antennaTypeComboBox.setSelectedIndex(0);
-            }
-            if (station.getDescription() != null) {
-                additionalInformationJTextArea.setText(station.getDescription());
-            }            
-            updateAntennaTypeComboBox();           
+            selectStationComboBox.setSelectedIndex(stationIndex);            
         }
+        
         noListeners = false;       
     }
     
@@ -781,11 +1016,6 @@ class StationInformationActionListener implements ActionListener, DocumentListen
                 station.setTransmissionPower(null);
             } else {
                 station.setTransmissionPower(new Double(transmissionPowerTextField.getText().trim()));
-            }
-            if (stationStatusComboBox.getSelectedIndex() == 0) {
-                station.setStatus(AISFixedStationStatus.OPERATIVE);
-            } else if (stationStatusComboBox.getSelectedIndex() == 1) {
-                station.setStatus(AISFixedStationStatus.INOPERATIVE);
             }
             Antenna antenna = station.getAntenna();
             if (antennaTypeComboBox.getSelectedIndex() == 0) {
@@ -976,12 +1206,6 @@ class StationInformationActionListener implements ActionListener, DocumentListen
         if (station.getStatus() == null) {
             return true;
         }
-        if (station.getStatus() == AISFixedStationStatus.OPERATIVE && stationStatusComboBox.getSelectedIndex() != 0) {
-            return true;
-        }  
-        if (station.getStatus() == AISFixedStationStatus.INOPERATIVE && stationStatusComboBox.getSelectedIndex() != 1) {
-            return true;
-        }  
         Antenna antenna = station.getAntenna();
         if (antenna == null) {
             antenna = new Antenna();
