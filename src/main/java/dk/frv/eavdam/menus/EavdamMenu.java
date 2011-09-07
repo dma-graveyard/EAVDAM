@@ -2,6 +2,7 @@ package dk.frv.eavdam.menus;
 
 import com.bbn.openmap.gui.AbstractOpenMapMenu;
 import com.bbn.openmap.gui.OpenMapFrame;
+import dk.frv.eavdam.io.EmailSender;
 import dk.frv.eavdam.layers.StationLayer;
 import javax.swing.JSeparator;
 
