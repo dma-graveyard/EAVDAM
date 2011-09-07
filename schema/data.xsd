@@ -5,6 +5,7 @@
 		<xs:sequence>
 			<xs:element name="user" type="ns:eavdamUser"/>
 			<xs:element name="station" type="ns:aisFixedStationData" minOccurs="0" maxOccurs="unbounded"/>
+			<xs:element name="timestamp" type="ns:timestamp" minOccurs="1" maxOccurs="1"/>
 		</xs:sequence>
 	</xs:complexType>
 	<xs:complexType name="eavdamUser">
@@ -122,6 +123,18 @@
 		<xs:restriction base="xs:double">
 			<xs:minInclusive value="-90"/>
 			<xs:maxInclusive value="90"/>
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="startDate">
+		<xs:restriction base="xs:date">
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="endDate">
+		<xs:restriction base="xs:date">
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="timestamp">
+		<xs:restriction base="xs:dateTime">
 		</xs:restriction>
 	</xs:simpleType>
 	<xs:simpleType name="lon">
@@ -256,11 +269,23 @@
 					<xs:documentation>Type of the fixed AIS station. Mandatory field.</xs:documentation>
 				</xs:annotation>
 			</xs:element>
-			<xs:element name="status" type="ns:aisFixedStationStatus" nillable="true">
+			<xs:sequence minOccurs="1" maxOccurs="1">
+			<xs:element name="status" type="ns:aisFixedStationStatus" nillable="false">
 				<xs:annotation>
-					<xs:documentation>Status of the station (operative/inoperative). Nillable field.</xs:documentation>
+					<xs:documentation>Status of the station (operative/inoperative).</xs:documentation>
 				</xs:annotation>
 			</xs:element>
+			<xs:element name="startDate" type="ns:startDate">
+				<xs:annotation>
+					<xs:documentation>Start date of the given status.</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="endDate" type="ns:endDate">
+				<xs:annotation>
+					<xs:documentation>End date of the given status.</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			</xs:sequence>
 			<xs:any processContents="skip" minOccurs="0" maxOccurs="unbounded">
 				<xs:annotation>
 					<xs:documentation>Any other XML can be used to add new station details.</xs:documentation>
@@ -281,9 +306,19 @@
 					<xs:documentation>Indicator that the station is in operative use.</xs:documentation>
 				</xs:annotation>
 			</xs:enumeration>
-			<xs:enumeration value="INOPERATIVE">
+			<xs:enumeration value="OLD">
 				<xs:annotation>
-					<xs:documentation>Indicator that the station is not in operative use, e.g. exists only on paper for scenario testing.</xs:documentation>
+					<xs:documentation>Indicator that the station is not in operative use anymore and exists only as a history record.</xs:documentation>
+				</xs:annotation>
+			</xs:enumeration>
+			<xs:enumeration value="PLANNED">
+				<xs:annotation>
+					<xs:documentation>Indicator that the station is planned but is not in operational use.</xs:documentation>
+				</xs:annotation>
+			</xs:enumeration>
+			<xs:enumeration value="SIMULATED">
+				<xs:annotation>
+					<xs:documentation>The station is a simulation.</xs:documentation>
 				</xs:annotation>
 			</xs:enumeration>
 		</xs:restriction>

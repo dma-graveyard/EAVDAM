@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:ns="http://eavdam.frv.dk/schema" targetNamespace="http://eavdam.frv.dk/schema">
+	<xs:element name="ftpConfig" type="ns:ftpConfig"/>
+	
+	<xs:complexType name="ftpConfig">
+	<xs:sequence>
+			<xs:element name="ftp" type="ns:ftp"></xs:element>
+	</xs:sequence>
+	</xs:complexType>
+
+	<xs:complexType name="ftp">
+		<xs:sequence>
+		<xs:element name="url" type="ns:url">
+		<xs:annotation>
+			<xs:documentation>URL address of the FTP server</xs:documentation>
+		</xs:annotation>
+		</xs:element>
+		<xs:element name="username" type="ns:username">
+		
+		</xs:element>
+		<xs:element name="password" type="ns:password">
+		
+		</xs:element>
+		<xs:element name="directory" type="ns:directory">
+		
+		</xs:element>
+	</xs:sequence>
+	</xs:complexType>
+
+	<xs:simpleType name="url">
+		<xs:restriction base="xs:anyURI"></xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="username">
+		<xs:restriction base="xs:string"></xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="password">
+		<xs:restriction base="xs:string"></xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="directory">
+		<xs:restriction base="xs:anyURI"></xs:restriction>
+	</xs:simpleType>
+</xs:schema>
