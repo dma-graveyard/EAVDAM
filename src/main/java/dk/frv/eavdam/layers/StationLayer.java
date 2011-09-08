@@ -323,7 +323,7 @@ public class StationLayer extends OMGraphicHandlerLayer implements MapMouseListe
             if (DataFileHandler.currentEAVDAMData != null) {
                 data = DataFileHandler.currentEAVDAMData;
             } else {
-                data = XMLImporter.readXML(new File("data/" + DataFileHandler.getLatestDataFileName()));            
+                data = XMLImporter.readXML(new File(DataFileHandler.getLatestDataFileName()));            
             }            
             if (data != null) {
                 updateIconsOnMap();

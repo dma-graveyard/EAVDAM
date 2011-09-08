@@ -18,7 +18,7 @@ import javax.mail.internet.MimeMultipart;
 public class EmailSender {
     
     public static void sendDataToEmail(String to, String from, String subject, String host,
-            boolean auth, String user, String password) throws IOException, MessagingException {
+            boolean auth, String user, String password, String filename) throws IOException, MessagingException {
 
 	    Properties props = System.getProperties();
 	    if (host != null) {
@@ -47,7 +47,7 @@ public class EmailSender {
 		    MimeBodyPart mbp1 = new MimeBodyPart();
 		    mbp1.setText("This message contains the latest data file for the EfficienSea AIS VHF Datalink Manager.");
 		    MimeBodyPart mbp2 = new MimeBodyPart();
-		    mbp2.attachFile("data/" + datafile);
+		    mbp2.attachFile(datafile);
 		    MimeMultipart mp = new MimeMultipart();
 		    mp.addBodyPart(mbp1);
 		    mp.addBodyPart(mbp2);

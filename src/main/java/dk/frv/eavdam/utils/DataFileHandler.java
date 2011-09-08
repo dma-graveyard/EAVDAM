@@ -33,7 +33,7 @@ public class DataFileHandler {
         if (datafile.isEmpty()) {
             return null;
         } else {
-            return datafile;
+            return "data/" + datafile;
         }        
     }
     
@@ -46,7 +46,7 @@ public class DataFileHandler {
             try {
                 String datafile = getLatestDataFileName();
                 if (datafile != null) {        
-                    EAVDAMData data = XMLImporter.readXML(new File("data/" + datafile));
+                    EAVDAMData data = XMLImporter.readXML(new File(datafile));
                     if (data != null) {
                         EAVDAMUser user = data.getUser();
                         if (user != null) {
@@ -84,8 +84,12 @@ public class DataFileHandler {
         if (seconds.length() == 1) {
             seconds = "0" + seconds;
         }                
-                
-        return organisationName.replaceAll(" ", "_") + "_" + year + month + day + hours + minutes + seconds + ".xml"; 
+     
+        final char[] illegalCharacters = { '/', '\n', '\r', '\t', '\0', '\f', '`', '?', '*', '\\', '<', '>', '|', '\"', ':' };
+        for (char c : illegalCharacters) {
+            organisationName.replace(c, '_');
+        }
+        return "data/" + organisationName + "_" + year + month + day + hours + minutes + seconds + ".xml"; 
     }
     
     public static void deleteOldDataFiles() {
@@ -99,7 +103,7 @@ public class DataFileHandler {
                 for (int i=0; i<children.length; i++) {
                     String filename = children[i];
                     if (filename.endsWith("xml")) {
-                        if (!filename.equals(latestDataFile)) {
+                        if (!new String("data/" + filename).equals(latestDataFile)) {
                             new File("data/" + filename).delete();
                         }
                     }

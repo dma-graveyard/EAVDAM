@@ -6,6 +6,7 @@ import com.bbn.openmap.gui.Tool;
 import dk.frv.eavdam.data.Options;
 import dk.frv.eavdam.io.EmailSender;
 import dk.frv.eavdam.menus.OptionsMenuItem;
+import dk.frv.eavdam.utils.DataFileHandler;
 import java.awt.Color;
 import java.awt.Container;
 import java.awt.Frame;
@@ -41,7 +42,7 @@ public class SendEmailButton extends OMToolComponent implements ActionListener, 
 
         sendEmailButton.setBorder(BorderFactory.createEmptyBorder());
 		sendEmailButton.addActionListener(this);
-		sendEmailButton.setToolTipText("Send Data File");
+		sendEmailButton.setToolTipText("Send the data file to e-mail recipients");
 		//sendEmailButton.setEnabled(true);
 		add(sendEmailButton);
 		
@@ -54,7 +55,8 @@ public class SendEmailButton extends OMToolComponent implements ActionListener, 
             Options options = OptionsMenuItem.loadOptions();
             try {
                 EmailSender.sendDataToEmail(options.getEmailTo(), options.getEmailFrom(), options.getEmailSubject(),
-                    options.getEmailHost(), options.isEmailAuth(), options.getEmailUsername(), options.getEmailPassword());
+                    options.getEmailHost(), options.isEmailAuth(), options.getEmailUsername(), options.getEmailPassword(),
+                    DataFileHandler.getLatestDataFileName());
                 JOptionPane.showMessageDialog(openMapFrame, "E-mails were sent succesfully."); 
             } catch (IOException ex) {
                 ex.printStackTrace();

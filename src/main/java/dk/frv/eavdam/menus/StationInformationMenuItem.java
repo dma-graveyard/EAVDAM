@@ -834,7 +834,7 @@ class StationInformationMenuItemActionListener implements ActionListener, Change
         noListeners = true;
         
         try {
-            data = XMLImporter.readXML(new File("data/" + DataFileHandler.getLatestDataFileName()));
+            data = XMLImporter.readXML(new File(DataFileHandler.getLatestDataFileName()));
         } catch (MalformedURLException ex) {
             System.out.println(ex.getMessage());
         } catch (JAXBException ex) {
@@ -1122,7 +1122,7 @@ class StationInformationMenuItemActionListener implements ActionListener, Change
                 }
             }
             DataFileHandler.currentEAVDAMData = data;
-            XMLExporter.writeXML(data, new File("data/" + DataFileHandler.getNewDataFileName(organisationName)));            
+            XMLExporter.writeXML(data, new File(DataFileHandler.getNewDataFileName(organisationName)));            
             DataFileHandler.deleteOldDataFiles();
         } catch (FileNotFoundException ex) {
             System.out.println(ex.getMessage());

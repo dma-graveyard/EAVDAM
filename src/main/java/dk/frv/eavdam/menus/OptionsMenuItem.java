@@ -78,8 +78,9 @@ public class OptionsMenuItem extends JMenuItem {
                 String line = null;
                 List<FTP> ftps = new ArrayList<FTP>();                
                 while ((line = input.readLine()) != null) {
-                    if (line.startsWith("ftp")) {
-                        String[] arr = line.split(";");
+                    if (line.startsWith("ftp:")) {
+                        String temp = line.substring(4).trim();
+                        String[] arr = temp.split(";");
                         if (arr.length == 4) {
                             FTP ftp = new FTP(arr[0], arr[1], arr[2], arr[3]);
                             ftps.add(ftp);
@@ -138,13 +139,25 @@ class OptionsActionListener implements ActionListener, ChangeListener, DocumentL
     private JPanel visualPane;
 
     private JComboBox ftpServersComboBox;
-    private JButton newFTPServerButton;
+    private int currentlySelectedFTPServerIndex = -1;
     private JButton addFTPServerButton;
     private JButton deleteFTPServerButton;
+    private JLabel ftpServerLabel;
     private JTextField ftpServerTextField;
+    private JLabel ftpDirectoryLabel;
     private JTextField ftpDirectoryTextField;
+    private JLabel ftpUsernameLabel;
     private JTextField ftpUsernameTextField;
+    private JLabel ftpPasswordLabel;
     private JPasswordField ftpPasswordTextField;
+
+    private JDialog ftpDialog;
+    private JTextField newFTPServerTextField;
+    private JTextField newFTPDirectoryTextField;
+    private JTextField newFTPUsernameTextField;
+    private JPasswordField newFTPPasswordTextField;            
+    private JButton addNewFTPButton;
+    private JButton cancelNewFTPButton;
 
     private JTextArea emailToTextArea;
     private JTextField emailFromTextField;
@@ -180,12 +193,26 @@ class OptionsActionListener implements ActionListener, ChangeListener, DocumentL
             dialog = new JDialog(eavdamMenu.getOpenMapFrame(), "Settings", true);
         
             options = optionsMenuItem.loadOptions();  
-            ftps = options.getFTPs();             
+            ftps = new ArrayList<FTP>(options.getFTPs());
 
-            createButtons(); 
+            ftpServersComboBox = null;
+            ftpServerTextField = null;
+            ftpDirectoryTextField = null;
+            ftpUsernameTextField = null;
+            ftpPasswordTextField = null;
+            emailToTextArea = null;
+            emailFromTextField = null;
+            emailSubjectTextField = null;
+            emailHostTextField = null;
+            emailAuthComboBox = null;
+            emailUsernameTextField = null;
+            emailPasswordTextField = null;
+            iconsSizeComboBox = null;
+
+            createButtons();             
             emailPane = getEmailPane();
-            ftpPane = getFTPPane();
-            visualPane = getVisualPane();
+            ftpPane = getFTPPane(0);
+            visualPane = getVisualPane();            
             
             JPanel contentPane = new JPanel();
 
@@ -223,7 +250,150 @@ class OptionsActionListener implements ActionListener, ChangeListener, DocumentL
                 emailPasswordTextField.setVisible(false);                
             }
             
+        } else if (e.getSource() == addFTPServerButton) {
+        
+            ftpDialog = new JDialog(dialog, "Add new FTP site", true);        
+        
+            JPanel panel = new JPanel();
+            panel.setLayout(new GridBagLayout());   
+
+            GridBagConstraints c = new GridBagConstraints();    
+            c.gridx = 0;
+            c.gridy = 0;
+            c.anchor = GridBagConstraints.FIRST_LINE_START;
+            c.insets = new Insets(5,5,5,5);
+            panel.add(new JLabel("Server name: "), c);
+            newFTPServerTextField = new JTextField(16);            
+            c.gridx = 1;
+            panel.add(newFTPServerTextField, c);  
+    
+            c.gridx = 0;
+            c.gridy = 1;
+            panel.add(new JLabel("Directory: "), c);
+            newFTPDirectoryTextField = new JTextField(16);            
+            c.gridx = 1;
+            panel.add(newFTPDirectoryTextField, c);     
+    
+            c.gridx = 0;
+            c.gridy = 2;
+            panel.add(new JLabel("Username: "), c);
+            newFTPUsernameTextField = new JTextField(16);            
+            c.gridx = 1;
+            panel.add(newFTPUsernameTextField, c);  
+            
+            c.gridx = 0;
+            c.gridy = 3;
+            panel.add(new JLabel("Password: "), c);
+            newFTPPasswordTextField = new JPasswordField(16);            
+            c.gridx = 1;
+            panel.add(newFTPPasswordTextField, c);             
+                    
+            JPanel buttonPanel = new JPanel();
+            buttonPanel.setLayout(new GridBagLayout());
+            c.gridx = 0;
+            c.gridy = 0;
+            buttonPanel.add(addNewFTPButton, c);
+            c.gridx = 1;
+            buttonPanel.add(cancelNewFTPButton, c);                    
+            c.gridx = 0;
+            c.gridy = 4;
+            c.gridwidth = 2;
+            c.anchor = GridBagConstraints.CENTER;                    
+            panel.add(buttonPanel, c);  
+            
+            ftpDialog.getContentPane().add(panel);
+                                                                         
+            int frameWidth = 300;
+            int frameHeight = 300;
+            Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
+            ftpDialog.setBounds((int) screenSize.getWidth()/2 - frameWidth/2,
+                (int) screenSize.getHeight()/2 - frameHeight/2, frameWidth, frameHeight);
+            ftpDialog.setVisible(true);
+            
+        } else if (e.getSource() == addNewFTPButton) {
+            
+            if (newFTPServerTextField.getText().isEmpty() || newFTPDirectoryTextField.getText().isEmpty() ||
+                    (new String(newFTPPasswordTextField.getPassword())).isEmpty()) {
+                JOptionPane.showMessageDialog(dialog, "All fields except directory are mandatory!");
+            } else {
+                FTP ftp = new FTP(newFTPServerTextField.getText(), newFTPDirectoryTextField.getText(),
+                    newFTPUsernameTextField.getText(), new String(newFTPPasswordTextField.getPassword()));
+                ftps.add(ftp);
+                ftpServersComboBox = null;
+                ftpServerTextField = null;
+                ftpDirectoryTextField = null;
+                ftpUsernameTextField = null;
+                ftpPasswordTextField = null;
+                deleteFTPServerButton.setVisible(true);
+                ftpPane = getFTPPane(ftps.size()-1);
+                tabbedPane.setComponentAt(1, ftpPane); 
+                ftpDialog.dispose();
+            }
+        
+        } else if (e.getSource() == ftpServersComboBox) {
+                    
+            ftpServerTextField.getDocument().removeDocumentListener(this);
+            ftpDirectoryTextField.getDocument().removeDocumentListener(this);
+            ftpUsernameTextField.getDocument().removeDocumentListener(this);
+            ftpPasswordTextField.getDocument().removeDocumentListener(this);                        
+            FTP ftp = new FTP(ftpServerTextField.getText(), ftpDirectoryTextField.getText(),
+                    ftpUsernameTextField.getText(), new String(ftpPasswordTextField.getPassword()));
+            ftps.set(currentlySelectedFTPServerIndex, ftp);
+            ftpServerTextField.setText(ftps.get(ftpServersComboBox.getSelectedIndex()).getServer());
+            ftpDirectoryTextField.setText(ftps.get(ftpServersComboBox.getSelectedIndex()).getDirectory());
+            ftpUsernameTextField.setText(ftps.get(ftpServersComboBox.getSelectedIndex()).getUsername());
+            ftpPasswordTextField.setText(ftps.get(ftpServersComboBox.getSelectedIndex()).getPassword());     
+            currentlySelectedFTPServerIndex = ftpServersComboBox.getSelectedIndex();
+            ftpServerTextField.getDocument().addDocumentListener(this);
+            ftpDirectoryTextField.getDocument().addDocumentListener(this);
+            ftpUsernameTextField.getDocument().addDocumentListener(this);
+            ftpPasswordTextField.getDocument().addDocumentListener(this);   
+            
+        } else if (e.getSource() == cancelNewFTPButton) {
+            
+            if (!newFTPServerTextField.getText().isEmpty() || !newFTPDirectoryTextField.getText().isEmpty() ||
+                    !newFTPDirectoryTextField.getText().isEmpty() || !(new String(newFTPPasswordTextField.getPassword())).isEmpty()) {
+                int response = JOptionPane.showConfirmDialog(dialog, "Are you sure you want to cancel adding a new FTP site?", "Confirm action", JOptionPane.YES_NO_OPTION);
+                if (response == JOptionPane.YES_OPTION) {
+                    ftpDialog.dispose();
+                } else {
+                    // do nothing
+                }
+            } else {
+                ftpDialog.dispose();
+            }
+            
+        } else if (e.getSource() == deleteFTPServerButton) {
+            
+                int response = JOptionPane.showConfirmDialog(dialog, "Are you sure you want to delete the currently open FTP site?", "Confirm action", JOptionPane.YES_NO_OPTION);
+                if (response == JOptionPane.YES_OPTION) {
+                    ftps.remove(ftpServersComboBox.getSelectedIndex());
+                    ftpServersComboBox = null;
+                    ftpServerTextField = null;
+                    ftpDirectoryTextField = null;
+                    ftpUsernameTextField = null;
+                    ftpPasswordTextField = null;
+                    ftpPane = getFTPPane(0);
+                    tabbedPane.setComponentAt(1, ftpPane);                                
+                } else {
+                    // do nothing
+                }
+            
         } else if (saveButton != null && e.getSource() == saveButton) {
+            
+            if (emailToTextArea.getText().isEmpty() || emailFromTextField.getText().isEmpty() ||
+                    emailSubjectTextField.getText().isEmpty() || emailHostTextField.getText().isEmpty() ||
+                    (((String) emailAuthComboBox.getSelectedItem()).equals("Yes") &&
+                    (emailUsernameTextField.getText().isEmpty() || new String(emailPasswordTextField.getPassword()).isEmpty()))) {
+                JOptionPane.showMessageDialog(dialog, "All e-mail fields are mandatory!");
+                return;                        
+            }
+            for (FTP ftp : ftps) {       
+                if (ftp.getServer().isEmpty() || ftp.getUsername().isEmpty() || ftp.getPassword().isEmpty()) {
+                    JOptionPane.showMessageDialog(dialog, "All FTP fields except directory are mandatory!");
+                    return;
+                }
+            }
             
             boolean success = saveOptions();
             
@@ -259,11 +429,11 @@ class OptionsActionListener implements ActionListener, ChangeListener, DocumentL
     
     private void createButtons() {
     
-        saveButton = new JButton("Save", null);        
+        saveButton = new JButton("Save and exit", null);        
         saveButton.setVerticalTextPosition(AbstractButton.BOTTOM);
         saveButton.setHorizontalTextPosition(AbstractButton.CENTER);
-        saveButton.setPreferredSize(new Dimension(100, 20));
-        saveButton.setMaximumSize(new Dimension(100, 20));
+        saveButton.setPreferredSize(new Dimension(130, 20));
+        saveButton.setMaximumSize(new Dimension(130, 20));
         saveButton.addActionListener(this);
             
         cancelButton = new JButton("Cancel", null);        
@@ -272,7 +442,34 @@ class OptionsActionListener implements ActionListener, ChangeListener, DocumentL
         cancelButton.setPreferredSize(new Dimension(100, 20));
         cancelButton.setMaximumSize(new Dimension(100, 20));                              
         cancelButton.addActionListener(this);
-    
+
+        addFTPServerButton = new JButton("Add new", null);
+        addFTPServerButton.setVerticalTextPosition(AbstractButton.BOTTOM);
+        addFTPServerButton.setHorizontalTextPosition(AbstractButton.CENTER);
+        addFTPServerButton.setPreferredSize(new Dimension(100, 20));
+        addFTPServerButton.setMaximumSize(new Dimension(100, 20));
+        addFTPServerButton.addActionListener(this);    
+
+        deleteFTPServerButton = new JButton("Delete", null);
+        deleteFTPServerButton.setVerticalTextPosition(AbstractButton.BOTTOM);
+        deleteFTPServerButton.setHorizontalTextPosition(AbstractButton.CENTER);
+        deleteFTPServerButton.setPreferredSize(new Dimension(100, 20));
+        deleteFTPServerButton.setMaximumSize(new Dimension(100, 20));
+        deleteFTPServerButton.addActionListener(this);     
+        
+        addNewFTPButton = new JButton("Add", null);
+        addNewFTPButton.setVerticalTextPosition(AbstractButton.BOTTOM);
+        addNewFTPButton.setHorizontalTextPosition(AbstractButton.CENTER);
+        addNewFTPButton.setPreferredSize(new Dimension(60, 20));
+        addNewFTPButton.setMaximumSize(new Dimension(60, 20));
+        addNewFTPButton.addActionListener(this);   
+        
+        cancelNewFTPButton = new JButton("Cancel", null);
+        cancelNewFTPButton.setVerticalTextPosition(AbstractButton.BOTTOM);
+        cancelNewFTPButton.setHorizontalTextPosition(AbstractButton.CENTER);
+        cancelNewFTPButton.setPreferredSize(new Dimension(100, 20));
+        cancelNewFTPButton.setMaximumSize(new Dimension(100, 20));
+        cancelNewFTPButton.addActionListener(this);                      
     }    
     
     private JPanel getEmailPane() {
@@ -285,12 +482,14 @@ class OptionsActionListener implements ActionListener, ChangeListener, DocumentL
         c.gridy = 0;                   
         c.anchor = GridBagConstraints.FIRST_LINE_START;
         c.insets = new Insets(5,5,0,5);
-
+        
         panel.add(new JLabel("To: "), c);
-        emailToTextArea = new JTextArea(options.getEmailTo());
-        emailToTextArea.setLineWrap(true);
-        emailToTextArea.setWrapStyleWord(true);
-        emailToTextArea.getDocument().addDocumentListener(this);
+        if (emailToTextArea == null) {
+            emailToTextArea = new JTextArea(options.getEmailTo());
+            emailToTextArea.setLineWrap(true);
+            emailToTextArea.setWrapStyleWord(true);
+            emailToTextArea.getDocument().addDocumentListener(this);
+        }
         JScrollPane scrollPane = new JScrollPane(emailToTextArea);
         scrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
         scrollPane.setPreferredSize(new Dimension(180, 40));
@@ -309,40 +508,48 @@ class OptionsActionListener implements ActionListener, ChangeListener, DocumentL
         c.gridy = 2;
         c.insets = new Insets(5,5,5,5);        
         panel.add(new JLabel("From: "), c);
-        emailFromTextField = new JTextField(16);
-        emailFromTextField.setText(options.getEmailFrom());
-        emailFromTextField.getDocument().addDocumentListener(this);
+        if (emailFromTextField == null) {
+            emailFromTextField = new JTextField(16);
+            emailFromTextField.setText(options.getEmailFrom());
+            emailFromTextField.getDocument().addDocumentListener(this);
+        }
         c.gridx = 1;
         panel.add(emailFromTextField, c);
 
         c.gridx = 0;        
         c.gridy = 3;
         panel.add(new JLabel("Subject: "), c);
-        emailSubjectTextField = new JTextField(16);
-        emailSubjectTextField.setText(options.getEmailSubject());
-        emailSubjectTextField.getDocument().addDocumentListener(this);
+        if (emailSubjectTextField == null) {
+            emailSubjectTextField = new JTextField(16);
+            emailSubjectTextField.setText(options.getEmailSubject());
+            emailSubjectTextField.getDocument().addDocumentListener(this);
+        }
         c.gridx = 1;
         panel.add(emailSubjectTextField, c);
         
         c.gridx = 0;        
         c.gridy = 4;
         panel.add(new JLabel("SMTP server address: "), c);
-        emailHostTextField = new JTextField(16);
-        emailHostTextField.setText(options.getEmailHost());
-        emailHostTextField.getDocument().addDocumentListener(this);
+        if (emailHostTextField == null) {
+            emailHostTextField = new JTextField(16);
+            emailHostTextField.setText(options.getEmailHost());
+            emailHostTextField.getDocument().addDocumentListener(this);
+        }
         c.gridx = 1;
         panel.add(emailHostTextField, c);
         
         c.gridx = 0;        
         c.gridy = 5;
         panel.add(new JLabel("Requires authentication: "), c);        
-        emailAuthComboBox = new JComboBox(new String[] {"No", "Yes"});
-        if (!options.isEmailAuth()) {
-            emailAuthComboBox.setSelectedIndex(0);
-        } else {
-            emailAuthComboBox.setSelectedIndex(1);
+        if (emailAuthComboBox == null) {
+            emailAuthComboBox = new JComboBox(new String[] {"No", "Yes"});
+            if (!options.isEmailAuth()) {
+                emailAuthComboBox.setSelectedIndex(0);
+            } else {
+                emailAuthComboBox.setSelectedIndex(1);
+            }        
+            emailAuthComboBox.addActionListener(this);
         }
-        emailAuthComboBox.addActionListener(this);
         c.gridx = 1;
         panel.add(emailAuthComboBox, c);
         
@@ -350,9 +557,11 @@ class OptionsActionListener implements ActionListener, ChangeListener, DocumentL
         c.gridy = 6;
         emailUsernameLabel = new JLabel("Username: ");
         panel.add(emailUsernameLabel, c);
-        emailUsernameTextField = new JTextField(16);
-        emailUsernameTextField.setText(options.getEmailUsername());
-        emailUsernameTextField.getDocument().addDocumentListener(this);
+        if (emailUsernameTextField == null) {
+            emailUsernameTextField = new JTextField(16);
+            emailUsernameTextField.setText(options.getEmailUsername());
+            emailUsernameTextField.getDocument().addDocumentListener(this);
+        }
         c.gridx = 1;
         panel.add(emailUsernameTextField, c);    
         if (!options.isEmailAuth()) {
@@ -364,9 +573,11 @@ class OptionsActionListener implements ActionListener, ChangeListener, DocumentL
         c.gridy = 7;
         emailPasswordLabel = new JLabel("Password: ");
         panel.add(emailPasswordLabel, c);
-        emailPasswordTextField = new JPasswordField(16);
-        emailPasswordTextField.setText(options.getEmailPassword());
-        emailPasswordTextField.getDocument().addDocumentListener(this);
+        if (emailPasswordTextField == null) {
+            emailPasswordTextField = new JPasswordField(16);
+            emailPasswordTextField.setText(options.getEmailPassword());
+            emailPasswordTextField.getDocument().addDocumentListener(this);
+        }
         c.gridx = 1;
         panel.add(emailPasswordTextField, c);    
         if (!options.isEmailAuth()) {
@@ -381,6 +592,8 @@ class OptionsActionListener implements ActionListener, ChangeListener, DocumentL
         buttonPanel.add(saveButton, c);
         if (!isChanged()) {
             saveButton.setEnabled(false);
+        } else {
+            saveButton.setEnabled(true);
         }
         c.gridx = 1;
         buttonPanel.add(cancelButton, c);                    
@@ -393,7 +606,7 @@ class OptionsActionListener implements ActionListener, ChangeListener, DocumentL
         return panel;        
     }
 
-    private JPanel getFTPPane() {
+    private JPanel getFTPPane(int selectedIndex) {
         
         JPanel panel = new JPanel();
         panel.setLayout(new GridBagLayout());   
@@ -402,7 +615,99 @@ class OptionsActionListener implements ActionListener, ChangeListener, DocumentL
         c.gridx = 0;
         c.gridy = 0;                   
         c.anchor = GridBagConstraints.FIRST_LINE_START;
-        c.insets = new Insets(5,5,0,5);
+        c.insets = new Insets(5,5,5,5);
+
+        if (ftpServersComboBox == null) {
+            ftpServersComboBox = new JComboBox();            
+            for (FTP ftp : ftps) {
+                ftpServersComboBox.addItem(ftp.getServer());
+            }
+        }
+        ftpServersComboBox.removeActionListener(this);
+        if (selectedIndex < ftps.size()) {
+            ftpServersComboBox.setSelectedIndex(selectedIndex);
+            currentlySelectedFTPServerIndex = selectedIndex;
+        }
+        ftpServersComboBox.addActionListener(this);
+        c.anchor = GridBagConstraints.LINE_START;
+        panel.add(ftpServersComboBox, c);
+        
+        JPanel ftpButtonPanel = new JPanel();
+        ftpButtonPanel.setLayout(new GridBagLayout());
+        ftpButtonPanel.add(addFTPServerButton, c);
+        c.gridx = 1;
+        ftpButtonPanel.add(deleteFTPServerButton, c);
+        panel.add(ftpButtonPanel, c);
+
+        c.gridx = 0;
+        c.gridy = 1;
+        ftpServerLabel = new JLabel("Server name: ");
+        panel.add(ftpServerLabel, c);
+        if (ftpServerTextField == null) {
+            ftpServerTextField = new JTextField(16);
+            if (selectedIndex < ftps.size()) {
+                ftpServerTextField.setText(ftps.get(selectedIndex).getServer());
+            }            
+            ftpServerTextField.getDocument().addDocumentListener(this);
+        }
+        c.gridx = 1;
+        panel.add(ftpServerTextField, c);  
+
+        c.gridx = 0;        
+        c.gridy = 2;
+        ftpDirectoryLabel = new JLabel("Directory: ");
+        panel.add(ftpDirectoryLabel, c);
+        if (ftpDirectoryTextField == null) {
+            ftpDirectoryTextField = new JTextField(16);
+            if (selectedIndex < ftps.size()) {
+                ftpDirectoryTextField.setText(ftps.get(selectedIndex).getDirectory());
+            }    
+            ftpDirectoryTextField.getDocument().addDocumentListener(this);
+        }
+        c.gridx = 1;
+        panel.add(ftpDirectoryTextField, c);  
+        
+        c.gridx = 0;        
+        c.gridy = 3;
+        ftpUsernameLabel = new JLabel("Username: ");
+        panel.add(ftpUsernameLabel, c);
+        if (ftpUsernameTextField == null) {
+            ftpUsernameTextField = new JTextField(16);
+            if (selectedIndex < ftps.size()) {
+                ftpUsernameTextField.setText(ftps.get(selectedIndex).getUsername());
+            }
+            ftpUsernameTextField.getDocument().addDocumentListener(this);
+        }
+        c.gridx = 1;
+        panel.add(ftpUsernameTextField, c);  
+        
+        c.gridx = 0;        
+        c.gridy = 4;
+        ftpPasswordLabel = new JLabel("Password: ");
+        panel.add(ftpPasswordLabel, c);
+        if (ftpPasswordTextField == null) {
+            ftpPasswordTextField = new JPasswordField(16);
+            if (selectedIndex < ftps.size()) {
+                ftpPasswordTextField.setText(ftps.get(selectedIndex).getPassword());
+            }
+            ftpPasswordTextField.getDocument().addDocumentListener(this);
+        }
+        c.gridx = 1;
+        panel.add(ftpPasswordTextField, c);                  
+
+        if (ftps.isEmpty()) {
+            currentlySelectedFTPServerIndex = -1;
+            ftpServersComboBox.setVisible(false);
+            deleteFTPServerButton.setVisible(false);
+            ftpServerLabel.setVisible(false);
+            ftpServerTextField.setVisible(false);
+            ftpDirectoryLabel.setVisible(false);
+            ftpDirectoryTextField.setVisible(false);
+            ftpUsernameLabel.setVisible(false);
+            ftpUsernameTextField.setVisible(false);
+            ftpPasswordLabel.setVisible(false);
+            ftpPasswordTextField.setVisible(false);                                                                                                
+        }
 
         JPanel buttonPanel = new JPanel();
         buttonPanel.setLayout(new GridBagLayout());
@@ -411,11 +716,13 @@ class OptionsActionListener implements ActionListener, ChangeListener, DocumentL
         buttonPanel.add(saveButton, c);
         if (!isChanged()) {
             saveButton.setEnabled(false);
+        } else {
+            saveButton.setEnabled(true);
         }
         c.gridx = 1;
         buttonPanel.add(cancelButton, c);                    
         c.gridx = 0;
-        c.gridy = 0;
+        c.gridy = 5;
         c.gridwidth = 2;
         c.anchor = GridBagConstraints.CENTER;                    
         panel.add(buttonPanel, c);  
@@ -425,15 +732,15 @@ class OptionsActionListener implements ActionListener, ChangeListener, DocumentL
 
     private JPanel getVisualPane() {
     
-        iconsSizeComboBox = new JComboBox(new String[] {"Large", "Small"}); 
-                    
-        if (options.getIconsSize() == Options.LARGE_ICONS) {
-            iconsSizeComboBox.setSelectedIndex(0);
-        } else if (options.getIconsSize() == Options.SMALL_ICONS) {
-            iconsSizeComboBox.setSelectedIndex(1);
+        if (iconsSizeComboBox == null) {
+            iconsSizeComboBox = new JComboBox(new String[] {"Large", "Small"});                     
+            if (options.getIconsSize() == Options.LARGE_ICONS) {
+                iconsSizeComboBox.setSelectedIndex(0);
+            } else if (options.getIconsSize() == Options.SMALL_ICONS) {
+                iconsSizeComboBox.setSelectedIndex(1);
+            }            
+            iconsSizeComboBox.addActionListener(this);
         }
-            
-        iconsSizeComboBox.addActionListener(this);
         
         JPanel panel = new JPanel();
         panel.setLayout(new GridBagLayout());                  
@@ -458,6 +765,8 @@ class OptionsActionListener implements ActionListener, ChangeListener, DocumentL
         buttonPanel.add(saveButton);
         if (!isChanged()) {
             saveButton.setEnabled(false);
+        } else {
+            saveButton.setEnabled(true);
         }
         buttonPanel.add(cancelButton);                    
         c.gridx = 0;
@@ -478,7 +787,7 @@ class OptionsActionListener implements ActionListener, ChangeListener, DocumentL
             emailPane = getEmailPane();
             tabbedPane.setComponentAt(0, emailPane);        
         } else if (sel == 1) {  // ftp
-            ftpPane = getFTPPane();
+            ftpPane = getFTPPane(0);
             tabbedPane.setComponentAt(1, ftpPane); 
         } else if (sel == 2) {  // gui
             visualPane = getVisualPane();
@@ -492,7 +801,11 @@ class OptionsActionListener implements ActionListener, ChangeListener, DocumentL
                 saveButton.setEnabled(true);
             } else {
                 saveButton.setEnabled(false);
-            }
+            }            
+        }
+        if (e.getDocument() == ftpServerTextField.getDocument() || e.getDocument() == ftpDirectoryTextField.getDocument() ||
+                e.getDocument() == ftpUsernameTextField.getDocument() || e.getDocument() == ftpPasswordTextField.getDocument()) {
+            updateCurrentFTP();       
         }
     }  
     
@@ -504,6 +817,10 @@ class OptionsActionListener implements ActionListener, ChangeListener, DocumentL
                 saveButton.setEnabled(false);
             }
         }
+        if (e.getDocument() == ftpServerTextField.getDocument() || e.getDocument() == ftpDirectoryTextField.getDocument() ||
+                e.getDocument() == ftpUsernameTextField.getDocument() || e.getDocument() == ftpPasswordTextField.getDocument()) {
+            updateCurrentFTP();
+        }
     } 
     
     public void removeUpdate(DocumentEvent e) {
@@ -513,6 +830,26 @@ class OptionsActionListener implements ActionListener, ChangeListener, DocumentL
             } else {
                 saveButton.setEnabled(false);
             }
+        }
+        if (e.getDocument() == ftpServerTextField.getDocument() || e.getDocument() == ftpDirectoryTextField.getDocument() ||
+                e.getDocument() == ftpUsernameTextField.getDocument() || e.getDocument() == ftpPasswordTextField.getDocument()) {
+            updateCurrentFTP();       
+        }
+    }
+    
+    private void updateCurrentFTP() {
+        FTP ftp = new FTP(ftpServerTextField.getText(), ftpDirectoryTextField.getText(),
+            ftpUsernameTextField.getText(), new String(ftpPasswordTextField.getPassword()));
+        ftps.set(currentlySelectedFTPServerIndex, ftp);
+        if (!ftpServerTextField.getText().equals((String) ftpServersComboBox.getSelectedItem())) {
+            ftpServersComboBox.removeActionListener(this);
+            ftpServersComboBox.removeItemAt(currentlySelectedFTPServerIndex);
+            if (ftpServersComboBox.getItemCount() > 0) {
+                ftpServersComboBox.insertItemAt(ftpServerTextField.getText(), currentlySelectedFTPServerIndex);
+            } else {
+                ftpServersComboBox.addItem(ftpServerTextField.getText());                
+            }
+            ftpServersComboBox.addActionListener(this);
         }
     }
 
@@ -529,8 +866,10 @@ class OptionsActionListener implements ActionListener, ChangeListener, DocumentL
                 file.mkdir();
             }
             String data = "";
-            for (FTP ftp : ftps) {
-                data += ftp.getServer() + ";" + ftp.getDirectory() + ";" + ftp.getUsername() + ";" + ftp.getPassword() + "\n";
+            for (FTP ftp : ftps) {       
+                if (!ftp.getServer().isEmpty() && !ftp.getUsername().isEmpty() && !ftp.getPassword().isEmpty()) {
+                    data += "ftp:" + ftp.getServer() + ";" + ftp.getDirectory() + ";" + ftp.getUsername() + ";" + ftp.getPassword() + "\n";
+                }
             }
             data += "email-to: " + emailToTextArea.getText() + "\n" +
                 "email-from: " + emailFromTextField.getText() + "\n" +
@@ -570,6 +909,12 @@ class OptionsActionListener implements ActionListener, ChangeListener, DocumentL
      * @return  True if the fields have changed, false if not
      */    
     private boolean isChanged() {
+        
+        List<FTP> savedFTPs = options.getFTPs();
+        
+        if (savedFTPs != null && ftps != null && !savedFTPs.equals(ftps)) {
+            return true;
+        }                
         
         if (options == null && (!emailToTextArea.getText().isEmpty() ||
                 !emailFromTextField.getText().isEmpty() ||

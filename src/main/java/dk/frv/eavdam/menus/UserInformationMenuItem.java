@@ -135,7 +135,7 @@ class UserInformationActionListener implements ActionListener, DocumentListener 
             additionalInformationJTextArea.getDocument().addDocumentListener(this);
 
             try {
-                data = XMLImporter.readXML(new File("data/" + DataFileHandler.getLatestDataFileName()));
+                data = XMLImporter.readXML(new File(DataFileHandler.getLatestDataFileName()));
             } catch (MalformedURLException ex) {
                 System.out.println(ex.getMessage());
             } catch (JAXBException ex) {
@@ -342,11 +342,11 @@ class UserInformationActionListener implements ActionListener, DocumentListener 
             c.anchor = GridBagConstraints.FIRST_LINE_START;
             panel.add(p4, c);                   
             
-            saveButton = new JButton("Save", null);        
+            saveButton = new JButton("Save and exit", null);        
             saveButton.setVerticalTextPosition(AbstractButton.BOTTOM);
             saveButton.setHorizontalTextPosition(AbstractButton.CENTER);
-            saveButton.setPreferredSize(new Dimension(100, 20));
-            saveButton.setMaximumSize(new Dimension(100, 20));
+            saveButton.setPreferredSize(new Dimension(130, 20));
+            saveButton.setMaximumSize(new Dimension(130, 20));
             saveButton.addActionListener(this);
                 
             cancelButton = new JButton("Cancel", null);        
@@ -455,6 +455,7 @@ class UserInformationActionListener implements ActionListener, DocumentListener 
         }
         
         try {
+            String oldOrganizationName = user.getOrganizationName();            
             user.setOrganizationName(organizationNameTextField.getText().trim());
             if (((String) countryComboBox.getSelectedItem()).equals("Denmark")) {
                 user.setCountryID("DK");
@@ -575,8 +576,22 @@ class UserInformationActionListener implements ActionListener, DocumentListener 
                 file.mkdir();
             }
             DataFileHandler.currentEAVDAMData = data;
-            XMLExporter.writeXML(data, new File("data/" + DataFileHandler.getNewDataFileName(organizationNameTextField.getText().trim())));
+            XMLExporter.writeXML(data, new File(DataFileHandler.getNewDataFileName(organizationNameTextField.getText().trim())));
             DataFileHandler.deleteOldDataFiles();
+            /*
+            if (!oldOrganizationName.equals(organizationNameTextField.getText().trim())) {
+                Options options = OptionsMenuItem.loadOptions();
+                List<FTP> ftps = options.getFTPs();
+                if (ftps != null) {
+                    for (FTP ftp : ftps) {
+                        try {
+                            FTPSender.sendDataToFTP(ftp, DataFileHandler.getLatestDataFileName(),
+                                DataFileHandler.getNewDataFileName(oldOrganizationName));
+                        } catch (IOException ex) {}
+                    }
+                }
+            }
+            */
         } catch (FileNotFoundException ex) {
             System.out.println(ex.getMessage());
         } catch (JAXBException ex) {
