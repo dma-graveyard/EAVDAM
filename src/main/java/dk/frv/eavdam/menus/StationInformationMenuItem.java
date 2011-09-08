@@ -11,6 +11,7 @@ import dk.frv.eavdam.data.EAVDAMUser;
 import dk.frv.eavdam.data.Person;
 import dk.frv.eavdam.io.XMLExporter;
 import dk.frv.eavdam.io.XMLImporter;
+import dk.frv.eavdam.utils.DataFileHandler;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
@@ -833,7 +834,7 @@ class StationInformationMenuItemActionListener implements ActionListener, Change
         noListeners = true;
         
         try {
-            data = XMLImporter.readXML(new File("data/eavdam_data.xml"));
+            data = XMLImporter.readXML(new File("data/" + DataFileHandler.getLatestDataFileName()));
         } catch (MalformedURLException ex) {
             System.out.println(ex.getMessage());
         } catch (JAXBException ex) {
@@ -1113,7 +1114,16 @@ class StationInformationMenuItemActionListener implements ActionListener, Change
             if (!file.exists()) {
                 file.mkdir();
             }
-            XMLExporter.writeXML(data, new File("data/eavdam_data.xml"));
+            String organisationName = null;
+            if (data != null) {
+                EAVDAMUser user = data.getUser();
+                if (user != null) {
+                    organisationName = user.getOrganizationName();
+                }
+            }
+            DataFileHandler.currentEAVDAMData = data;
+            XMLExporter.writeXML(data, new File("data/" + DataFileHandler.getNewDataFileName(organisationName)));            
+            DataFileHandler.deleteOldDataFiles();
         } catch (FileNotFoundException ex) {
             System.out.println(ex.getMessage());
         } catch (JAXBException ex) {

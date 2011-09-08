@@ -11,6 +11,7 @@ import dk.frv.eavdam.data.EAVDAMUser;
 import dk.frv.eavdam.data.Person;
 import dk.frv.eavdam.io.XMLExporter;
 import dk.frv.eavdam.io.XMLImporter;
+import dk.frv.eavdam.utils.DataFileHandler;
 import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.awt.GridBagConstraints;
@@ -278,7 +279,7 @@ class AddStationActionListener implements ActionListener {
         } else if (saveButton != null && e.getSource() == saveButton) {         
             boolean success = saveStation();
             if (success) {
-                eavdamMenu.getStationLayer().updateStations();;
+                eavdamMenu.getStationLayer().updateStations();
                 dialog.dispose();
             }
             
@@ -545,7 +546,7 @@ class AddStationActionListener implements ActionListener {
 
     private void loadData() {   
         try {
-            data = XMLImporter.readXML(new File("data/eavdam_data.xml"));
+            data = XMLImporter.readXML(new File("data/" + DataFileHandler.getLatestDataFileName()));
         } catch (MalformedURLException ex) {
             System.out.println(ex.getMessage());
         } catch (JAXBException ex) {
@@ -559,7 +560,16 @@ class AddStationActionListener implements ActionListener {
             if (!file.exists()) {
                 file.mkdir();
             }
-            XMLExporter.writeXML(data, new File("data/eavdam_data.xml"));
+            String organisationName = null;
+            if (data != null) {
+                EAVDAMUser user = data.getUser();
+                if (user != null) {
+                    organisationName = user.getOrganizationName();
+                }
+            }
+            DataFileHandler.currentEAVDAMData = data;            
+            XMLExporter.writeXML(data, new File("data/" + DataFileHandler.getNewDataFileName(organisationName)));            
+            DataFileHandler.deleteOldDataFiles();
         } catch (FileNotFoundException ex) {
             System.out.println(ex.getMessage());
         } catch (JAXBException ex) {

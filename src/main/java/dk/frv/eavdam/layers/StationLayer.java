@@ -24,6 +24,7 @@ import dk.frv.eavdam.io.XMLImporter;
 import dk.frv.eavdam.menus.EavdamMenu;
 import dk.frv.eavdam.menus.OptionsMenuItem;
 import dk.frv.eavdam.menus.StationInformationMenuItem;
+import dk.frv.eavdam.utils.DataFileHandler;
 import java.awt.Color;
 import java.awt.event.ActionListener;
 import java.awt.event.ActionEvent;
@@ -318,8 +319,12 @@ public class StationLayer extends OMGraphicHandlerLayer implements MapMouseListe
     public void updateStations() {
         try {
             graphics.clear();
-            //reachLayerA.getGraphicsList().clear();           
-            data = XMLImporter.readXML(new File("data/eavdam_data.xml"));            
+            //reachLayerA.getGraphicsList().clear();     
+            if (DataFileHandler.currentEAVDAMData != null) {
+                data = DataFileHandler.currentEAVDAMData;
+            } else {
+                data = XMLImporter.readXML(new File("data/" + DataFileHandler.getLatestDataFileName()));            
+            }            
             if (data != null) {
                 updateIconsOnMap();
             }
@@ -333,29 +338,16 @@ public class StationLayer extends OMGraphicHandlerLayer implements MapMouseListe
     
     public void updateIconsOnMap() {        
         Options options = OptionsMenuItem.loadOptions();
-        if (options.getIconsSize() == Options.LARGE_ICONS && currentIcons != Options.LARGE_ICONS) {
-            if (data != null) {
-                currentIcons = Options.LARGE_ICONS;
-                graphics.clear();
-                AISFixedStationData[] stations = data.getStations();
-                if (stations != null) {
-                    for (AISFixedStationData station : stations) {
-                        this.addBaseStation(station);                    
-                    }
+        if (data != null) {
+            currentIcons = options.getIconsSize();
+            graphics.clear();
+            AISFixedStationData[] stations = data.getStations();
+            if (stations != null) {
+                for (AISFixedStationData station : stations) {
+                    this.addBaseStation(station);                    
                 }
             }
-        } else if (options.getIconsSize() == Options.SMALL_ICONS && currentIcons != Options.SMALL_ICONS) {
-            if (data != null) {
-                currentIcons = Options.SMALL_ICONS;
-                graphics.clear();
-                AISFixedStationData[] stations = data.getStations();
-                if (stations != null) {
-                    for (AISFixedStationData station : stations) {
-                        this.addBaseStation(station);                    
-                    }
-                }
-            }
-        }        
+        }      
     }
 
 }
