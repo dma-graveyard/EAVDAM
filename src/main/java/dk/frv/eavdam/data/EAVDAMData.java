@@ -59,6 +59,11 @@ public class EAVDAMData {
 		return stations.toArray(new AISFixedStationData[stations.size()]);
 	}
 	
+	public void addStation(AISFixedStationData station) {
+	    this.stations.add(station);
+	}
+	
+	
 	public void setStations(List<AISFixedStationData> stations) {
 		this.stations.clear();
 		if (stations != null) {
