@@ -25,10 +25,8 @@ public class EavdamMenu extends AbstractOpenMapMenu {
         setMnemonic(defaultMnemonic);
 
         add(new UserInformationMenuItem(this));
-        add(new JSeparator());
-        add(new AddStationMenuItem(this));
+        //add(new AddStationMenuItem(this));
         add(new StationInformationMenuItem(this));         
-        add(new JSeparator());
         add(new OptionsMenuItem(this));
         // add(new JSeparator());
     }
