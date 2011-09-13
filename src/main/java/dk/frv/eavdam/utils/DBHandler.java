@@ -16,7 +16,9 @@ public class DBHandler {
         
     public static EAVDAMData getData() {        
         try {
-            ArrayList<EAVDAMData> data = new DerbyDBInterface().retrieveAllEAVDAMData();
+            DerbyDBInterface d = new DerbyDBInterface();
+            //d.createDatabase(null);
+            ArrayList<EAVDAMData> data = d.retrieveAllEAVDAMData();
             if (data != null && !data.isEmpty()) {
                 return data.get(0);
             } else {
@@ -29,7 +31,9 @@ public class DBHandler {
     }
 
     public static void saveData(EAVDAMData data) {
-        new DerbyDBInterface().insertEAVDAMData(data);
+        DerbyDBInterface d = new DerbyDBInterface();
+        //d.createDatabase(null);
+        d.insertEAVDAMData(data);
     }
     
 }
