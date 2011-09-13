@@ -11,7 +11,7 @@ import javax.xml.bind.Unmarshaller;
 
 import org.w3c.dom.Element;
 
-import dk.frv.eavdam.data.AISFixedStationStatus;
+import dk.frv.eavdam.data.AISStatus;
 import dk.frv.eavdam.data.AISFixedStationType;
 import dk.frv.eavdam.data.AntennaType;
 import dk.frv.eavdam.data.EAVDAMData;
@@ -112,8 +112,8 @@ public class XMLImporter {
 						.getStationType().toString()));
 			}
 			if (xData.getStatus() != null) {
-				data.setStatus(AISFixedStationStatus.valueOf(xData.getStatus()
-						.toString()));
+//				data.setStatus(AISStatus.valueOf(xData.getStatus().
+//						.toString()));
 			}
 			List<Element> anything = xData.getAny();
 			data.setAnything(anything);

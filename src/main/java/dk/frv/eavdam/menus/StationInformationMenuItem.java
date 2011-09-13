@@ -2,7 +2,7 @@ package dk.frv.eavdam.menus;
 
 import dk.frv.eavdam.data.Address;
 import dk.frv.eavdam.data.AISFixedStationData;
-import dk.frv.eavdam.data.AISFixedStationStatus;
+import dk.frv.eavdam.data.AISStatus;
 import dk.frv.eavdam.data.AISFixedStationType;
 import dk.frv.eavdam.data.Antenna;
 import dk.frv.eavdam.data.AntennaType;

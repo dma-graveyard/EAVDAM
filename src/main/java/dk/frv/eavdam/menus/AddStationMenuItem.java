@@ -1,8 +1,9 @@
 package dk.frv.eavdam.menus;
 
+
 import dk.frv.eavdam.data.Address;
 import dk.frv.eavdam.data.AISFixedStationData;
-import dk.frv.eavdam.data.AISFixedStationStatus;
+import dk.frv.eavdam.data.AISStatus;
 import dk.frv.eavdam.data.AISFixedStationType;
 import dk.frv.eavdam.data.Antenna;
 import dk.frv.eavdam.data.AntennaType;
@@ -11,6 +12,7 @@ import dk.frv.eavdam.data.EAVDAMUser;
 import dk.frv.eavdam.data.Person;
 import dk.frv.eavdam.io.XMLExporter;
 import dk.frv.eavdam.io.XMLImporter;
+import dk.frv.eavdam.io.derby.DerbyDBInterface;
 import dk.frv.eavdam.utils.DataFileHandler;
 import java.awt.BorderLayout;
 import java.awt.Dimension;
@@ -471,10 +473,15 @@ class AddStationActionListener implements ActionListener {
                 station.setTransmissionPower(new Double(transmissionPowerTextField.getText().trim()));
             }
             if (stationStatusComboBox.getSelectedIndex() == 0) {
-                station.setStatus(AISFixedStationStatus.OPERATIVE);
+                AISStatus status = new AISStatus();
+                status.setStatusID(DerbyDBInterface.STATUS_ACTIVE);
+            	station.setStatus(status);
             } else if (stationStatusComboBox.getSelectedIndex() == 1) {
-                station.setStatus(AISFixedStationStatus.INOPERATIVE);
+            	AISStatus status = new AISStatus();
+                status.setStatusID(DerbyDBInterface.STATUS_OLD);
+            	station.setStatus(status);
             }
+            
             Antenna antenna = station.getAntenna();
             if (antennaTypeComboBox.getSelectedIndex() == 0) {
                 station.setAntenna(null);
