@@ -2,8 +2,10 @@ package dk.frv.eavdam.utils;
 
 import dk.frv.eavdam.data.EAVDAMData;
 import dk.frv.eavdam.data.EAVDAMUser;
+import dk.frv.eavdam.io.XMLExporter;
 import dk.frv.eavdam.io.XMLImporter;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.net.MalformedURLException;
 import java.util.Calendar;
 import java.util.GregorianCalendar;
@@ -110,6 +112,56 @@ public class DataFileHandler {
                 }
             }
         }
+    }
+    
+    public static EAVDAMData getData() {
+    
+        if (currentEAVDAMData != null) {
+            return currentEAVDAMData;
+        }
+    
+        try {
+            if (getLatestDataFileName() != null) {
+                return XMLImporter.readXML(new File(getLatestDataFileName()));
+            }
+        } catch (MalformedURLException ex) {
+            System.out.println(ex.getMessage());
+        } catch (JAXBException ex) {
+            //System.out.println(ex.getMessage());
+        }
+        
+        return null;
+    
+    }
+
+    /** 
+     * Saves data to XML file.
+     *
+     * @param data  Data to be saved
+     */    
+    public static void saveData(EAVDAMData data) {
+        try {
+            File file = new File("data");
+            if (!file.exists()) {
+                file.mkdir();
+            }
+            String organisationName = null;
+            if (data != null) {
+                EAVDAMUser user = data.getUser();
+                if (user != null) {
+                    organisationName = user.getOrganizationName();
+                }
+            }
+            currentEAVDAMData = data;
+            XMLExporter.writeXML(data, new File(getNewDataFileName(organisationName)));            
+            deleteOldDataFiles();
+        } catch (FileNotFoundException ex) {
+            System.out.println("FileNotFoundException: " + ex.getMessage());
+            ex.printStackTrace();
+        } catch (JAXBException ex) {
+            System.out.println("JAXBException: " + ex.getMessage());
+            //ex.printStackTrace();
+        }            
     }
     
 }

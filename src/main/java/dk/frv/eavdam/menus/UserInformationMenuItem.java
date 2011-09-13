@@ -89,7 +89,7 @@ class UserInformationActionListener implements ActionListener, DocumentListener 
     private JButton saveButton;
     private JButton cancelButton;
     
-    private EAVDAMData data;                   
+    private EAVDAMData data;                
               
     public UserInformationActionListener(EavdamMenu eavdamMenu) {
         super();
@@ -134,16 +134,7 @@ class UserInformationActionListener implements ActionListener, DocumentListener 
             additionalInformationJTextArea = new JTextArea("");                
             additionalInformationJTextArea.getDocument().addDocumentListener(this);
 
-            try {
-                if (DataFileHandler.getLatestDataFileName() != null) {
-                    data = XMLImporter.readXML(new File(DataFileHandler.getLatestDataFileName()));
-                }
-            } catch (MalformedURLException ex) {
-                System.out.println(ex.getMessage());
-            } catch (JAXBException ex) {
-                System.out.println(ex.getMessage());
-            }
-            
+            data = DataFileHandler.getData();            
             EAVDAMUser user = null;                    
             if (data != null) {
                 user = data.getUser();
@@ -572,35 +563,7 @@ class UserInformationActionListener implements ActionListener, DocumentListener 
         
         data.setUser(user);                                
         
-        try {
-            File file = new File("data");
-            if (!file.exists()) {
-                file.mkdir();
-            }
-            DataFileHandler.currentEAVDAMData = data;
-            XMLExporter.writeXML(data, new File(DataFileHandler.getNewDataFileName(organizationNameTextField.getText().trim())));
-            DataFileHandler.deleteOldDataFiles();
-            /*
-            if (!oldOrganizationName.equals(organizationNameTextField.getText().trim())) {
-                Options options = OptionsMenuItem.loadOptions();
-                List<FTP> ftps = options.getFTPs();
-                if (ftps != null) {
-                    for (FTP ftp : ftps) {
-                        try {
-                            FTPSender.sendDataToFTP(ftp, DataFileHandler.getLatestDataFileName(),
-                                DataFileHandler.getNewDataFileName(oldOrganizationName));
-                        } catch (IOException ex) {}
-                    }
-                }
-            }
-            */
-        } catch (FileNotFoundException ex) {
-            System.out.println("FileNotFoundException: " + ex.getMessage());
-            ex.printStackTrace();
-        } catch (JAXBException ex) {
-            System.out.println("JAXBException: " + ex.getMessage());
-            ex.printStackTrace();
-        } 
+        DataFileHandler.saveData(data);              
         
         return true;
     

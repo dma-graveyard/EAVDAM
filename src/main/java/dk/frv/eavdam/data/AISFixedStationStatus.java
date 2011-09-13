@@ -14,5 +14,7 @@ public enum AISFixedStationStatus {
 	 * Indicator that the station is not in operative use, e.g. exists only on paper
 	 * for scenario testing.
 	 */
-	INOPERATIVE
+	INOPERATIVE,  // to be removed
+	PLANNED,
+	SIMULATED
 }
