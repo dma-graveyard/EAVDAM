@@ -6,7 +6,7 @@ import dk.frv.eavdam.data.EAVDAMUser;
 import dk.frv.eavdam.data.Person;
 import dk.frv.eavdam.io.XMLExporter;
 import dk.frv.eavdam.io.XMLImporter;
-import dk.frv.eavdam.utils.DataFileHandler;
+import dk.frv.eavdam.utils.DBHandler;
 
 import java.awt.BorderLayout;
 import java.awt.Dimension;
@@ -134,7 +134,7 @@ class UserInformationActionListener implements ActionListener, DocumentListener 
             additionalInformationJTextArea = new JTextArea("");                
             additionalInformationJTextArea.getDocument().addDocumentListener(this);
 
-            data = DataFileHandler.getData();            
+            data = DBHandler.getData();            
             EAVDAMUser user = null;                    
             if (data != null) {
                 user = data.getUser();
@@ -563,7 +563,7 @@ class UserInformationActionListener implements ActionListener, DocumentListener 
         
         data.setUser(user);                                
         
-        DataFileHandler.saveData(data);              
+        DBHandler.saveData(data);              
         
         return true;
     

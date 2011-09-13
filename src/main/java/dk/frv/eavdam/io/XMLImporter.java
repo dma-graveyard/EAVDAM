@@ -112,8 +112,8 @@ public class XMLImporter {
 						.getStationType().toString()));
 			}
 			if (xData.getStatus() != null) {
-				data.setStatus(AISFixedStationStatus.valueOf(xData.getStatus()
-						.toString()));
+//				data.setStatus(AISStatus.valueOf(xData.getStatus().
+//						.toString()));
 			}
 			List<Element> anything = xData.getAny();
 			data.setAnything(anything);

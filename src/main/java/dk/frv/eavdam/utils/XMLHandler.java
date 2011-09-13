@@ -2,6 +2,7 @@ package dk.frv.eavdam.utils;
 
 import dk.frv.eavdam.data.EAVDAMData;
 import dk.frv.eavdam.data.EAVDAMUser;
+import dk.frv.eavdam.io.derby.DerbyDBInterface;
 import dk.frv.eavdam.io.XMLExporter;
 import dk.frv.eavdam.io.XMLImporter;
 import java.io.File;
@@ -11,9 +12,9 @@ import java.util.Calendar;
 import java.util.GregorianCalendar;
 import javax.xml.bind.JAXBException;
 
-public class DataFileHandler {
+public class XMLHandler {
     
-    public static EAVDAMData currentEAVDAMData;
+    //public static EAVDAMData currentEAVDAMData;
     
     public static String getLatestDataFileName() {
         
@@ -116,9 +117,11 @@ public class DataFileHandler {
     
     public static EAVDAMData getData() {
     
+        /*
         if (currentEAVDAMData != null) {
             return currentEAVDAMData;
         }
+        */
     
         try {
             if (getLatestDataFileName() != null) {
@@ -152,7 +155,7 @@ public class DataFileHandler {
                     organisationName = user.getOrganizationName();
                 }
             }
-            currentEAVDAMData = data;
+            //currentEAVDAMData = data;
             XMLExporter.writeXML(data, new File(getNewDataFileName(organisationName)));            
             deleteOldDataFiles();
         } catch (FileNotFoundException ex) {

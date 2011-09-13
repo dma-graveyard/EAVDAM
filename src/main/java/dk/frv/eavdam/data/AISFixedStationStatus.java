@@ -1,20 +1,49 @@
 package dk.frv.eavdam.data;
 
-/**
- * @author ttesei
- * @version 1.0
- * @created 26-elo-2011 13:27:24
- */
-public enum AISFixedStationStatus {
-	/**
-	 * Indicator that the station is in operative use.
-	 */
-	OPERATIVE,
-	/**
-	 * Indicator that the station is not in operative use, e.g. exists only on paper
-	 * for scenario testing.
-	 */
-	INOPERATIVE,  // to be removed
-	PLANNED,
-	SIMULATED
+import java.sql.Date;
+
+public class AISFixedStationStatus {
+	
+	private int statusID;
+	private String statusName;
+	private Date startDate;
+	private Date endDate;
+	
+	public AISFixedStationStatus(){
+		
+	}
+	
+	public AISFixedStationStatus(int id, String name, Date start, Date end){
+		this.statusID = id;
+		this.statusName = name;
+		this.startDate = start;
+		this.endDate = end;
+				
+	}
+	
+	public int getStatusID() {
+		return statusID;
+	}
+	public void setStatusID(int statusID) {
+		this.statusID = statusID;
+	}
+	public String getStatusName() {
+		return statusName;
+	}
+	public void setStatusName(String statusName) {
+		this.statusName = statusName;
+	}
+	public Date getStartDate() {
+		return startDate;
+	}
+	public void setStartDate(Date startDate) {
+		this.startDate = startDate;
+	}
+	public Date getEndDate() {
+		return endDate;
+	}
+	public void setEndDate(Date endDate) {
+		this.endDate = endDate;
+	}
+	
 }

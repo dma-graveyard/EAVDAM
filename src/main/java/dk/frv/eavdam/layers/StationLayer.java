@@ -317,9 +317,11 @@ public class StationLayer extends OMGraphicHandlerLayer implements MapMouseListe
     }
 
     public void updateStations() {
-        try {
+        //try {
             graphics.clear();
             //reachLayerA.getGraphicsList().clear();     
+            // XXX: to be updated
+            /*
             if (DataFileHandler.currentEAVDAMData != null) {
                 data = DataFileHandler.currentEAVDAMData;
             } else {
@@ -330,11 +332,14 @@ public class StationLayer extends OMGraphicHandlerLayer implements MapMouseListe
             if (data != null) {
                 updateIconsOnMap();
             }
+            */
+        /*
         } catch (MalformedURLException ex) {
             System.out.println(ex.getMessage());
         } catch (JAXBException ex) {
             System.out.println(ex.getMessage());
         }
+        */
         
     }
     

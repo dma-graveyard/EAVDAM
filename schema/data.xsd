@@ -126,16 +126,13 @@
 		</xs:restriction>
 	</xs:simpleType>
 	<xs:simpleType name="startDate">
-		<xs:restriction base="xs:date">
-		</xs:restriction>
+		<xs:restriction base="xs:date"/>
 	</xs:simpleType>
 	<xs:simpleType name="endDate">
-		<xs:restriction base="xs:date">
-		</xs:restriction>
+		<xs:restriction base="xs:date"/>
 	</xs:simpleType>
 	<xs:simpleType name="timestamp">
-		<xs:restriction base="xs:dateTime">
-		</xs:restriction>
+		<xs:restriction base="xs:dateTime"/>
 	</xs:simpleType>
 	<xs:simpleType name="lon">
 		<xs:restriction base="xs:double">
@@ -148,6 +145,13 @@
 			<xs:minInclusive value="0"/>
 		</xs:restriction>
 	</xs:simpleType>
+	<xs:complexType name="status">
+		<xs:sequence>
+			<xs:element name="status" type="ns:aisFixedStationStatus"></xs:element>
+			<xs:element name="startDate" type="ns:startDate"></xs:element>
+			<xs:element name="endDate" type="ns:endDate"></xs:element>
+		</xs:sequence>
+	</xs:complexType>
 	<xs:complexType name="person">
 		<xs:annotation>
 			<xs:documentation>Class for one contact point information</xs:documentation>
@@ -270,21 +274,11 @@
 				</xs:annotation>
 			</xs:element>
 			<xs:sequence minOccurs="1" maxOccurs="1">
-			<xs:element name="status" type="ns:aisFixedStationStatus" nillable="false">
-				<xs:annotation>
-					<xs:documentation>Status of the station (operative/inoperative).</xs:documentation>
-				</xs:annotation>
-			</xs:element>
-			<xs:element name="startDate" type="ns:startDate">
-				<xs:annotation>
-					<xs:documentation>Start date of the given status.</xs:documentation>
-				</xs:annotation>
-			</xs:element>
-			<xs:element name="endDate" type="ns:endDate">
-				<xs:annotation>
-					<xs:documentation>End date of the given status.</xs:documentation>
-				</xs:annotation>
-			</xs:element>
+				<xs:element name="status" type="ns:status" nillable="false">
+					<xs:annotation>
+						<xs:documentation>Status of the station (operative/inoperative).</xs:documentation>
+					</xs:annotation>
+				</xs:element>
 			</xs:sequence>
 			<xs:any processContents="skip" minOccurs="0" maxOccurs="unbounded">
 				<xs:annotation>

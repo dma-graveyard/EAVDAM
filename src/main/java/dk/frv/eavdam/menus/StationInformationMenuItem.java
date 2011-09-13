@@ -1,3 +1,4 @@
+
 package dk.frv.eavdam.menus;
 
 import dk.frv.eavdam.data.ActiveStation;
@@ -14,7 +15,8 @@ import dk.frv.eavdam.data.Person;
 import dk.frv.eavdam.data.Simulation;
 import dk.frv.eavdam.io.XMLExporter;
 import dk.frv.eavdam.io.XMLImporter;
-import dk.frv.eavdam.utils.DataFileHandler;
+import dk.frv.eavdam.io.derby.DerbyDBInterface;
+import dk.frv.eavdam.utils.DBHandler;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
@@ -176,7 +178,7 @@ class StationInformationMenuItemActionListener implements ActionListener, Change
         
         if (e.getSource() instanceof StationInformationMenuItem) {
                       
-            data = DataFileHandler.getData();                         
+            data = DBHandler.getData();                         
                                                                           
             selectDatasetComboBox = getComboBox(null);            
             selectDatasetComboBox.addItem(OWN_ACTIVE_STATIONS_LABEL);
@@ -560,9 +562,9 @@ class StationInformationMenuItemActionListener implements ActionListener, Change
             boolean operativeFound = false;
             boolean plannedFound = false;
             for (AISFixedStationData station : stations) {
-                if (station.getStatus() == AISFixedStationStatus.OPERATIVE) {
+                if (station.getStatus().getStatusID() == DerbyDBInterface.STATUS_ACTIVE) {
                     operativeFound = true;
-                } else if (station.getStatus() == AISFixedStationStatus.PLANNED) {
+                } else if (station.getStatus().getStatusID() == DerbyDBInterface.STATUS_PLANNED) {
                     plannedFound = true;
                 }
             }                        
@@ -575,7 +577,7 @@ class StationInformationMenuItemActionListener implements ActionListener, Change
         }
         if (((String) selectDatasetComboBox.getSelectedItem()).startsWith(OWN_ACTIVE_STATIONS_LABEL)) {
             if (as.getProposals() != null && !as.getProposals().isEmpty()) {
-                Map<EAVDAMUser, AISFixedStationData> proposals = as.getProposals();
+                Map<EAVDAMUser, List<AISFixedStationData>> proposals = as.getProposals();
                 for (Object key : proposals.keySet()) {                        
                     String organizationName = ((EAVDAMUser) key).getOrganizationName();
                     tabbedPane.addTab(PROPOSAL_FROM_LABEL + " " + organizationName, null, new JPanel(), PROPOSAL_FROM_LABEL + " " + organizationName);
@@ -583,7 +585,7 @@ class StationInformationMenuItemActionListener implements ActionListener, Change
             }
         } else if (((String) selectDatasetComboBox.getSelectedItem()).startsWith(STATIONS_OF_ORGANIZATION_LABEL)) {    
             if (as.getProposals() != null && !as.getProposals().isEmpty()) {
-                Map<EAVDAMUser, AISFixedStationData> proposals = as.getProposals();
+                Map<EAVDAMUser, List<AISFixedStationData>> proposals = as.getProposals();
                 if (proposals.size() == 1) {
                     tabbedPane.addTab(PROPOSAL_TO_LABEL, null, new JPanel(), PROPOSAL_TO_LABEL);
                 }
@@ -594,7 +596,7 @@ class StationInformationMenuItemActionListener implements ActionListener, Change
 
     private void initializeTabbedPane(AISFixedStationData stationData) {                       
         if (((String) selectDatasetComboBox.getSelectedItem()).startsWith(SIMULATION_LABEL)) {
-            if (stationData.getStatus() == AISFixedStationStatus.SIMULATED) {
+            if (stationData.getStatus().getStatusID() == DerbyDBInterface.STATUS_SIMULATED) {
                 tabbedPane.addTab(SIMULATED_LABEL, null, new JPanel(), SIMULATED_LABEL);
             }
         }
@@ -959,10 +961,10 @@ class StationInformationMenuItemActionListener implements ActionListener, Change
                 ActiveStation as = data.getActiveStations().get(selectedIndex);
                 if (as.getStations() != null) {
                     for (AISFixedStationData stationData : as.getStations()) {
-                        if (tabbedPane.getTitleAt(tabbedPane.getSelectedIndex()).equals(OPERATIVE_LABEL) && stationData.getStatus() == AISFixedStationStatus.OPERATIVE) {
+                        if (tabbedPane.getTitleAt(tabbedPane.getSelectedIndex()).equals(OPERATIVE_LABEL) && stationData.getStatus().getStatusID() == DerbyDBInterface.STATUS_ACTIVE) {
                             selectedStationData = stationData;
                             break;
-                        } else if (tabbedPane.getTitleAt(tabbedPane.getSelectedIndex()).equals(PLANNED_LABEL) && stationData.getStatus() == AISFixedStationStatus.PLANNED) {
+                        } else if (tabbedPane.getTitleAt(tabbedPane.getSelectedIndex()).equals(PLANNED_LABEL) && stationData.getStatus().getStatusID() == DerbyDBInterface.STATUS_PLANNED) {
                             selectedStationData = stationData;
                             break;
                         }
@@ -991,10 +993,10 @@ class StationInformationMenuItemActionListener implements ActionListener, Change
                             ActiveStation as = stations.get(selectedIndex);
                             if (as.getStations() != null) {
                                 for (AISFixedStationData stationData : as.getStations()) {
-                                    if (tabbedPane.getTitleAt(tabbedPane.getSelectedIndex()).equals(OPERATIVE_LABEL) && stationData.getStatus() == AISFixedStationStatus.OPERATIVE) {
+                                    if (tabbedPane.getTitleAt(tabbedPane.getSelectedIndex()).equals(OPERATIVE_LABEL) && stationData.getStatus().getStatusID() == DerbyDBInterface.STATUS_ACTIVE) {
                                        selectedStationData = stationData;
                                         break;
-                                    } else if (tabbedPane.getTitleAt(tabbedPane.getSelectedIndex()).equals(PLANNED_LABEL) && stationData.getStatus() == AISFixedStationStatus.PLANNED) {
+                                    } else if (tabbedPane.getTitleAt(tabbedPane.getSelectedIndex()).equals(PLANNED_LABEL) && stationData.getStatus().getStatusID() == DerbyDBInterface.STATUS_PLANNED) {
                                         selectedStationData = stationData;
                                         break;
                                     }
@@ -1211,15 +1213,12 @@ class StationInformationMenuItemActionListener implements ActionListener, Change
                 operativeStation.setTransmissionPower(new Double(addTransmissionPowerTextField.getText().trim()));
                 plannedStation.setTransmissionPower(new Double(addTransmissionPowerTextField.getText().trim()));                
             }
-            /*
-            if (((String) addStationStatusComboBox.getSelectedItem()).equals(OPERATIVE_LABEL)) {
-                station.setStatus(AISFixedStationStatus.OPERATIVE);
-            } else if (((String) addStationStatusComboBox.getSelectedItem()).equals(PLANNED_LABEL)) {
-                station.setStatus(AISFixedStationStatus.PLANNED);
-            }
-            */
-            operativeStation.setStatus(AISFixedStationStatus.OPERATIVE);
-            plannedStation.setStatus(AISFixedStationStatus.PLANNED);
+            AISFixedStationStatus status = new AISFixedStationStatus();
+            status.setStatusID(DerbyDBInterface.STATUS_ACTIVE);
+            operativeStation.setStatus(status);
+            status = new AISFixedStationStatus();
+            status.setStatusID(DerbyDBInterface.STATUS_PLANNED);
+            plannedStation.setStatus(status);
             Antenna antenna = operativeStation.getAntenna();
             if (addAntennaTypeComboBox.getSelectedIndex() == 0) {
                 operativeStation.setAntenna(null);
@@ -1302,14 +1301,16 @@ class StationInformationMenuItemActionListener implements ActionListener, Change
                         if (stations == null) {
                             stations = new ArrayList<AISFixedStationData>();
                         }
-                        operativeStation.setStatus(AISFixedStationStatus.SIMULATED);
+                        AISFixedStationStatus status = new AISFixedStationStatus();
+                        status.setStatusID(DerbyDBInterface.STATUS_SIMULATED);
+                        operativeStation.setStatus(status);
                         stations.add(operativeStation);                        
                     }
                 }
             }
         }
 
-        DataFileHandler.saveData(data);
+        DBHandler.saveData(data);
         
         return true;
     }
@@ -1699,10 +1700,10 @@ class StationInformationMenuItemActionListener implements ActionListener, Change
                 if (as.getStations() != null) {
                     for (int i=0; i<as.getStations().size(); i++) {                        
                         AISFixedStationData temp = as.getStations().get(i);
-                        if (tabbedPane.getTitleAt(tabbedPane.getSelectedIndex()).equals(OPERATIVE_LABEL) && temp.getStatus() == AISFixedStationStatus.OPERATIVE) {
+                        if (tabbedPane.getTitleAt(tabbedPane.getSelectedIndex()).equals(OPERATIVE_LABEL) && temp.getStatus().getStatusID() == DerbyDBInterface.STATUS_ACTIVE) {
                             as.getStations().set(i, station);                            
                             break;
-                        } else if (tabbedPane.getTitleAt(tabbedPane.getSelectedIndex()).equals(PLANNED_LABEL) && temp.getStatus() == AISFixedStationStatus.PLANNED) {
+                        } else if (tabbedPane.getTitleAt(tabbedPane.getSelectedIndex()).equals(PLANNED_LABEL) && temp.getStatus().getStatusID() == DerbyDBInterface.STATUS_PLANNED) {
                             as.getStations().set(i, station);                            
                             break;
                         }
@@ -1728,7 +1729,7 @@ class StationInformationMenuItemActionListener implements ActionListener, Change
             }
         }
         
-        DataFileHandler.saveData(data);    
+        DBHandler.saveData(data);    
         
         return true;   
     }
@@ -1758,7 +1759,7 @@ class StationInformationMenuItemActionListener implements ActionListener, Change
                 }
             }            
             
-            DataFileHandler.saveData(data);         
+            DBHandler.saveData(data);         
         }
     }
 
