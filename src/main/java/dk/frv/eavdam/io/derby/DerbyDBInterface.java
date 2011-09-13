@@ -88,6 +88,20 @@ import dk.frv.eavdam.data.Simulation;
 	        
             this.conn = DriverManager.getConnection(protocol + dbName+ ";create=true", props);
             
+            //Test if the database exists:
+            try{
+            	PreparedStatement ps = conn.prepareStatement("SELECT id, name FROM STATIONTYPE WHERE id=1");
+            	ResultSet rs = ps.executeQuery();
+            	
+            	rs.close();
+            	ps.close();
+            	
+            }catch(SQLException e){
+            	System.out.println("Database does not exist, creating it...");
+            	this.createDatabase(dbName);
+            }
+            
+            
             return this.conn;
 	    }
 	
