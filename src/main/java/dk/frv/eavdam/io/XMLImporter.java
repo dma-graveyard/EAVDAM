@@ -11,7 +11,7 @@ import javax.xml.bind.Unmarshaller;
 
 import org.w3c.dom.Element;
 
-import dk.frv.eavdam.data.AISStatus;
+import dk.frv.eavdam.data.AISFixedStationStatus;
 import dk.frv.eavdam.data.AISFixedStationType;
 import dk.frv.eavdam.data.AntennaType;
 import dk.frv.eavdam.data.EAVDAMData;

@@ -135,7 +135,9 @@ class UserInformationActionListener implements ActionListener, DocumentListener 
             additionalInformationJTextArea.getDocument().addDocumentListener(this);
 
             try {
-                data = XMLImporter.readXML(new File(DataFileHandler.getLatestDataFileName()));
+                if (DataFileHandler.getLatestDataFileName() != null) {
+                    data = XMLImporter.readXML(new File(DataFileHandler.getLatestDataFileName()));
+                }
             } catch (MalformedURLException ex) {
                 System.out.println(ex.getMessage());
             } catch (JAXBException ex) {
@@ -593,9 +595,11 @@ class UserInformationActionListener implements ActionListener, DocumentListener 
             }
             */
         } catch (FileNotFoundException ex) {
-            System.out.println(ex.getMessage());
+            System.out.println("FileNotFoundException: " + ex.getMessage());
+            ex.printStackTrace();
         } catch (JAXBException ex) {
-            System.out.println(ex.getMessage());
+            System.out.println("JAXBException: " + ex.getMessage());
+            ex.printStackTrace();
         } 
         
         return true;

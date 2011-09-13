@@ -9,5 +9,9 @@
 	<classpathentry kind="lib" path="lib/omsvg.jar"/>
 	<classpathentry kind="lib" path="lib/openmap.jar"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
+	<classpathentry kind="lib" path="lib/commons-net-3.0.1.jar"/>
+	<classpathentry kind="lib" path="lib/mail.jar"/>
+	<classpathentry kind="lib" path="lib/derby.jar"/>
+	<classpathentry kind="lib" path="lib/derbytools.jar"/>
 	<classpathentry kind="output" path="build/classes"/>
 </classpath>

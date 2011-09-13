@@ -3,7 +3,7 @@ package dk.frv.eavdam.menus;
 
 import dk.frv.eavdam.data.Address;
 import dk.frv.eavdam.data.AISFixedStationData;
-import dk.frv.eavdam.data.AISStatus;
+import dk.frv.eavdam.data.AISFixedStationStatus;
 import dk.frv.eavdam.data.AISFixedStationType;
 import dk.frv.eavdam.data.Antenna;
 import dk.frv.eavdam.data.AntennaType;
@@ -473,11 +473,11 @@ class AddStationActionListener implements ActionListener {
                 station.setTransmissionPower(new Double(transmissionPowerTextField.getText().trim()));
             }
             if (stationStatusComboBox.getSelectedIndex() == 0) {
-                AISStatus status = new AISStatus();
+                AISFixedStationStatus status = new AISFixedStationStatus();
                 status.setStatusID(DerbyDBInterface.STATUS_ACTIVE);
             	station.setStatus(status);
             } else if (stationStatusComboBox.getSelectedIndex() == 1) {
-            	AISStatus status = new AISStatus();
+            	AISFixedStationStatus status = new AISFixedStationStatus();
                 status.setStatusID(DerbyDBInterface.STATUS_OLD);
             	station.setStatus(status);
             }

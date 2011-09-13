@@ -12,7 +12,7 @@ import java.util.ArrayList;
 import java.util.Properties;
 
 import dk.frv.eavdam.data.AISFixedStationData;
-import dk.frv.eavdam.data.AISStatus;
+import dk.frv.eavdam.data.AISFixedStationStatus;
 import dk.frv.eavdam.data.AISFixedStationType;
 import dk.frv.eavdam.data.ActiveStation;
 import dk.frv.eavdam.data.Address;
@@ -437,7 +437,7 @@ import dk.frv.eavdam.data.Simulation;
 	    	
 	    }
 	    
-	    public void insertStatus(AISStatus status, int statusID, int stationID) throws Exception{
+	    public void insertStatus(AISFixedStationStatus status, int statusID, int stationID) throws Exception{
 	    	PreparedStatement psc = conn.prepareStatement("insert into STATUS values (?,?,?,?)");
 	    	
 	    	psc.setInt(1, stationID);

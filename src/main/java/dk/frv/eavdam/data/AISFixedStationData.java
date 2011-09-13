@@ -70,7 +70,7 @@ public class AISFixedStationData {
 	/**
 	 * 
 	 */
-	private AISStatus status;
+	private AISFixedStationStatus status;
 	/**
 	 * Anything can go in here. The schema allows unknown XML content in the
 	 * end.
@@ -190,11 +190,11 @@ public class AISFixedStationData {
 		this.operator = operator;
 	}
 
-	public AISStatus getStatus() {
+	public AISFixedStationStatus getStatus() {
 		return status;
 	}
 
-	public void setStatus(AISStatus status) {
+	public void setStatus(AISFixedStationStatus status) {
 		this.status = status;
 	}
 

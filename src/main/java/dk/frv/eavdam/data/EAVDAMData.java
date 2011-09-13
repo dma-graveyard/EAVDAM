@@ -9,10 +9,12 @@ public class EAVDAMData {
 	
 	private List<AISFixedStationData> stations = new ArrayList<AISFixedStationData>();  // TO BE REMOVED
 	
+	
 	private List<ActiveStation> activeStations = new ArrayList<ActiveStation>();
     private List<OtherUserStations> otherUsersStations = new ArrayList<OtherUserStations>();
     private List<Simulation> simulatedStations = new ArrayList<Simulation>();
     private List<AISFixedStationData> oldStations = new ArrayList<AISFixedStationData>();
+    
     
 	public EAVDAMUser getUser() {
 		return user;
@@ -22,6 +24,7 @@ public class EAVDAMData {
 		this.user = user;
 	}
 
+    
     public List<ActiveStation> getActiveStations() {
         return activeStations;
     }
@@ -53,6 +56,7 @@ public class EAVDAMData {
     public void setOldStations(List<AISFixedStationData> oldStations) {
         this.oldStations = oldStations;
     }
+   
     
     // TO BE REMOVED -->
 	public AISFixedStationData[] getStations() {
@@ -60,10 +64,12 @@ public class EAVDAMData {
 	}
 	
 	public void addStation(AISFixedStationData station) {
-	    this.stations.add(station);
+	    if (station == null) {
+	        stations = new ArrayList<AISFixedStationData>();
+	    }
+	    stations.add(station);
 	}
-	
-	
+		
 	public void setStations(List<AISFixedStationData> stations) {
 		this.stations.clear();
 		if (stations != null) {
