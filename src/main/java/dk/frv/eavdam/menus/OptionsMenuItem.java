@@ -399,7 +399,7 @@ class OptionsActionListener implements ActionListener, ChangeListener, DocumentL
             
             if (success) {
                 saveButton.setEnabled(false);
-                eavdamMenu.getStationLayer().updateIconsOnMap();
+                eavdamMenu.getStationLayer().updateStations();
                 dialog.dispose();
             }
 

@@ -1,7 +1,6 @@
 package dk.frv.eavdam.io;
 
 import dk.frv.eavdam.data.FTP;
-import dk.frv.eavdam.utils.DataFileHandler;
 import org.apache.commons.net.ftp.FTPClient;
 import org.apache.commons.net.ftp.FTPFile;
 import java.io.File;

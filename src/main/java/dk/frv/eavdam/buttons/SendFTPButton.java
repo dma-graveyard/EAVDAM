@@ -7,7 +7,7 @@ import dk.frv.eavdam.data.FTP;
 import dk.frv.eavdam.data.Options;
 import dk.frv.eavdam.io.FTPSender;
 import dk.frv.eavdam.menus.OptionsMenuItem;
-import dk.frv.eavdam.utils.DataFileHandler;
+import dk.frv.eavdam.utils.XMLHandler;
 import java.awt.Color;
 import java.awt.Container;
 import java.awt.Frame;
@@ -59,7 +59,7 @@ public class SendFTPButton extends OMToolComponent implements ActionListener, To
                 boolean errors = false;
                 for (FTP ftp : ftps) {
                     try {
-                        FTPSender.sendDataToFTP(ftp, DataFileHandler.getLatestDataFileName());                                       
+                        FTPSender.sendDataToFTP(ftp, XMLHandler.getLatestDataFileName());                                       
                     } catch (IOException ex) {
                         System.out.println(ex.getMessage());
                         ex.printStackTrace();

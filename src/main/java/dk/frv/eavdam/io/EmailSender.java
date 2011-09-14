@@ -1,7 +1,7 @@
 package dk.frv.eavdam.io;
 
 import com.sun.mail.smtp.SMTPTransport;
-import dk.frv.eavdam.utils.DataFileHandler;
+import dk.frv.eavdam.utils.XMLHandler;
 import java.io.IOException;
 import java.io.File;
 import java.net.InetAddress;
@@ -41,7 +41,7 @@ public class EmailSender {
 
 	    msg.setSubject(subject);
 
-        String datafile = DataFileHandler.getLatestDataFileName();
+        String datafile = XMLHandler.getLatestDataFileName();
 
 	    if (datafile != null) {
 		    MimeBodyPart mbp1 = new MimeBodyPart();
