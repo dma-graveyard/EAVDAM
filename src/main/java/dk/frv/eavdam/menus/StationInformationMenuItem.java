@@ -64,6 +64,8 @@ import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
 import javax.xml.bind.JAXBException;
 
 /**
@@ -86,7 +88,7 @@ public class StationInformationMenuItem extends JMenuItem {
 }
         
         
-class StationInformationMenuItemActionListener implements ActionListener, ChangeListener, ItemListener {
+class StationInformationMenuItemActionListener implements ActionListener, ChangeListener, DocumentListener, ItemListener {
 
     private final String OWN_ACTIVE_STATIONS_LABEL = "Own active stations";
     private final String SIMULATION_LABEL = "Simulation";
@@ -164,6 +166,7 @@ class StationInformationMenuItemActionListener implements ActionListener, Change
     private String initiallySelectedStationName;
     
     private boolean ignoreListeners = false;
+    private int previouslySelectedStationIndex = -1;
 
     public StationInformationMenuItemActionListener(EavdamMenu eavdamMenu, String stationName) {
         this.eavdamMenu = eavdamMenu;
@@ -212,23 +215,34 @@ class StationInformationMenuItemActionListener implements ActionListener, Change
             addStationButton.addActionListener(this);
             
             stationNameTextField = getTextField(16);
+            stationNameTextField.getDocument().addDocumentListener(this);
             stationTypeComboBox = getComboBox(new String[] {"AIS Base Station", "AIS Repeater", "AIS Receiver station", "AIS AtoN station"});
             stationTypeComboBox.addItemListener(this);
             latitudeTextField = getTextField(16);          
+            latitudeTextField.getDocument().addDocumentListener(this);
             longitudeTextField = getTextField(16);
+            longitudeTextField.getDocument().addDocumentListener(this);
             mmsiNumberTextField = getTextField(16);
+            mmsiNumberTextField.getDocument().addDocumentListener(this);
             transmissionPowerTextField = getTextField(16);            
+            transmissionPowerTextField.getDocument().addDocumentListener(this);
     
             antennaTypeComboBox = getComboBox(new String[] {"No antenna", "Omnidirectional", "Directional"});                     
             antennaTypeComboBox.addItemListener(this);
             antennaHeightTextField = getTextField(16);           
+            antennaHeightTextField.getDocument().addDocumentListener(this);
             terrainHeightTextField = getTextField(16);
+            terrainHeightTextField.getDocument().addDocumentListener(this);
             headingTextField = getTextField(16);
+            headingTextField.getDocument().addDocumentListener(this);
             fieldOfViewAngleTextField = getTextField(16);           
+            fieldOfViewAngleTextField.getDocument().addDocumentListener(this);
             gainTextField = getTextField(16);
+            gainTextField.getDocument().addDocumentListener(this);
             
             additionalInformationJTextArea = getTextArea("");
-    
+            additionalInformationJTextArea.getDocument().addDocumentListener(this);    
+            
             exitButton = getButton("Exit", 80);            
             exitButton.addActionListener(this);
             makeOperativeButton = getButton("Make operative", 140);    
@@ -243,15 +257,17 @@ class StationInformationMenuItemActionListener implements ActionListener, Change
             notYetImplementedPanel = new JPanel();
             notYetImplementedPanel.add(new JLabel("Not yet implemented!"));
     
+            tabbedPane = new JTabbedPane();
+    
             if (data != null) {
                 if (data.getActiveStations() != null && !data.getActiveStations().isEmpty()) {
                     ActiveStation as = data.getActiveStations().get(0);
                     initializeTabbedPane(as);
                 } else {
-                    tabbedPane = new JTabbedPane();
+                    tabbedPane.removeAll();
                 }
             } else {
-                tabbedPane = new JTabbedPane();
+                tabbedPane.removeAll();
             }
             tabbedPane.addChangeListener(this);
     
@@ -263,17 +279,78 @@ class StationInformationMenuItemActionListener implements ActionListener, Change
             
             updateDialog();                                        
         
-        } else if (deleteSimulationButton != null && e.getSource() == deleteSimulationButton) {            
-            JOptionPane.showMessageDialog(dialog, "Not yet implemented!");
+        } else if (deleteSimulationButton != null && e.getSource() == deleteSimulationButton) {
+            int response = JOptionPane.showConfirmDialog(dialog, "Are you sure you want to delete the current simulation?", "Confirm action", JOptionPane.YES_NO_OPTION);
+            if (response == JOptionPane.YES_OPTION) {
+                ignoreListeners = true;                
+                String selectedItem = (String) selectDatasetComboBox.getSelectedItem();
+                String temp = SIMULATION_LABEL + ": ";
+                String selectedSimulation = selectedItem.substring(temp.length());
+                deleteSimulation(selectedSimulation);
+                selectDatasetComboBox.removeItem(selectedItem);
+                selectDatasetComboBox.setSelectedItem(0);
+                updateSelectStationComboBox(0);
+                if (selectStationComboBox.getItemCount() <= 0) {
+                    selectStationComboBox.setVisible(false);
+                    tabbedPane.setVisible(false);                    
+                } else {
+                    selectStationComboBox.setVisible(true);
+                    tabbedPane.setVisible(true);
+                    updateTabbedPane();
+                }
+                if (data == null || data.getSimulatedStations() == null || data.getSimulatedStations().isEmpty()) {
+                    deleteSimulationButton.setVisible(false);
+                }
+                ignoreListeners = false;
+            } else if (response == JOptionPane.NO_OPTION) {                        
+                // do nothing
+            } 
 
-        } else if (addNewSimulationButton != null && e.getSource() == addNewSimulationButton) {            
-            JOptionPane.showMessageDialog(dialog, "Not yet implemented!");
+        } else if (addNewSimulationButton != null && e.getSource() == addNewSimulationButton) {
+            if (newSimulationTextField.getText().trim().isEmpty()) {
+                JOptionPane.showMessageDialog(dialog, "No name given for the simulation!");
+            } else {
+                String simulationName = newSimulationTextField.getText().trim();                
+                boolean success = addSimulation(simulationName);
+                if (success) {
+                    newSimulationTextField.setText("");
+                    selectDatasetComboBox.addItem(SIMULATION_LABEL + ": " + simulationName);
+                    selectDatasetComboBox.setSelectedItem(SIMULATION_LABEL + ": " + simulationName);
+                    deleteSimulationButton.setEnabled(true);
+                    updateSelectStationComboBox(0);
+                    if (selectStationComboBox.getItemCount() <= 0) {
+                        selectStationComboBox.setVisible(false);
+                        tabbedPane.setVisible(false);                    
+                    } else {
+                        updateTabbedPane();
+                    }
+                }
+            }
 
         } else if (addStationButton != null && e.getSource() == addStationButton) {
-            
-            if (data == null || data.getUser() == null || data.getUser().getOrganizationName() == null || data.getUser().getOrganizationName().isEmpty()) {
+
+            /*if (data == null || data.getUser() == null || data.getUser().getOrganizationName() == null || data.getUser().getOrganizationName().isEmpty()) {
                 JOptionPane.showMessageDialog(dialog, "Please, define an organization name before adding stations!");
                 return;
+            }*/
+
+            if (tabbedPane != null && tabbedPane.getSelectedIndex() >= 0 && tabbedPane.getTitleAt(tabbedPane.getSelectedIndex()).equals(PLANNED_LABEL)) {
+                if (selectStationComboBox != null && isChanged(selectStationComboBox.getSelectedIndex())) {
+                    int response = JOptionPane.showConfirmDialog(dialog,
+                        "Do you want to save the changes made to the current planned station?",
+                        "Confirm action", JOptionPane.YES_NO_CANCEL_OPTION);
+                    if (response == JOptionPane.YES_OPTION) {
+                        boolean success = saveStation(selectStationComboBox.getSelectedIndex());
+                        if (success) {
+                            saveButton.setEnabled(false);
+                            updateTabbedPane();
+                        }
+                    } else if (response == JOptionPane.NO_OPTION) {                        
+                        updateTabbedPane();
+                    } else if (response == JOptionPane.CANCEL_OPTION) {
+                        // do nothing
+                    }                    
+                }
             }
             
             addStationDialog = new JDialog(eavdamMenu.getOpenMapFrame(), "Add Station", true);
@@ -408,6 +485,9 @@ class StationInformationMenuItemActionListener implements ActionListener, Change
                 ignoreListeners = true;
                 initiallySelectedStationName = addStationNameTextField.getText();
                 updateSelectStationComboBox(0);
+                if (selectStationComboBox.getItemCount() >= 0) {
+                    selectStationComboBox.setVisible(true);
+                }
                 int selectedIndex = selectStationComboBox.getSelectedIndex();
                 if (((String) selectDatasetComboBox.getSelectedItem()).startsWith(OWN_ACTIVE_STATIONS_LABEL)) {
                     if (data != null && data.getActiveStations() != null && selectedIndex < data.getActiveStations().size()) {
@@ -455,18 +535,30 @@ class StationInformationMenuItemActionListener implements ActionListener, Change
                 // do nothing
             }
 
-        } else if (makeOperativeButton != null && e.getSource() == makeOperativeButton) {            
-            JOptionPane.showMessageDialog(dialog, "This will copy the planned station information to the operative station. This functionality is not yet implemented!");            
+        } else if (makeOperativeButton != null && e.getSource() == makeOperativeButton) {
+            if (saveButton.isEnabled()) {
+                JOptionPane.showMessageDialog(dialog, "The planned changes must be saved first!");
+            } else {
+                int response = JOptionPane.showConfirmDialog(dialog, "Are you sure you want to turn the planned station into the operative station?", "Confirm action", JOptionPane.YES_NO_OPTION);
+                if (response == JOptionPane.YES_OPTION) {
+                    ignoreListeners = true;
+                    int selectedStationIndex = selectStationComboBox.getSelectedIndex();                
+                    turnPlannedIntoOperativeStation(selectedStationIndex);                
+                    updateSelectStationComboBox(selectStationComboBox.getSelectedIndex());                                              
+                    eavdamMenu.getStationLayer().updateStations();
+                    ignoreListeners = false;                
+                } else if (response == JOptionPane.NO_OPTION) {                        
+                    // do nothing
+                }
+            }
                 
         } else if (saveButton != null && e.getSource() == saveButton) {            
             ignoreListeners = true;         
             int selectedIndex = selectStationComboBox.getSelectedIndex();         
             boolean success = saveStation(selectedIndex);
-            if (success) {           
-                if (!((String) selectStationComboBox.getSelectedItem()).equals(stationNameTextField.getText().trim())) {
-                    selectStationComboBox.setSelectedItem(stationNameTextField.getText());
-                }
+            if (success) {
                 updateSelectStationComboBox(selectedIndex);                                              
+                saveButton.setEnabled(false);
                 eavdamMenu.getStationLayer().updateStations();
             }            
             ignoreListeners = false;
@@ -479,7 +571,8 @@ class StationInformationMenuItemActionListener implements ActionListener, Change
                 deleteStation(selectedStationIndex);
                 selectStationComboBox.removeItemAt(selectedStationIndex);
                 updateSelectStationComboBox(0);
-                if (selectStationComboBox.getItemCount() == 0) {
+                if (selectStationComboBox.getItemCount() <= 0) {
+                    selectStationComboBox.setVisible(false);
                     tabbedPane.setVisible(false);                    
                 } else {
                     updateTabbedPane();
@@ -530,10 +623,13 @@ class StationInformationMenuItemActionListener implements ActionListener, Change
         
         selectStationPanel = new JPanel(new GridBagLayout());
         selectStationPanel.setBorder(BorderFactory.createTitledBorder("Select station"));                
-        c = updateGBC(c, 0, 0, 0.5, GridBagConstraints.FIRST_LINE_START, GridBagConstraints.NONE, new Insets(5,5,5,5));
+        c = updateGBC(c, 0, 0, 0.5, GridBagConstraints.FIRST_LINE_START, GridBagConstraints.NONE, new Insets(5,5,5,5));        
         selectStationPanel.add(selectStationComboBox, c);
         c = updateGBC(c, 1, 0, 0.5, GridBagConstraints.FIRST_LINE_END, GridBagConstraints.NONE, new Insets(5,5,5,5));
         selectStationPanel.add(addStationButton, c);
+        if (selectStationComboBox.getItemCount() <= 0) {
+            selectStationComboBox.setVisible(false);
+        }
 
         c = updateGBC(c, 0, 1, 0.5, GridBagConstraints.FIRST_LINE_START, GridBagConstraints.HORIZONTAL, new Insets(5,5,5,5));
         panel.add(selectStationPanel, c);                                   
@@ -556,7 +652,8 @@ class StationInformationMenuItemActionListener implements ActionListener, Change
     }
     
     private void initializeTabbedPane(ActiveStation as) {
-        tabbedPane = new JTabbedPane();
+        ignoreListeners = true;
+        tabbedPane.removeAll();
         if (as.getStations() != null && !as.getStations().isEmpty()) {
             List<AISFixedStationData> stations = as.getStations();
             boolean operativeFound = false;
@@ -592,15 +689,20 @@ class StationInformationMenuItemActionListener implements ActionListener, Change
             }            
         }
         tabbedPane.addChangeListener(this);
+        ignoreListeners = false;
     }
 
-    private void initializeTabbedPane(AISFixedStationData stationData) {                       
+    private void initializeTabbedPane(AISFixedStationData stationData) {
+        ignoreListeners = true;
+        tabbedPane.removeAll();
         if (((String) selectDatasetComboBox.getSelectedItem()).startsWith(SIMULATION_LABEL)) {
             if (stationData.getStatus().getStatusID() == DerbyDBInterface.STATUS_SIMULATED) {
                 tabbedPane.addTab(SIMULATED_LABEL, null, new JPanel(), SIMULATED_LABEL);
             }
         }
-        tabbedPane.revalidate();
+        tabbedPane.addChangeListener(this);
+        ignoreListeners = false;
+        //tabbedPane.revalidate();
     }
     
     public void itemStateChanged(ItemEvent e) {
@@ -615,15 +717,66 @@ class StationInformationMenuItemActionListener implements ActionListener, Change
                 if (selectStationPanel != null && tabbedPane != null && deleteSimulationButton != null) {
                     notYetImplementedPanel.setVisible(false);
                     selectStationPanel.setVisible(true);
-                    tabbedPane.setVisible(true);
+                    updateSelectStationComboBox(0);
+                    if (selectStationComboBox.getItemCount() <= 0) {
+                        selectStationComboBox.setVisible(false);
+                        tabbedPane.setVisible(false);                    
+                    } else {                        
+                        selectStationComboBox.setVisible(true);
+                        if (data != null) {
+                            if (data.getActiveStations() != null && !data.getActiveStations().isEmpty()) {
+                                ActiveStation as = data.getActiveStations().get(0);
+                                initializeTabbedPane(as);
+                            } else {
+                                tabbedPane.removeAll();
+                            }
+                        } else {
+                            tabbedPane.removeAll();
+                        }
+                        tabbedPane.addChangeListener(this);    
+                        if (tabbedPane.getTabCount() == 0) {
+                            tabbedPane.setVisible(false);
+                        } else {            
+                            tabbedPane.setVisible(true);              
+                            updateTabbedPane();
+                        }   
+                    }
                     deleteSimulationButton.setVisible(false);
                 }
             } else if (((String) selectDatasetComboBox.getSelectedItem()).startsWith(SIMULATION_LABEL)) {
                 if (selectStationPanel != null && tabbedPane != null && deleteSimulationButton != null) {
-                    selectStationPanel.setVisible(false);  // simulations not yet implemented
-                    tabbedPane.setVisible(false);
+                    notYetImplementedPanel.setVisible(false);
+                    selectStationPanel.setVisible(true);
+                    updateSelectStationComboBox(0);
+                    if (selectStationComboBox.getItemCount() <= 0) {
+                        selectStationComboBox.setVisible(false);
+                        tabbedPane.setVisible(false);                    
+                    } else {                        
+                        selectStationComboBox.setVisible(true);
+                        if (data != null) {
+                            if (data.getSimulatedStations() != null && !data.getSimulatedStations().isEmpty()) {
+                                Simulation s = data.getSimulatedStations().get(0);
+                                if (s.getStations() != null && !s.getStations().isEmpty()) {
+                                    AISFixedStationData stationData = s.getStations().get(0);
+                                    initializeTabbedPane(stationData);
+                                } else {
+                                    tabbedPane.removeAll();
+                                }
+                            } else {
+                                tabbedPane.removeAll();
+                            }
+                        } else {
+                            tabbedPane.removeAll();
+                        }
+                        tabbedPane.addChangeListener(this);
+                        if (tabbedPane.getTabCount() == 0) {
+                            tabbedPane.setVisible(false);
+                        } else {            
+                            tabbedPane.setVisible(true);              
+                            updateTabbedPane();
+                        }
+                    }
                     deleteSimulationButton.setVisible(true);
-                    notYetImplementedPanel.setVisible(true);
                 }
             } else if (((String) selectDatasetComboBox.getSelectedItem()).startsWith(STATIONS_OF_ORGANIZATION_LABEL)) {
                 if (selectStationPanel != null && tabbedPane != null && deleteSimulationButton != null) {
@@ -634,41 +787,95 @@ class StationInformationMenuItemActionListener implements ActionListener, Change
                 }
             }       
 
-        } else if (antennaTypeComboBox != null && e.getItemSelectable() == antennaTypeComboBox && e.getStateChange() == ItemEvent.SELECTED) { 
+        } else if (antennaTypeComboBox != null && e.getItemSelectable() == antennaTypeComboBox && e.getStateChange() == ItemEvent.SELECTED) {             
             updateAntennaTypeComboBox(antennaTypeComboBox, antennaHeightTextField, terrainHeightTextField,
                 headingTextField, fieldOfViewAngleTextField, gainTextField);                                            
+            if (isChanged(selectStationComboBox.getSelectedIndex())) {
+                saveButton.setEnabled(true);
+            }
 
         } else if (addAntennaTypeComboBox != null && e.getItemSelectable() == addAntennaTypeComboBox && e.getStateChange() == ItemEvent.SELECTED) {            
             updateAntennaTypeComboBox(addAntennaTypeComboBox, addAntennaHeightTextField, addTerrainHeightTextField,
                 addHeadingTextField, addFieldOfViewAngleTextField, addGainTextField);
                
-        } else if (selectStationComboBox != null && e.getItemSelectable() == selectStationComboBox && e.getStateChange() != ItemEvent.SELECTED) {           
-            if (((String) selectDatasetComboBox.getSelectedItem()).startsWith(OWN_ACTIVE_STATIONS_LABEL)) {
-                /*
-                if (tabbedPane.getTitleAt(tabbedPane.getSelectedIndex()).equals(PLANNED_LABEL)) {
-                    int response = JOptionPane.showConfirmDialog(dialog,
-                        "Do you want to save the changes made to the current planned station?",
-                        "Confirm action", JOptionPane.YES_NO_CANCEL_OPTION);
-                    if (response == JOptionPane.YES_OPTION) {
-                        boolean success = saveStation(selectStationComboBox.getSelectedIndex());
-                        if (success) {
+        } else if (selectStationComboBox != null && e.getItemSelectable() == selectStationComboBox) {            
+            if (e.getStateChange() == ItemEvent.DESELECTED) {
+                for (int i=0; i<selectStationComboBox.getItemCount(); i++) {
+                    if (selectStationComboBox.getItemAt(i).equals(e.getItem())) {
+                        previouslySelectedStationIndex = i;
+                        break;
+                    }
+                }
+            } else if (e.getStateChange() == ItemEvent.SELECTED) {           
+                if (((String) selectDatasetComboBox.getSelectedItem()).startsWith(OWN_ACTIVE_STATIONS_LABEL)) {
+                    if (tabbedPane.getTitleAt(tabbedPane.getSelectedIndex()).equals(PLANNED_LABEL)) {
+                        if (isChanged(previouslySelectedStationIndex)) {
+                            int response = JOptionPane.showConfirmDialog(dialog,
+                                "Do you want to save the changes made to the current planned station?",
+                                "Confirm action", JOptionPane.YES_NO_CANCEL_OPTION);
+                            if (response == JOptionPane.YES_OPTION) {
+                                boolean success = saveStation(previouslySelectedStationIndex);
+                                if (success) {
+                                    saveButton.setEnabled(false);
+                                    updateTabbedPane();
+                                }
+                            } else if (response == JOptionPane.NO_OPTION) {                        
+                                updateTabbedPane();
+                            } else if (response == JOptionPane.CANCEL_OPTION) {
+                                // do nothing
+                            }                    
+                        } else {
                             updateTabbedPane();
                         }
-                    } else if (response == JOptionPane.NO_OPTION) {                        
+                    } else {                               
                         updateTabbedPane();
-                    } else if (response == JOptionPane.CANCEL_OPTION) {
-                        // do nothing
-                    }                    
+                    }
                 } else {
                     updateTabbedPane();
                 }
-            } else {                   
-            */
-                updateTabbedPane();
             }
         }
     }    
+
+    public void changedUpdate(DocumentEvent e) {
+        if (ignoreListeners) {
+            return;
+        }
+        if (selectStationComboBox != null && saveButton != null) {
+            if (isChanged(selectStationComboBox.getSelectedIndex())) {
+                saveButton.setEnabled(true);
+            } else {
+                saveButton.setEnabled(false);
+            }
+        }
+    }
+
+    public void	insertUpdate(DocumentEvent e) {
+        if (ignoreListeners) {
+            return;
+        }        
+        if (selectStationComboBox != null && saveButton != null) {
+            if (isChanged(selectStationComboBox.getSelectedIndex())) {
+                saveButton.setEnabled(true);
+            } else {
+                saveButton.setEnabled(false);
+            }
+        }
+    }
     
+    public void removeUpdate(DocumentEvent e) {
+        if (ignoreListeners) {
+            return;
+        }
+        if (selectStationComboBox != null && saveButton != null) {
+            if (isChanged(selectStationComboBox.getSelectedIndex())) {
+                saveButton.setEnabled(true);
+            } else {
+                saveButton.setEnabled(false);
+            }
+        }
+    }
+        
     private JButton getButton(String title, int width) {
         JButton b = new JButton(title, null);        
         b.setVerticalTextPosition(AbstractButton.BOTTOM);
@@ -711,6 +918,8 @@ class StationInformationMenuItemActionListener implements ActionListener, Change
     }    
     
     private JComponent makeStationPanel() {
+        
+        ignoreListeners = true;
         
         JPanel panel = new JPanel(new GridBagLayout());                      
     
@@ -797,9 +1006,17 @@ class StationInformationMenuItemActionListener implements ActionListener, Change
             c.gridx = 1;
             buttonPanel.add(exitButton, c);                    
         } else if (tabbedPane.getTitleAt(tabbedPane.getSelectedIndex()).equals(PLANNED_LABEL)) {
+            saveButton.setEnabled(false);
             buttonPanel.add(saveButton, c);
             c.gridx = 1;
             buttonPanel.add(makeOperativeButton, c);
+            c.gridx = 2;
+            buttonPanel.add(exitButton, c);
+        } else if (tabbedPane.getTitleAt(tabbedPane.getSelectedIndex()).startsWith(SIMULATED_LABEL)) {
+            buttonPanel.add(deleteButton, c);
+            c.gridx = 1;
+            saveButton.setEnabled(false);
+            buttonPanel.add(saveButton, c);
             c.gridx = 2;
             buttonPanel.add(exitButton, c);
         }
@@ -837,7 +1054,8 @@ class StationInformationMenuItemActionListener implements ActionListener, Change
             configureDisabledTextField(gainTextField); 
             additionalInformationJTextArea.setEnabled(false);               
             configureDisabledTextArea(additionalInformationJTextArea);            
-        } else if (tabbedPane.getTitleAt(tabbedPane.getSelectedIndex()).equals(PLANNED_LABEL)) {
+        } else if (tabbedPane.getTitleAt(tabbedPane.getSelectedIndex()).equals(PLANNED_LABEL) ||
+                (tabbedPane.getTitleAt(tabbedPane.getSelectedIndex()).startsWith(SIMULATED_LABEL))) {
             stationNameTextField.setEnabled(true);
             stationTypeComboBox.setEnabled(true);   
             stationTypeComboBox.setEditable(false);                                     
@@ -949,6 +1167,8 @@ class StationInformationMenuItemActionListener implements ActionListener, Change
                 headingTextField, fieldOfViewAngleTextField, gainTextField);
         }
         
+        ignoreListeners = false;
+        
         return panel;    
     }
 
@@ -1035,6 +1255,9 @@ class StationInformationMenuItemActionListener implements ActionListener, Change
     }
         
     public void stateChanged(ChangeEvent evt) {
+        if (ignoreListeners) {
+            return;
+        }
         updateTabbedPane();
     }
     
@@ -1073,6 +1296,51 @@ class StationInformationMenuItemActionListener implements ActionListener, Change
             gainTextField_.setEnabled(true); 
         } 
     }    
+
+    private boolean addSimulation(String simulationName) {
+        
+        if (data == null) {
+            data = new EAVDAMData();        
+        }
+        
+        List<Simulation> simulatedStations = data.getSimulatedStations();
+        if (simulatedStations != null) {
+            for (Simulation s : simulatedStations) {
+                if (s.getName().equals(simulationName)) {
+                    JOptionPane.showMessageDialog(dialog, "A simulation with the given name already exists. " +
+                        "Please, select another name for the simulation.");
+                    return false;
+                }
+            }
+        }
+        
+        Simulation simulation = new Simulation();
+        simulation.setName(simulationName);
+        simulatedStations.add(simulation);
+        data.setSimulatedStations(simulatedStations);
+        DBHandler.saveData(data);
+        
+        return true;
+    }
+    
+    private void deleteSimulation(String simulationName) {
+        
+        if (data == null || data.getSimulatedStations() == null) {
+            return;
+        }
+        
+        List<Simulation> simulatedStations = data.getSimulatedStations();
+        for (int i=0; i<simulatedStations.size(); i++) {
+            Simulation s = simulatedStations.get(i);
+            if (s.getName().equals(simulationName)) {
+                simulatedStations.remove(i);
+                break;
+            }            
+        }
+        
+        data.setSimulatedStations(simulatedStations);
+        DBHandler.saveData(data);
+    }
 
     private boolean addStation() {
         
@@ -1325,29 +1593,33 @@ class StationInformationMenuItemActionListener implements ActionListener, Change
         selectStationComboBox.removeAllItems();
         
         if (((String) selectDatasetComboBox.getSelectedItem()).startsWith(OWN_ACTIVE_STATIONS_LABEL)) {
-            
             if (data != null && data.getActiveStations() != null) {
                 if (initiallySelectedStationName != null) {
                     for (int i=0; i< data.getActiveStations().size(); i++) {
                         ActiveStation as = data.getActiveStations().get(i);
-                        if (as.getStations() != null && !as.getStations().isEmpty()) {
-                            AISFixedStationData stationData = as.getStations().get(0);
-                            if (initiallySelectedStationName.equals(stationData.getStationName())) {
-                                selectedIndex = i;
-                                break;
+                        if (as.getStations() != null) {
+                            for (AISFixedStationData stationData : as.getStations()) {
+                                if (stationData.getStatus().getStatusID() == DerbyDBInterface.STATUS_ACTIVE &&
+                                        initiallySelectedStationName.equals(stationData.getStationName())) {
+                                    selectedIndex = i;
+                                    break;                                                                    
+                                }
                             }
                         }
                     }
                     initiallySelectedStationName = null;
-                }        
+                }
                 
                 for (int i=0; i< data.getActiveStations().size(); i++) {
                     ActiveStation as = data.getActiveStations().get(i);
-                    if (as.getStations() != null && !as.getStations().isEmpty()) {
-                        AISFixedStationData stationData = as.getStations().get(0);
-                        selectStationComboBox.addItem(stationData.getStationName());
-                        if (selectedIndex == i) {
-                            selectStationComboBox.setSelectedIndex(i);
+                    if (as.getStations() != null) {
+                        for (AISFixedStationData stationData : as.getStations()) {                            
+                            if (stationData.getStatus().getStatusID() == DerbyDBInterface.STATUS_ACTIVE) {
+                                selectStationComboBox.addItem(stationData.getStationName());
+                                if (selectedIndex == i) {
+                                    selectStationComboBox.setSelectedIndex(i);
+                                }
+                            }
                         }
                     }
                 }
@@ -1403,11 +1675,13 @@ class StationInformationMenuItemActionListener implements ActionListener, Change
                             if (stations != null) {
                                 for (int i=0; i<stations.size(); i++) {
                                     ActiveStation as = stations.get(i);
-                                    if (as.getStations() != null && !as.getStations().isEmpty()) {
-                                        AISFixedStationData stationData = as.getStations().get(0);
-                                        if (initiallySelectedStationName.equals(stationData.getStationName())) {
-                                            selectedIndex = i;
-                                            break;
+                                     if (as.getStations() != null) {
+                                        for (AISFixedStationData stationData : as.getStations()) {
+                                            if (stationData.getStatus().getStatusID() == DerbyDBInterface.STATUS_ACTIVE &&
+                                                    initiallySelectedStationName.equals(stationData.getStationName())) {
+                                                selectedIndex = i;
+                                                break;                                                                                            
+                                            }                   
                                         }
                                     }
                                 }
@@ -1422,11 +1696,14 @@ class StationInformationMenuItemActionListener implements ActionListener, Change
                         if (stations != null) {
                             for (int i=0; i<stations.size(); i++) {
                                 ActiveStation as = stations.get(i);
-                                if (as.getStations() != null && !as.getStations().isEmpty()) {
-                                    AISFixedStationData stationData = as.getStations().get(0);
-                                    selectStationComboBox.addItem(stationData.getStationName());
-                                    if (selectedIndex == i) {
-                                        selectStationComboBox.setSelectedIndex(i);
+                                if (as.getStations() != null) {
+                                    for (AISFixedStationData stationData : as.getStations()) {
+                                        if (stationData.getStatus().getStatusID() == DerbyDBInterface.STATUS_ACTIVE) {                                                                                               
+                                            selectStationComboBox.addItem(stationData.getStationName());
+                                            if (selectedIndex == i) {
+                                                selectStationComboBox.setSelectedIndex(i);
+                                            }                                      
+                                        }
                                     }
                                 }
                             }
@@ -1733,6 +2010,104 @@ class StationInformationMenuItemActionListener implements ActionListener, Change
         
         return true;   
     }
+      
+    /**
+     * Turns planned station into operative station.
+     *
+     * @param stationIndex  Index of the station in the stations list
+     */
+    private void turnPlannedIntoOperativeStation(int stationIndex) {
+
+        if (data == null ||  data.getActiveStations() == null || data.getActiveStations().isEmpty()) {
+            return;
+        }
+     
+        AISFixedStationData newActiveStationData = new AISFixedStationData();
+        try {
+            newActiveStationData.setStationName(stationNameTextField.getText().trim());
+            if (stationTypeComboBox.getSelectedIndex() == 0) {
+                newActiveStationData.setStationType(AISFixedStationType.BASESTATION);
+            } else if (stationTypeComboBox.getSelectedIndex() == 1) {
+                newActiveStationData.setStationType(AISFixedStationType.REPEATER); 
+            } else if (stationTypeComboBox.getSelectedIndex() == 2) {
+                newActiveStationData.setStationType(AISFixedStationType.RECEIVER); 
+            } else if (stationTypeComboBox.getSelectedIndex() == 3) {
+                newActiveStationData.setStationType(AISFixedStationType.ATON); 
+            }  
+            newActiveStationData.setLat(new Double(latitudeTextField.getText().trim()).doubleValue());                                
+            newActiveStationData.setLon(new Double(longitudeTextField.getText().trim()).doubleValue());  
+            if (mmsiNumberTextField.getText().trim().isEmpty()) {
+                newActiveStationData.setMmsi(null);
+            } else {
+                newActiveStationData.setMmsi(mmsiNumberTextField.getText().trim());
+            }
+            if (transmissionPowerTextField.getText().trim().isEmpty()) {
+                newActiveStationData.setTransmissionPower(null);
+            } else {
+                newActiveStationData.setTransmissionPower(new Double(transmissionPowerTextField.getText().trim()));
+            }
+            Antenna antenna = new Antenna();
+            if (antennaTypeComboBox.getSelectedIndex() == 0) {
+                newActiveStationData.setAntenna(null);
+            } else if (antennaTypeComboBox.getSelectedIndex() == 1) {
+                antenna.setAntennaType(AntennaType.OMNIDIRECTIONAL);                    
+            } else if (antennaTypeComboBox.getSelectedIndex() == 2) {
+                antenna.setAntennaType(AntennaType.DIRECTIONAL);
+            }
+            if (antennaTypeComboBox.getSelectedIndex() == 1 ||
+                    antennaTypeComboBox.getSelectedIndex() == 2) {
+                if (!antennaHeightTextField.getText().trim().isEmpty()) {
+                    antenna.setAntennaHeight(new Double(antennaHeightTextField.getText().trim()).doubleValue());
+                }
+                if (!terrainHeightTextField.getText().trim().isEmpty()) {
+                    antenna.setTerrainHeight(new Double(terrainHeightTextField.getText().trim()).doubleValue());
+                }
+            }
+            if (antennaTypeComboBox.getSelectedIndex() == 2) {
+                if (headingTextField.getText().trim().isEmpty()) {                        
+                    antenna.setHeading(null);
+                } else {
+                    antenna.setHeading(new Integer(headingTextField.getText().trim()));
+                }
+                if (fieldOfViewAngleTextField.getText().trim().isEmpty()) { 
+                    antenna.setFieldOfViewAngle(null);
+                } else {
+                    antenna.setFieldOfViewAngle(new Integer(fieldOfViewAngleTextField.getText().trim()));
+                }
+                if (gainTextField.getText().trim().isEmpty()) {             
+                    antenna.setGain(null);
+                } else {
+                    antenna.setGain(new Double(gainTextField.getText().trim()));
+                }
+            }
+            if (antennaTypeComboBox.getSelectedIndex() == 1 ||
+                    antennaTypeComboBox.getSelectedIndex() == 2) {
+                newActiveStationData.setAntenna(antenna);
+            }
+            if (additionalInformationJTextArea.getText().trim().isEmpty()) {
+                newActiveStationData.setDescription(null);
+            } else {
+                newActiveStationData.setDescription(additionalInformationJTextArea.getText().trim());
+            }
+            AISFixedStationStatus status = new AISFixedStationStatus();
+            status.setStatusID(DerbyDBInterface.STATUS_ACTIVE);
+            newActiveStationData.setStatus(status);
+        } catch (IllegalArgumentException e) {
+            // should not occur as the station is saved
+        }
+     
+        ActiveStation as = data.getActiveStations().get(stationIndex);        
+        for (int i=0; i<as.getStations().size(); i++) {                        
+            AISFixedStationData temp = as.getStations().get(i);
+            if (temp.getStatus().getStatusID() == DerbyDBInterface.STATUS_ACTIVE) {
+                as.getStations().set(i, newActiveStationData);
+                break;                
+            }
+            data.getActiveStations().set(stationIndex, as);            
+        }
+            
+        DBHandler.saveData(data);
+    }
 
     /** 
      * Deletes a station.
@@ -1760,6 +2135,162 @@ class StationInformationMenuItemActionListener implements ActionListener, Change
             }            
             
             DBHandler.saveData(data);         
+        }
+    }
+
+    /** 
+     * Checks whether the form fields have changed.
+     *
+     * @param stationIndex Index of the station
+     * @return  True if the fields have changed, false if not
+     */
+    private boolean isChanged(int stationIndex) {
+
+        if (tabbedPane.getTitleAt(tabbedPane.getSelectedIndex()).equals(PLANNED_LABEL) ||
+                tabbedPane.getTitleAt(tabbedPane.getSelectedIndex()).startsWith(SIMULATED_LABEL)) {
+
+            AISFixedStationData station = getSelectedStationData(stationIndex);
+
+            if (station == null) {
+                return true;
+            }
+            if (station.getStationName() == null && !stationNameTextField.getText().isEmpty()) {
+                return true;
+            }         
+            if (!station.getStationName().equals(stationNameTextField.getText())) {
+                return true;
+            }          
+            if (station.getStationType() == null) {
+                return true;
+            }          
+            if (station.getStationType() == AISFixedStationType.BASESTATION && stationTypeComboBox.getSelectedIndex() != 0) {
+
+                return true;
+            }          
+            if (station.getStationType() == AISFixedStationType.REPEATER && stationTypeComboBox.getSelectedIndex() != 1) {
+                return true;
+            }           
+            if (station.getStationType() == AISFixedStationType.RECEIVER && stationTypeComboBox.getSelectedIndex() != 2) {
+                return true;
+            }        
+            if (station.getStationType() == AISFixedStationType.ATON && stationTypeComboBox.getSelectedIndex() != 3) {
+                return true;
+            }           
+            try {
+                if (Double.isNaN(station.getLat()) && !latitudeTextField.getText().isEmpty()) {
+                    return true;
+                }
+                if (!Double.isNaN(station.getLat()) && station.getLat() != (new Double(latitudeTextField.getText()).doubleValue())) {
+                    return true;
+                }
+            } catch (NumberFormatException ex) {
+                return true;
+            }          
+            try {
+                if (Double.isNaN(station.getLon()) && !longitudeTextField.getText().isEmpty()) {
+                    return true;
+                }
+                if (!Double.isNaN(station.getLon()) && station.getLon() != (new Double(longitudeTextField.getText()).doubleValue())) {
+                    return true;
+                }
+            } catch (NumberFormatException ex) {
+                return true;
+            }
+            if (station.getMmsi() == null && !mmsiNumberTextField.getText().isEmpty()) {
+                return true;
+            }                     
+            if (station.getMmsi() != null && !station.getMmsi().equals(mmsiNumberTextField.getText())) {
+                return true;
+            }     
+            if (station.getTransmissionPower() == null && !transmissionPowerTextField.getText().isEmpty()) {
+                return true;
+            }
+            try {       
+                if (station.getTransmissionPower() != null && !station.getTransmissionPower().equals(new Double(transmissionPowerTextField.getText()))) {
+                    return true;
+                }
+            } catch (NumberFormatException ex) {
+                    return true;          
+            }          
+            if (station.getStatus() == null) {
+                return true;
+            }     
+            Antenna antenna = station.getAntenna();
+            if (antenna != null && antenna.getAntennaType() == null && antennaTypeComboBox.getSelectedIndex() != 0) {
+                return true;
+            }
+            if (antenna != null && antenna.getAntennaType() == AntennaType.OMNIDIRECTIONAL && antennaTypeComboBox.getSelectedIndex() != 1) {
+                return true;
+            }
+            if (antenna != null && antenna.getAntennaType() == AntennaType.DIRECTIONAL && antennaTypeComboBox.getSelectedIndex() != 2) {
+                return true;
+            }       
+            if (antenna != null && Double.isNaN(antenna.getAntennaHeight()) && !antennaHeightTextField.getText().isEmpty()) {
+                return true;
+            }
+            if (antenna != null && !Double.isNaN(antenna.getAntennaHeight())) {
+                try {       
+                    if (antenna.getAntennaHeight() != new Double(antennaHeightTextField.getText()).doubleValue()) {
+                        return true;
+                    }
+                } catch (NumberFormatException ex) {
+                    return true;
+                }
+            }              
+            if (antenna != null && Double.isNaN(antenna.getTerrainHeight()) && !terrainHeightTextField.getText().isEmpty()) {
+                return true;
+            }
+            if (antenna != null && !Double.isNaN(antenna.getTerrainHeight())) {            
+                try {       
+                    if (antenna.getTerrainHeight() != new Double(terrainHeightTextField.getText()).doubleValue()) {
+                        return true;
+                    }                
+                } catch (NumberFormatException ex) {
+                    return true;
+                }
+            }                                  
+            if (antenna != null && antenna.getAntennaType() == AntennaType.DIRECTIONAL) {
+                if (antenna.getHeading() == null && !headingTextField.getText().isEmpty()) {
+                    return true;
+                }
+                try {       
+                    if (antenna.getHeading() != null && !antenna.getHeading().equals(new Integer(headingTextField.getText()))) {
+                        return true;
+                    }
+                } catch (NumberFormatException ex) {
+                    return true;
+                }              
+                if (antenna.getFieldOfViewAngle() == null && !fieldOfViewAngleTextField.getText().isEmpty()) {
+                    return true;
+                }
+                try {       
+                    if (antenna.getFieldOfViewAngle() != null && !antenna.getFieldOfViewAngle().equals(new Integer(fieldOfViewAngleTextField.getText()))) {
+                        return true;
+                    }
+                } catch (NumberFormatException ex) {
+                    return true;
+                }         
+                if (antenna.getGain() == null && !gainTextField.getText().isEmpty()) {
+                    return true;
+                }
+                try {       
+                    if (antenna.getGain() != null && !antenna.getGain().equals(new Integer(gainTextField.getText()))) {
+                        return true;
+                    }
+                } catch (NumberFormatException ex) {
+                    return true;
+                }
+            }         
+            if (station.getDescription() == null && !additionalInformationJTextArea.getText().isEmpty()) {
+                return true;
+            }         
+            if (station.getDescription() != null && !station.getDescription().equals(additionalInformationJTextArea.getText())) {
+                return true;
+            }
+            return false;
+        
+        } else {
+            return false;
         }
     }
 

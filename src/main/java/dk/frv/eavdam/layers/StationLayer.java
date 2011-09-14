@@ -16,15 +16,17 @@ import com.bbn.openmap.omGraphics.OMList;
 import com.bbn.openmap.omGraphics.OMRect;
 import com.bbn.openmap.proj.Length;
 import dk.frv.eavdam.app.SidePanel;
+import dk.frv.eavdam.data.ActiveStation;
 import dk.frv.eavdam.data.AISFixedStationData;
 import dk.frv.eavdam.data.AISFixedStationType;
 import dk.frv.eavdam.data.EAVDAMData;
 import dk.frv.eavdam.data.Options;
+import dk.frv.eavdam.io.derby.DerbyDBInterface;
 import dk.frv.eavdam.io.XMLImporter;
 import dk.frv.eavdam.menus.EavdamMenu;
 import dk.frv.eavdam.menus.OptionsMenuItem;
 import dk.frv.eavdam.menus.StationInformationMenuItem;
-import dk.frv.eavdam.utils.DataFileHandler;
+import dk.frv.eavdam.utils.DBHandler;
 import java.awt.Color;
 import java.awt.event.ActionListener;
 import java.awt.event.ActionEvent;
@@ -35,9 +37,13 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.net.MalformedURLException;
+import java.util.List;
 import javax.xml.bind.JAXBException;
+import javax.swing.ButtonGroup;
+import javax.swing.JMenu;
 import javax.swing.JMenuItem;
 import javax.swing.JPopupMenu;
+import javax.swing.JRadioButtonMenuItem;
 import javax.swing.SwingUtilities;
 
 public class StationLayer extends OMGraphicHandlerLayer implements MapMouseListener, ActionListener {
@@ -51,6 +57,8 @@ public class StationLayer extends OMGraphicHandlerLayer implements MapMouseListe
 	private OMAISBaseStationReachLayerA reachLayerA;
 	private EavdamMenu eavdamMenu;	
 	private JMenuItem editStationMenuItem;
+	private JRadioButtonMenuItem ownOperativeStationsMenuItem;
+	private JRadioButtonMenuItem ownPlannedStationsMenuItem;
 	private OMBaseStation currentlySelectedOMBaseStation;
 	
 	private EAVDAMData data;
@@ -158,15 +166,36 @@ public class StationLayer extends OMGraphicHandlerLayer implements MapMouseListe
     		}
     	} else if (SwingUtilities.isRightMouseButton(e)) {
             OMList<OMGraphic> allClosest = graphics.findAll(e.getX(), e.getY(), 5.0f);
-    		for (OMGraphic omGraphic : allClosest) {
-    			if (omGraphic instanceof OMBaseStation) {
-    			    currentlySelectedOMBaseStation = (OMBaseStation) omGraphic;
-    	            JPopupMenu popup = new JPopupMenu();
-                    editStationMenuItem = new JMenuItem("Edit station");
-                    editStationMenuItem.addActionListener(this);
-                    popup.add(editStationMenuItem);
-                    popup.show(mapBean, e.getX(), e.getY());
-                    return true;
+            if (allClosest == null || allClosest.isEmpty()) {			  
+	            JPopupMenu popup = new JPopupMenu();
+	            JMenu showOnMapMenu = new JMenu("Show on map");
+                ButtonGroup group = new ButtonGroup();
+                if (ownOperativeStationsMenuItem == null) {
+                    ownOperativeStationsMenuItem = new JRadioButtonMenuItem("Own operative stations", true);
+	                ownOperativeStationsMenuItem.addActionListener(this);
+	            }
+                group.add(ownOperativeStationsMenuItem);
+                showOnMapMenu.add(ownOperativeStationsMenuItem);
+                if (ownPlannedStationsMenuItem == null) {
+                    ownPlannedStationsMenuItem = new JRadioButtonMenuItem("Own planned stations");
+	                ownPlannedStationsMenuItem.addActionListener(this);
+	            }
+                group.add(ownPlannedStationsMenuItem);
+                showOnMapMenu.add(ownPlannedStationsMenuItem);                      
+                popup.add(showOnMapMenu);
+                popup.show(mapBean, e.getX(), e.getY());
+                return true;            
+            } else {
+        		for (OMGraphic omGraphic : allClosest) {
+        			if (omGraphic instanceof OMBaseStation) {
+        			    currentlySelectedOMBaseStation = (OMBaseStation) omGraphic;
+        	            JPopupMenu popup = new JPopupMenu();
+                        editStationMenuItem = new JMenuItem("Edit station");
+                        editStationMenuItem.addActionListener(this);
+                        popup.add(editStationMenuItem);
+                        popup.show(mapBean, e.getX(), e.getY());
+                        return true;
+                    }
                 }
             }
     	}
@@ -253,6 +282,8 @@ public class StationLayer extends OMGraphicHandlerLayer implements MapMouseListe
     public void actionPerformed(ActionEvent e) {
         if (e.getSource() == editStationMenuItem) {
             new StationInformationMenuItem(eavdamMenu, currentlySelectedOMBaseStation.getName()).doClick();
+        } else if (e.getSource() == ownOperativeStationsMenuItem || e.getSource() == ownPlannedStationsMenuItem) {
+            updateStations();
         }
     }
 
@@ -317,44 +348,40 @@ public class StationLayer extends OMGraphicHandlerLayer implements MapMouseListe
     }
 
     public void updateStations() {
-        //try {
-            graphics.clear();
-            //reachLayerA.getGraphicsList().clear();     
-            // XXX: to be updated
-            /*
-            if (DataFileHandler.currentEAVDAMData != null) {
-                data = DataFileHandler.currentEAVDAMData;
-            } else {
-                if (DataFileHandler.getLatestDataFileName() != null) {
-                    data = XMLImporter.readXML(new File(DataFileHandler.getLatestDataFileName()));
+
+        EAVDAMData data = DBHandler.getData();                        
+        if (data != null) {
+             Options options = OptionsMenuItem.loadOptions();
+             currentIcons = options.getIconsSize();
+             graphics.clear();            
+            //reachLayerA.getGraphicsList().clear();  
+            if (ownOperativeStationsMenuItem == null) {
+                ownOperativeStationsMenuItem = new JRadioButtonMenuItem("Own operative stations", true);
+	            ownOperativeStationsMenuItem.addActionListener(this);
+	        }
+	        if (ownPlannedStationsMenuItem == null) {
+                ownPlannedStationsMenuItem = new JRadioButtonMenuItem("Own planned stations");
+	            ownPlannedStationsMenuItem.addActionListener(this);	            
+	        }
+            if (ownOperativeStationsMenuItem.isSelected() || ownPlannedStationsMenuItem.isSelected()) {
+                List<ActiveStation> activeStations = data.getActiveStations();
+                if (activeStations != null) {
+                    for (ActiveStation as : activeStations) {
+                        if (as.getStations() != null) {
+                            for (AISFixedStationData stationData : as.getStations()) {
+                                if (stationData.getStatus().getStatusID() == DerbyDBInterface.STATUS_ACTIVE &&
+                                        ownOperativeStationsMenuItem.isSelected()) {
+                                    this.addBaseStation(stationData);
+                                } else if (stationData.getStatus().getStatusID() == DerbyDBInterface.STATUS_PLANNED &&
+                                        ownPlannedStationsMenuItem.isSelected()) {
+                                     this.addBaseStation(stationData);
+                                }
+                            }
+                        }
+                    }
                 }
             }            
-            if (data != null) {
-                updateIconsOnMap();
-            }
-            */
-        /*
-        } catch (MalformedURLException ex) {
-            System.out.println(ex.getMessage());
-        } catch (JAXBException ex) {
-            System.out.println(ex.getMessage());
         }
-        */
-        
-    }
-    
-    public void updateIconsOnMap() {        
-        Options options = OptionsMenuItem.loadOptions();
-        if (data != null) {
-            currentIcons = options.getIconsSize();
-            graphics.clear();
-            AISFixedStationData[] stations = data.getStations();
-            if (stations != null) {
-                for (AISFixedStationData station : stations) {
-                    this.addBaseStation(station);                    
-                }
-            }
-        }      
     }
 
 }

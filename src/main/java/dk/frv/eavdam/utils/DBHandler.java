@@ -14,7 +14,12 @@ import java.util.GregorianCalendar;
 
 public class DBHandler {
         
+    private static EAVDAMData data = new EAVDAMData();  // for testing before the database works        
+        
     public static EAVDAMData getData() {        
+        if (data != null) { // for testing before the database works 
+            return data;
+        }
         try {
             DerbyDBInterface d = new DerbyDBInterface();
             //d.createDatabase(null);
@@ -31,6 +36,7 @@ public class DBHandler {
     }
 
     public static void saveData(EAVDAMData data) {
+        DBHandler.data = data;   // for testing before the database works 
         DerbyDBInterface d = new DerbyDBInterface();
         //d.createDatabase(null);
         d.insertEAVDAMData(data);
