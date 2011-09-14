@@ -21,6 +21,7 @@ import dk.frv.eavdam.data.AISFixedStationData;
 import dk.frv.eavdam.data.AISFixedStationType;
 import dk.frv.eavdam.data.EAVDAMData;
 import dk.frv.eavdam.data.Options;
+import dk.frv.eavdam.data.Simulation;
 import dk.frv.eavdam.io.derby.DerbyDBInterface;
 import dk.frv.eavdam.io.XMLImporter;
 import dk.frv.eavdam.menus.EavdamMenu;
@@ -37,6 +38,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.net.MalformedURLException;
+import java.util.ArrayList;
 import java.util.List;
 import javax.xml.bind.JAXBException;
 import javax.swing.ButtonGroup;
@@ -63,6 +65,7 @@ public class StationLayer extends OMGraphicHandlerLayer implements MapMouseListe
 	
 	private EAVDAMData data;
 	private int currentIcons = -1;
+	private List<JRadioButtonMenuItem> simulationMenuItems;
 	
     public StationLayer() {}
 
@@ -181,7 +184,13 @@ public class StationLayer extends OMGraphicHandlerLayer implements MapMouseListe
 	                ownPlannedStationsMenuItem.addActionListener(this);
 	            }
                 group.add(ownPlannedStationsMenuItem);
-                showOnMapMenu.add(ownPlannedStationsMenuItem);                      
+                showOnMapMenu.add(ownPlannedStationsMenuItem);  
+                if (simulationMenuItems != null) {
+                    for (JRadioButtonMenuItem simulationMenuItem : simulationMenuItems) {
+                        group.add(simulationMenuItem);
+                        showOnMapMenu.add(simulationMenuItem);
+                    }
+                }                                    
                 popup.add(showOnMapMenu);
                 popup.show(mapBean, e.getX(), e.getY());
                 return true;            
@@ -284,6 +293,14 @@ public class StationLayer extends OMGraphicHandlerLayer implements MapMouseListe
             new StationInformationMenuItem(eavdamMenu, currentlySelectedOMBaseStation.getName()).doClick();
         } else if (e.getSource() == ownOperativeStationsMenuItem || e.getSource() == ownPlannedStationsMenuItem) {
             updateStations();
+        } else {
+            if (simulationMenuItems != null) {
+                for (JRadioButtonMenuItem simulationMenuItem : simulationMenuItems) {
+                    if (e.getSource() == simulationMenuItem) {
+                        updateStations();
+                    }
+                }
+            }
         }
     }
 
@@ -301,6 +318,7 @@ public class StationLayer extends OMGraphicHandlerLayer implements MapMouseListe
 			this.reachLayerA = (OMAISBaseStationReachLayerA) obj;
 //			this.sidePanel.setStationLayer(this);
 
+            updateSimulations();
             updateStations();
         
             /*
@@ -347,13 +365,28 @@ public class StationLayer extends OMGraphicHandlerLayer implements MapMouseListe
         return null;
     }
 
+    public void updateSimulations() {        
+        simulationMenuItems = new ArrayList<JRadioButtonMenuItem>();
+        EAVDAMData data = DBHandler.getData();                        
+        if (data != null) {            
+            List<Simulation> simulatedStations = data.getSimulatedStations();
+            if (simulatedStations != null) {
+                for (Simulation s : simulatedStations) {
+                    JRadioButtonMenuItem simulationMenuItem = new JRadioButtonMenuItem("Simulation: " + s.getName());
+                    simulationMenuItem.addActionListener(this);
+                    simulationMenuItems.add(simulationMenuItem);
+                }
+            }
+        }
+    }
+    
     public void updateStations() {
 
         EAVDAMData data = DBHandler.getData();                        
         if (data != null) {
              Options options = OptionsMenuItem.loadOptions();
              currentIcons = options.getIconsSize();
-             graphics.clear();            
+             graphics.clear();
             //reachLayerA.getGraphicsList().clear();  
             if (ownOperativeStationsMenuItem == null) {
                 ownOperativeStationsMenuItem = new JRadioButtonMenuItem("Own operative stations", true);
@@ -380,7 +413,27 @@ public class StationLayer extends OMGraphicHandlerLayer implements MapMouseListe
                         }
                     }
                 }
-            }            
+            } else {
+                if (simulationMenuItems != null) {
+                    for (JRadioButtonMenuItem simulationMenuItem : simulationMenuItems) {
+                        if (simulationMenuItem.isSelected()) {
+                            String temp = "Simulation: ";
+                            String selectedSimulation = simulationMenuItem.getText().substring(temp.length());
+                            if (data.getSimulatedStations() != null) {
+                                for (Simulation s : data.getSimulatedStations()) {
+                                    List<AISFixedStationData> stations = s.getStations();
+                                    for (AISFixedStationData stationData : stations) {
+                                        this.addBaseStation(stationData);
+                                    }
+                                }
+                            }
+                            break; 
+                        }   
+                    }
+                }
+            }                           
+            this.repaint();
+		    this.validate();
         }
     }
 
