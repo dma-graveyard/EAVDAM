@@ -18,9 +18,12 @@ import com.bbn.openmap.proj.Length;
 import dk.frv.eavdam.app.SidePanel;
 import dk.frv.eavdam.data.ActiveStation;
 import dk.frv.eavdam.data.AISFixedStationData;
+import dk.frv.eavdam.data.AISFixedStationStatus;
 import dk.frv.eavdam.data.AISFixedStationType;
 import dk.frv.eavdam.data.EAVDAMData;
+import dk.frv.eavdam.data.EAVDAMUser;
 import dk.frv.eavdam.data.Options;
+import dk.frv.eavdam.data.OtherUserStations;
 import dk.frv.eavdam.data.Simulation;
 import dk.frv.eavdam.io.derby.DerbyDBInterface;
 import dk.frv.eavdam.io.XMLImporter;
@@ -66,6 +69,7 @@ public class StationLayer extends OMGraphicHandlerLayer implements MapMouseListe
 	private EAVDAMData data;
 	private int currentIcons = -1;
 	private List<JRadioButtonMenuItem> simulationMenuItems;
+	private List<JRadioButtonMenuItem> otherUsersStationsMenuItems;
 	
     public StationLayer() {}
 
@@ -190,7 +194,13 @@ public class StationLayer extends OMGraphicHandlerLayer implements MapMouseListe
                         group.add(simulationMenuItem);
                         showOnMapMenu.add(simulationMenuItem);
                     }
-                }                                    
+                }    
+               if (otherUsersStationsMenuItems != null) {
+                    for (JRadioButtonMenuItem otherUsersStationsMenuItem : otherUsersStationsMenuItems) {
+                        group.add(otherUsersStationsMenuItem);
+                        showOnMapMenu.add(otherUsersStationsMenuItem);
+                    }
+                }                                                                   
                 popup.add(showOnMapMenu);
                 popup.show(mapBean, e.getX(), e.getY());
                 return true;            
@@ -300,12 +310,22 @@ public class StationLayer extends OMGraphicHandlerLayer implements MapMouseListe
                 if (simulationMenuItems != null) {
                     for (JRadioButtonMenuItem simulationMenuItem : simulationMenuItems) {
                         if (simulationMenuItem.isSelected()) {
-                            String temp = "Simulation: ";
+                            String temp = StationInformationMenuItem.SIMULATION_LABEL + ": ";
                             String selectedSimulation = simulationMenuItem.getText().substring(temp.length());
                             selectedDataset = StationInformationMenuItem.SIMULATION_LABEL + ": " + selectedSimulation;
                         }
                     }
                 }
+                if (otherUsersStationsMenuItems != null) {
+                    for (JRadioButtonMenuItem otherUsersStationsMenuItem : otherUsersStationsMenuItems) {
+                        if (otherUsersStationsMenuItem.isSelected()) {
+                            String temp = StationInformationMenuItem.STATIONS_OF_ORGANIZATION_LABEL + " ";
+                            String selectedOrganization = otherUsersStationsMenuItem.getText().substring(temp.length());
+                            selectedDataset = StationInformationMenuItem.STATIONS_OF_ORGANIZATION_LABEL + " " + selectedOrganization;
+                        }
+                    }
+                }                
+                
             }                        
             new StationInformationMenuItem(eavdamMenu, selectedDataset, currentlySelectedOMBaseStation.getName()).doClick();
         } else if (e.getSource() == ownOperativeStationsMenuItem || e.getSource() == ownPlannedStationsMenuItem) {
@@ -318,6 +338,13 @@ public class StationLayer extends OMGraphicHandlerLayer implements MapMouseListe
                     }
                 }
             }
+            if (otherUsersStationsMenuItems != null) {
+                for (JRadioButtonMenuItem otherUsersStationsMenuItem : otherUsersStationsMenuItems) {
+                    if (e.getSource() == otherUsersStationsMenuItem) {
+                        updateStations();
+                    }
+                }
+            }            
         }
     }
 
@@ -334,9 +361,6 @@ public class StationLayer extends OMGraphicHandlerLayer implements MapMouseListe
 		} else if (obj instanceof OMAISBaseStationReachLayerA) {
 			this.reachLayerA = (OMAISBaseStationReachLayerA) obj;
 //			this.sidePanel.setStationLayer(this);
-
-            updateSimulations();
-            updateStations();
         
             /*
             this.addBaseStation(60.1, 23.8, "base 1", AISFixedStationType.BASESTATION);
@@ -359,6 +383,9 @@ public class StationLayer extends OMGraphicHandlerLayer implements MapMouseListe
             */
 		} else if (obj instanceof EavdamMenu) {
 		    this.eavdamMenu = (EavdamMenu) obj;
+            updateSimulations();
+            updateOtherUsers();
+            updateStations();
 		} else if (obj instanceof SidePanel) {
 		    this.sidePanel = (SidePanel) obj;
 		}
@@ -389,13 +416,29 @@ public class StationLayer extends OMGraphicHandlerLayer implements MapMouseListe
             List<Simulation> simulatedStations = data.getSimulatedStations();
             if (simulatedStations != null) {
                 for (Simulation s : simulatedStations) {
-                    JRadioButtonMenuItem simulationMenuItem = new JRadioButtonMenuItem("Simulation: " + s.getName());
+                    JRadioButtonMenuItem simulationMenuItem = new JRadioButtonMenuItem(StationInformationMenuItem.SIMULATION_LABEL + ": " + s.getName());
                     simulationMenuItem.addActionListener(this);
                     simulationMenuItems.add(simulationMenuItem);
                 }
             }
         }
     }
+    
+    public void updateOtherUsers() {        
+        otherUsersStationsMenuItems = new ArrayList<JRadioButtonMenuItem>();
+        EAVDAMData data = DBHandler.getData();
+        if (data != null) {            
+            List<OtherUserStations> otherUsersStations = data.getOtherUsersStations();
+            if (otherUsersStations != null) {
+                for (OtherUserStations ous : otherUsersStations) {
+                    EAVDAMUser user = ous.getUser();
+                    JRadioButtonMenuItem otherUsersStationsMenuItem = new JRadioButtonMenuItem(StationInformationMenuItem.STATIONS_OF_ORGANIZATION_LABEL + " " + user.getOrganizationName());
+                    otherUsersStationsMenuItem.addActionListener(this);
+                    otherUsersStationsMenuItems.add(otherUsersStationsMenuItem);
+                }
+            }
+        }
+    }    
     
     public void updateStations() {
 
@@ -434,20 +477,47 @@ public class StationLayer extends OMGraphicHandlerLayer implements MapMouseListe
                 if (simulationMenuItems != null) {
                     for (JRadioButtonMenuItem simulationMenuItem : simulationMenuItems) {
                         if (simulationMenuItem.isSelected()) {
-                            String temp = "Simulation: ";
+                            String temp = StationInformationMenuItem.SIMULATION_LABEL + ": ";
                             String selectedSimulation = simulationMenuItem.getText().substring(temp.length());
                             if (data.getSimulatedStations() != null) {
                                 for (Simulation s : data.getSimulatedStations()) {
-                                    List<AISFixedStationData> stations = s.getStations();
-                                    for (AISFixedStationData stationData : stations) {
-                                        this.addBaseStation(stationData);
+                                    if (s.getName().equals(selectedSimulation)) {
+                                        List<AISFixedStationData> stations = s.getStations();
+                                        for (AISFixedStationData stationData : stations) {
+                                            this.addBaseStation(stationData);
+                                        }
+                                        break;
                                     }
                                 }
                             }
-                            break; 
                         }   
                     }
                 }
+                if (otherUsersStationsMenuItems != null) {
+                    for (JRadioButtonMenuItem otherUsersStationsMenuItem : otherUsersStationsMenuItems) {
+                        if (otherUsersStationsMenuItem.isSelected()) {
+                            String temp = StationInformationMenuItem.STATIONS_OF_ORGANIZATION_LABEL + " ";
+                            String selectedOtherUser = otherUsersStationsMenuItem.getText().substring(temp.length());
+                            if (data.getOtherUsersStations() != null) {
+                                for (OtherUserStations ous : data.getOtherUsersStations()) {
+                                    EAVDAMUser user = ous.getUser();
+                                    if (user.getOrganizationName().equals(selectedOtherUser)) {
+                                        List<ActiveStation> activeStations = ous.getStations();
+                                        for (ActiveStation as : activeStations) {
+                                            List<AISFixedStationData> stations = as.getStations();
+                                            for (AISFixedStationData station : stations) {
+                                                if (station.getStatus().getStatusID() == DerbyDBInterface.STATUS_ACTIVE) {
+                                                    this.addBaseStation(station);
+                                                }
+                                            }
+                                        }
+                                    }
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                }             
             }                           
             this.repaint();
 		    this.validate();
