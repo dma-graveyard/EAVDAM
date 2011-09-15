@@ -8,7 +8,7 @@ import java.util.Map;
 public class ActiveStation {
 
     private List<AISFixedStationData> stations = new ArrayList<AISFixedStationData>(); 
-    Map<EAVDAMUser, List<AISFixedStationData>> proposals = new HashMap<EAVDAMUser, List<AISFixedStationData>>();
+    Map<EAVDAMUser, AISFixedStationData> proposals = new HashMap<EAVDAMUser, AISFixedStationData>();
 
 	public ActiveStation() {}
 
@@ -20,11 +20,11 @@ public class ActiveStation {
 		this.stations = stations;
 	}
 	
-	public Map<EAVDAMUser, List<AISFixedStationData>> getProposals() {
+	public Map<EAVDAMUser, AISFixedStationData> getProposals() {
 		return proposals;
 	}
 
-	public void setProposals(Map<EAVDAMUser, List<AISFixedStationData>> proposals) {
+	public void setProposals(Map<EAVDAMUser, AISFixedStationData> proposals) {
 		this.proposals = proposals;
 	}	
 

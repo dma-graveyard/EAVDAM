@@ -1,4 +1,3 @@
-
 package dk.frv.eavdam.menus;
 
 import dk.frv.eavdam.data.ActiveStation;
@@ -40,6 +39,7 @@ import java.io.InputStreamReader;
 import java.net.MalformedURLException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import javax.swing.AbstractButton;
@@ -74,30 +74,30 @@ import javax.xml.bind.JAXBException;
  */
 public class StationInformationMenuItem extends JMenuItem {
 
+    public final static String OWN_ACTIVE_STATIONS_LABEL = "Own active stations";
+    public final static String SIMULATION_LABEL = "Simulation";
+    public final static String STATIONS_OF_ORGANIZATION_LABEL = "Stations of organization";
+    public final static String PROPOSAL_FROM_LABEL = "Proposal from";
+    public final static String PROPOSAL_TO_LABEL = "My proposal";
+    public final static String OPERATIVE_LABEL = "Operative";
+    public final static String PLANNED_LABEL = "Planned";
+    public final static String SIMULATED_LABEL = "Simulated";
+
     public static final long serialVersionUID = 3L;
 
     public StationInformationMenuItem(EavdamMenu eavdamMenu) {
         super("Edit Station Information");       
-        addActionListener(new StationInformationMenuItemActionListener(eavdamMenu, null));
+        addActionListener(new StationInformationMenuItemActionListener(eavdamMenu, null, null));
     }
 
-    public StationInformationMenuItem(EavdamMenu eavdamMenu, String stationName) {
+    public StationInformationMenuItem(EavdamMenu eavdamMenu, String dataset, String stationName) {
         super("Edit Station Information");       
-        addActionListener(new StationInformationMenuItemActionListener(eavdamMenu, stationName));
+        addActionListener(new StationInformationMenuItemActionListener(eavdamMenu, dataset, stationName));
     }
 }
         
         
 class StationInformationMenuItemActionListener implements ActionListener, ChangeListener, DocumentListener, ItemListener {
-
-    private final String OWN_ACTIVE_STATIONS_LABEL = "Own active stations";
-    private final String SIMULATION_LABEL = "Simulation";
-    private final String STATIONS_OF_ORGANIZATION_LABEL = "Stations of organization";
-    private final String PROPOSAL_FROM_LABEL = "Proposal from";
-    private final String PROPOSAL_TO_LABEL = "My proposal";
-    private final String OPERATIVE_LABEL = "Operative";
-    private final String PLANNED_LABEL = "Planned";
-    private final String SIMULATED_LABEL = "Simulated";
 
     private EavdamMenu eavdamMenu;
 
@@ -156,20 +156,21 @@ class StationInformationMenuItemActionListener implements ActionListener, Change
     private JButton makeOperativeButton;
     private JButton saveButton;
     private JButton acceptProposalButton;
+    private JButton proposeChangesButton;
 
     private JButton exitButton;
     
-    private JPanel notYetImplementedPanel;
-    
     private EAVDAMData data;  
     
+    private String initiallySelectedDataset;
     private String initiallySelectedStationName;
     
     private boolean ignoreListeners = false;
     private int previouslySelectedStationIndex = -1;
 
-    public StationInformationMenuItemActionListener(EavdamMenu eavdamMenu, String stationName) {
+    public StationInformationMenuItemActionListener(EavdamMenu eavdamMenu, String dataset, String stationName) {
         this.eavdamMenu = eavdamMenu;
+        this.initiallySelectedDataset = dataset;
         this.initiallySelectedStationName = stationName;
     }
      
@@ -181,22 +182,68 @@ class StationInformationMenuItemActionListener implements ActionListener, Change
         
         if (e.getSource() instanceof StationInformationMenuItem) {
                       
-            data = DBHandler.getData();                         
+            data = DBHandler.getData();    
+            
+            
+            
+            // FOR TESTING -->
+            List<OtherUserStations> otherUsersStations = new ArrayList<OtherUserStations>();
+            OtherUserStations otherUserStations = new OtherUserStations();
+            EAVDAMUser testUser = new EAVDAMUser();
+            testUser.setOrganizationName("test");
+            otherUserStations.setUser(testUser);
+            ActiveStation testAS = new ActiveStation();
+            AISFixedStationData testData = new AISFixedStationData();
+            testData.setStationName("test");
+            testData.setLat(62.2);
+            testData.setLon(19.2);
+            AISFixedStationStatus status = new AISFixedStationStatus();
+            status.setStatusID(DerbyDBInterface.STATUS_ACTIVE);
+            testData.setStatus(status);
+            AISFixedStationData testData2 = new AISFixedStationData();
+            testData2.setStationName("test");
+            testData2.setLat(62.2);
+            testData2.setLon(19.0);
+            AISFixedStationStatus status2 = new AISFixedStationStatus();
+            status2.setStatusID(DerbyDBInterface.STATUS_PLANNED);
+            testData2.setStatus(status2);
+            List<AISFixedStationData> testList = new ArrayList<AISFixedStationData>();
+            testList.add(testData);
+            testList.add(testData2);
+            testAS.setStations(testList);
+            List<ActiveStation> asTestList = new ArrayList<ActiveStation>();            
+            asTestList.add(testAS);
+            otherUserStations.setStations(asTestList);
+            otherUsersStations.add(otherUserStations);
+            data.setOtherUsersStations(otherUsersStations);
+            // <-- FOR TESTING
+                                            
+                                
                                                                           
             selectDatasetComboBox = getComboBox(null);            
-            selectDatasetComboBox.addItem(OWN_ACTIVE_STATIONS_LABEL);
+            selectDatasetComboBox.addItem(StationInformationMenuItem.OWN_ACTIVE_STATIONS_LABEL);
             if (data != null) {
                 if (data.getSimulatedStations() != null) {
                     for (Simulation s : data.getSimulatedStations()) {
-                        selectDatasetComboBox.addItem(SIMULATION_LABEL + ": " + s.getName());
+                        selectDatasetComboBox.addItem(StationInformationMenuItem.SIMULATION_LABEL + ": " + s.getName());
                     }
                 }
                 if (data.getOtherUsersStations() != null) {
                     for (OtherUserStations ous : data.getOtherUsersStations()) {
                         if (ous.getUser() != null) {
-                            selectDatasetComboBox.addItem(STATIONS_OF_ORGANIZATION_LABEL + " " + ous.getUser().getOrganizationName());
+                            selectDatasetComboBox.addItem(StationInformationMenuItem.STATIONS_OF_ORGANIZATION_LABEL + " " + ous.getUser().getOrganizationName());
                         }
                     }
+                }
+            }
+            if (initiallySelectedDataset != null) {
+                if (initiallySelectedDataset.startsWith(StationInformationMenuItem.OWN_ACTIVE_STATIONS_LABEL)) {
+                    selectDatasetComboBox.setSelectedItem(StationInformationMenuItem.OWN_ACTIVE_STATIONS_LABEL);
+                } else if (initiallySelectedDataset.startsWith(StationInformationMenuItem.SIMULATION_LABEL)) {                    
+                    selectDatasetComboBox.setSelectedItem(initiallySelectedDataset);
+                } else if (initiallySelectedDataset.startsWith(StationInformationMenuItem.STATIONS_OF_ORGANIZATION_LABEL)) {
+                    int i = initiallySelectedDataset.lastIndexOf("/");
+                    selectDatasetComboBox.setSelectedItem(initiallySelectedDataset.substring(0, i));
                 }
             }
             selectDatasetComboBox.addItemListener(this);
@@ -253,22 +300,110 @@ class StationInformationMenuItemActionListener implements ActionListener, Change
             deleteButton.addActionListener(this);
             acceptProposalButton = getButton("Accept proposal", 120);                                      
             acceptProposalButton.addActionListener(this);
-         
-            notYetImplementedPanel = new JPanel();
-            notYetImplementedPanel.add(new JLabel("Not yet implemented!"));
+            proposeChangesButton = getButton("Propose changes", 140);
+            proposeChangesButton.addActionListener(this);
     
             tabbedPane = new JTabbedPane();
-    
+               
             if (data != null) {
-                if (data.getActiveStations() != null && !data.getActiveStations().isEmpty()) {
-                    ActiveStation as = data.getActiveStations().get(0);
-                    initializeTabbedPane(as);
-                } else {
-                    tabbedPane.removeAll();
-                }
+                if (initiallySelectedDataset == null) {
+                    if (data.getActiveStations() != null && !data.getActiveStations().isEmpty()) {
+                        ActiveStation as = data.getActiveStations().get(0);
+                        initializeTabbedPane(as);
+                    } else {
+                        tabbedPane.removeAll();
+                    }
+                } else if (initiallySelectedDataset.startsWith(StationInformationMenuItem.OWN_ACTIVE_STATIONS_LABEL)) {
+                    if (data.getActiveStations() != null && !data.getActiveStations().isEmpty()) {
+                        if (initiallySelectedStationName != null) {
+                            boolean initialized = false;
+                            for (ActiveStation as : data.getActiveStations()) {
+                                List<AISFixedStationData> stations = as.getStations();
+                                if (stations != null) {
+                                    for (AISFixedStationData stationData : stations) {
+                                        if (stationData.getStationName().equals(initiallySelectedStationName)) {
+                                            initializeTabbedPane(as);
+                                            initialized = true;
+                                            break;
+                                        }
+                                    }
+                                }
+                            }
+                            if (!initialized) {                               
+                                ActiveStation as = data.getActiveStations().get(0);
+                                initializeTabbedPane(as);
+                            }
+                        }
+                    } else {
+                        tabbedPane.removeAll();
+                    }  
+                    ignoreListeners = true;
+                    int i = initiallySelectedDataset.lastIndexOf("/");
+                    if (initiallySelectedDataset.substring(i+1).equals(StationInformationMenuItem.OPERATIVE_LABEL)) {
+                        if (tabbedPane.getTabCount() >= 1) {
+                            tabbedPane.setSelectedIndex(0);
+                        }                        
+                    } else if (initiallySelectedDataset.substring(i+1).equals(StationInformationMenuItem.PLANNED_LABEL)) {
+                        if (tabbedPane.getTabCount() >= 2) {
+                            tabbedPane.setSelectedIndex(1);
+                        }                    
+                    }
+                    ignoreListeners = false;
+                } else if (initiallySelectedDataset.startsWith(StationInformationMenuItem.SIMULATION_LABEL)) {
+                    String temp = StationInformationMenuItem.SIMULATION_LABEL + ": ";
+                    String simulationName = initiallySelectedDataset.substring(temp.length());                   
+                    if (data.getSimulatedStations() != null && !data.getSimulatedStations().isEmpty()) {
+                        for (Simulation s : data.getSimulatedStations()) {
+                            if (s.getName().equals(simulationName)) {
+                                List<AISFixedStationData> stations = s.getStations();
+                                if (stations != null) {
+                                    for (AISFixedStationData stationData : stations) {
+                                        if (stationData.getStationName().equals(initiallySelectedStationName)) {                                    
+                                            initializeTabbedPane(stationData);
+                                            break;
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }  
+                } else if (initiallySelectedDataset.startsWith(StationInformationMenuItem.STATIONS_OF_ORGANIZATION_LABEL)) {
+                    String temp = StationInformationMenuItem.STATIONS_OF_ORGANIZATION_LABEL + " ";                    
+                    int i = initiallySelectedDataset.lastIndexOf("/");
+                    String organizationName = initiallySelectedDataset.substring(temp.length(), i);
+                    String stationStatus = initiallySelectedDataset.substring(i+1);
+                    if (data.getOtherUsersStations() != null && !data.getOtherUsersStations().isEmpty()) {
+                        for (OtherUserStations ous : data.getOtherUsersStations()) {
+                            if (ous.getUser().getOrganizationName().equals(organizationName)) {
+                                if (ous.getStations() != null && !ous.getStations().isEmpty()) {  
+                                    if (initiallySelectedStationName != null) {
+                                        boolean initialized = false;
+                                        for (ActiveStation as : ous.getStations()) {
+                                            List<AISFixedStationData> stations = as.getStations();
+                                            if (stations != null) {
+                                                for (AISFixedStationData stationData : stations) {
+                                                    if (stationData.getStationName().equals(initiallySelectedStationName)) {                                    
+                                                        initializeTabbedPane(as);
+                                                        initialized = true;
+                                                        break;
+                                                    }
+                                                }
+                                            }
+                                        }
+                                        if (!initialized) {
+                                            ActiveStation as = data.getActiveStations().get(0);
+                                            initializeTabbedPane(as);
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    } 
+                }                
             } else {
                 tabbedPane.removeAll();
             }
+            
             tabbedPane.addChangeListener(this);
     
             if (tabbedPane.getTabCount() == 0) {
@@ -277,6 +412,9 @@ class StationInformationMenuItemActionListener implements ActionListener, Change
                 updateTabbedPane();
             }
             
+            initiallySelectedDataset = null;            
+            initiallySelectedStationName = null;
+            
             updateDialog();                                        
         
         } else if (deleteSimulationButton != null && e.getSource() == deleteSimulationButton) {
@@ -284,7 +422,7 @@ class StationInformationMenuItemActionListener implements ActionListener, Change
             if (response == JOptionPane.YES_OPTION) {
                 ignoreListeners = true;                
                 String selectedItem = (String) selectDatasetComboBox.getSelectedItem();
-                String temp = SIMULATION_LABEL + ": ";
+                String temp = StationInformationMenuItem.SIMULATION_LABEL + ": ";
                 String selectedSimulation = selectedItem.substring(temp.length());
                 deleteSimulation(selectedSimulation);
                 selectDatasetComboBox.removeItem(selectedItem);
@@ -315,8 +453,8 @@ class StationInformationMenuItemActionListener implements ActionListener, Change
                 boolean success = addSimulation(simulationName);
                 if (success) {
                     newSimulationTextField.setText("");
-                    selectDatasetComboBox.addItem(SIMULATION_LABEL + ": " + simulationName);
-                    selectDatasetComboBox.setSelectedItem(SIMULATION_LABEL + ": " + simulationName);
+                    selectDatasetComboBox.addItem(StationInformationMenuItem.SIMULATION_LABEL + ": " + simulationName);
+                    selectDatasetComboBox.setSelectedItem(StationInformationMenuItem.SIMULATION_LABEL + ": " + simulationName);
                     deleteSimulationButton.setEnabled(true);
                     updateSelectStationComboBox(0);
                     if (selectStationComboBox.getItemCount() <= 0) {
@@ -325,7 +463,8 @@ class StationInformationMenuItemActionListener implements ActionListener, Change
                     } else {
                         updateTabbedPane();
                     }
-                    eavdamMenu.getStationLayer().updateSimulations();                    
+                    eavdamMenu.getStationLayer().updateSimulations();
+                    addStationButton.setVisible(true);         
                 }
             }
 
@@ -336,7 +475,8 @@ class StationInformationMenuItemActionListener implements ActionListener, Change
                 return;
             }*/
 
-            if (tabbedPane != null && tabbedPane.getSelectedIndex() >= 0 && tabbedPane.getTitleAt(tabbedPane.getSelectedIndex()).equals(PLANNED_LABEL)) {
+            if (selectDatasetComboBox.getSelectedIndex() == 0 && tabbedPane != null && tabbedPane.isVisible() &&
+                    tabbedPane.getSelectedIndex() >= 0 && tabbedPane.getTitleAt(tabbedPane.getSelectedIndex()).equals(StationInformationMenuItem.PLANNED_LABEL)) {
                 if (selectStationComboBox != null && isChanged(selectStationComboBox.getSelectedIndex())) {
                     int response = JOptionPane.showConfirmDialog(dialog,
                         "Do you want to save the changes made to the current planned station?",
@@ -365,7 +505,7 @@ class StationInformationMenuItemActionListener implements ActionListener, Change
             addLongitudeTextField = getTextField(16);
             addMMSINumberTextField = getTextField(16);
             addTransmissionPowerTextField = getTextField(16);
-            addStationStatusComboBox = getComboBox(new String[] {OPERATIVE_LABEL, PLANNED_LABEL});
+            addStationStatusComboBox = getComboBox(new String[] {StationInformationMenuItem.OPERATIVE_LABEL, StationInformationMenuItem.PLANNED_LABEL});
             addStationStatusComboBox.addItemListener(this);
     
             addAntennaTypeComboBox = getComboBox(new String[] {"No antenna", "Omnidirectional", "Directional"});
@@ -491,11 +631,11 @@ class StationInformationMenuItemActionListener implements ActionListener, Change
                     selectStationComboBox.setVisible(true);
                 }
                 int selectedIndex = selectStationComboBox.getSelectedIndex();
-                if (((String) selectDatasetComboBox.getSelectedItem()).startsWith(OWN_ACTIVE_STATIONS_LABEL)) {
+                if (((String) selectDatasetComboBox.getSelectedItem()).startsWith(StationInformationMenuItem.OWN_ACTIVE_STATIONS_LABEL)) {
                     if (data != null && data.getActiveStations() != null && selectedIndex < data.getActiveStations().size()) {
                         initializeTabbedPane(data.getActiveStations().get(selectedIndex));
                     }
-                } else if (((String) selectDatasetComboBox.getSelectedItem()).startsWith(SIMULATION_LABEL)) {
+                } else if (((String) selectDatasetComboBox.getSelectedItem()).startsWith(StationInformationMenuItem.SIMULATION_LABEL)) {
                     if (data != null && data.getSimulatedStations() != null) {                
                         for (Simulation s : data.getSimulatedStations()) {
                             if (((String) selectDatasetComboBox.getSelectedItem()).endsWith(s.getName())) {
@@ -506,7 +646,7 @@ class StationInformationMenuItemActionListener implements ActionListener, Change
                             }
                         }
                     }            
-                } else if (((String) selectDatasetComboBox.getSelectedItem()).startsWith(STATIONS_OF_ORGANIZATION_LABEL)) {    
+                } else if (((String) selectDatasetComboBox.getSelectedItem()).startsWith(StationInformationMenuItem.STATIONS_OF_ORGANIZATION_LABEL)) {    
                     if (data != null && data.getOtherUsersStations() != null) {                
                         for (OtherUserStations ous : data.getOtherUsersStations()) {
                             if (((String) selectDatasetComboBox.getSelectedItem()).endsWith(ous.getUser().getOrganizationName())) {
@@ -553,6 +693,24 @@ class StationInformationMenuItemActionListener implements ActionListener, Change
                     // do nothing
                 }
             }
+            
+        } else if (proposeChangesButton != null && e.getSource() == proposeChangesButton) {
+            ignoreListeners = true;         
+            int selectedIndex = selectStationComboBox.getSelectedIndex();  
+            if (data != null && data.getOtherUsersStations() != null) {                
+                for (OtherUserStations ous : data.getOtherUsersStations()) {
+                    if (((String) selectDatasetComboBox.getSelectedItem()).endsWith(ous.getUser().getOrganizationName())) {
+                        List<ActiveStation> stations = ous.getStations();
+                        if (stations != null && selectedIndex < stations.size()) {
+                            ActiveStation as = stations.get(selectedIndex);     
+                            addEmptyProposal(selectedIndex, ous.getUser().getOrganizationName());
+                            initializeTabbedPane(as);
+                            tabbedPane.setSelectedIndex(tabbedPane.getTabCount()-1);
+                            updateTabbedPane();            
+                        }
+                    }
+                }
+            }
                 
         } else if (saveButton != null && e.getSource() == saveButton) {            
             ignoreListeners = true;         
@@ -566,24 +724,43 @@ class StationInformationMenuItemActionListener implements ActionListener, Change
             ignoreListeners = false;
             
         } else if ((deleteButton != null && e.getSource() == deleteButton)) {
-            int response = JOptionPane.showConfirmDialog(dialog, "Are you sure you want to delete the current station?", "Confirm action", JOptionPane.YES_NO_OPTION);
-            if (response == JOptionPane.YES_OPTION) {
-                ignoreListeners = true;
-                int selectedStationIndex = selectStationComboBox.getSelectedIndex();
-                deleteStation(selectedStationIndex);
-                selectStationComboBox.removeItemAt(selectedStationIndex);
-                updateSelectStationComboBox(0);
-                if (selectStationComboBox.getItemCount() <= 0) {
-                    selectStationComboBox.setVisible(false);
-                    tabbedPane.setVisible(false);                    
-                } else {
+            if (tabbedPane.getTitleAt(tabbedPane.getSelectedIndex()).startsWith(StationInformationMenuItem.PROPOSAL_FROM_LABEL)) {
+                int response = JOptionPane.showConfirmDialog(dialog, "Are you sure you want to delete the proposal?", "Confirm action", JOptionPane.YES_NO_OPTION);
+                if (response == JOptionPane.YES_OPTION) {
+                    ignoreListeners = true;
+                    int selectedStationIndex = selectStationComboBox.getSelectedIndex();
+                    String temp = StationInformationMenuItem.PROPOSAL_FROM_LABEL + " ";
+                    String organizationName = tabbedPane.getTitleAt(tabbedPane.getSelectedIndex()).substring(temp.length());
+                    deleteProposal(selectedStationIndex, organizationName);                            
+                    if (data.getActiveStations() != null && !data.getActiveStations().isEmpty()) {
+                        ActiveStation as = data.getActiveStations().get(selectedStationIndex);                        
+                        initializeTabbedPane(as);
+                    }
                     updateTabbedPane();
-                }
-                eavdamMenu.getStationLayer().updateStations();
-                ignoreListeners = false;
-            } else if (response == JOptionPane.NO_OPTION) {                        
-                // do nothing
-            }    
+                    ignoreListeners = false;
+                } else if (response == JOptionPane.NO_OPTION) {                        
+                    // do nothing
+                } 
+            } else {                        
+                int response = JOptionPane.showConfirmDialog(dialog, "Are you sure you want to delete the current station?", "Confirm action", JOptionPane.YES_NO_OPTION);
+                if (response == JOptionPane.YES_OPTION) {
+                    ignoreListeners = true;
+                    int selectedStationIndex = selectStationComboBox.getSelectedIndex();
+                    deleteStation(selectedStationIndex);
+                    selectStationComboBox.removeItemAt(selectedStationIndex);
+                    updateSelectStationComboBox(0);
+                    if (selectStationComboBox.getItemCount() <= 0) {
+                        selectStationComboBox.setVisible(false);
+                        tabbedPane.setVisible(false);                    
+                    } else {
+                        updateTabbedPane();
+                    }
+                    eavdamMenu.getStationLayer().updateStations();
+                    ignoreListeners = false;
+                } else if (response == JOptionPane.NO_OPTION) {                        
+                    // do nothing
+                }    
+            }
         } else if (exitButton != null && e.getSource() == exitButton) {
             int response = JOptionPane.showConfirmDialog(dialog,
                 "Are you sure you want to exit editing the stations?",
@@ -638,10 +815,6 @@ class StationInformationMenuItemActionListener implements ActionListener, Change
         
         c = updateGBC(c, 0, 2, 0.5, GridBagConstraints.FIRST_LINE_START, GridBagConstraints.HORIZONTAL, new Insets(5,5,5,5));
         panel.add(tabbedPane, c);
-            
-        c = updateGBC(c, 0, 3, 0.5, GridBagConstraints.FIRST_LINE_START, GridBagConstraints.HORIZONTAL, new Insets(5,5,5,5));
-        panel.add(notYetImplementedPanel, c);
-        notYetImplementedPanel.setVisible(false);
 
         JPanel contentPanel = new JPanel();
         contentPanel.add(panel, BorderLayout.NORTH);
@@ -668,25 +841,25 @@ class StationInformationMenuItemActionListener implements ActionListener, Change
                 }
             }                        
             if (operativeFound) {
-                tabbedPane.addTab(OPERATIVE_LABEL, null, new JPanel(), OPERATIVE_LABEL);
+                tabbedPane.addTab(StationInformationMenuItem.OPERATIVE_LABEL, null, new JPanel(), StationInformationMenuItem.OPERATIVE_LABEL);
             }
             if (plannedFound) {
-                tabbedPane.addTab(PLANNED_LABEL, null, new JPanel(), PLANNED_LABEL);
+                tabbedPane.addTab(StationInformationMenuItem.PLANNED_LABEL, null, new JPanel(), StationInformationMenuItem.PLANNED_LABEL);
             }
         }
-        if (((String) selectDatasetComboBox.getSelectedItem()).startsWith(OWN_ACTIVE_STATIONS_LABEL)) {
+        if (((String) selectDatasetComboBox.getSelectedItem()).startsWith(StationInformationMenuItem.OWN_ACTIVE_STATIONS_LABEL)) {
             if (as.getProposals() != null && !as.getProposals().isEmpty()) {
-                Map<EAVDAMUser, List<AISFixedStationData>> proposals = as.getProposals();
+                Map<EAVDAMUser, AISFixedStationData> proposals = as.getProposals();
                 for (Object key : proposals.keySet()) {                        
                     String organizationName = ((EAVDAMUser) key).getOrganizationName();
-                    tabbedPane.addTab(PROPOSAL_FROM_LABEL + " " + organizationName, null, new JPanel(), PROPOSAL_FROM_LABEL + " " + organizationName);
+                    tabbedPane.addTab(StationInformationMenuItem.PROPOSAL_FROM_LABEL + " " + organizationName, null, new JPanel(), StationInformationMenuItem.PROPOSAL_FROM_LABEL + " " + organizationName);
                 }
             }
-        } else if (((String) selectDatasetComboBox.getSelectedItem()).startsWith(STATIONS_OF_ORGANIZATION_LABEL)) {    
+        } else if (((String) selectDatasetComboBox.getSelectedItem()).startsWith(StationInformationMenuItem.STATIONS_OF_ORGANIZATION_LABEL)) {    
             if (as.getProposals() != null && !as.getProposals().isEmpty()) {
-                Map<EAVDAMUser, List<AISFixedStationData>> proposals = as.getProposals();
+                Map<EAVDAMUser, AISFixedStationData> proposals = as.getProposals();
                 if (proposals.size() == 1) {
-                    tabbedPane.addTab(PROPOSAL_TO_LABEL, null, new JPanel(), PROPOSAL_TO_LABEL);
+                    tabbedPane.addTab(StationInformationMenuItem.PROPOSAL_TO_LABEL, null, new JPanel(), StationInformationMenuItem.PROPOSAL_TO_LABEL);
                 }
             }            
         }
@@ -697,9 +870,9 @@ class StationInformationMenuItemActionListener implements ActionListener, Change
     private void initializeTabbedPane(AISFixedStationData stationData) {
         ignoreListeners = true;
         tabbedPane.removeAll();
-        if (((String) selectDatasetComboBox.getSelectedItem()).startsWith(SIMULATION_LABEL)) {
+        if (((String) selectDatasetComboBox.getSelectedItem()).startsWith(StationInformationMenuItem.SIMULATION_LABEL)) {
             if (stationData.getStatus().getStatusID() == DerbyDBInterface.STATUS_SIMULATED) {
-                tabbedPane.addTab(SIMULATED_LABEL, null, new JPanel(), SIMULATED_LABEL);
+                tabbedPane.addTab(StationInformationMenuItem.SIMULATED_LABEL, null, new JPanel(), StationInformationMenuItem.SIMULATED_LABEL);
             }
         }
         tabbedPane.addChangeListener(this);
@@ -714,78 +887,75 @@ class StationInformationMenuItemActionListener implements ActionListener, Change
         }
 
         if (selectDatasetComboBox != null && e.getItemSelectable() == selectDatasetComboBox && e.getStateChange() == ItemEvent.SELECTED) {
-
-            if (((String) selectDatasetComboBox.getSelectedItem()).startsWith(OWN_ACTIVE_STATIONS_LABEL)) {
-                if (selectStationPanel != null && tabbedPane != null && deleteSimulationButton != null) {
-                    notYetImplementedPanel.setVisible(false);
-                    selectStationPanel.setVisible(true);
-                    updateSelectStationComboBox(0);
-                    if (selectStationComboBox.getItemCount() <= 0) {
-                        selectStationComboBox.setVisible(false);
-                        tabbedPane.setVisible(false);                    
-                    } else {                        
-                        selectStationComboBox.setVisible(true);
-                        if (data != null) {
+            if (selectStationPanel != null) {
+                selectStationPanel.setVisible(true);
+                updateSelectStationComboBox(0);
+                if (((String) selectDatasetComboBox.getSelectedItem()).startsWith(StationInformationMenuItem.OWN_ACTIVE_STATIONS_LABEL)) {
+                    addStationButton.setVisible(true);
+                    deleteSimulationButton.setVisible(false);                            
+                    saveButton.setVisible(true);
+                    deleteButton.setVisible(true);
+                    makeOperativeButton.setVisible(true);    
+                    proposeChangesButton.setVisible(false);                    
+                } else if (((String) selectDatasetComboBox.getSelectedItem()).startsWith(StationInformationMenuItem.SIMULATION_LABEL)) { 
+                    addStationButton.setVisible(true);
+                    deleteSimulationButton.setVisible(true);  
+                    saveButton.setVisible(true);
+                    deleteButton.setVisible(true);
+                    makeOperativeButton.setVisible(false);                        
+                    proposeChangesButton.setVisible(false); 
+                } else if (((String) selectDatasetComboBox.getSelectedItem()).startsWith(StationInformationMenuItem.STATIONS_OF_ORGANIZATION_LABEL)) {  
+                    addStationButton.setVisible(false);
+                    deleteSimulationButton.setVisible(false);                            
+                    saveButton.setVisible(false);
+                    deleteButton.setVisible(false);
+                    makeOperativeButton.setVisible(false);
+                    proposeChangesButton.setVisible(true); 
+                }
+                if (selectStationComboBox.getItemCount() <= 0) {
+                    selectStationComboBox.setVisible(false);
+                    tabbedPane.setVisible(false);      
+                } else {                        
+                    selectStationComboBox.setVisible(true);
+                    if (data != null) {
+                        if (((String) selectDatasetComboBox.getSelectedItem()).startsWith(StationInformationMenuItem.OWN_ACTIVE_STATIONS_LABEL)) {
                             if (data.getActiveStations() != null && !data.getActiveStations().isEmpty()) {
                                 ActiveStation as = data.getActiveStations().get(0);
                                 initializeTabbedPane(as);
                             } else {
                                 tabbedPane.removeAll();
                             }
-                        } else {
-                            tabbedPane.removeAll();
-                        }
-                        tabbedPane.addChangeListener(this);    
-                        if (tabbedPane.getTabCount() == 0) {
-                            tabbedPane.setVisible(false);
-                        } else {            
-                            tabbedPane.setVisible(true);              
-                            updateTabbedPane();
-                        }   
-                    }
-                    deleteSimulationButton.setVisible(false);
-                }
-            } else if (((String) selectDatasetComboBox.getSelectedItem()).startsWith(SIMULATION_LABEL)) {
-                if (selectStationPanel != null && tabbedPane != null && deleteSimulationButton != null) {
-                    notYetImplementedPanel.setVisible(false);
-                    selectStationPanel.setVisible(true);
-                    updateSelectStationComboBox(0);
-                    if (selectStationComboBox.getItemCount() <= 0) {
-                        selectStationComboBox.setVisible(false);
-                        tabbedPane.setVisible(false);                    
-                    } else {                        
-                        selectStationComboBox.setVisible(true);
-                        if (data != null) {
+                        } else if (((String) selectDatasetComboBox.getSelectedItem()).startsWith(StationInformationMenuItem.SIMULATION_LABEL)) {               
                             if (data.getSimulatedStations() != null && !data.getSimulatedStations().isEmpty()) {
                                 Simulation s = data.getSimulatedStations().get(0);
                                 if (s.getStations() != null && !s.getStations().isEmpty()) {
                                     AISFixedStationData stationData = s.getStations().get(0);
                                     initializeTabbedPane(stationData);
                                 } else {
+                                    tabbedPane.removeAll();                            
+                                }
+                            }
+                        } else if (((String) selectDatasetComboBox.getSelectedItem()).startsWith(StationInformationMenuItem.STATIONS_OF_ORGANIZATION_LABEL)) {              
+                            if (data.getOtherUsersStations() != null && !data.getOtherUsersStations().isEmpty()) {
+                                OtherUserStations ous = data.getOtherUsersStations().get(0);
+                                if (ous.getStations() != null && !ous.getStations().isEmpty()) {
+                                    ActiveStation as = ous.getStations().get(0);
+                                    initializeTabbedPane(as);                                
+                                } else {
                                     tabbedPane.removeAll();
                                 }
-                            } else {
-                                tabbedPane.removeAll();
                             }
-                        } else {
-                            tabbedPane.removeAll();
                         }
-                        tabbedPane.addChangeListener(this);
-                        if (tabbedPane.getTabCount() == 0) {
-                            tabbedPane.setVisible(false);
-                        } else {            
-                            tabbedPane.setVisible(true);              
-                            updateTabbedPane();
-                        }
+                    } else {
+                        tabbedPane.removeAll();
                     }
-                    deleteSimulationButton.setVisible(true);
-                }
-            } else if (((String) selectDatasetComboBox.getSelectedItem()).startsWith(STATIONS_OF_ORGANIZATION_LABEL)) {
-                if (selectStationPanel != null && tabbedPane != null && deleteSimulationButton != null) {
-                    selectStationPanel.setVisible(false);  // stations of other organisations not yet implemented
-                    tabbedPane.setVisible(false);
-                    deleteSimulationButton.setVisible(false);
-                    notYetImplementedPanel.setVisible(true);
+                    tabbedPane.addChangeListener(this);    
+                    if (tabbedPane.getTabCount() == 0) {
+                        tabbedPane.setVisible(false);
+                    } else {            
+                        tabbedPane.setVisible(true);              
+                        updateTabbedPane();
+                    }   
                 }
             }       
 
@@ -809,8 +979,9 @@ class StationInformationMenuItemActionListener implements ActionListener, Change
                     }
                 }
             } else if (e.getStateChange() == ItemEvent.SELECTED) {           
-                if (((String) selectDatasetComboBox.getSelectedItem()).startsWith(OWN_ACTIVE_STATIONS_LABEL)) {
-                    if (tabbedPane.getTitleAt(tabbedPane.getSelectedIndex()).equals(PLANNED_LABEL)) {
+                if (((String) selectDatasetComboBox.getSelectedItem()).startsWith(StationInformationMenuItem.OWN_ACTIVE_STATIONS_LABEL)) {                                        
+                    ActiveStation as = data.getActiveStations().get(selectStationComboBox.getSelectedIndex());                   
+                    if (tabbedPane.getTitleAt(tabbedPane.getSelectedIndex()).equals(StationInformationMenuItem.PLANNED_LABEL)) {
                         if (isChanged(previouslySelectedStationIndex)) {
                             int response = JOptionPane.showConfirmDialog(dialog,
                                 "Do you want to save the changes made to the current planned station?",
@@ -819,20 +990,24 @@ class StationInformationMenuItemActionListener implements ActionListener, Change
                                 boolean success = saveStation(previouslySelectedStationIndex);
                                 if (success) {
                                     saveButton.setEnabled(false);
+                                    initializeTabbedPane(as);  
                                     updateTabbedPane();
                                 }
-                            } else if (response == JOptionPane.NO_OPTION) {                        
+                            } else if (response == JOptionPane.NO_OPTION) {                      
+                                initializeTabbedPane(as);                              
                                 updateTabbedPane();
                             } else if (response == JOptionPane.CANCEL_OPTION) {
                                 // do nothing
                             }                    
                         } else {
+                            initializeTabbedPane(as);  
                             updateTabbedPane();
                         }
-                    } else {                               
+                    } else {
+                        initializeTabbedPane(as);                                                         
                         updateTabbedPane();
                     }
-                } else {
+                } else {                  
                     updateTabbedPane();
                 }
             }
@@ -1003,23 +1178,35 @@ class StationInformationMenuItemActionListener implements ActionListener, Change
         JPanel buttonPanel = new JPanel(new GridBagLayout());            
         c = updateGBC(c, 0, 0, 0.5, GridBagConstraints.LINE_START, GridBagConstraints.NONE, new Insets(5,5,5,5)); 
         c.gridwidth = 1;
-        if (tabbedPane.getTitleAt(tabbedPane.getSelectedIndex()).equals(OPERATIVE_LABEL)) {
+        if (tabbedPane.getTitleAt(tabbedPane.getSelectedIndex()).equals(StationInformationMenuItem.OPERATIVE_LABEL)) {
             buttonPanel.add(deleteButton, c);
             c.gridx = 1;
+            buttonPanel.add(proposeChangesButton, c);
+            c.gridx = 2;            
             buttonPanel.add(exitButton, c);                    
-        } else if (tabbedPane.getTitleAt(tabbedPane.getSelectedIndex()).equals(PLANNED_LABEL)) {
+        } else if (tabbedPane.getTitleAt(tabbedPane.getSelectedIndex()).equals(StationInformationMenuItem.PLANNED_LABEL)) {
             saveButton.setEnabled(false);
             buttonPanel.add(saveButton, c);
             c.gridx = 1;
             buttonPanel.add(makeOperativeButton, c);
             c.gridx = 2;
+            buttonPanel.add(proposeChangesButton, c);
+            c.gridx = 3;
             buttonPanel.add(exitButton, c);
-        } else if (tabbedPane.getTitleAt(tabbedPane.getSelectedIndex()).startsWith(SIMULATED_LABEL)) {
+        } else if (tabbedPane.getTitleAt(tabbedPane.getSelectedIndex()).startsWith(StationInformationMenuItem.SIMULATED_LABEL)) {
             buttonPanel.add(deleteButton, c);
             c.gridx = 1;
             saveButton.setEnabled(false);
             buttonPanel.add(saveButton, c);
             c.gridx = 2;
+            buttonPanel.add(exitButton, c);
+        } else if (tabbedPane.getTitleAt(tabbedPane.getSelectedIndex()).startsWith(StationInformationMenuItem.PROPOSAL_FROM_LABEL)) {
+            buttonPanel.add(deleteButton, c);
+            c.gridx = 1;
+            buttonPanel.add(exitButton, c);
+        } else if (tabbedPane.getTitleAt(tabbedPane.getSelectedIndex()).startsWith(StationInformationMenuItem.PROPOSAL_TO_LABEL)) {
+            buttonPanel.add(deleteButton, c);
+            c.gridx = 1;
             buttonPanel.add(exitButton, c);
         }
 
@@ -1029,7 +1216,11 @@ class StationInformationMenuItemActionListener implements ActionListener, Change
          
         // updates form fields' statuses (enabled or disabled)
         
-        if (tabbedPane.getTitleAt(tabbedPane.getSelectedIndex()).equals(OPERATIVE_LABEL)) {
+        if ((((String) selectDatasetComboBox.getSelectedItem()).startsWith(StationInformationMenuItem.STATIONS_OF_ORGANIZATION_LABEL) &&
+                (tabbedPane.getTitleAt(tabbedPane.getSelectedIndex()).equals(StationInformationMenuItem.OPERATIVE_LABEL) ||
+                tabbedPane.getTitleAt(tabbedPane.getSelectedIndex()).equals(StationInformationMenuItem.PLANNED_LABEL))) ||
+                tabbedPane.getTitleAt(tabbedPane.getSelectedIndex()).equals(StationInformationMenuItem.OPERATIVE_LABEL) ||
+                tabbedPane.getTitleAt(tabbedPane.getSelectedIndex()).startsWith(StationInformationMenuItem.PROPOSAL_FROM_LABEL)) {
             stationNameTextField.setEnabled(false);
             configureDisabledTextField(stationNameTextField);
             stationTypeComboBox.setEnabled(false);                            
@@ -1055,9 +1246,10 @@ class StationInformationMenuItemActionListener implements ActionListener, Change
             gainTextField.setEnabled(false); 
             configureDisabledTextField(gainTextField); 
             additionalInformationJTextArea.setEnabled(false);               
-            configureDisabledTextArea(additionalInformationJTextArea);            
-        } else if (tabbedPane.getTitleAt(tabbedPane.getSelectedIndex()).equals(PLANNED_LABEL) ||
-                (tabbedPane.getTitleAt(tabbedPane.getSelectedIndex()).startsWith(SIMULATED_LABEL))) {
+            configureDisabledTextArea(additionalInformationJTextArea);
+        } else if (tabbedPane.getTitleAt(tabbedPane.getSelectedIndex()).equals(StationInformationMenuItem.PLANNED_LABEL) ||
+                tabbedPane.getTitleAt(tabbedPane.getSelectedIndex()).startsWith(StationInformationMenuItem.SIMULATED_LABEL) ||
+                tabbedPane.getTitleAt(tabbedPane.getSelectedIndex()).startsWith(StationInformationMenuItem.PROPOSAL_TO_LABEL)) {                
             stationNameTextField.setEnabled(true);
             stationTypeComboBox.setEnabled(true);   
             stationTypeComboBox.setEditable(false);                                     
@@ -1078,6 +1270,24 @@ class StationInformationMenuItemActionListener implements ActionListener, Change
         // updates form fields contents
 
         int selectedIndex = selectStationComboBox.getSelectedIndex();
+
+        if (((String) selectDatasetComboBox.getSelectedItem()).startsWith(StationInformationMenuItem.STATIONS_OF_ORGANIZATION_LABEL)) {
+            if (data != null && data.getOtherUsersStations() != null) {                
+                for (OtherUserStations ous : data.getOtherUsersStations()) {
+                    if (((String) selectDatasetComboBox.getSelectedItem()).endsWith(ous.getUser().getOrganizationName())) {
+                        List<ActiveStation> stations = ous.getStations();
+                        if (stations != null && selectedIndex < stations.size()) {
+                            ActiveStation as = stations.get(selectedIndex);
+                            if (as.getProposals() == null || as.getProposals().isEmpty()) {
+                                proposeChangesButton.setVisible(true);
+                            } else {
+                                proposeChangesButton.setVisible(false);
+                            }
+                        }
+                    }
+                }
+            }               
+        }
     
         AISFixedStationData selectedStationData = getSelectedStationData(selectedIndex);
         
@@ -1178,23 +1388,35 @@ class StationInformationMenuItemActionListener implements ActionListener, Change
     
         AISFixedStationData selectedStationData = null;
     
-        if (((String) selectDatasetComboBox.getSelectedItem()).startsWith(OWN_ACTIVE_STATIONS_LABEL)) {
+        if (((String) selectDatasetComboBox.getSelectedItem()).startsWith(StationInformationMenuItem.OWN_ACTIVE_STATIONS_LABEL)) {
             if (data != null && data.getActiveStations() != null && selectedIndex < data.getActiveStations().size()) {
                 ActiveStation as = data.getActiveStations().get(selectedIndex);
                 if (as.getStations() != null) {
-                    for (AISFixedStationData stationData : as.getStations()) {
-                        if (tabbedPane.getTitleAt(tabbedPane.getSelectedIndex()).equals(OPERATIVE_LABEL) && stationData.getStatus().getStatusID() == DerbyDBInterface.STATUS_ACTIVE) {
-                            selectedStationData = stationData;
-                            break;
-                        } else if (tabbedPane.getTitleAt(tabbedPane.getSelectedIndex()).equals(PLANNED_LABEL) && stationData.getStatus().getStatusID() == DerbyDBInterface.STATUS_PLANNED) {
-                            selectedStationData = stationData;
-                            break;
+                    if (tabbedPane.getTitleAt(tabbedPane.getSelectedIndex()).equals(StationInformationMenuItem.OPERATIVE_LABEL) ||
+                            tabbedPane.getTitleAt(tabbedPane.getSelectedIndex()).equals(StationInformationMenuItem.PLANNED_LABEL)) {
+                        for (AISFixedStationData stationData : as.getStations()) {
+                            if (tabbedPane.getTitleAt(tabbedPane.getSelectedIndex()).equals(StationInformationMenuItem.OPERATIVE_LABEL) && stationData.getStatus().getStatusID() == DerbyDBInterface.STATUS_ACTIVE) {
+                                selectedStationData = stationData;
+                                break;
+                            } else if (tabbedPane.getTitleAt(tabbedPane.getSelectedIndex()).equals(StationInformationMenuItem.PLANNED_LABEL) && stationData.getStatus().getStatusID() == DerbyDBInterface.STATUS_PLANNED) {
+                                selectedStationData = stationData;
+                                break;
+                            }
+                        }
+                    } else if (tabbedPane.getTitleAt(tabbedPane.getSelectedIndex()).startsWith(StationInformationMenuItem.PROPOSAL_FROM_LABEL)) {                        
+                        Map<EAVDAMUser, AISFixedStationData> proposals = as.getProposals();                        
+                        String temp = StationInformationMenuItem.PROPOSAL_FROM_LABEL + " ";
+                        String organizationName = tabbedPane.getTitleAt(tabbedPane.getSelectedIndex()).substring(temp.length());
+                        for (Object key : proposals.keySet()) { 
+                            EAVDAMUser user = (EAVDAMUser) key;
+                            if (user.getOrganizationName().equals(organizationName)) {
+                                selectedStationData = proposals.get(user);
+                            }
                         }
                     }
                 }
-            }
-                   
-        } else if (((String) selectDatasetComboBox.getSelectedItem()).startsWith(SIMULATION_LABEL)) {
+            }       
+        } else if (((String) selectDatasetComboBox.getSelectedItem()).startsWith(StationInformationMenuItem.SIMULATION_LABEL)) {
             if (data != null && data.getSimulatedStations() != null) {                
                 for (Simulation s : data.getSimulatedStations()) {
                     if (((String) selectDatasetComboBox.getSelectedItem()).endsWith(s.getName())) {
@@ -1206,23 +1428,35 @@ class StationInformationMenuItemActionListener implements ActionListener, Change
                 }
             }
             
-        } else if (((String) selectDatasetComboBox.getSelectedItem()).startsWith(STATIONS_OF_ORGANIZATION_LABEL)) {    
+        } else if (((String) selectDatasetComboBox.getSelectedItem()).startsWith(StationInformationMenuItem.STATIONS_OF_ORGANIZATION_LABEL)) {    
             if (data != null && data.getOtherUsersStations() != null) {                
                 for (OtherUserStations ous : data.getOtherUsersStations()) {
                     if (((String) selectDatasetComboBox.getSelectedItem()).endsWith(ous.getUser().getOrganizationName())) {
                         List<ActiveStation> stations = ous.getStations();
                         if (stations != null && selectedIndex < stations.size()) {
                             ActiveStation as = stations.get(selectedIndex);
-                            if (as.getStations() != null) {
-                                for (AISFixedStationData stationData : as.getStations()) {
-                                    if (tabbedPane.getTitleAt(tabbedPane.getSelectedIndex()).equals(OPERATIVE_LABEL) && stationData.getStatus().getStatusID() == DerbyDBInterface.STATUS_ACTIVE) {
-                                       selectedStationData = stationData;
-                                        break;
-                                    } else if (tabbedPane.getTitleAt(tabbedPane.getSelectedIndex()).equals(PLANNED_LABEL) && stationData.getStatus().getStatusID() == DerbyDBInterface.STATUS_PLANNED) {
-                                        selectedStationData = stationData;
-                                        break;
+                            if (tabbedPane.getTitleAt(tabbedPane.getSelectedIndex()).equals(StationInformationMenuItem.OPERATIVE_LABEL) ||
+                                    tabbedPane.getTitleAt(tabbedPane.getSelectedIndex()).equals(StationInformationMenuItem.PLANNED_LABEL)) {
+                                if (as.getStations() != null) {
+                                    for (AISFixedStationData stationData : as.getStations()) {
+                                        if (tabbedPane.getTitleAt(tabbedPane.getSelectedIndex()).equals(StationInformationMenuItem.OPERATIVE_LABEL) &&
+                                                stationData.getStatus().getStatusID() == DerbyDBInterface.STATUS_ACTIVE) {
+                                           selectedStationData = stationData;
+                                            break;
+                                        } else if (tabbedPane.getTitleAt(tabbedPane.getSelectedIndex()).equals(StationInformationMenuItem.PLANNED_LABEL) &&
+                                                stationData.getStatus().getStatusID() == DerbyDBInterface.STATUS_PLANNED) {
+                                            selectedStationData = stationData;
+                                            break;
+                                        }
                                     }
                                 }
+                            } else if (tabbedPane.getTitleAt(tabbedPane.getSelectedIndex()).equals(StationInformationMenuItem.PROPOSAL_TO_LABEL)) {
+                                if (as.getProposals() != null && as.getProposals().size() ==1) {
+                                    for (Object key : as.getProposals().keySet()) { 
+                                        EAVDAMUser temp = (EAVDAMUser) key;
+                                        selectedStationData = as.getProposals().get(temp);
+                                    }
+                                }                      
                             }
                         }
                     }
@@ -1547,13 +1781,28 @@ class StationInformationMenuItemActionListener implements ActionListener, Change
             return false;
         }            
 
-        if (((String) selectDatasetComboBox.getSelectedItem()).startsWith(OWN_ACTIVE_STATIONS_LABEL)) {            
+        if (((String) selectDatasetComboBox.getSelectedItem()).startsWith(StationInformationMenuItem.OWN_ACTIVE_STATIONS_LABEL)) {            
 
             ActiveStation activeStation = new ActiveStation();
             List<AISFixedStationData> stations = new ArrayList<AISFixedStationData>();
             stations.add(operativeStation);
             stations.add(plannedStation);            
-            activeStation.setStations(stations);
+            activeStation.setStations(stations);                      
+            
+            // FOR TESTING -->
+            /*
+            EAVDAMUser testUser = new EAVDAMUser();
+            testUser.setOrganizationName("test");
+            AISFixedStationData testData = new AISFixedStationData();
+            testData.setStationName("test");
+            testData.setLat(62.2);
+            testData.setLon(19.2);
+            Map<EAVDAMUser, AISFixedStationData> proposals = new HashMap<EAVDAMUser, AISFixedStationData>();
+            proposals.put(testUser, testData);
+            activeStation.setProposals(proposals);            
+            */
+            // <-- FOR TESTING
+                        
             List<ActiveStation> activeStations = null;
             if (data == null || data.getActiveStations() == null) {
                 activeStations =  new ArrayList<ActiveStation>();
@@ -1563,7 +1812,7 @@ class StationInformationMenuItemActionListener implements ActionListener, Change
             activeStations.add(activeStation);                
             data.setActiveStations(activeStations);
   
-        } else if (((String) selectDatasetComboBox.getSelectedItem()).startsWith(SIMULATION_LABEL)) {
+        } else if (((String) selectDatasetComboBox.getSelectedItem()).startsWith(StationInformationMenuItem.SIMULATION_LABEL)) {
             if (data != null && data.getSimulatedStations() != null) {                
                 for (Simulation s : data.getSimulatedStations()) {
                     if (((String) selectDatasetComboBox.getSelectedItem()).endsWith(s.getName())) {
@@ -1592,9 +1841,11 @@ class StationInformationMenuItemActionListener implements ActionListener, Change
      */    
     private void updateSelectStationComboBox(int selectedIndex) {
         
+        ignoreListeners = true;
+        
         selectStationComboBox.removeAllItems();
         
-        if (((String) selectDatasetComboBox.getSelectedItem()).startsWith(OWN_ACTIVE_STATIONS_LABEL)) {
+        if (((String) selectDatasetComboBox.getSelectedItem()).startsWith(StationInformationMenuItem.OWN_ACTIVE_STATIONS_LABEL)) {
             if (data != null && data.getActiveStations() != null) {
                 if (initiallySelectedStationName != null) {
                     for (int i=0; i< data.getActiveStations().size(); i++) {
@@ -1609,7 +1860,6 @@ class StationInformationMenuItemActionListener implements ActionListener, Change
                             }
                         }
                     }
-                    initiallySelectedStationName = null;
                 }
                 
                 for (int i=0; i< data.getActiveStations().size(); i++) {
@@ -1628,7 +1878,7 @@ class StationInformationMenuItemActionListener implements ActionListener, Change
                 
             }
                 
-        } else if (((String) selectDatasetComboBox.getSelectedItem()).startsWith(SIMULATION_LABEL)) {
+        } else if (((String) selectDatasetComboBox.getSelectedItem()).startsWith(StationInformationMenuItem.SIMULATION_LABEL)) {
 
             if (data != null && data.getSimulatedStations() != null) {
                 
@@ -1646,7 +1896,6 @@ class StationInformationMenuItemActionListener implements ActionListener, Change
                             }
                         }
                     }
-                    initiallySelectedStationName = null;
                 }
 
                 for (Simulation s : data.getSimulatedStations()) {
@@ -1666,7 +1915,7 @@ class StationInformationMenuItemActionListener implements ActionListener, Change
                 
             }
     
-        } else if (((String) selectDatasetComboBox.getSelectedItem()).startsWith(STATIONS_OF_ORGANIZATION_LABEL)) {    
+        } else if (((String) selectDatasetComboBox.getSelectedItem()).startsWith(StationInformationMenuItem.STATIONS_OF_ORGANIZATION_LABEL)) {    
 
             if (data != null && data.getOtherUsersStations() != null) {
                 
@@ -1701,7 +1950,7 @@ class StationInformationMenuItemActionListener implements ActionListener, Change
                                 if (as.getStations() != null) {
                                     for (AISFixedStationData stationData : as.getStations()) {
                                         if (stationData.getStatus().getStatusID() == DerbyDBInterface.STATUS_ACTIVE) {                                                                                               
-                                            selectStationComboBox.addItem(stationData.getStationName());
+                                            selectStationComboBox.addItem(stationData.getStationName());                                            
                                             if (selectedIndex == i) {
                                                 selectStationComboBox.setSelectedIndex(i);
                                             }                                      
@@ -1714,8 +1963,8 @@ class StationInformationMenuItemActionListener implements ActionListener, Change
                 }
                 
             }
-
-        }       
+        }    
+        ignoreListeners = false;   
     }
     
     private boolean alreadyExists(int ignoreIndex, String stationName) {
@@ -1724,7 +1973,7 @@ class StationInformationMenuItemActionListener implements ActionListener, Change
             return false;
         }
     
-        if (((String) selectDatasetComboBox.getSelectedItem()).startsWith(OWN_ACTIVE_STATIONS_LABEL)) {            
+        if (((String) selectDatasetComboBox.getSelectedItem()).startsWith(StationInformationMenuItem.OWN_ACTIVE_STATIONS_LABEL)) {            
             if (data.getActiveStations() != null) {
                 for (int i=0; i< data.getActiveStations().size(); i++) {
                     if (i != ignoreIndex) {
@@ -1739,7 +1988,7 @@ class StationInformationMenuItemActionListener implements ActionListener, Change
                 }
             }
                    
-        } else if (((String) selectDatasetComboBox.getSelectedItem()).startsWith(SIMULATION_LABEL)) {
+        } else if (((String) selectDatasetComboBox.getSelectedItem()).startsWith(StationInformationMenuItem.SIMULATION_LABEL)) {
             if (data.getSimulatedStations() != null) {
                 for (Simulation s : data.getSimulatedStations()) {
                     if (((String) selectDatasetComboBox.getSelectedItem()).endsWith(s.getName())) {
@@ -1757,7 +2006,7 @@ class StationInformationMenuItemActionListener implements ActionListener, Change
                 }
             }
     
-        } else if (((String) selectDatasetComboBox.getSelectedItem()).startsWith(STATIONS_OF_ORGANIZATION_LABEL)) {
+        } else if (((String) selectDatasetComboBox.getSelectedItem()).startsWith(StationInformationMenuItem.STATIONS_OF_ORGANIZATION_LABEL)) {
             if (data.getOtherUsersStations() != null) {                
                 for (OtherUserStations ous : data.getOtherUsersStations()) {
                     if (((String) selectDatasetComboBox.getSelectedItem()).endsWith(ous.getUser().getOrganizationName())) {
@@ -1973,16 +2222,16 @@ class StationInformationMenuItemActionListener implements ActionListener, Change
             return false;
         }
 
-        if (((String) selectDatasetComboBox.getSelectedItem()).startsWith(OWN_ACTIVE_STATIONS_LABEL)) {
+        if (((String) selectDatasetComboBox.getSelectedItem()).startsWith(StationInformationMenuItem.OWN_ACTIVE_STATIONS_LABEL)) {
             if (data != null && data.getActiveStations() != null && stationIndex < data.getActiveStations().size()) {
                 ActiveStation as = data.getActiveStations().get(stationIndex);
                 if (as.getStations() != null) {
                     for (int i=0; i<as.getStations().size(); i++) {                        
                         AISFixedStationData temp = as.getStations().get(i);
-                        if (tabbedPane.getTitleAt(tabbedPane.getSelectedIndex()).equals(OPERATIVE_LABEL) && temp.getStatus().getStatusID() == DerbyDBInterface.STATUS_ACTIVE) {
+                        if (tabbedPane.getTitleAt(tabbedPane.getSelectedIndex()).equals(StationInformationMenuItem.OPERATIVE_LABEL) && temp.getStatus().getStatusID() == DerbyDBInterface.STATUS_ACTIVE) {
                             as.getStations().set(i, station);                            
                             break;
-                        } else if (tabbedPane.getTitleAt(tabbedPane.getSelectedIndex()).equals(PLANNED_LABEL) && temp.getStatus().getStatusID() == DerbyDBInterface.STATUS_PLANNED) {
+                        } else if (tabbedPane.getTitleAt(tabbedPane.getSelectedIndex()).equals(StationInformationMenuItem.PLANNED_LABEL) && temp.getStatus().getStatusID() == DerbyDBInterface.STATUS_PLANNED) {
                             as.getStations().set(i, station);                            
                             break;
                         }
@@ -1991,7 +2240,7 @@ class StationInformationMenuItemActionListener implements ActionListener, Change
                 data.getActiveStations().set(stationIndex, as);
             }
                    
-        } else if (((String) selectDatasetComboBox.getSelectedItem()).startsWith(SIMULATION_LABEL)) {
+        } else if (((String) selectDatasetComboBox.getSelectedItem()).startsWith(StationInformationMenuItem.SIMULATION_LABEL)) {
             if (data != null && data.getSimulatedStations() != null) {                
                 List<Simulation> simulatedStations = data.getSimulatedStations();
                 for (Simulation s : data.getSimulatedStations()) {
@@ -2118,12 +2367,12 @@ class StationInformationMenuItemActionListener implements ActionListener, Change
      */
     private void deleteStation(int stationIndex) {        
         if (data != null) {            
-            if (((String) selectDatasetComboBox.getSelectedItem()).startsWith(OWN_ACTIVE_STATIONS_LABEL)) {            
+            if (((String) selectDatasetComboBox.getSelectedItem()).startsWith(StationInformationMenuItem.OWN_ACTIVE_STATIONS_LABEL)) {            
                 if (data != null && data.getActiveStations() != null && stationIndex < data.getActiveStations().size()) {
                     data.getActiveStations().remove(stationIndex);                                    
                 }
                        
-            } else if (((String) selectDatasetComboBox.getSelectedItem()).startsWith(SIMULATION_LABEL)) {
+            } else if (((String) selectDatasetComboBox.getSelectedItem()).startsWith(StationInformationMenuItem.SIMULATION_LABEL)) {
                 if (data != null && data.getSimulatedStations() != null) {                
                     List<Simulation> simulatedStations = data.getSimulatedStations();
                     for (Simulation s : data.getSimulatedStations()) {
@@ -2139,6 +2388,63 @@ class StationInformationMenuItemActionListener implements ActionListener, Change
             DBHandler.saveData(data);         
         }
     }
+    
+    private void deleteProposal(int stationIndex, String organizationName) {
+        if (data != null) {
+            ActiveStation as = data.getActiveStations().get(stationIndex);
+            Map<EAVDAMUser, AISFixedStationData> proposals = as.getProposals();
+            EAVDAMUser user  = null;
+            for (Object key : proposals.keySet()) { 
+                EAVDAMUser temp = (EAVDAMUser) key;
+                if (temp.getOrganizationName().equals(organizationName)) {
+                    user = temp;
+                    break;                    
+                }
+            }
+            if (user != null) {
+                proposals.remove(user);
+            }
+            as.setProposals(proposals);
+            data.getActiveStations().set(stationIndex, as);
+            DBHandler.saveData(data);         
+        }
+    }
+    
+    private void addEmptyProposal(int stationIndex, String organizationName) {
+        if (data != null) {            
+            for (int i=0; i<data.getOtherUsersStations().size(); i++) {
+                OtherUserStations ous = data.getOtherUsersStations().get(i);
+                if (ous.getUser().getOrganizationName().equals(organizationName)) {
+                    if (ous.getStations() != null && stationIndex < ous.getStations().size()) {            
+                        ActiveStation as = ous.getStations().get(stationIndex);
+                        AISFixedStationData currentData = getSelectedStationData(stationIndex);                        
+                        Map<EAVDAMUser, AISFixedStationData> proposals = new HashMap<EAVDAMUser, AISFixedStationData>();            
+                        EAVDAMUser user = data.getUser();
+                        AISFixedStationData proposedData = new AISFixedStationData();
+                        proposedData.setStationName(currentData.getStationName());
+                        proposedData.setLat(currentData.getLat());
+                        proposedData.setLon(currentData.getLon());
+                        proposedData.setMmsi(currentData.getMmsi());
+                        proposedData.setTransmissionPower(currentData.getTransmissionPower());
+                        proposedData.setDescription(currentData.getDescription());
+                        proposedData.setCoverage(currentData.getCoverage());
+                        proposedData.setAntenna(currentData.getAntenna());
+                        proposedData.setFatdmaAllocation(currentData.getFatdmaAllocation());                                                                                                                                                                        
+                        proposedData.setStationType(currentData.getStationType());  
+                        proposedData.setOperator(currentData.getOperator());  
+                        proposedData.setStatus(currentData.getStatus());  
+                        proposedData.setAnything(currentData.getAnything());   
+                        proposals.put(user, proposedData);
+                        as.setProposals(proposals);
+                        ous.getStations().set(stationIndex, as);                        
+                        data.getOtherUsersStations().set(i, ous);
+                        DBHandler.saveData(data);
+                        break;
+                    }
+                }
+            }
+        }
+    }        
 
     /** 
      * Checks whether the form fields have changed.
@@ -2148,8 +2454,8 @@ class StationInformationMenuItemActionListener implements ActionListener, Change
      */
     private boolean isChanged(int stationIndex) {
 
-        if (tabbedPane.getTitleAt(tabbedPane.getSelectedIndex()).equals(PLANNED_LABEL) ||
-                tabbedPane.getTitleAt(tabbedPane.getSelectedIndex()).startsWith(SIMULATED_LABEL)) {
+        if (tabbedPane.getTitleAt(tabbedPane.getSelectedIndex()).equals(StationInformationMenuItem.PLANNED_LABEL) ||
+                tabbedPane.getTitleAt(tabbedPane.getSelectedIndex()).startsWith(StationInformationMenuItem.SIMULATED_LABEL)) {
 
             AISFixedStationData station = getSelectedStationData(stationIndex);
 

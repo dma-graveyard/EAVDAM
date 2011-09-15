@@ -290,7 +290,24 @@ public class StationLayer extends OMGraphicHandlerLayer implements MapMouseListe
 	@Override
     public void actionPerformed(ActionEvent e) {
         if (e.getSource() == editStationMenuItem) {
-            new StationInformationMenuItem(eavdamMenu, currentlySelectedOMBaseStation.getName()).doClick();
+        
+            String selectedDataset = null;
+            if (ownOperativeStationsMenuItem.isSelected()) {
+                selectedDataset = StationInformationMenuItem.OWN_ACTIVE_STATIONS_LABEL + "/" + StationInformationMenuItem.OPERATIVE_LABEL;
+            } else if (ownPlannedStationsMenuItem.isSelected()) {
+                selectedDataset = StationInformationMenuItem.OWN_ACTIVE_STATIONS_LABEL + "/" + StationInformationMenuItem.PLANNED_LABEL;
+            } else {
+                if (simulationMenuItems != null) {
+                    for (JRadioButtonMenuItem simulationMenuItem : simulationMenuItems) {
+                        if (simulationMenuItem.isSelected()) {
+                            String temp = "Simulation: ";
+                            String selectedSimulation = simulationMenuItem.getText().substring(temp.length());
+                            selectedDataset = StationInformationMenuItem.SIMULATION_LABEL + ": " + selectedSimulation;
+                        }
+                    }
+                }
+            }                        
+            new StationInformationMenuItem(eavdamMenu, selectedDataset, currentlySelectedOMBaseStation.getName()).doClick();
         } else if (e.getSource() == ownOperativeStationsMenuItem || e.getSource() == ownPlannedStationsMenuItem) {
             updateStations();
         } else {

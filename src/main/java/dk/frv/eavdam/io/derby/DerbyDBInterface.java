@@ -150,9 +150,13 @@ import dk.frv.eavdam.data.Simulation;
 	        			if(a.getProposals() != null && a.getProposals().size() > 0){
 		        			for(EAVDAMUser user : a.getProposals().keySet()){
 		        				int proposeeID = this.getOrganizationID(user);
+		        				/*
 		        				for(AISFixedStationData ais : a.getProposals().get(user)){
 		        					this.insertStation(ais, STATUS_PROPOSED, orgID, proposeeID);
 		        				}
+		        				*/
+		        				AISFixedStationData ais = a.getProposals().get(user);
+		        				this.insertStation(ais, STATUS_PROPOSED, orgID, proposeeID);
 		        			}
 	        			}
 	        		}
