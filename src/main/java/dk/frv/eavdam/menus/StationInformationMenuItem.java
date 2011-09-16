@@ -1209,8 +1209,8 @@ class StationInformationMenuItemActionListener implements ActionListener, Change
         if (tabbedPane.getTitleAt(tabbedPane.getSelectedIndex()).equals(StationInformationMenuItem.OPERATIVE_LABEL)) {
             buttonPanel.add(deleteButton, c);
             c.gridx = 1;
-            buttonPanel.add(proposeChangesButton, c);
-            c.gridx = 2;            
+            buttonPanel.add(proposeChangesButton, c);            
+            c.gridx = 2;
             buttonPanel.add(exitButton, c);                    
         } else if (tabbedPane.getTitleAt(tabbedPane.getSelectedIndex()).equals(StationInformationMenuItem.PLANNED_LABEL)) {
             saveButton.setEnabled(false);
@@ -1317,6 +1317,8 @@ class StationInformationMenuItemActionListener implements ActionListener, Change
                 makeOperativeButton.setVisible(false);
                 proposeChangesButton.setVisible(true);                         
             }
+        } else {
+            proposeChangesButton.setVisible(false);                   
         }
 
         // updates form fields contents
