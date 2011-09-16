@@ -170,10 +170,10 @@ import dk.frv.eavdam.data.Simulation;
 	        			if(a.getProposals() != null && a.getProposals().size() > 0){
 		        			for(EAVDAMUser user : a.getProposals().keySet()){
 		        				int proposeeID = this.getOrganizationID(user, false);
-		        				for(AISFixedStationData ais : a.getProposals().get(user)){
+		        				AISFixedStationData ais = a.getProposals().get(user);
 		        					System.out.println("Inserting proposed station to the database...");
 		        					this.insertStation(ais, STATUS_PROPOSED, orgID, proposeeID);
-		        				}
+		        				
 		        			}
 	        			}
 	        		}
@@ -599,6 +599,8 @@ import dk.frv.eavdam.data.Simulation;
 	     * @throws Exception
 	     */
 	    public EAVDAMUser retrieveEAVDAMUser(String user) throws Exception{
+	    	if(this.conn == null) this.createDatabase(null);
+	    	
 	    	EAVDAMUser u = new EAVDAMUser();
 	    	PreparedStatement ps = conn.prepareStatement("select * from ORGANIZATION where id=? OR organizationname=?");
 	    	ps.setString(1, user);
@@ -709,14 +711,20 @@ import dk.frv.eavdam.data.Simulation;
 		    	//Proposed stations...
 		    	List<AISFixedStationData> proposedStations = this.retrieveAISStation(STATUS_PROPOSED, u.getUserDBID());
 	
-		    	//Transform this list to ActiveStation list...
-		    	ActiveStation as = new ActiveStation();
-		    	as.setStations(activeStations);
-		    	as.setProposals(this.transformToProposals(proposedStations));
-		    	
-		    	ArrayList<ActiveStation> a = new ArrayList<ActiveStation>();
-		    	a.add(as);
-		    	data.setActiveStations(a);
+		    	for(AISFixedStationData prop : proposedStations){
+			    	//Transform this list to ActiveStation list...
+			    	ActiveStation as = new ActiveStation();
+			    	as.setStations(activeStations);
+			    	HashMap<EAVDAMUser, AISFixedStationData> proposal = new HashMap<EAVDAMUser, AISFixedStationData>();
+			    	proposal.put(u, prop);
+			    	as.setProposals(proposal);
+			    	
+			    	List<ActiveStation> a = data.getActiveStations();
+			    	if(a == null) a = new ArrayList<ActiveStation>();
+			    	
+			    	a.add(as);
+			    	data.setActiveStations(a);
+		    	}
 		    	
 		    	List<AISFixedStationData> oldStations = this.retrieveAISStation(STATUS_OLD, u.getUserDBID());
 		    	data.setOldStations(oldStations);

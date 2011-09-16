@@ -49,7 +49,9 @@ public class DBHandler {
         //d.createDatabase(null);
     	try{
     		int id = d.insertEAVDAMUser(user, false);
-    		System.out.println("Added user under id "+id);
+    		System.out.println("Added user under id "+id+".");
+    		EAVDAMUser test = d.retrieveDefaultUser();
+    		System.out.println("Default user = "+test.getOrganizationName());
     	}catch(Exception e){
     		e.printStackTrace();
     	}
