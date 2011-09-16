@@ -22,7 +22,6 @@ public class DBHandler {
             if (data.getUser() == null) {
                 try {
                     DerbyDBInterface d = new DerbyDBInterface();
-                    d.createDatabase(null);
                     EAVDAMUser user = d.retrieveDefaultUser();            
                     data.setUser(user);
                 } catch (Exception e) {

@@ -1062,10 +1062,10 @@ import dk.frv.eavdam.data.Simulation;
 	    }
 	    
 	    public void createDatabase(String dbName){
-	    	boolean log = true;
+	    	boolean log = false;
 	    	
 	    	try{
-	    		if(this.conn == null) this.getDBConnection(dbName, true);
+	    		if(this.conn == null) this.getDBConnection(null, true);
 	    	
 	    		Statement s = conn.createStatement();
 
