@@ -193,7 +193,11 @@ class OptionsActionListener implements ActionListener, ChangeListener, DocumentL
             dialog = new JDialog(eavdamMenu.getOpenMapFrame(), "Settings", true);
         
             options = optionsMenuItem.loadOptions();  
-            ftps = new ArrayList<FTP>(options.getFTPs());
+            if (options == null || options.getFTPs() == null) {
+                ftps = new ArrayList<FTP>();
+            } else {
+                ftps = new ArrayList<FTP>(options.getFTPs());
+            }
 
             ftpServersComboBox = null;
             ftpServerTextField = null;

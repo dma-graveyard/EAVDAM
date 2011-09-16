@@ -20,7 +20,7 @@ public class ActiveStation {
 		this.stations = stations;
 	}
 	
-	public Map<EAVDAMUser, List<AISFixedStationData>> getProposals() {
+	public Map<EAVDAMUser, AISFixedStationData> getProposals() {
 		return proposals;
 	}
 
