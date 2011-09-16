@@ -37,7 +37,7 @@ import dk.frv.eavdam.data.Simulation;
 	    private String framework = "embedded";
 	    private String driver = "org.apache.derby.jdbc.EmbeddedDriver";
 	    private String protocol = "jdbc:derby:";
-	    private String defaultDB = "eavdam";
+	    private String defaultDB = "eavdamDB";
 	    
 	    public static final int STATUS_ACTIVE = 1;
 	    public static final int STATUS_OLD = 2;
