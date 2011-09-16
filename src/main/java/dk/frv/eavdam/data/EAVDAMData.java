@@ -54,7 +54,7 @@ public class EAVDAMData {
         this.oldStations = oldStations;
     }
     
-    // TO BE REMOVED -->
+    // TO BE REMOVED -->    
 	public AISFixedStationData[] getStations() {
 		return stations.toArray(new AISFixedStationData[stations.size()]);
 	}

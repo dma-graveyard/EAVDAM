@@ -122,6 +122,14 @@ public class AISFixedStationData {
 	}
 
 	public void setMmsi(String mmsi) {
+	    // mmsi may be less than 9 digits but should then be prepended with zeros
+	    if (mmsi != null && mmsi.length() < 9) {
+	        String prefix = "";
+	        for (int i=0; i<9-mmsi.length(); i++) {
+	            prefix += "0";
+	        }	        
+	        mmsi = prefix + mmsi;
+	    }
 		if (mmsi != null && !mmsi.matches("\\d{9}")) {
 			throw new IllegalArgumentException(
 					"MMSI invalid, must contain 9 digits");

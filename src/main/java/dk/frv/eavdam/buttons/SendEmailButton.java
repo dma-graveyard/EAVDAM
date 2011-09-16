@@ -54,10 +54,14 @@ public class SendEmailButton extends OMToolComponent implements ActionListener, 
          if (response == JOptionPane.YES_OPTION) {
             Options options = OptionsMenuItem.loadOptions();
             try {
-                EmailSender.sendDataToEmail(options.getEmailTo(), options.getEmailFrom(), options.getEmailSubject(),
-                    options.getEmailHost(), options.isEmailAuth(), options.getEmailUsername(), options.getEmailPassword(),
-                    XMLHandler.getLatestDataFileName());
-                JOptionPane.showMessageDialog(openMapFrame, "E-mails were sent succesfully."); 
+                if (options.getEmailTo() == null || options.getEmailTo().isEmpty()) {
+                    JOptionPane.showMessageDialog(openMapFrame, "No e-mail recipients defined!"); 
+                } else {
+                    EmailSender.sendDataToEmail(options.getEmailTo(), options.getEmailFrom(), options.getEmailSubject(),
+                        options.getEmailHost(), options.isEmailAuth(), options.getEmailUsername(), options.getEmailPassword(),
+                        XMLHandler.getLatestDataFileName());
+                    JOptionPane.showMessageDialog(openMapFrame, "E-mails were sent succesfully."); 
+                }
             } catch (IOException ex) {
                 ex.printStackTrace();
                 JOptionPane.showMessageDialog(openMapFrame, "The following error occurred when trying to send the e-mails: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);      
