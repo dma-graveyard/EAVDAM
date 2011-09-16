@@ -159,7 +159,7 @@ import dk.frv.eavdam.data.Simulation;
 	        		for(ActiveStation a : data.getActiveStations()){
 	        			if(a.getStations() != null && a.getStations().size() > 0){
 		        			for(AISFixedStationData ais :a.getStations()){
-		        				System.out.println("Inserting active station to the database (size: "+a.getStations().size()+")...");
+//		        				System.out.println("Inserting active station to the database (size: "+a.getStations().size()+")...");
 		        				if(ais.getStatus().getStatusID() == STATUS_ACTIVE)
 		        					this.insertStation(ais, STATUS_ACTIVE, orgID, 0);
 		        				else if(ais.getStatus().getStatusID() == STATUS_PLANNED)
@@ -171,7 +171,7 @@ import dk.frv.eavdam.data.Simulation;
 		        			for(EAVDAMUser user : a.getProposals().keySet()){
 		        				int proposeeID = this.getOrganizationID(user, false);
 		        				AISFixedStationData ais = a.getProposals().get(user);
-		        					System.out.println("Inserting proposed station to the database...");
+//		        					System.out.println("Inserting proposed station to the database...");
 		        					this.insertStation(ais, STATUS_PROPOSED, orgID, proposeeID);
 		        				
 		        			}
@@ -181,7 +181,7 @@ import dk.frv.eavdam.data.Simulation;
 	        	
 	        	if(data.getOldStations() != null && data.getOldStations().size() > 0){
 	        		for(AISFixedStationData ais : data.getOldStations()){
-	        			System.out.println("Inserting old station to the database...");
+//	        			System.out.println("Inserting old station to the database...");
 	        			this.insertStation(ais, STATUS_OLD, orgID, 0);
 	        		}
 	        	}
@@ -189,7 +189,7 @@ import dk.frv.eavdam.data.Simulation;
 	        	if(data.getSimulatedStations() != null && data.getSimulatedStations().size() > 0){
 	        		for(Simulation sim : data.getSimulatedStations()){
 	        			for(AISFixedStationData ais : sim.getStations()){
-	        				System.out.println("Inserting simulated station to the database...");
+//	        				System.out.println("Inserting simulated station to the database...");
 	        				this.insertSimulatedStation(ais, STATUS_SIMULATED, orgID, 0);
 	        			}
 	        		}
@@ -200,7 +200,7 @@ import dk.frv.eavdam.data.Simulation;
 	        			int otherID = this.getOrganizationID(other.getUser(), false);
 	        			for(ActiveStation active : other.getStations()){
 		        			for(AISFixedStationData ais : active.getStations()){
-		        				System.out.println("Inserting active station of other users to the database...");
+//		        				System.out.println("Inserting active station of other users to the database...");
 		        				this.insertStation(ais, STATUS_ACTIVE, otherID, 0);
 		        			}
 	        			}
@@ -309,8 +309,10 @@ import dk.frv.eavdam.data.Simulation;
     			
     		}else{
     			//TODO Call update if necessary!
-    			
     			contactID = res.getInt(1);
+
+    			System.out.println("Person found! Updating information...");
+    			this.updatePerson(person);
     			
     			return contactID;
     		}
@@ -470,7 +472,7 @@ import dk.frv.eavdam.data.Simulation;
 	    	ps.setString(4, as.getMmsi());
 	    	ps.setDouble(5, as.getLat());
 	    	ps.setDouble(6, as.getLon());
-	    	ps.setDouble(7, as.getTransmissionPower());
+	    	ps.setDouble(7, (as.getTransmissionPower() != null ? as.getTransmissionPower() : 0));
 	    	ps.setString(8, as.getDescription());
 	    	ps.setInt(9, stationType);
 	    	ps.setString(10, as.getAnythingString());
@@ -541,8 +543,13 @@ import dk.frv.eavdam.data.Simulation;
 	    	
 	    }
 	    
-	    
-	    public void updateOrganization(EAVDAMUser user) throws Exception{
+	    /**
+	     * Updates the organization database. Also updates the person database if necessary and insert a new address, if necessary.
+	     * 
+	     * @param user
+	     * @throws Exception
+	     */
+	    private void updateOrganization(EAVDAMUser user) throws Exception{
 	    	if(this.conn == null) this.getDBConnection(null, false);
 	    	
 	    	int cp = this.getPersonID(user.getContact());
@@ -582,6 +589,40 @@ import dk.frv.eavdam.data.Simulation;
 	    }
 	    
 	    /**
+	     * Updates the person table. Note that email-address is the only indicator of a person! If the email address changes, new person will be inserted! 
+	     * 
+	     * @param person
+	     * @throws Exception
+	     */
+	    public void updatePerson(Person person) throws Exception{
+	    	if(this.conn == null) this.getDBConnection(null, false);
+	    	
+	    	int va = this.getAddressID(person.getVisitingAddress());
+	    	int pa = this.getAddressID(person.getVisitingAddress());
+	    	
+	    	String sql = "update PERSON set " +
+	    			"NAME = ?, " + //1.
+	    			"PHONE = ?," +  //2.
+	    			"FAX = ?," +  //3.
+	    			"DESCRIPTION = ?," +  //4.
+	    			"VISITINGADDRESS = ?," +  //5.
+	    			"POSTALADDRESS = ?" +  //6.
+	    			"where EMAIL = ?";  //7.
+	    	PreparedStatement ps = conn.prepareStatement(sql);
+	    	ps.setString(1, person.getName());
+	    	ps.setString(2, person.getPhone());
+	    	ps.setString(3, person.getFax());
+	    	ps.setString(4, person.getDescription());
+	    	ps.setInt(5, va);
+	    	ps.setInt(6, pa);
+	    	ps.setString(7,person.getEmail());
+	    		
+	    	ps.executeUpdate();
+	    	
+	    	
+	    }
+	    
+	    /**
 	     * Retrieves all the data from the database.
 	     * 
 	     * This includes ...
@@ -591,12 +632,17 @@ import dk.frv.eavdam.data.Simulation;
 	    public ArrayList<EAVDAMData> retrieveAllEAVDAMData() throws Exception{
 	    	ArrayList<EAVDAMData> data = new ArrayList<EAVDAMData>();
 	    	
+	    	System.out.println("Retrieving all EAVDAMData");
+	    	
 	    	if(this.conn == null) this.conn = this.getDBConnection(null, false);
 	    	
 	    	//Get user information
 	    	////Includes Address and Person 
 	    	
-	    	
+	    	List<EAVDAMUser> users = this.retrieveAllEAVDAMUsers();
+	    	for(EAVDAMUser u : users){
+	    		data.add(this.retrieveEAVDAMData(u.getUserDBID()+"", STATUS_ACTIVE+""));
+	    	}
 	    	
 	    	
 	    	//Get station information
@@ -608,7 +654,7 @@ import dk.frv.eavdam.data.Simulation;
 	    	//
 	    	
 	    	
-	    	return null;
+	    	return data;
 	    }
 	    
 	    
@@ -746,6 +792,7 @@ import dk.frv.eavdam.data.Simulation;
 	     * @return
 	     */
 	    public EAVDAMData retrieveEAVDAMData(String user, String status) throws Exception{
+//	    	System.out.println("Retrieving EAVDAMData for user "+user+" with status "+status);
 	    	EAVDAMData data = new EAVDAMData();
 	    	EAVDAMUser u = this.retrieveEAVDAMUser(user);
 	    	
@@ -791,11 +838,29 @@ import dk.frv.eavdam.data.Simulation;
 		    	data.setSimulatedStations(null);
 		    	
 	    	}else{
+	    		if(status.equals(STATUS_ACTIVE+"")){
+	    			
+	    			List<AISFixedStationData> activeStations = this.retrieveAISStation(STATUS_ACTIVE, u.getUserDBID());
+	    			System.out.println("Retrieved "+activeStations.size()+" active stations for user "+u.getUserDBID());
+	    			ActiveStation as = new ActiveStation();
+	    			as.setStations(activeStations);
+	    			List<ActiveStation> al = new ArrayList<ActiveStation>();
+	    			al.add(as);
+	    			data.setActiveStations(al);
+	    		}else if(status.equals(STATUS_OLD+"")){
+	    			
+	    		}else if(status.equals(STATUS_PROPOSED+"")){
+	    			
+	    		}else if(status.equals(STATUS_PLANNED+"")){
+	    			
+	    		}else if(status.equals(STATUS_SIMULATED+"")){
+	    			
+	    		}
 	    		
 	    	}
 	    	
 	    	
-	    	return null;
+	    	return data;
 	    }
 	    
 	    /**
@@ -825,15 +890,9 @@ import dk.frv.eavdam.data.Simulation;
 	    			"STATUS.statustype, "+   //12.
 	    			"STATUS.startdate, "+   //13.
 	    			"STATUS.enddate, "+  //14.
-	    			"STATION.stationtype, " +  //15.
-	    			"ANTENNA.antennaheight, " +  //16.
-	    			"ANTENNA.terrainheight, " +  //17.
-	    			"ANTENNA.antennaheading, " +  //18.
-	    			"ANTENNA.fieldofviewangle, " +  //19.
-	    			"ANTENNA.gain, " +  //20.
-	    			"ANTENNA.antennatype " +  //21.
-	    			"from FIXEDSTATION, STATUS, ANTENNA " +
-	    			"where FIXEDSTATION.ID = STATUS.STATION AND FIXEDSTATION.id = ANTENNA.station AND ANTENNA.antennatype = ANTENNATYPE.id";
+	    			"FIXEDSTATION.stationtype " +  //15.
+	    			"from FIXEDSTATION, STATUS " +
+	    			"where FIXEDSTATION.ID = STATUS.STATION";
 	    	String whereClause = "";
 	    	if(statusID > 0){
 	    		whereClause += " AND STATUS.statustype="+statusID;
@@ -857,6 +916,7 @@ import dk.frv.eavdam.data.Simulation;
 	    	//TODO Add FATDMA and COVERAGE objects! 
 	    	while(rs.next()){
 	    		AISFixedStationData ais = new AISFixedStationData();
+	    		ais.setStationDBID(rs.getInt(1));
 	    		ais.setStationName(rs.getString(2));
 	    		ais.setMmsi(rs.getString(4));
 	    		ais.setLat(rs.getDouble(5));
@@ -867,18 +927,7 @@ import dk.frv.eavdam.data.Simulation;
 	    		
 	    		//Get the owner?
 	    		ais.setOperator(users.get(rs.getInt(3)+""));
-	    		Antenna antenna = new Antenna();
-	    		antenna.setAntennaHeight(rs.getDouble(16));
-	    		if(rs.getInt(21) == ANTENNA_DIRECTIONAL){
-	    			antenna.setAntennaType(AntennaType.DIRECTIONAL);
-	    		}else{
-	    			antenna.setAntennaType(AntennaType.OMNIDIRECTIONAL);
-	    		}
-	    		antenna.setFieldOfViewAngle(rs.getInt(19));
-	    		antenna.setGain(rs.getDouble(20));
-	    		antenna.setHeading(18);
-	    		antenna.setTerrainHeight(rs.getDouble(17));
-	    		ais.setAntenna(antenna);
+
 
 	    		
 	    		AISFixedStationStatus status = new AISFixedStationStatus();
@@ -906,6 +955,40 @@ import dk.frv.eavdam.data.Simulation;
 	    		ais.setAnything(null);
 	    		
 	    		data.add(ais);
+	    	}
+	    	
+	    	//Get the antenna information
+	    	for(AISFixedStationData ais : data){
+		    	sql = "select " +
+		    			"ANTENNA.antennaheight, " +  //1.
+		    			"ANTENNA.terrainheight, " +  //2.
+		    			"ANTENNA.antennaheading, " +  //3.
+		    			"ANTENNA.fieldofviewangle, " +  //4.
+		    			"ANTENNA.gain, " +  //5.
+		    			"ANTENNA.antennatype " +  //6.
+		    			"from ANTENNA " +
+		    			"where ANTENNA.station = ?";
+		    	
+		    	
+		    	ps = conn.prepareStatement(sql);
+		    	ps.setInt(1, ais.getStationDBID());
+		    	
+		    	rs.close();
+		    	rs = ps.executeQuery();
+		    	while(rs.next()){
+		    		Antenna antenna = new Antenna();
+		    		antenna.setAntennaHeight(rs.getDouble(1));
+		    		if(rs.getInt(6) == ANTENNA_DIRECTIONAL){
+		    			antenna.setAntennaType(AntennaType.DIRECTIONAL);
+		    		}else{
+		    			antenna.setAntennaType(AntennaType.OMNIDIRECTIONAL);
+		    		}
+		    		antenna.setFieldOfViewAngle(rs.getInt(4));
+		    		antenna.setGain(rs.getDouble(5));
+		    		antenna.setHeading(3);
+		    		antenna.setTerrainHeight(rs.getDouble(2));
+		    		ais.setAntenna(antenna);
+		    	}
 	    	}
 	    	
 	    	rs.close();
@@ -1430,16 +1513,16 @@ import dk.frv.eavdam.data.Simulation;
 	    		Connection conn = db.getDBConnection(null, false);
 	    		String sql = "";
 	    		sql = "select id, organizationname from ORGANIZATION";
-	    		sql = "select FIXEDSTATION.id, FIXEDSTATION.name, STATUS.statustype from FIXEDSTATION, STATUS where STATUS.station = FIXEDSTATION.id";
-	    		sql = "select id, name, email from PERSON";
+	    		sql = "select FIXEDSTATION.id, FIXEDSTATION.name, STATUS.statustype, FIXEDSTATION.owner from FIXEDSTATION, STATUS where STATUS.station = FIXEDSTATION.id";
+//	    		sql = "select id, name, email from PERSON";
 	    		
 	    		
 	    		PreparedStatement ps = conn.prepareStatement(sql);
 	    		ResultSet rs = ps.executeQuery();
 	    		
-	    		System.out.println("Table holds:\nID\tName\tStatus");
+	    		System.out.println("Table holds:\nID\tName\tStatus\tOwner");
 	    		while(rs.next()){
-	    			System.out.println(rs.getInt(1)+"\t"+rs.getString(2)+"\t"+rs.getString(3));
+	    			System.out.println(rs.getInt(1)+"\t"+rs.getString(2)+"\t"+rs.getInt(3)+"\t"+rs.getInt(4));
 	    		}
 	    		
 	    		EAVDAMUser def = db.retrieveDefaultUser();

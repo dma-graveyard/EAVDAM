@@ -1,6 +1,6 @@
 ----------------------------------------------------------------
-Fri Sep 16 14:43:05 EEST 2011:
-Booting Derby version The Apache Software Foundation - Apache Derby - 10.8.1.2 - (1095077): instance a816c00e-0132-720c-0d38-000000c128b0 
+Fri Sep 16 16:00:37 EEST 2011:
+Booting Derby version The Apache Software Foundation - Apache Derby - 10.8.1.2 - (1095077): instance a816c00e-0132-7253-09f5-000000c21420 
 on database directory C:\Projects\DaMSA\eavdam\eavdamDB  with class loader sun.misc.Launcher$AppClassLoader@35ce36 
 Loaded from file:/C:/Projects/DaMSA/eavdam/lib/derby.jar
 java.vendor=Sun Microsystems Inc.

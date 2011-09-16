@@ -17,32 +17,40 @@ public class DBHandler {
     private static EAVDAMData data = new EAVDAMData();  // for testing before the database works        
         
     public static EAVDAMData getData() {        
-        
-        if (data != null) { // for testing before the database works 
-            if (data.getUser() == null) {
+    	EAVDAMData dat = new EAVDAMData(); 
+    	
+    	
+//        if (data != null) { // for testing before the database works 
+//            if (data.getUser() == null) {
                 try {
                     DerbyDBInterface d = new DerbyDBInterface();
-                    EAVDAMUser user = d.retrieveDefaultUser();            
-                    data.setUser(user);
+                    EAVDAMUser user = d.retrieveDefaultUser();  
+                    dat = d.retrieveEAVDAMData(user.getUserDBID()+"", DerbyDBInterface.STATUS_ACTIVE+"");
+                    
+                    System.out.println("Retrieved "+dat.getActiveStations().get(0).getStations().get(0).getStationName());
+                    
+//                    data.setUser(user);
                 } catch (Exception e) {
                     System.out.println(e.getMessage());
                 }
-            }
-            return data;
-        }
+//            }
+            
+            
+            return dat;
+//        }
         
-        try {
-            DerbyDBInterface d = new DerbyDBInterface();
-            ArrayList<EAVDAMData> eavdamData = d.retrieveAllEAVDAMData();
-            if (eavdamData != null && !eavdamData.isEmpty()) {
-                return eavdamData.get(0);
-            } else {
-                return null;
-            }
-        } catch (Exception e) {
-            System.out.println(e.getMessage());
-            return null;
-        }
+//        try {
+//            DerbyDBInterface d = new DerbyDBInterface();
+//            ArrayList<EAVDAMData> eavdamData = d.retrieveAllEAVDAMData();
+//            if (eavdamData != null && !eavdamData.isEmpty()) {
+//                return eavdamData.get(0);
+//            } else {
+//                return null;
+//            }
+//        } catch (Exception e) {
+//            System.out.println(e.getMessage());
+//            return null;
+//        }
     }
 
     public static void saveData(EAVDAMData data) {

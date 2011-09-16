@@ -77,8 +77,16 @@ public class AISFixedStationData {
 	 */
 	private List<Element> anything;
 	
+	/**
+	 * Organization that has proposed this station.
+	 */
 	private int proposee;
 	
+	/**
+	 * ID that is used in the database.
+	 * 
+	 */
+	private int stationDBID;
 
 	public AISFixedStationData() {
 	}
@@ -251,5 +259,13 @@ public class AISFixedStationData {
 
 	public void setProposee(int proposee) {
 		this.proposee = proposee;
+	}
+
+	public int getStationDBID() {
+		return stationDBID;
+	}
+
+	public void setStationDBID(int stationDBID) {
+		this.stationDBID = stationDBID;
 	}
 }
