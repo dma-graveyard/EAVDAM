@@ -1,6 +1,7 @@
 package dk.frv.eavdam.io.derby;
 
 
+import java.net.URL;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
@@ -9,6 +10,9 @@ import java.sql.SQLException;
 import java.sql.Statement;
 
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.Properties;
 
 import dk.frv.eavdam.data.AISFixedStationData;
@@ -17,6 +21,7 @@ import dk.frv.eavdam.data.AISFixedStationType;
 import dk.frv.eavdam.data.ActiveStation;
 import dk.frv.eavdam.data.Address;
 import dk.frv.eavdam.data.Antenna;
+import dk.frv.eavdam.data.AntennaType;
 import dk.frv.eavdam.data.EAVDAMData;
 import dk.frv.eavdam.data.EAVDAMUser;
 import dk.frv.eavdam.data.FATDMASlotAllocation;
@@ -32,7 +37,7 @@ import dk.frv.eavdam.data.Simulation;
 	    private String framework = "embedded";
 	    private String driver = "org.apache.derby.jdbc.EmbeddedDriver";
 	    private String protocol = "jdbc:derby:";
-	    private String defaultDB = "eavdam";
+	    private String defaultDB = "eavdamDB";
 	    
 	    public static final int STATUS_ACTIVE = 1;
 	    public static final int STATUS_OLD = 2;
@@ -61,22 +66,30 @@ import dk.frv.eavdam.data.Simulation;
 	    
 	    public static void main(String[] args)
 	    {
-	       DerbyDBInterface dba =  new DerbyDBInterface();
-	       dba.createDatabase(null);
+//
+//	    	dbTester();
+//	    	if(true) System.exit(0);
+	    	
+	    	DerbyDBInterface dba =  new DerbyDBInterface();
+	    	dba.createDatabase(null);
 	       
-	        System.out.println("SimpleApp finished");
 	    }
 
 	    /**
 	     * Creates the connection to the database.
 	     * 
+	     * Checks if the database exists and if it does not, it creates it (using this.createDatabase(dbName))
+	     * 
 	     * @param dbName Name of the database. If null, default(eavdam) will be used.
-	     * @return
+	     * @param creatingDatabase Indicates if we are in the process of creating the database. If true, the check "if databases exists" is not made.
+	     * @return The connection.
 	     * @throws SQLException
 	     */
-	    public Connection getDBConnection(String dbName) throws SQLException{
+	    public Connection getDBConnection(String dbName, boolean creatingDatabase) throws SQLException{
 	        /* load the desired JDBC driver */
 	        loadDriver();
+	        
+	        
 	        
 	        if(dbName == null) dbName = defaultDB;
 	        
@@ -89,18 +102,20 @@ import dk.frv.eavdam.data.Simulation;
             this.conn = DriverManager.getConnection(protocol + dbName+ ";create=true", props);
             
             //Test if the database exists:
-            try{
-            	PreparedStatement ps = conn.prepareStatement("SELECT id, name FROM STATIONTYPE WHERE id=1");
-            	ResultSet rs = ps.executeQuery();
-            	
-            	rs.close();
-            	ps.close();
-            	
-            }catch(SQLException e){
-            	System.out.println("Database does not exist, creating it...");
-            	this.createDatabase(dbName);
-            }
-            
+            if(!creatingDatabase){
+	            try{
+	            	PreparedStatement ps = conn.prepareStatement("SELECT id, name FROM STATIONTYPE WHERE id=1");
+	            	ResultSet rs = ps.executeQuery();
+	            	
+	            	rs.close();
+	            	ps.close();
+	            	
+	            }catch(SQLException e){
+	            	e.printStackTrace();
+	            	System.out.println("\t\tDatabase does not exist, creating it...");
+	            	this.createDatabase(dbName);
+	            }
+	    	}	
             
             return this.conn;
 	    }
@@ -123,40 +138,42 @@ import dk.frv.eavdam.data.Simulation;
 	    }
 	    
 	    public boolean insertEAVDAMData(EAVDAMData data){
-	    	if(true) return true;
+//	    	System.out.println("Inserting data to database!");
 	        
 	        boolean success = true;
 	        
 	        if(data.getUser() == null){
+	        	System.out.println("No user given...");
 	        	//throw new Exception("No user data given in EAVDAMData!");
 	        	return false;
 	        }
 	        
 	        try{
-	        	if(conn == null) conn = getDBConnection(defaultDB);
+	        	if(conn == null) conn = getDBConnection(defaultDB, false);
 	    	
 
-	        	int orgID = this.getOrganizationID(data.getUser());
+	        	int orgID = this.getOrganizationID(data.getUser(), false);
 	        	
 	        	
 	        	if(data.getActiveStations() != null && data.getActiveStations().size() > 0){
 	        		for(ActiveStation a : data.getActiveStations()){
 	        			if(a.getStations() != null && a.getStations().size() > 0){
 		        			for(AISFixedStationData ais :a.getStations()){
-		        				this.insertStation(ais, STATUS_ACTIVE, orgID, -1);
+		        				System.out.println("Inserting active station to the database (size: "+a.getStations().size()+")...");
+		        				if(ais.getStatus().getStatusID() == STATUS_ACTIVE)
+		        					this.insertStation(ais, STATUS_ACTIVE, orgID, 0);
+		        				else if(ais.getStatus().getStatusID() == STATUS_PLANNED)
+		        					this.insertStation(ais, STATUS_PLANNED, orgID, 0);
 		        			}
 	        			}
 	        			
 	        			if(a.getProposals() != null && a.getProposals().size() > 0){
 		        			for(EAVDAMUser user : a.getProposals().keySet()){
-		        				int proposeeID = this.getOrganizationID(user);
-		        				/*
+		        				int proposeeID = this.getOrganizationID(user, false);
 		        				for(AISFixedStationData ais : a.getProposals().get(user)){
+		        					System.out.println("Inserting proposed station to the database...");
 		        					this.insertStation(ais, STATUS_PROPOSED, orgID, proposeeID);
 		        				}
-		        				*/
-		        				AISFixedStationData ais = a.getProposals().get(user);
-		        				this.insertStation(ais, STATUS_PROPOSED, orgID, proposeeID);
 		        			}
 	        			}
 	        		}
@@ -164,24 +181,27 @@ import dk.frv.eavdam.data.Simulation;
 	        	
 	        	if(data.getOldStations() != null && data.getOldStations().size() > 0){
 	        		for(AISFixedStationData ais : data.getOldStations()){
-	        			this.insertStation(ais, STATUS_OLD, orgID, -1);
+	        			System.out.println("Inserting old station to the database...");
+	        			this.insertStation(ais, STATUS_OLD, orgID, 0);
 	        		}
 	        	}
 	        	
 	        	if(data.getSimulatedStations() != null && data.getSimulatedStations().size() > 0){
 	        		for(Simulation sim : data.getSimulatedStations()){
 	        			for(AISFixedStationData ais : sim.getStations()){
-	        				this.insertSimulatedStation(ais, STATUS_SIMULATED, orgID, -1);
+	        				System.out.println("Inserting simulated station to the database...");
+	        				this.insertSimulatedStation(ais, STATUS_SIMULATED, orgID, 0);
 	        			}
 	        		}
 	        	}
 	        	
 	        	if(data.getOtherUsersStations() != null && data.getOtherUsersStations().size() > 0){
 	        		for(OtherUserStations other : data.getOtherUsersStations()){
-	        			int otherID = this.getOrganizationID(other.getUser());
+	        			int otherID = this.getOrganizationID(other.getUser(), false);
 	        			for(ActiveStation active : other.getStations()){
 		        			for(AISFixedStationData ais : active.getStations()){
-		        				this.insertStation(ais, STATUS_ACTIVE, otherID, -1);
+		        				System.out.println("Inserting active station of other users to the database...");
+		        				this.insertStation(ais, STATUS_ACTIVE, otherID, 0);
 		        			}
 	        			}
 	        		}
@@ -189,8 +209,11 @@ import dk.frv.eavdam.data.Simulation;
 	        	
             	
 	        }catch(Exception e){
+	        	e.printStackTrace();
 	        	success = false;
 	        }
+	        
+	        System.out.println("Insert "+(success ? "was a success" : "was a failure"));
 	        
 	        return success;
 	    }
@@ -212,6 +235,8 @@ import dk.frv.eavdam.data.Simulation;
 	     * @throws Exception
 	     */
 	    private int getAddressID(Address address) throws Exception{
+	    	if(address == null) return 0; 
+	    	
 	    	PreparedStatement ps = conn.prepareStatement("select id from ADDRESS where addressline1 = ?");
     		ps.setString(1, address.getAddressline1());
     		ResultSet res = ps.executeQuery();
@@ -238,8 +263,9 @@ import dk.frv.eavdam.data.Simulation;
 	    }
 	    
 	    private int insertAddress(Address address, int id) throws Exception{
-			
-    		PreparedStatement ps = conn.prepareStatement("insert into ADDRESS values (?,?,?,?,?)");
+			if(address == null) return 0;
+	    	
+    		PreparedStatement ps = conn.prepareStatement("insert into ADDRESS values (?,?,?,?,?,?)");
     		ps.setInt(1, id);
     		ps.setString(2, address.getAddressline1());
     		ps.setString(3, address.getAddressline2());
@@ -254,7 +280,9 @@ import dk.frv.eavdam.data.Simulation;
 	    }
 	    
 	    private int getPersonID(Person person) throws Exception{
-    		PreparedStatement ps = conn.prepareStatement("select id from PERSON where email = ?");
+    		if(person == null) return 0;
+	    	
+	    	PreparedStatement ps = conn.prepareStatement("select id from PERSON where email = ?");
     		
     		ps.setString(1, person.getEmail());
     		ResultSet res = ps.executeQuery();
@@ -297,7 +325,7 @@ import dk.frv.eavdam.data.Simulation;
 			}
 
 						
-    		PreparedStatement ps = conn.prepareStatement("insert into PERSON values (?,?,?,?,?)");
+    		PreparedStatement ps = conn.prepareStatement("insert into PERSON values (?,?,?,?,?,?,?,?)");
     		ps.setInt(1, id);
     		ps.setString(2, person.getName());
     		ps.setString(3, person.getEmail());
@@ -313,9 +341,12 @@ import dk.frv.eavdam.data.Simulation;
 
 	    }
 	    
-	    private int getOrganizationID(EAVDAMUser user) throws Exception{
+	    private int getOrganizationID(EAVDAMUser user, boolean defaultUser) throws Exception{
 	        
-        	PreparedStatement ps = conn.prepareStatement("select id from organization where ORGANIZATION name = ?");
+	    	if(this.conn == null) this.getDBConnection(null, false);
+	    			
+	    	
+        	PreparedStatement ps = conn.prepareStatement("select id from ORGANIZATION where ORGANIZATION.organizationname = ?");
         	ps.setString(1, user.getOrganizationName());
         	ResultSet res = ps.executeQuery();
         	
@@ -326,13 +357,15 @@ import dk.frv.eavdam.data.Simulation;
         		
         		//Add the organization.
         		ps = conn.prepareStatement("select count(id) from ORGANIZATION");
-        		if(!res.next()){
+        		ResultSet rs = ps.executeQuery();
+        		if(!rs.next()){
         			orgID = 1;
         		}else{
-        			orgID = res.getInt(1)+1;
+        			orgID = rs.getInt(1)+1;
         		}
-        		
-        		this.insertOrganization(user, orgID);
+        		rs.close();
+        		ps.close();
+        		this.insertOrganization(user, orgID, defaultUser);
         	}else{
         		orgID = res.getInt(1);
         	}
@@ -343,29 +376,50 @@ import dk.frv.eavdam.data.Simulation;
         	return orgID;
 	    }
 	    
-	    private void insertOrganization(EAVDAMUser user, int id) throws Exception{
+	    /**
+	     * Insert a new user = organization to the database.
+	     * 
+	     * @param user The user to be inserted to the database
+	     * @param defaultUser Indicates if the user is the default one = the one who is loaded at initialization and who controls the stations inserted from this instance of the application.
+	     * @return Database id for the given organization.
+	     */
+	    public int insertEAVDAMUser(EAVDAMUser user, boolean defaultUser) throws Exception{
+	    	return this.getOrganizationID(user, defaultUser);
+	    }
+	    
+	    private void insertOrganization(EAVDAMUser user, int id, boolean defaultUser) throws Exception{
     		//Start with the POSTAL address
-    		int postalID = this.getAddressID(user.getPostalAddress()); //Insert a new entry if the address is not found.
-    		int visitingID = this.getAddressID(user.getVisitingAddress());
+    		int postalID = 0;
+    		if(user.getPostalAddress() != null)
+    			postalID = this.getAddressID(user.getPostalAddress()); //Insert a new entry if the address is not found.
+    		
+    		int visitingID = 0;
+    		if(user.getVisitingAddress() != null)
+    			visitingID = this.getAddressID(user.getVisitingAddress());
     		
     		//Check the CONTACT person.
-    		int contactPersonID = this.getPersonID(user.getContact());
+    		int contactPersonID = 0;
+    		if(user.getContact() != null)
+    			contactPersonID = this.getPersonID(user.getContact());
     	
     		//Check the TECHNICAL person.
-    		int technicalPersonID = this.getPersonID(user.getTechnicalContact());
+    		int technicalPersonID = 0;
+    		if(user.getTechnicalContact() != null)
+    			technicalPersonID = this.getPersonID(user.getTechnicalContact());
     		
-    		PreparedStatement ps = conn.prepareStatement("insert into ORGANIZATION values (?,?,?,?,?,?,?,?,?,?,?)");
+    		PreparedStatement ps = conn.prepareStatement("insert into ORGANIZATION values (?,?,?,?,?,?,?,?,?,?,?,?)");
     		ps.setInt(1,id);
     		ps.setString(2, user.getOrganizationName());
     		ps.setString(3, user.getCountryID());
     		ps.setString(4, user.getPhone());
     		ps.setString(5, user.getFax());
-    		ps.setString(6, user.getWww().toString());
+    		ps.setString(6, (user.getWww() != null ? user.getWww().toString() : null));
     		ps.setString(7, user.getDescription());
     		ps.setInt(8, contactPersonID);
     		ps.setInt(9, technicalPersonID);
     		ps.setInt(10, visitingID);
     		ps.setInt(11, postalID);
+    		ps.setInt(12, (defaultUser ? 1 : 0));
     		
     		ps.executeUpdate();
     		ps.close();
@@ -418,14 +472,20 @@ import dk.frv.eavdam.data.Simulation;
 	    	//Insert Antenna
 	    	int antennaType;
 	    	//Get the antenna type.
-	    	switch(as.getAntenna().getAntennaType()){
-	    		case DIRECTIONAL: antennaType = ANTENNA_DIRECTIONAL; break;
-	    		case OMNIDIRECTIONAL: antennaType = ANTENNA_OMNIDIR; break;
-	    	
-	    		default: antennaType = ANTENNA_DIRECTIONAL;
+	    	if(as.getAntenna() == null){
+	    		antennaType = 0;
+	    	}else{
+		    	switch(as.getAntenna().getAntennaType()){
+		    		case DIRECTIONAL: antennaType = ANTENNA_DIRECTIONAL; break;
+		    		case OMNIDIRECTIONAL: antennaType = ANTENNA_OMNIDIR; break;
+		    	
+		    		default: antennaType = ANTENNA_DIRECTIONAL;
+		    	}
+		    	
+		    	this.insertAntenna(as.getAntenna(), stationID, antennaType);
 	    	}
 	    	
-	    	this.insertAntenna(as.getAntenna(), stationID, antennaType);
+
 	    	
 	    	//Insert Status
 	    	this.insertStatus(as.getStatus(), status, stationID);
@@ -481,11 +541,12 @@ import dk.frv.eavdam.data.Simulation;
 	    public ArrayList<EAVDAMData> retrieveAllEAVDAMData() throws Exception{
 	    	ArrayList<EAVDAMData> data = new ArrayList<EAVDAMData>();
 	    	
-	    	if(this.conn == null) this.conn = this.getDBConnection(null);
+	    	if(this.conn == null) this.conn = this.getDBConnection(null, false);
 	    	
 	    	//Get user information
 	    	////Includes Address and Person 
-	    	PreparedStatement ps = conn.prepareStatement("");
+	    	
+	    	
 	    	
 	    	
 	    	//Get station information
@@ -502,26 +563,391 @@ import dk.frv.eavdam.data.Simulation;
 	    
 	    
 	    /**
-	     * Retrieves the data only for the given id.
+	     * Gets all the users (Organizations) from the database.
 	     * 
-	     * @param id
+	     * @return List of all organizations.
+	     * 
+	     * @throws Exception
+	     */
+	    public List<EAVDAMUser> retrieveAllEAVDAMUsers() throws Exception{
+	    	ArrayList<EAVDAMUser> users = new ArrayList<EAVDAMUser>();
+	    	PreparedStatement ps = conn.prepareStatement("select id from ORGANIZATION");
+	    	
+	    	ResultSet rs = ps.executeQuery(); 
+	    	ArrayList<Integer> ids = new ArrayList<Integer>();
+	    	while(rs.next()){
+	    		ids.add(new Integer(rs.getInt(1)));
+	    	}
+	    	rs.close();
+	    	ps.close();
+	    	
+	    	for(Integer id : ids){
+	    		users.add(this.retrieveEAVDAMUser(id.intValue()+""));
+	    	}
+	    	
+	    	return users;
+	    	
+	    }
+	    
+	    /**
+	     * Retrieves all the relevant information about the user (= organization). This includes Contact and Technical Persons and Addresses.
+	     * 
+	     * Note: If several organization of the same name/id can be found, the first one is returned.
+	     * 
+	     * @param user ID or the name of the <b>Organization</b>.
+	     * @return Returns the EAVDAMUser object that contains all the information found.
+	     * @throws Exception
+	     */
+	    public EAVDAMUser retrieveEAVDAMUser(String user) throws Exception{
+	    	EAVDAMUser u = new EAVDAMUser();
+	    	PreparedStatement ps = conn.prepareStatement("select * from ORGANIZATION where id=? OR organizationname=?");
+	    	ps.setString(1, user);
+	    	ps.setString(2, user);
+	    	
+	    	ResultSet res = ps.executeQuery();
+	    	
+	    	int postalAddressId = -1, visitingAddressId = -1, technicalPersonId = -1, contactPersonId = -1;
+	    	int ith = 0;
+	    	while(res.next()){
+	    		++ith;
+	    		if(ith > 1){
+	    			System.out.println("There are more than one user with the id/name "+user+". Returning only the first one...");
+	    			break;
+	    		}
+	    		u.setUserDBID(res.getInt(1));
+	    		u.setOrganizationName(res.getString(2));
+	    		u.setCountryID(res.getString(3));
+	    		u.setPhone(res.getString(4));
+	    		u.setFax(res.getString(5));
+	    		u.setWww(new URL(res.getString(6)));
+	    		u.setDescription(res.getString(7));
+	    		
+	    		
+	    		postalAddressId = res.getInt(11);
+	    		visitingAddressId = res.getInt(10);
+	    		technicalPersonId = res.getInt(9);
+	    		contactPersonId = res.getInt(8);
+	    		
+	    		
+	    	}
+	    	
+	    	res.close();
+	    	ps.close();
+	    	
+	    	//Get the address(es)	    	
+	    	if(postalAddressId >= 0){
+	    		u.setPostalAddress(this.retrieveAddress(postalAddressId));
+	    	}
+	    	
+	    	if(postalAddressId != visitingAddressId){
+	    		if(visitingAddressId >= 0)
+	    			u.setVisitingAddress(this.retrieveAddress(visitingAddressId));
+
+	    	}else{
+	    		u.setVisitingAddress(u.getPostalAddress());
+	    	}
+	    	
+	    	
+	    	//Get the person information.
+	    	if(technicalPersonId >= 0){
+	    		u.setTechnicalContact(this.retrievePerson(technicalPersonId));
+	    	}
+	    	
+	    	if(technicalPersonId != contactPersonId){
+	    		if(contactPersonId >= 0)
+	    			u.setContact(this.retrievePerson(contactPersonId));
+	    	}else{
+	    		u.setContact(u.getTechnicalContact());
+	    	}
+    	
+	    	return u;
+	    }
+	    
+	    /**
+	     * Gets the default user from the database. Default user is the organization where the application is installed. If no default user exist, null is returned.
+	     * 
+	     * In that case, the GUI should ask for the default user and it should be added as such. This should only be relevant in the first run of the application.
+	     * 
+	     * @return The default user.
+	     * @throws Exception
+	     */
+	    public EAVDAMUser retrieveDefaultUser() throws Exception{
+	    	int userID = 0;
+	    	
+	    	if(this.conn == null) this.getDBConnection(defaultDB, false);
+	    	
+	    	
+	    	PreparedStatement ps = conn.prepareStatement("select id from ORGANIZATION where defaultuser = 1");
+	    	ResultSet rs = ps.executeQuery();
+	    	if(rs.next()){
+	    		userID = rs.getInt(1);
+	    	}
+	    	if(userID <= 0) return null;
+	    	
+	    	return this.retrieveEAVDAMUser(userID+"");
+	    }
+	    
+	    /**
+	     * Retrieves the EAVDAMData only for the given organization.
+	     * 
+	     * @param user Either database userID (int) OR organization name. 
 	     * @return
 	     */
-	    public EAVDAMData retrieveEAVDAMData(String id) throws Exception{
+	    public EAVDAMData retrieveEAVDAMData(String user, String status) throws Exception{
+	    	EAVDAMData data = new EAVDAMData();
+	    	EAVDAMUser u = this.retrieveEAVDAMUser(user);
+	    	
+	    	if(u == null) return null;
+	    	
+	    	data.setUser(u);
+
+	    	
+	    	if(status == null){
+	    	
+		    	//Get the active stations.
+		    	List<AISFixedStationData> activeStations = this.retrieveAISStation(STATUS_ACTIVE, u.getUserDBID());
+		    	//Proposed stations...
+		    	List<AISFixedStationData> proposedStations = this.retrieveAISStation(STATUS_PROPOSED, u.getUserDBID());
+	
+		    	//Transform this list to ActiveStation list...
+		    	ActiveStation as = new ActiveStation();
+		    	as.setStations(activeStations);
+		    	as.setProposals(this.transformToProposals(proposedStations));
+		    	
+		    	ArrayList<ActiveStation> a = new ArrayList<ActiveStation>();
+		    	a.add(as);
+		    	data.setActiveStations(a);
+		    	
+		    	List<AISFixedStationData> oldStations = this.retrieveAISStation(STATUS_OLD, u.getUserDBID());
+		    	data.setOldStations(oldStations);
+		    	
+		    	
+		    	List<AISFixedStationData> otherUserStations = this.retrieveAISStation(STATUS_ACTIVE, -1);
+		    	List<OtherUserStations> other = new ArrayList<OtherUserStations>();
+		    	OtherUserStations o = new OtherUserStations();
+		    	
+		    	
+		    	data.setOtherUsersStations(other);
+
+		    	
+		    	data.setSimulatedStations(null);
+		    	
+	    	}else{
+	    		
+	    	}
 	    	
 	    	
 	    	return null;
 	    }
 	    
-	 
-//	    public int getStatusID(String status) throws Exception{
-//	    	PreparedStatement ps = conn.prepareStatement("select id from STATUSTYPE where name = '"+status+"'");
-//	    	ResultSet res = ps.executeQuery();
-//	    	if(!res.next()){
-//	    
-//			}
+	    /**
+	     * Retrieves all the AISFixedStations of the given status (DerbyDBInterface.STATUS_) and user. 
+	     * 
+	     * If statusID is < 0, all of the stations are retrieved. If userID is < 0, stations are retrieved for all users. 
+	     * 
+	     * @param statusID
+	     * @param userID 
+	     * @return
+	     */
+	    public List<AISFixedStationData> retrieveAISStation(int statusID, int userID) throws Exception{
+	    	ArrayList<AISFixedStationData> data = new ArrayList<AISFixedStationData>();
+	    	
+	    	String sql = "select " +
+	    			"FIXEDSTATION.id, " +  //1.
+	    			"FIXEDSTATION.name, " +  //2.
+	    			"FIXEDSTATION.owner, " +  //3.
+	    			"FIXEDSTATION.mmsi, " + //4.
+	    			"FIXEDSTATION.lat, " +  //5.
+	    			"FIXEDSTATION.lon, " +  //6.
+	    			"FIXEDSTATION.transmissionpower, " +  //7.
+	    			"FIXEDSTATION.description, " + //8.
+	    			"FIXEDSTATION.stationtype, "+  //9.
+	    			"FIXEDSTATION.anyvalue, "+  //10.
+	    			"FIXEDSTATION.proposee, "+  //11.
+	    			"STATUS.statustype, "+   //12.
+	    			"STATUS.startdate, "+   //13.
+	    			"STATUS.enddate, "+  //14.
+	    			"STATION.stationtype, " +  //15.
+	    			"ANTENNA.antennaheight, " +  //16.
+	    			"ANTENNA.terrainheight, " +  //17.
+	    			"ANTENNA.antennaheading, " +  //18.
+	    			"ANTENNA.fieldofviewangle, " +  //19.
+	    			"ANTENNA.gain, " +  //20.
+	    			"ANTENNA.antennatype " +  //21.
+	    			"from FIXEDSTATION, STATUS, ANTENNA " +
+	    			"where FIXEDSTATION.ID = STATUS.STATION AND FIXEDSTATION.id = ANTENNA.station AND ANTENNA.antennatype = ANTENNATYPE.id";
+	    	String whereClause = "";
+	    	if(statusID > 0){
+	    		whereClause += " AND STATUS.statustype="+statusID;
+	    	}
+	    	
+	    	HashMap<String, EAVDAMUser> users = new HashMap<String, EAVDAMUser>();
+	    	if(userID >= 0){
+	    		whereClause += " AND FIXEDSTATION.owner="+userID;
+	    		
+	    		users.put(userID+"", this.retrieveEAVDAMUser(userID+""));
+	    		
+	    	}else{
+	    		for(EAVDAMUser u : this.retrieveAllEAVDAMUsers()){
+	    			users.put(u.getUserDBID()+"", u);
+	    		}
+	    	}
+	    	
+	    	PreparedStatement ps = conn.prepareStatement(sql+whereClause);
+	    	
+	    	ResultSet rs = ps.executeQuery();
+	    	//TODO Add FATDMA and COVERAGE objects! 
+	    	while(rs.next()){
+	    		AISFixedStationData ais = new AISFixedStationData();
+	    		ais.setStationName(rs.getString(2));
+	    		ais.setMmsi(rs.getString(4));
+	    		ais.setLat(rs.getDouble(5));
+	    		ais.setLon(rs.getDouble(6));
+	    		ais.setTransmissionPower(rs.getDouble(7));
+	    		ais.setDescription(rs.getString(8));
+	    		ais.setProposee(rs.getInt(11));
+	    		
+	    		//Get the owner?
+	    		ais.setOperator(users.get(rs.getInt(3)+""));
+	    		Antenna antenna = new Antenna();
+	    		antenna.setAntennaHeight(rs.getDouble(16));
+	    		if(rs.getInt(21) == ANTENNA_DIRECTIONAL){
+	    			antenna.setAntennaType(AntennaType.DIRECTIONAL);
+	    		}else{
+	    			antenna.setAntennaType(AntennaType.OMNIDIRECTIONAL);
+	    		}
+	    		antenna.setFieldOfViewAngle(rs.getInt(19));
+	    		antenna.setGain(rs.getDouble(20));
+	    		antenna.setHeading(18);
+	    		antenna.setTerrainHeight(rs.getDouble(17));
+	    		ais.setAntenna(antenna);
+
+	    		
+	    		AISFixedStationStatus status = new AISFixedStationStatus();
+	    		status.setStartDate(rs.getDate(13));
+	    		status.setEndDate(rs.getDate(14));
+	    		status.setStatusID(rs.getInt(12));
+	    		ais.setStatus(status);
+	    		
+	    		int stationType = rs.getInt(15);
+	    		if(stationType == STATION_ATON){
+	    			ais.setStationType(AISFixedStationType.ATON);
+	    		}else if(stationType == STATION_BASE){
+	    			ais.setStationType(AISFixedStationType.BASESTATION);
+	    		} else if(stationType == STATION_RECEIVER){
+	    			ais.setStationType(AISFixedStationType.RECEIVER);
+	    		} else if(stationType == STATION_REPEATER){
+	    			ais.setStationType(AISFixedStationType.REPEATER);
+	    		} else{
+	    			ais.setStationType(null);
+	    		}
+	    		
+	    		//TODO Get this data also...
+	    		ais.setCoverage(null);
+	    		ais.setFatdmaAllocation(null);
+	    		ais.setAnything(null);
+	    		
+	    		data.add(ais);
+	    	}
+	    	
+	    	rs.close();
+	    	ps.close();
+	    	
+	    	return data;
+	    }
 	    
-//	    }
+
+	    /**
+	     * Transforms the list of proposed stations into Map of proposed stations
+	     * 
+	     * @return
+	     */
+	    public Map<EAVDAMUser, List<AISFixedStationData>> transformToProposals(List<AISFixedStationData> proposals) throws Exception{
+	    	Map<EAVDAMUser, List<AISFixedStationData>> map = new HashMap<EAVDAMUser, List<AISFixedStationData>>();
+	    	
+	    	Map<String, EAVDAMUser> usrBuffer = new HashMap<String, EAVDAMUser>();
+	    	for(AISFixedStationData ais : proposals){
+	    		
+	    		EAVDAMUser user = usrBuffer.get(ais.getProposee()+"");
+	    		if(user == null){
+	    			user = this.retrieveEAVDAMUser(ais.getProposee()+"");
+	    			usrBuffer.put(ais.getProposee()+"", user);
+	    		}
+	    		
+	    		List<AISFixedStationData> list = map.get(user);
+	    		if(list == null) list = new ArrayList<AISFixedStationData>();
+	    		
+	    		list.add(ais);
+	    		
+	    		map.put(user, list);
+	    		
+	    	}
+	    	
+	    	
+	    	return map;
+	    }
+	    
+	    public Address retrieveAddress(int id) throws Exception{
+	    	Address a = new Address();
+	    	PreparedStatement ps = conn.prepareStatement("select * from ADDRESS where id=?");
+	    	ps.setInt(1, id);
+	    	
+	    	ResultSet rs = ps.executeQuery();
+	    	while(rs.next()){
+	    		
+	    		a.setAddressline1(rs.getString(2));
+	    		a.setAddressline2(rs.getString(3));
+	    		a.setZip(rs.getString(4));
+	    		a.setCity(rs.getString(5));
+	    		a.setCountry(rs.getString(6));
+
+	    		break;
+	    	}
+	    	
+	    	rs.close();
+	    	ps.close();
+	    	
+	    	return a;
+	    }
+	    
+	    public Person retrievePerson(int id) throws Exception{
+	    	Person p = new Person();
+	    	PreparedStatement ps = conn.prepareStatement("select * from Person where id=?");
+	    	ps.setInt(1, id);
+	    	
+	    	ResultSet rs = ps.executeQuery();
+	    	int postalAddressID = -1, visitingAddressID = -1;
+	    	while(rs.next()){
+	    		
+	    		p.setName(rs.getString(2));
+	    		p.setEmail(rs.getString(3));
+	    		p.setPhone(rs.getString(4));
+	    		p.setFax(rs.getString(5));
+	    		p.setDescription(rs.getString(6));
+	    		
+	    		postalAddressID = rs.getInt(8);
+	    		visitingAddressID = rs.getInt(7);
+
+	    		break;
+	    	}
+	    	
+	    	rs.close();
+	    	ps.close();
+	    	
+	    	if(postalAddressID >= 0){
+	    		p.setPostalAddress(this.retrieveAddress(postalAddressID));
+	    	}
+	    	
+	    	if(postalAddressID != visitingAddressID){
+	    		if(visitingAddressID >= 0){
+	    			p.setVisitingAddress(this.retrieveAddress(visitingAddressID));
+	    		}
+	    	}else{
+	    		p.setVisitingAddress(p.getPostalAddress());
+	    	}
+	    	
+	    	return p;
+	    }
 	    
 	    /**
 	     * Retrieves the data that will be sent to the FTP-server in an xml-file. 
@@ -631,7 +1057,7 @@ import dk.frv.eavdam.data.Simulation;
 	    	boolean log = true;
 	    	
 	    	try{
-	    		if(this.conn == null) this.getDBConnection(dbName);
+	    		if(this.conn == null) this.getDBConnection(dbName, true);
 	    	
 	    		Statement s = conn.createStatement();
 
@@ -764,6 +1190,7 @@ import dk.frv.eavdam.data.Simulation;
 							+ "TECHNICALPERSON INT,"
 							+ "VISITINGADDRESS INT,"
 							+ "POSTALADDRESS INT,"
+							+ "DEFAULTUSER INT,"
 							+ "CONSTRAINT fk_cp_o FOREIGN KEY (CONTACTPERSON) references PERSON(ID),"
 							+ "CONSTRAINT fk_tp_o FOREIGN KEY (TECHNICALPERSON) references PERSON(ID),"
 							+ "CONSTRAINT fk_va_o FOREIGN KEY (VISITINGADDRESS) references ADDRESS(ID),"
@@ -814,7 +1241,7 @@ import dk.frv.eavdam.data.Simulation;
 							+ "MMSI VARCHAR(15),"
 							+ "LAT DECIMAL,"
 							+ "LON DECIMAL,"
-							+ "TRANSIMISIONPOWER DECIMAL,"
+							+ "TRANSMISSIONPOWER DECIMAL,"
 							+ "DESCRIPTION VARCHAR(1000),"
 							+ "STATIONTYPE INT,"
 							+ "ANYVALUE VARCHAR(2000),"
@@ -896,6 +1323,15 @@ import dk.frv.eavdam.data.Simulation;
 	    		s.execute("INSERT INTO STATUSTYPE VALUES("+STATUS_SIMULATED+", 'Simulated')");
 	    		s.execute("INSERT INTO STATUSTYPE VALUES("+STATUS_PROPOSED+", 'Proposed')");
 	    		s.execute("INSERT INTO STATUSTYPE VALUES("+STATUS_PLANNED+", 'Planned')");
+	    		
+	    		//Insert "unknown" values.
+	    		s.execute("INSERT INTO ANTENNATYPE VALUES(0, 'No antenna')");
+	    		s.execute("INSERT INTO ADDRESS VALUES(0,'Unknown','Unknown',null,null,null)");
+	    		s.execute("INSERT INTO PERSON VALUES(0,'Unknown','Unknown','+0','+0','',0,0)");
+	    		s.execute("INSERT INTO ORGANIZATION VALUES(0,'Unknown','NO','','','','',0,0,0,0,0)");
+	    		
+	    		System.out.println("Inserting default user to the database for demonstration purposis. Default user name: DaMSA");
+	    		s.execute("INSERT INTO ORGANIZATION VALUES(1,'DaMSA','DK','+45 3268 9677','+45 3257 4341','http://WWW.FRV.DK','Danish Maritime Safety Agency',0,0,0,0,1)");
 	    		conn.commit();
 	    		
 	    	 	 //test
@@ -925,6 +1361,30 @@ import dk.frv.eavdam.data.Simulation;
 				
 	    		rs.close();
 	    		conn.close();
+	    	}catch(Exception e){
+	    		e.printStackTrace();
+	    	}
+	    }
+	    
+	    public static void dbTester(){
+	    	try{
+	    		DerbyDBInterface db = new DerbyDBInterface();
+	    		Connection conn = db.getDBConnection(null, false);
+	    		String sql = "";
+	    		sql = "select id, organizationname from ORGANIZATION";
+	    		sql = "select FIXEDSTATION.id, FIXEDSTATION.name, STATUS.statustype from FIXEDSTATION, STATUS where STATUS.station = FIXEDSTATION.id";
+	    		
+	    		PreparedStatement ps = conn.prepareStatement(sql);
+	    		ResultSet rs = ps.executeQuery();
+	    		
+	    		System.out.println("Organization table holds:\nID\tName\tStatus");
+	    		while(rs.next()){
+	    			System.out.println(rs.getInt(1)+"\t"+rs.getString(2)+"\t"+rs.getInt(3));
+	    		}
+	    		
+	    		EAVDAMUser def = db.retrieveDefaultUser();
+	    		System.out.println("Default user = "+def.getOrganizationName());
+	    		
 	    	}catch(Exception e){
 	    		e.printStackTrace();
 	    	}

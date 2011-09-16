@@ -39,7 +39,20 @@ public class DBHandler {
         DBHandler.data = data;   // for testing before the database works 
         DerbyDBInterface d = new DerbyDBInterface();
         //d.createDatabase(null);
+        
         d.insertEAVDAMData(data);
+
+    }
+    
+    public static void saveUserData(EAVDAMUser user){
+    	DerbyDBInterface d = new DerbyDBInterface();
+        //d.createDatabase(null);
+    	try{
+    		int id = d.insertEAVDAMUser(user, false);
+    		System.out.println("Added user under id "+id);
+    	}catch(Exception e){
+    		e.printStackTrace();
+    	}
     }
     
 }

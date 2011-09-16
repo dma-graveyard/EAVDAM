@@ -32,9 +32,20 @@ public class EAVDAMUser {
 	 */
 	private List<Element> anything;
 
+	private int userDBID;
+
+
 	public EAVDAMUser() {
 	}
+	
+	public int getUserDBID() {
+		return userDBID;
+	}
 
+	public void setUserDBID(int userDBID) {
+		this.userDBID = userDBID;
+	}
+	
 	public String getOrganizationName() {
 		return organizationName;
 	}

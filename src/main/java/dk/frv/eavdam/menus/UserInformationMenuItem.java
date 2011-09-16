@@ -563,7 +563,7 @@ class UserInformationActionListener implements ActionListener, DocumentListener 
         
         data.setUser(user);                                
         
-        DBHandler.saveData(data);              
+        DBHandler.saveUserData(user);              
         
         return true;
     
