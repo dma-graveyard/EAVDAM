@@ -33,7 +33,6 @@ public class DBHandler {
         
         try {
             DerbyDBInterface d = new DerbyDBInterface();
-            d.createDatabase(null);
             ArrayList<EAVDAMData> eavdamData = d.retrieveAllEAVDAMData();
             if (eavdamData != null && !eavdamData.isEmpty()) {
                 return eavdamData.get(0);
@@ -58,9 +57,7 @@ public class DBHandler {
         //d.createDatabase(null);
     	try{
     		int id = d.insertEAVDAMUser(user, false);
-    		System.out.println("Added user under id "+id+".");
-    		EAVDAMUser test = d.retrieveDefaultUser();
-    		System.out.println("Default user = "+test.getOrganizationName());
+//    		System.out.println("Added user under id "+id+".");
     	}catch(Exception e){
     		e.printStackTrace();
     	}

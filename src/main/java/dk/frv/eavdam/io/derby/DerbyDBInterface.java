@@ -66,9 +66,9 @@ import dk.frv.eavdam.data.Simulation;
 	    
 	    public static void main(String[] args)
 	    {
-//
-//	    	dbTester();
-//	    	if(true) System.exit(0);
+
+	    	dbTester();
+	    	if(true) System.exit(0);
 	    	
 	    	DerbyDBInterface dba =  new DerbyDBInterface();
 	    	dba.createDatabase(null);
@@ -237,8 +237,12 @@ import dk.frv.eavdam.data.Simulation;
 	    private int getAddressID(Address address) throws Exception{
 	    	if(address == null) return 0; 
 	    	
-	    	PreparedStatement ps = conn.prepareStatement("select id from ADDRESS where addressline1 = ?");
+	    	PreparedStatement ps = conn.prepareStatement("select id from ADDRESS where addressline1 = ? AND zipcode = ? AND city = ? AND country = ?");
     		ps.setString(1, address.getAddressline1());
+    		ps.setString(2, address.getZip());
+    		ps.setString(3, address.getCity());
+    		ps.setString(4, address.getCountry());
+    		
     		ResultSet res = ps.executeQuery();
     		int addressID = -1;
     		if(!res.next()){
@@ -254,6 +258,8 @@ import dk.frv.eavdam.data.Simulation;
     			
     			this.insertAddress(address, addressID);
     		}else{
+    			//TODO Call update if necessary!
+    			
     			return res.getInt(1);
     		}
     		
@@ -280,7 +286,9 @@ import dk.frv.eavdam.data.Simulation;
 	    }
 	    
 	    private int getPersonID(Person person) throws Exception{
-    		if(person == null) return 0;
+    		if(person == null){
+    			return 0;
+    		}
 	    	
 	    	PreparedStatement ps = conn.prepareStatement("select id from PERSON where email = ?");
     		
@@ -292,7 +300,7 @@ import dk.frv.eavdam.data.Simulation;
         		ps = conn.prepareStatement("select count(id) from PERSON");
         		res = ps.executeQuery();
     			if(!res.next()){
-    				contactID = 0+1;
+    				contactID = 1;
     			}else{
     				contactID = res.getInt(1)+1;
     			}
@@ -300,7 +308,10 @@ import dk.frv.eavdam.data.Simulation;
     			this.insertPerson(person, contactID);
     			
     		}else{
+    			//TODO Call update if necessary!
+    			
     			contactID = res.getInt(1);
+    			
     			return contactID;
     		}
     		
@@ -313,17 +324,9 @@ import dk.frv.eavdam.data.Simulation;
 	    private void insertPerson(Person person, int id) throws Exception{
 	    	//Find if the addresses exists.
 			int personPostalAddress = this.getAddressID(person.getPostalAddress());
-			if(personPostalAddress < 0){
-				personPostalAddress *= -1;
-				this.insertAddress(person.getPostalAddress(), personPostalAddress);
-			}
-			
 			int personVisitingAddress = this.getAddressID(person.getVisitingAddress());
-			if(personVisitingAddress < 0){
-				personVisitingAddress *= -1;
-				this.insertAddress(person.getVisitingAddress(), personVisitingAddress);
-			}
 
+			
 						
     		PreparedStatement ps = conn.prepareStatement("insert into PERSON values (?,?,?,?,?,?,?,?)");
     		ps.setInt(1, id);
@@ -346,8 +349,9 @@ import dk.frv.eavdam.data.Simulation;
 	    	if(this.conn == null) this.getDBConnection(null, false);
 	    			
 	    	
-        	PreparedStatement ps = conn.prepareStatement("select id from ORGANIZATION where ORGANIZATION.organizationname = ?");
+        	PreparedStatement ps = conn.prepareStatement("select id from ORGANIZATION where ORGANIZATION.organizationname = ? OR ORGANIZATION.id = ?");
         	ps.setString(1, user.getOrganizationName());
+        	ps.setInt(2, user.getUserDBID());
         	ResultSet res = ps.executeQuery();
         	
         	int orgID = -1;
@@ -367,7 +371,13 @@ import dk.frv.eavdam.data.Simulation;
         		ps.close();
         		this.insertOrganization(user, orgID, defaultUser);
         	}else{
+        		System.out.println("Organization found! Updating its information...");
         		orgID = res.getInt(1);
+        		
+        		user.setUserDBID(orgID);
+        		this.updateOrganization(user);
+        		
+        		
         	}
         	
         	ps.close();
@@ -528,6 +538,46 @@ import dk.frv.eavdam.data.Simulation;
 	    }
 	    
 	    public void insertFATDMAAllocations(FATDMASlotAllocation fatdma){
+	    	
+	    }
+	    
+	    
+	    public void updateOrganization(EAVDAMUser user) throws Exception{
+	    	if(this.conn == null) this.getDBConnection(null, false);
+	    	
+	    	int cp = this.getPersonID(user.getContact());
+	    	int tp = this.getPersonID(user.getTechnicalContact());
+	    	int va = this.getAddressID(user.getVisitingAddress());
+	    	int pa = this.getAddressID(user.getVisitingAddress());
+	    	
+	    	String sql = "update ORGANIZATION set " +
+	    			"ORGANIZATIONNAME = ?, " + //1.
+	    			"COUNTRYID = ?," +  //2.
+	    			"PHONE = ?," +  //3.
+	    			"FAX = ?," +  //4.
+	    			"WWW = ?," +  //5.
+	    			"DESCRIPTION = ?," +  //6.
+	    			"CONTACTPERSON = ?," +  //7.
+	    			"TECHNICALPERSON = ?," +  //8.
+	    			"VISITINGADDRESS = ?," +  //9.
+	    			"POSTALADDRESS = ?" +  //10.
+//	    			", DEFAULTUSER = ?" +  //11.
+	    			"where id = ?";  //12.
+	    	PreparedStatement ps = conn.prepareStatement(sql);
+	    	ps.setString(1, user.getOrganizationName());
+	    	ps.setString(2, user.getCountryID());
+	    	ps.setString(3, user.getPhone());
+	    	ps.setString(4, user.getFax());
+	    	ps.setString(5, (user.getWww() != null ? user.getWww().toString() : ""));
+	    	ps.setString(6, user.getDescription());
+	    	ps.setInt(7, cp);
+	    	ps.setInt(8,tp);
+	    	ps.setInt(9, va);
+	    	ps.setInt(10, pa);
+	    	ps.setInt(11,user.getUserDBID());
+	    		
+	    	ps.executeUpdate();
+	    	
 	    	
 	    }
 	    
@@ -1339,7 +1389,7 @@ import dk.frv.eavdam.data.Simulation;
 	    		s.execute("INSERT INTO ORGANIZATION VALUES(0,'Unknown','NO','','','','',0,0,0,0,0)");
 	    		
 	    		System.out.println("Inserting default user to the database for demonstration purposis. Default user name: DaMSA");
-	    		s.execute("INSERT INTO ORGANIZATION VALUES(1,'DaMSA','DK','+45 3268 9677','+45 3257 4341','http://WWW.FRV.DK','Danish Maritime Safety Agency',0,0,0,0,1)");
+	    		s.execute("INSERT INTO ORGANIZATION VALUES(1,'DaMSA','DK','+45 3268 9677','+45 3257 4341','http://WWW.FRV.DK','Danish Maritime Safety Administration',0,0,0,0,1)");
 	    		conn.commit();
 	    		
 	    	 	 //test
@@ -1381,13 +1431,15 @@ import dk.frv.eavdam.data.Simulation;
 	    		String sql = "";
 	    		sql = "select id, organizationname from ORGANIZATION";
 	    		sql = "select FIXEDSTATION.id, FIXEDSTATION.name, STATUS.statustype from FIXEDSTATION, STATUS where STATUS.station = FIXEDSTATION.id";
+	    		sql = "select id, name, email from PERSON";
+	    		
 	    		
 	    		PreparedStatement ps = conn.prepareStatement(sql);
 	    		ResultSet rs = ps.executeQuery();
 	    		
-	    		System.out.println("Organization table holds:\nID\tName\tStatus");
+	    		System.out.println("Table holds:\nID\tName\tStatus");
 	    		while(rs.next()){
-	    			System.out.println(rs.getInt(1)+"\t"+rs.getString(2)+"\t"+rs.getInt(3));
+	    			System.out.println(rs.getInt(1)+"\t"+rs.getString(2)+"\t"+rs.getString(3));
 	    		}
 	    		
 	    		EAVDAMUser def = db.retrieveDefaultUser();
