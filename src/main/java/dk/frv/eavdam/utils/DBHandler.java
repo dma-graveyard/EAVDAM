@@ -17,15 +17,27 @@ public class DBHandler {
     private static EAVDAMData data = new EAVDAMData();  // for testing before the database works        
         
     public static EAVDAMData getData() {        
+        
         if (data != null) { // for testing before the database works 
+            if (data.getUser() == null) {
+                try {
+                    DerbyDBInterface d = new DerbyDBInterface();
+                    d.createDatabase(null);
+                    EAVDAMUser user = d.retrieveDefaultUser();            
+                    data.setUser(user);
+                } catch (Exception e) {
+                    System.out.println(e.getMessage());
+                }
+            }
             return data;
         }
+        
         try {
             DerbyDBInterface d = new DerbyDBInterface();
-            //d.createDatabase(null);
-            ArrayList<EAVDAMData> data = d.retrieveAllEAVDAMData();
-            if (data != null && !data.isEmpty()) {
-                return data.get(0);
+            d.createDatabase(null);
+            ArrayList<EAVDAMData> eavdamData = d.retrieveAllEAVDAMData();
+            if (eavdamData != null && !eavdamData.isEmpty()) {
+                return eavdamData.get(0);
             } else {
                 return null;
             }
@@ -36,12 +48,10 @@ public class DBHandler {
     }
 
     public static void saveData(EAVDAMData data) {
-        DBHandler.data = data;   // for testing before the database works 
+        DBHandler.data = data;   // for testing before the database works
         DerbyDBInterface d = new DerbyDBInterface();
-        //d.createDatabase(null);
-        
+        //d.createDatabase(null);        
         d.insertEAVDAMData(data);
-
     }
     
     public static void saveUserData(EAVDAMUser user){
