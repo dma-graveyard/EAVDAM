@@ -76,6 +76,9 @@ public class AISFixedStationData {
 	 * end.
 	 */
 	private List<Element> anything;
+	
+	private int proposee;
+	
 
 	public AISFixedStationData() {
 	}
@@ -240,5 +243,13 @@ public class AISFixedStationData {
 				+ antenna + ", fatdmaAllocation=" + fatdmaAllocation
 				+ ", stationType=" + stationType + ", operator=" + operator
 				+ ", status=" + status + ", anything=" + anything + "]";
+	}
+
+	public int getProposee() {
+		return proposee;
+	}
+
+	public void setProposee(int proposee) {
+		this.proposee = proposee;
 	}
 }
