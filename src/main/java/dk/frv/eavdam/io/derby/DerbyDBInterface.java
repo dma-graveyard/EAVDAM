@@ -111,8 +111,8 @@ import dk.frv.eavdam.data.Simulation;
 	            	ps.close();
 	            	
 	            }catch(SQLException e){
-	            	e.printStackTrace();
-	            	System.out.println("\t\tDatabase does not exist, creating it...");
+//	            	e.printStackTrace();
+	            	System.out.println("Database does not exist, creating it...");
 	            	this.createDatabase(dbName);
 	            }
 	    	}	
