@@ -66,9 +66,9 @@ import dk.frv.eavdam.data.Simulation;
 	    
 	    public static void main(String[] args)
 	    {
-
-	    	dbTester();
-	    	if(true) System.exit(0);
+//
+//	    	dbTester();
+//	    	if(true) System.exit(0);
 	    	
 	    	DerbyDBInterface dba =  new DerbyDBInterface();
 	    	dba.createDatabase(null);
