@@ -992,6 +992,8 @@ class StationInformationMenuItemActionListener implements ActionListener, Change
                 headingTextField, fieldOfViewAngleTextField, gainTextField);                                            
             if (isChanged(selectStationComboBox.getSelectedIndex())) {
                 saveButton.setEnabled(true);
+            } else {
+                saveButton.setEnabled(false);
             }
 
         } else if (addAntennaTypeComboBox != null && e.getItemSelectable() == addAntennaTypeComboBox && e.getStateChange() == ItemEvent.SELECTED) {            
@@ -1650,7 +1652,8 @@ class StationInformationMenuItemActionListener implements ActionListener, Change
         } else {
             if (!addLatitudeTextField.getText().trim().isEmpty()) {
                 try {
-                    Double.parseDouble(addLatitudeTextField.getText().trim());                    
+                    
+                    Double.parseDouble(addLatitudeTextField.getText().replace(",", ".").trim());                    
                 } catch (NumberFormatException ex) {                
                     JOptionPane.showMessageDialog(addStationDialog, "Latitude is not a valid number.");
                     return false;
@@ -1663,7 +1666,7 @@ class StationInformationMenuItemActionListener implements ActionListener, Change
         } else {                                                        
             if (!addLongitudeTextField.getText().trim().isEmpty()) {
                 try {
-                    Double.parseDouble(addLongitudeTextField.getText().trim());
+                    Double.parseDouble(addLongitudeTextField.getText().replace(",", ".").trim());
                 } catch (NumberFormatException ex) {                
                     JOptionPane.showMessageDialog(addStationDialog, "Longitude is not a valid number.");
                     return false;
@@ -1672,7 +1675,7 @@ class StationInformationMenuItemActionListener implements ActionListener, Change
         }                    
         try {
             if (!addTransmissionPowerTextField.getText().trim().isEmpty()) {
-                Double.parseDouble(addTransmissionPowerTextField.getText().trim());
+                Double.parseDouble(addTransmissionPowerTextField.getText().replace(",", ".").trim());
             }
         } catch (NumberFormatException ex) {
             JOptionPane.showMessageDialog(addStationDialog, "Transmission power is not a valid number.");
@@ -1695,7 +1698,7 @@ class StationInformationMenuItemActionListener implements ActionListener, Change
         }
         try {
             if (!addAntennaHeightTextField.getText().trim().isEmpty()) {
-                Double.parseDouble(addAntennaHeightTextField.getText().trim());
+                Double.parseDouble(addAntennaHeightTextField.getText().replace(",", ".").trim());
             }
         } catch (NumberFormatException ex) {
             JOptionPane.showMessageDialog(addStationDialog, "Antenna height is not a valid number.");                     
@@ -1703,7 +1706,7 @@ class StationInformationMenuItemActionListener implements ActionListener, Change
         }  
         try {
             if (!addTerrainHeightTextField.getText().trim().isEmpty()) {
-                Double.parseDouble(addTerrainHeightTextField.getText().trim());
+                Double.parseDouble(addTerrainHeightTextField.getText().replace(",", ".").trim());
             }
         } catch (NumberFormatException ex) {        
             JOptionPane.showMessageDialog(addStationDialog, "Terrain height is not a valid number.");
@@ -1727,7 +1730,7 @@ class StationInformationMenuItemActionListener implements ActionListener, Change
         }      
         try {
             if (!addGainTextField.getText().trim().isEmpty()) {
-                Double.parseDouble(addGainTextField.getText().trim());
+                Double.parseDouble(addGainTextField.getText().replace(",", ".").trim());
             }
         } catch (NumberFormatException ex) {
             JOptionPane.showMessageDialog(addStationDialog, "Gain is not a valid number.");
@@ -1753,10 +1756,10 @@ class StationInformationMenuItemActionListener implements ActionListener, Change
                 operativeStation.setStationType(AISFixedStationType.ATON); 
                 plannedStation.setStationType(AISFixedStationType.ATON); 
             }  
-            operativeStation.setLat(new Double(addLatitudeTextField.getText().trim()).doubleValue());                                
-            plannedStation.setLat(new Double(addLatitudeTextField.getText().trim()).doubleValue()); 
-            operativeStation.setLon(new Double(addLongitudeTextField.getText().trim()).doubleValue());  
-            plannedStation.setLon(new Double(addLongitudeTextField.getText().trim()).doubleValue());  
+            operativeStation.setLat(new Double(addLatitudeTextField.getText().replace(",", ".").trim()).doubleValue());                                
+            plannedStation.setLat(new Double(addLatitudeTextField.getText().replace(",", ".").trim()).doubleValue()); 
+            operativeStation.setLon(new Double(addLongitudeTextField.getText().replace(",", ".").trim()).doubleValue());  
+            plannedStation.setLon(new Double(addLongitudeTextField.getText().replace(",", ".").trim()).doubleValue());  
             if (addMMSINumberTextField.getText().trim().isEmpty()) {
                 operativeStation.setMmsi(null);
                 plannedStation.setMmsi(null);
@@ -1768,8 +1771,8 @@ class StationInformationMenuItemActionListener implements ActionListener, Change
                 operativeStation.setTransmissionPower(null);
                 plannedStation.setTransmissionPower(null);
             } else {
-                operativeStation.setTransmissionPower(new Double(addTransmissionPowerTextField.getText().trim()));
-                plannedStation.setTransmissionPower(new Double(addTransmissionPowerTextField.getText().trim()));                
+                operativeStation.setTransmissionPower(new Double(addTransmissionPowerTextField.getText().replace(",", ".").trim()));
+                plannedStation.setTransmissionPower(new Double(addTransmissionPowerTextField.getText().replace(",", ".").trim()));                
             }
             AISFixedStationStatus status = new AISFixedStationStatus();
             status.setStatusID(DerbyDBInterface.STATUS_ACTIVE);
@@ -1795,10 +1798,10 @@ class StationInformationMenuItemActionListener implements ActionListener, Change
             if (addAntennaTypeComboBox.getSelectedIndex() == 1 ||
                     addAntennaTypeComboBox.getSelectedIndex() == 2) {
                 if (!addAntennaHeightTextField.getText().trim().isEmpty()) {
-                    antenna.setAntennaHeight(new Double(addAntennaHeightTextField.getText().trim()).doubleValue());
+                    antenna.setAntennaHeight(new Double(addAntennaHeightTextField.getText().replace(",", ".").trim()).doubleValue());
                 }
                 if (!addTerrainHeightTextField.getText().trim().isEmpty()) {
-                    antenna.setTerrainHeight(new Double(addTerrainHeightTextField.getText().trim()).doubleValue());
+                    antenna.setTerrainHeight(new Double(addTerrainHeightTextField.getText().replace(",", ".").trim()).doubleValue());
                 }
             }
             if (addAntennaTypeComboBox.getSelectedIndex() == 2) {
@@ -1815,7 +1818,7 @@ class StationInformationMenuItemActionListener implements ActionListener, Change
                 if (addGainTextField.getText().trim().isEmpty()) {             
                     antenna.setGain(null);
                 } else {
-                    antenna.setGain(new Double(addGainTextField.getText().trim()));
+                    antenna.setGain(new Double(addGainTextField.getText().replace(",", ".").trim()));
                 }
             }
             if (addAntennaTypeComboBox.getSelectedIndex() == 1 ||
@@ -2110,7 +2113,7 @@ class StationInformationMenuItemActionListener implements ActionListener, Change
         } else {
             if (!latitudeTextField.getText().trim().isEmpty()) {
                 try {
-                    Double.parseDouble(latitudeTextField.getText().trim());                    
+                    Double.parseDouble(latitudeTextField.getText().replace(",", ".").trim());                    
                 } catch (NumberFormatException ex) {
                     JOptionPane.showMessageDialog(dialog, "Latitude is not a valid number.");
                     return false;
@@ -2123,7 +2126,7 @@ class StationInformationMenuItemActionListener implements ActionListener, Change
         } else {                                                        
             if (!longitudeTextField.getText().trim().isEmpty()) {
                 try {
-                    Double.parseDouble(longitudeTextField.getText().trim());
+                    Double.parseDouble(longitudeTextField.getText().replace(",", ".").trim());
                 } catch (NumberFormatException ex) {
                     JOptionPane.showMessageDialog(dialog, "Longitude is not a valid number.");
                     return false;
@@ -2132,7 +2135,7 @@ class StationInformationMenuItemActionListener implements ActionListener, Change
         }                    
         try {
             if (!transmissionPowerTextField.getText().trim().isEmpty()) {
-                Double.parseDouble(transmissionPowerTextField.getText().trim());
+                Double.parseDouble(transmissionPowerTextField.getText().replace(",", ".").trim());
             }
         } catch (NumberFormatException ex) {
             JOptionPane.showMessageDialog(dialog, "Transmission power is not a valid number.");
@@ -2155,7 +2158,7 @@ class StationInformationMenuItemActionListener implements ActionListener, Change
         }
         try {
             if (!antennaHeightTextField.getText().trim().isEmpty()) {
-                Double.parseDouble(antennaHeightTextField.getText().trim());
+                Double.parseDouble(antennaHeightTextField.getText().replace(",", ".").trim());
             }
         } catch (NumberFormatException ex) {
             JOptionPane.showMessageDialog(dialog, "Antenna height is not a valid number.");                     
@@ -2163,7 +2166,7 @@ class StationInformationMenuItemActionListener implements ActionListener, Change
         }  
         try {
             if (!terrainHeightTextField.getText().trim().isEmpty()) {
-                Double.parseDouble(terrainHeightTextField.getText().trim());
+                Double.parseDouble(terrainHeightTextField.getText().replace(",", ".").trim());
             }
         } catch (NumberFormatException ex) {
             JOptionPane.showMessageDialog(dialog, "Terrain height is not a valid number.");
@@ -2187,7 +2190,7 @@ class StationInformationMenuItemActionListener implements ActionListener, Change
         }      
         try {
             if (!gainTextField.getText().trim().isEmpty()) {
-                Double.parseDouble(gainTextField.getText().trim());
+                Double.parseDouble(gainTextField.getText().replace(",", ".").trim());
             }
         } catch (NumberFormatException ex) {
             JOptionPane.showMessageDialog(dialog, "Gain is not a valid number.");
@@ -2210,8 +2213,8 @@ class StationInformationMenuItemActionListener implements ActionListener, Change
             } else if (stationTypeComboBox.getSelectedIndex() == 3) {
                 station.setStationType(AISFixedStationType.ATON); 
             }  
-            station.setLat(new Double(latitudeTextField.getText().trim()).doubleValue());                                
-            station.setLon(new Double(longitudeTextField.getText().trim()).doubleValue());  
+            station.setLat(new Double(latitudeTextField.getText().replace(",", ".").trim()).doubleValue());                                
+            station.setLon(new Double(longitudeTextField.getText().replace(",", ".").trim()).doubleValue());  
             if (mmsiNumberTextField.getText().trim().isEmpty()) {
                 station.setMmsi(null);
             } else {
@@ -2220,7 +2223,7 @@ class StationInformationMenuItemActionListener implements ActionListener, Change
             if (transmissionPowerTextField.getText().trim().isEmpty()) {
                 station.setTransmissionPower(null);
             } else {
-                station.setTransmissionPower(new Double(transmissionPowerTextField.getText().trim()));
+                station.setTransmissionPower(new Double(transmissionPowerTextField.getText().replace(",", ".").trim()));
             }
             Antenna antenna = station.getAntenna();
             if (antennaTypeComboBox.getSelectedIndex() == 0) {
@@ -2239,10 +2242,10 @@ class StationInformationMenuItemActionListener implements ActionListener, Change
             if (antennaTypeComboBox.getSelectedIndex() == 1 ||
                     antennaTypeComboBox.getSelectedIndex() == 2) {
                 if (!antennaHeightTextField.getText().trim().isEmpty()) {
-                    antenna.setAntennaHeight(new Double(antennaHeightTextField.getText().trim()).doubleValue());
+                    antenna.setAntennaHeight(new Double(antennaHeightTextField.getText().replace(",", ".").trim()).doubleValue());
                 }
                 if (!terrainHeightTextField.getText().trim().isEmpty()) {
-                    antenna.setTerrainHeight(new Double(terrainHeightTextField.getText().trim()).doubleValue());
+                    antenna.setTerrainHeight(new Double(terrainHeightTextField.getText().replace(",", ".").trim()).doubleValue());
                 }
             }
             if (antennaTypeComboBox.getSelectedIndex() == 2) {
@@ -2259,7 +2262,7 @@ class StationInformationMenuItemActionListener implements ActionListener, Change
                 if (gainTextField.getText().trim().isEmpty()) {             
                     antenna.setGain(null);
                 } else {
-                    antenna.setGain(new Double(gainTextField.getText().trim()));
+                    antenna.setGain(new Double(gainTextField.getText().replace(",", ".").trim()));
                 }
             }
             if (antennaTypeComboBox.getSelectedIndex() == 1 ||
@@ -2359,8 +2362,8 @@ class StationInformationMenuItemActionListener implements ActionListener, Change
             } else if (stationTypeComboBox.getSelectedIndex() == 3) {
                 newActiveStationData.setStationType(AISFixedStationType.ATON); 
             }  
-            newActiveStationData.setLat(new Double(latitudeTextField.getText().trim()).doubleValue());                                
-            newActiveStationData.setLon(new Double(longitudeTextField.getText().trim()).doubleValue());  
+            newActiveStationData.setLat(new Double(latitudeTextField.getText().replace(",", ".").trim()).doubleValue());                                
+            newActiveStationData.setLon(new Double(longitudeTextField.getText().replace(",", ".").trim()).doubleValue());  
             if (mmsiNumberTextField.getText().trim().isEmpty()) {
                 newActiveStationData.setMmsi(null);
             } else {
@@ -2369,7 +2372,7 @@ class StationInformationMenuItemActionListener implements ActionListener, Change
             if (transmissionPowerTextField.getText().trim().isEmpty()) {
                 newActiveStationData.setTransmissionPower(null);
             } else {
-                newActiveStationData.setTransmissionPower(new Double(transmissionPowerTextField.getText().trim()));
+                newActiveStationData.setTransmissionPower(new Double(transmissionPowerTextField.getText().replace(",", ".").trim()));
             }
             Antenna antenna = new Antenna();
             if (antennaTypeComboBox.getSelectedIndex() == 0) {
@@ -2382,10 +2385,10 @@ class StationInformationMenuItemActionListener implements ActionListener, Change
             if (antennaTypeComboBox.getSelectedIndex() == 1 ||
                     antennaTypeComboBox.getSelectedIndex() == 2) {
                 if (!antennaHeightTextField.getText().trim().isEmpty()) {
-                    antenna.setAntennaHeight(new Double(antennaHeightTextField.getText().trim()).doubleValue());
+                    antenna.setAntennaHeight(new Double(antennaHeightTextField.getText().replace(",", ".").trim()).doubleValue());
                 }
                 if (!terrainHeightTextField.getText().trim().isEmpty()) {
-                    antenna.setTerrainHeight(new Double(terrainHeightTextField.getText().trim()).doubleValue());
+                    antenna.setTerrainHeight(new Double(terrainHeightTextField.getText().replace(",", ".").trim()).doubleValue());
                 }
             }
             if (antennaTypeComboBox.getSelectedIndex() == 2) {
@@ -2402,7 +2405,7 @@ class StationInformationMenuItemActionListener implements ActionListener, Change
                 if (gainTextField.getText().trim().isEmpty()) {             
                     antenna.setGain(null);
                 } else {
-                    antenna.setGain(new Double(gainTextField.getText().trim()));
+                    antenna.setGain(new Double(gainTextField.getText().replace(",", ".").trim()));
                 }
             }
             if (antennaTypeComboBox.getSelectedIndex() == 1 ||
@@ -2580,7 +2583,7 @@ class StationInformationMenuItemActionListener implements ActionListener, Change
                 if (Double.isNaN(station.getLat()) && !latitudeTextField.getText().isEmpty()) {
                     return true;
                 }
-                if (!Double.isNaN(station.getLat()) && station.getLat() != (new Double(latitudeTextField.getText()).doubleValue())) {
+                if (!Double.isNaN(station.getLat()) && station.getLat() != (new Double(latitudeTextField.getText().replace(",", ".").trim()).doubleValue())) {
                     return true;
                 }
             } catch (NumberFormatException ex) {
@@ -2590,7 +2593,7 @@ class StationInformationMenuItemActionListener implements ActionListener, Change
                 if (Double.isNaN(station.getLon()) && !longitudeTextField.getText().isEmpty()) {
                     return true;
                 }
-                if (!Double.isNaN(station.getLon()) && station.getLon() != (new Double(longitudeTextField.getText()).doubleValue())) {
+                if (!Double.isNaN(station.getLon()) && station.getLon() != (new Double(longitudeTextField.getText().replace(",", ".").trim()).doubleValue())) {
                     return true;
                 }
             } catch (NumberFormatException ex) {
@@ -2606,7 +2609,7 @@ class StationInformationMenuItemActionListener implements ActionListener, Change
                 return true;
             }
             try {       
-                if (station.getTransmissionPower() != null && !station.getTransmissionPower().equals(new Double(transmissionPowerTextField.getText()))) {
+                if (station.getTransmissionPower() != null && !station.getTransmissionPower().equals(new Double(transmissionPowerTextField.getText().replace(",", ".").trim()))) {
                     return true;
                 }
             } catch (NumberFormatException ex) {
@@ -2616,6 +2619,9 @@ class StationInformationMenuItemActionListener implements ActionListener, Change
                 return true;
             }     
             Antenna antenna = station.getAntenna();
+            if (antenna == null && antennaTypeComboBox.getSelectedIndex() != 0) {
+                return true;
+            }
             if (antenna != null && antenna.getAntennaType() == null && antennaTypeComboBox.getSelectedIndex() != 0) {
                 return true;
             }
@@ -2625,30 +2631,31 @@ class StationInformationMenuItemActionListener implements ActionListener, Change
             if (antenna != null && antenna.getAntennaType() == AntennaType.DIRECTIONAL && antennaTypeComboBox.getSelectedIndex() != 2) {
                 return true;
             }       
+                       
             if (antenna != null && Double.isNaN(antenna.getAntennaHeight()) && !antennaHeightTextField.getText().isEmpty()) {
                 return true;
-            }
+            }        
             if (antenna != null && !Double.isNaN(antenna.getAntennaHeight())) {
                 try {       
-                    if (antenna.getAntennaHeight() != new Double(antennaHeightTextField.getText()).doubleValue()) {
+                    if (antenna.getAntennaHeight() != new Double(antennaHeightTextField.getText().replace(",", ".").trim()).doubleValue()) {
                         return true;
                     }
                 } catch (NumberFormatException ex) {
                     return true;
                 }
-            }              
+            }                          
             if (antenna != null && Double.isNaN(antenna.getTerrainHeight()) && !terrainHeightTextField.getText().isEmpty()) {
                 return true;
             }
             if (antenna != null && !Double.isNaN(antenna.getTerrainHeight())) {            
                 try {       
-                    if (antenna.getTerrainHeight() != new Double(terrainHeightTextField.getText()).doubleValue()) {
+                    if (antenna.getTerrainHeight() != new Double(terrainHeightTextField.getText().replace(",", ".").trim()).doubleValue()) {
                         return true;
                     }                
                 } catch (NumberFormatException ex) {
                     return true;
                 }
-            }                                  
+            }                                             
             if (antenna != null && antenna.getAntennaType() == AntennaType.DIRECTIONAL) {
                 if (antenna.getHeading() == null && !headingTextField.getText().isEmpty()) {
                     return true;

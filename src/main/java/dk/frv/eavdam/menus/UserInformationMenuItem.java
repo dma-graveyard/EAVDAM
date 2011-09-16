@@ -508,10 +508,7 @@ class UserInformationActionListener implements ActionListener, DocumentListener 
             if (pointOfContactNameTextField.getText().trim().isEmpty()) {
                 user.setContact(null);
             } else {
-                Person contact = user.getContact();
-                if (contact == null) {
-                    contact = new Person();
-                }
+                Person contact = new Person();
                 contact.setName(pointOfContactNameTextField.getText().trim());
                 if (pointOfContactPhoneTextField.getText().trim().isEmpty()) {
                     contact.setPhone(null);
@@ -523,7 +520,7 @@ class UserInformationActionListener implements ActionListener, DocumentListener 
                 } else {
                     contact.setEmail(pointOfContactEmailTextField.getText().trim());
                 }
-                user.setContact(contact);
+                user.setContact(contact);              
             }
             if (pointOfTechnicalContactNameTextField.getText().trim().isEmpty() &&
                     (!pointOfTechnicalContactPhoneTextField.getText().trim().isEmpty() ||
@@ -534,23 +531,20 @@ class UserInformationActionListener implements ActionListener, DocumentListener 
             if (pointOfTechnicalContactNameTextField.getText().trim().isEmpty()) {
                 user.setTechnicalContact(null);
             } else {
-                Person technicalContact = user.getTechnicalContact();
-                if (technicalContact == null) {
-                    technicalContact = new Person();
-                }
-                technicalContact.setName(pointOfTechnicalContactNameTextField.getText().trim());
+                Person technicalContact = new Person();                            
+                technicalContact.setName(pointOfTechnicalContactNameTextField.getText().trim());                    
                 if (pointOfTechnicalContactPhoneTextField.getText().trim().isEmpty()) {
                     technicalContact.setPhone(null);
                 } else {
                     technicalContact.setPhone(pointOfTechnicalContactPhoneTextField.getText().trim());
-                }
+                }               
                 if (pointOfTechnicalContactEmailTextField.getText().trim().isEmpty()) {
                     technicalContact.setEmail(null);
                 } else {
                     technicalContact.setEmail(pointOfTechnicalContactEmailTextField.getText().trim());
-                }
-                user.setTechnicalContact(technicalContact);  
-            }              
+                }                   
+                user.setTechnicalContact(technicalContact);                        
+            }                          
             if (additionalInformationJTextArea.getText().trim().isEmpty()) {
                 user.setDescription(null);
             } else {

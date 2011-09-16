@@ -385,10 +385,14 @@ class OptionsActionListener implements ActionListener, ChangeListener, DocumentL
             
         } else if (saveButton != null && e.getSource() == saveButton) {
             
-            if (emailToTextArea.getText().isEmpty() || emailFromTextField.getText().isEmpty() ||
+            if ((!emailToTextArea.getText().isEmpty() || !emailFromTextField.getText().isEmpty() ||
+                    !emailSubjectTextField.getText().isEmpty() || !emailHostTextField.getText().isEmpty() ||
+                    (((String) emailAuthComboBox.getSelectedItem()).equals("Yes") &&
+                    (!emailUsernameTextField.getText().isEmpty() || !new String(emailPasswordTextField.getPassword()).isEmpty()))) &&                        
+                    (emailToTextArea.getText().isEmpty() || emailFromTextField.getText().isEmpty() ||
                     emailSubjectTextField.getText().isEmpty() || emailHostTextField.getText().isEmpty() ||
                     (((String) emailAuthComboBox.getSelectedItem()).equals("Yes") &&
-                    (emailUsernameTextField.getText().isEmpty() || new String(emailPasswordTextField.getPassword()).isEmpty()))) {
+                    (emailUsernameTextField.getText().isEmpty() || new String(emailPasswordTextField.getPassword()).isEmpty())))) {
                 JOptionPane.showMessageDialog(dialog, "All e-mail fields are mandatory!");
                 return;                        
             }
