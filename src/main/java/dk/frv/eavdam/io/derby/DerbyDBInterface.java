@@ -64,8 +64,7 @@ import dk.frv.eavdam.data.Simulation;
 	    	
 	    }
 	    
-	    public static void main(String[] args)
-	    {
+	    public static void main(String[] args) {
 
 //	    	dbTester();
 //	    	if(true) System.exit(0);
