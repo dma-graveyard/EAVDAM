@@ -66,11 +66,15 @@ import dk.frv.eavdam.data.Simulation;
 	    
 	    public static void main(String[] args) {
 
-//	    	dbTester();
-//	    	if(true) System.exit(0);
+	    	if(args == null || (args.length > 0 && args[0].equalsIgnoreCase("test"))){
+		    	System.out.println("Testing the database. Printing the base stations...");
+		    	dbTester();
+	    	}else{
+	    		System.out.println("Destroying the old database and creating a new one.");
 	    	
-	    	DerbyDBInterface dba =  new DerbyDBInterface();
-	    	dba.createDatabase(null);
+	    		DerbyDBInterface dba =  new DerbyDBInterface();
+	    		dba.createDatabase(null);
+	    	}
 	       
 	    }
 
