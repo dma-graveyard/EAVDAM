@@ -19,45 +19,35 @@ public class DBHandler {
     public static EAVDAMData getData() {        
     	EAVDAMData dat = new EAVDAMData(); 
     	
-    	
-//        if (data != null) { // for testing before the database works 
-//            if (data.getUser() == null) {
-                try {
-                    DerbyDBInterface d = new DerbyDBInterface();
-                    EAVDAMUser user = d.retrieveDefaultUser();  
-                    dat = d.retrieveEAVDAMData(user.getUserDBID()+"", DerbyDBInterface.STATUS_ACTIVE+"");
+    	try {
+    		DerbyDBInterface d = new DerbyDBInterface();
+            EAVDAMUser user = d.retrieveDefaultUser();  
+            System.out.println("Retrieved default user: "+user.getOrganizationName());
+            dat = d.retrieveAllEAVDAMData(user);
                     
-                    System.out.println("Retrieved "+dat.getActiveStations().get(0).getStations().get(0).getStationName());
                     
-//                    data.setUser(user);
-                } catch (Exception e) {
-                    System.out.println(e.getMessage());
-                }
-//            }
+                    
+
+    	} catch (Exception e) {
+    		e.printStackTrace();
+//    		System.out.println(e.getMessage());
+    	}
+
             
             
-            return dat;
-//        }
-        
-//        try {
-//            DerbyDBInterface d = new DerbyDBInterface();
-//            ArrayList<EAVDAMData> eavdamData = d.retrieveAllEAVDAMData();
-//            if (eavdamData != null && !eavdamData.isEmpty()) {
-//                return eavdamData.get(0);
-//            } else {
-//                return null;
-//            }
-//        } catch (Exception e) {
-//            System.out.println(e.getMessage());
-//            return null;
-//        }
+        return dat;
+
     }
 
     public static void saveData(EAVDAMData data) {
         DBHandler.data = data;   // for testing before the database works
         DerbyDBInterface d = new DerbyDBInterface();
         //d.createDatabase(null);        
+        
+//        System.out.println("Saving data for user "+data.getUser().getOrganizationName()+" ("+data.getActiveStations().get(0).getStations().get(0).getStationName()+")");
         d.insertEAVDAMData(data);
+
+
     }
     
     public static void saveUserData(EAVDAMUser user){

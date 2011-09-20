@@ -67,8 +67,8 @@ import dk.frv.eavdam.data.Simulation;
 	    public static void main(String[] args)
 	    {
 
-	    	dbTester();
-	    	if(true) System.exit(0);
+//	    	dbTester();
+//	    	if(true) System.exit(0);
 	    	
 	    	DerbyDBInterface dba =  new DerbyDBInterface();
 	    	dba.createDatabase(null);
@@ -85,7 +85,7 @@ import dk.frv.eavdam.data.Simulation;
 	     * @return The connection.
 	     * @throws SQLException
 	     */
-	    public Connection getDBConnection(String dbName, boolean creatingDatabase) throws SQLException{
+	    private Connection getDBConnection(String dbName, boolean creatingDatabase) throws SQLException{
 	        /* load the desired JDBC driver */
 	        loadDriver();
 	        
@@ -149,6 +149,8 @@ import dk.frv.eavdam.data.Simulation;
 	        }
 	        
 	        try{
+//	        	if(true) throw new Exception();
+	        	
 	        	if(conn == null) conn = getDBConnection(defaultDB, false);
 	    	
 
@@ -157,32 +159,14 @@ import dk.frv.eavdam.data.Simulation;
 	        	
 	        	if(data.getActiveStations() != null && data.getActiveStations().size() > 0){
 	        		for(ActiveStation a : data.getActiveStations()){
-	        			if(a.getStations() != null && a.getStations().size() > 0){
-		        			for(AISFixedStationData ais :a.getStations()){
-//		        				System.out.println("Inserting active station to the database (size: "+a.getStations().size()+")...");
-		        				if(ais.getStatus().getStatusID() == STATUS_ACTIVE)
-		        					this.insertStation(ais, STATUS_ACTIVE, orgID, 0);
-		        				else if(ais.getStatus().getStatusID() == STATUS_PLANNED)
-		        					this.insertStation(ais, STATUS_PLANNED, orgID, 0);
-		        			}
-	        			}
-	        			
-	        			if(a.getProposals() != null && a.getProposals().size() > 0){
-		        			for(EAVDAMUser user : a.getProposals().keySet()){
-		        				int proposeeID = this.getOrganizationID(user, false);
-		        				AISFixedStationData ais = a.getProposals().get(user);
-//		        					System.out.println("Inserting proposed station to the database...");
-		        					this.insertStation(ais, STATUS_PROPOSED, orgID, proposeeID);
-		        				
-		        			}
-	        			}
+	        			this.insertActiveStations(a, orgID);
 	        		}
 	        	}
 	        	
 	        	if(data.getOldStations() != null && data.getOldStations().size() > 0){
 	        		for(AISFixedStationData ais : data.getOldStations()){
 //	        			System.out.println("Inserting old station to the database...");
-	        			this.insertStation(ais, STATUS_OLD, orgID, 0);
+	        			this.insertStation(ais, -1, orgID, 0);
 	        		}
 	        	}
 	        	
@@ -190,7 +174,7 @@ import dk.frv.eavdam.data.Simulation;
 	        		for(Simulation sim : data.getSimulatedStations()){
 	        			for(AISFixedStationData ais : sim.getStations()){
 //	        				System.out.println("Inserting simulated station to the database...");
-	        				this.insertSimulatedStation(ais, STATUS_SIMULATED, orgID, 0);
+	        				this.insertSimulatedStation(ais, orgID, 0);
 	        			}
 	        		}
 	        	}
@@ -201,11 +185,12 @@ import dk.frv.eavdam.data.Simulation;
 	        			for(ActiveStation active : other.getStations()){
 		        			for(AISFixedStationData ais : active.getStations()){
 //		        				System.out.println("Inserting active station of other users to the database...");
-		        				this.insertStation(ais, STATUS_ACTIVE, otherID, 0);
+		        				this.insertStation(ais, -1, otherID, 0);
 		        			}
 	        			}
 	        		}
 	        	}
+	        	
 	        	
             	
 	        }catch(Exception e){
@@ -213,13 +198,12 @@ import dk.frv.eavdam.data.Simulation;
 	        	success = false;
 	        }
 	        
-	        System.out.println("Insert "+(success ? "was a success" : "was a failure"));
+//	        System.out.println("Insert "+(success ? "was a success" : "was a failure"));
 	        
 	        return success;
 	    }
 	    
-	    private void insertSimulatedStation(AISFixedStationData ais,
-				int statusSimulated, int orgID, int i) {
+	    private void insertSimulatedStation(AISFixedStationData ais, int orgID, int i) {
 			// TODO Auto-generated method stub
 			
 		}
@@ -350,6 +334,8 @@ import dk.frv.eavdam.data.Simulation;
 	        
 	    	if(this.conn == null) this.getDBConnection(null, false);
 	    			
+	    	if(user == null) return 0;
+	    	
 	    	
         	PreparedStatement ps = conn.prepareStatement("select id from ORGANIZATION where ORGANIZATION.organizationname = ? OR ORGANIZATION.id = ?");
         	ps.setString(1, user.getOrganizationName());
@@ -438,7 +424,99 @@ import dk.frv.eavdam.data.Simulation;
     		
 	    }
 	    
-	    public int insertStation(AISFixedStationData as, int status, int organizationID, int proposee) throws Exception{
+	    /**
+	     * Inserts the active station to the database.
+	     * 
+	     * @param station
+	     */
+	   private void insertActiveStations(ActiveStation station, int organizationID) throws Exception{
+		   if(station == null) return;
+		   
+		   AISFixedStationData active = null;
+		   AISFixedStationData planned = null;
+		   
+//		   System.out.println("There are "+station.getStations().size()+" active station...");
+		   
+		   for(AISFixedStationData d : station.getStations()){
+
+			   if(d.getStatus().getStatusID() == STATUS_ACTIVE) active = d;
+			   else if(d.getStatus().getStatusID() == STATUS_PLANNED) planned = d;
+		   }
+	
+		   //Update to change the status...
+		   if(active == null && planned == null){
+			   if(station.getStations().size() > 0){
+				   AISFixedStationData s = station.getStations().get(0);
+				   
+				   
+				   System.out.println("Updating status...");
+				   this.updateAISStation(s);
+				   
+			   }
+		   }else{
+			   
+	//		   System.out.println("Updating/Inserting active station: "+active.getLat()+" vs. "+active.getLon());
+			   int stationID = this.insertStation(active, -1, organizationID, 0);
+			   
+			   if(planned != null){
+	//			   System.out.println("Updating/inserting planned station: "+planned.getLat()+" vs. "+planned.getLon());
+				   this.insertStation(planned, stationID, organizationID, 0);
+			   }
+		    	
+		   }
+		   
+		   if(station.getProposals() != null && station.getProposals().size() > 0){
+			   for(EAVDAMUser proposal : station.getProposals().keySet()){
+				   this.insertStation(station.getProposals().get(proposal), -1, organizationID, this.getOrganizationID(proposal, false));
+			   }
+		   }
+	   }
+	    
+	    /**
+	     * Inserts the new AIS Station to the databse. IF a station with the same MMSI and same location can be found, the station is updated instead!  
+	     * 
+	     * That is, if latitude, longitude or MMSI changes, a new station will be created!
+	     * 
+	     * @param as Station data
+	     * @param refstation To which station this status refers to. For example, planned station always refers to an old/active station.
+	     * @param status The status of the station
+	     * @param organizationID Owner of the station
+	     * @param proposee Who proposed this station
+	     * @return Id of the station
+	     * @throws Exception SQLException will be thrown if there are some problems.
+	     */
+	    private int insertStation(AISFixedStationData as, int refstation, int organizationID, int proposee) throws Exception{
+	    	if(as == null) return -1;
+	    	
+	    	if(this.conn == null) this.getDBConnection(null, false);
+	    	
+	    	//Check if the station exists.
+	    	
+
+	    	String update_sql = "select id " +
+	    			"from FIXEDSTATION, STATUS " +
+	    			"where FIXEDSTATION.id = STATUS.station AND STATUS.statustype = ? AND " +
+	    			"(FIXEDSTATION.id = ? OR (mmsi = ? AND lat = ? AND lon = ?))";
+	    	PreparedStatement update = conn.prepareStatement(update_sql);
+	    	update.setInt(1, as.getStatus().getStatusID());
+	    	update.setInt(2, as.getStationDBID());
+	    	update.setString(3, as.getMmsi());
+	    	update.setDouble(4, as.getLat());
+	    	update.setDouble(5, as.getLon());
+	    	
+	    	ResultSet res = update.executeQuery();
+	    	if(res.next()){
+	    		int id = res.getInt(1);
+	    		if(id >= 0){
+	    			System.out.println("Station exists. Updating its information!");
+	    			this.updateAISStation(as);
+	    			
+	    			res.close();
+	    			update.close();
+	    			return id;
+	    		}
+	    	}
+	    	
 	    	
 	    	
 	    	int stationType;
@@ -500,13 +578,13 @@ import dk.frv.eavdam.data.Simulation;
 
 	    	
 	    	//Insert Status
-	    	this.insertStatus(as.getStatus(), status, stationID);
+	    	this.insertStatus(as.getStatus(), refstation, as.getStatus().getStatusID(), stationID);
 	    	
 	    	
 	    	//Insert FATDMA Allocations
 	    	this.insertFATDMAAllocations(as.getFatdmaAllocation());
 	    	
-	    	
+	    	as.setStationDBID(stationID);
 	    	
 	    	return stationID;
 	    }
@@ -527,13 +605,14 @@ import dk.frv.eavdam.data.Simulation;
 	    	
 	    }
 	    
-	    public void insertStatus(AISFixedStationStatus status, int statusID, int stationID) throws Exception{
-	    	PreparedStatement psc = conn.prepareStatement("insert into STATUS values (?,?,?,?)");
+	    public void insertStatus(AISFixedStationStatus status, int refstation, int statusID, int stationID) throws Exception{
+	    	PreparedStatement psc = conn.prepareStatement("insert into STATUS values (?,?,?,?,?)");
 	    	
 	    	psc.setInt(1, stationID);
-	    	psc.setInt(2, statusID);
-	    	psc.setDate(3, status.getStartDate());
-	    	psc.setDate(4, status.getEndDate());
+	    	psc.setInt(2, refstation);
+	    	psc.setInt(3, statusID);
+	    	psc.setDate(4, status.getStartDate());
+	    	psc.setDate(5, status.getEndDate());
 	    	psc.executeUpdate();
 	    	
 	    	psc.close();
@@ -555,7 +634,7 @@ import dk.frv.eavdam.data.Simulation;
 	    	int cp = this.getPersonID(user.getContact());
 	    	int tp = this.getPersonID(user.getTechnicalContact());
 	    	int va = this.getAddressID(user.getVisitingAddress());
-	    	int pa = this.getAddressID(user.getVisitingAddress());
+	    	int pa = this.getAddressID(user.getPostalAddress());
 	    	
 	    	String sql = "update ORGANIZATION set " +
 	    			"ORGANIZATIONNAME = ?, " + //1.
@@ -584,7 +663,7 @@ import dk.frv.eavdam.data.Simulation;
 	    	ps.setInt(11,user.getUserDBID());
 	    		
 	    	ps.executeUpdate();
-	    	
+
 	    	
 	    }
 	    
@@ -623,14 +702,119 @@ import dk.frv.eavdam.data.Simulation;
 	    }
 	    
 	    /**
+	     * Updates the information about the given AISFixedStationData to the database. 
+	     * 
+	     * @param ais
+	     */
+	    public void updateAISStation(AISFixedStationData ais) throws Exception{
+	    	if(this.conn == null) this.getDBConnection(null, false);
+	    	
+	    	int owner = this.getOrganizationID(ais.getOperator(), false);
+	    	
+	    	int stationType = 1;
+	    	switch(ais.getStationType()){
+	    		case ATON: stationType = STATION_ATON; break;
+	    		case BASESTATION: stationType = STATION_BASE; break;
+	    		case RECEIVER: stationType = STATION_RECEIVER; break;
+	    		case REPEATER: stationType = STATION_REPEATER; break;
+	    	}
+	    	
+//	    	System.out.println("UPDATING: "+ais.getLat()+" vs. "+ais.getLon());
+	    	
+	    	String sql = "update FIXEDSTATION set " +
+	    			"NAME = ?, " + //1.
+	    			"OWNER = ?," +  //2.
+	    			"MMSI = ?," +  //3.
+	    			"LAT = ?," +  //4.
+	    			"LON = ?," +  //5.
+	    			"TRANSMISSIONPOWER = ?," +  //6.
+	    			"DESCRIPTION = ?," +  //7.
+	    			"STATIONTYPE = ?," +  //8.
+	    			"ANYVALUE = ?," +  //9.
+	    			"PROPOSEE = ?" +  //10.
+	    			" where ID = ?";  //11.
+	    	PreparedStatement ps = conn.prepareStatement(sql);
+	    	ps.setString(1, ais.getStationName());
+	    	ps.setInt(2, owner);
+	    	ps.setString(3, ais.getMmsi());
+	    	ps.setDouble(4, ais.getLat());
+	    	ps.setDouble(5, ais.getLon());
+	    	ps.setDouble(6, (ais.getTransmissionPower() != null ? ais.getTransmissionPower() : 0));
+	    	ps.setString(7, ais.getDescription());
+	    	ps.setInt(8, stationType);
+	    	ps.setString(9, ais.getAnythingString());
+	    	ps.setInt(10, ais.getProposee());
+	    	ps.setInt(11, ais.getStationDBID());
+	    	
+	    	ps.executeUpdate();
+	    	ps.close();
+	    	
+	    	if(ais.getAntenna() != null) this.updateAntenna(ais.getAntenna(), ais.getStationDBID());
+	    	
+	    	if(ais.getStatus() != null) this.updateStatus(ais.getStatus(), ais.getStationDBID());
+	    }
+	    
+	    private void updateAntenna(Antenna antenna, int stationId) throws Exception{
+	    	
+	    	int antennaType = 1;
+	    	switch(antenna.getAntennaType()){
+	    		case DIRECTIONAL: antennaType = ANTENNA_DIRECTIONAL; break;
+	    		case OMNIDIRECTIONAL: antennaType = ANTENNA_OMNIDIR; break;
+	    	
+	    	}
+	    	
+	    	String sql = "update ANTENNA set " +
+	    			"ANTENNAHEIGHT = ?, " + //1.
+	    			"TERRAINHEIGHT = ?," +  //2.
+	    			"ANTENNAHEADING = ?," +  //3.
+	    			"FIELDOFVIEWANGLE = ?," +  //4.
+	    			"GAIN = ?," +  //5.
+	    			"ANTENNATYPE = ?" +  //6.
+	    			" where STATION = ?";  //7.
+	    	PreparedStatement ps = conn.prepareStatement(sql);
+	    	ps.setDouble(1, antenna.getAntennaHeight());
+	    	ps.setDouble(2, antenna.getTerrainHeight());
+	    	ps.setInt(3, antenna.getHeading());
+	    	ps.setInt(4, antenna.getFieldOfViewAngle());
+	    	ps.setDouble(5, antenna.getGain());
+	    	ps.setInt(6, antennaType);
+	    	ps.setInt(7, stationId);
+	    	
+	    	ps.executeUpdate();
+	    	ps.close();
+	    	
+	    	
+	    }
+	    
+	    private void updateStatus(AISFixedStationStatus status, int stationId) throws Exception{
+	    	
+	    	String sql = "update STATUS set " +
+	    			"STATUSTYPE = ?, " + //1.
+	    			"STARTDATE = ?," +  //2.
+	    			"ENDDATE = ?" +  //3.
+	    			" where STATION = ?";  //4.
+	    	PreparedStatement ps = conn.prepareStatement(sql);
+	    	ps.setInt(1, status.getStatusID());
+	    	ps.setDate(2, status.getStartDate());
+	    	ps.setDate(3, status.getEndDate());
+	    	ps.setInt(4, stationId);
+	    	
+	    	int n = ps.executeUpdate();
+	    	System.out.println("Updated the status: "+status.getStatusID()+" (n:"+n+", id: "+stationId+")");
+	    	
+	    	ps.close();
+	    	
+	    }
+	    
+	    /**
 	     * Retrieves all the data from the database.
 	     * 
 	     * This includes ...
 	     * 
 	     * @return
 	     */
-	    public ArrayList<EAVDAMData> retrieveAllEAVDAMData() throws Exception{
-	    	ArrayList<EAVDAMData> data = new ArrayList<EAVDAMData>();
+	    public EAVDAMData retrieveAllEAVDAMData(EAVDAMUser defaultUser) throws Exception{
+	    	EAVDAMData data = new EAVDAMData();
 	    	
 	    	System.out.println("Retrieving all EAVDAMData");
 	    	
@@ -641,7 +825,35 @@ import dk.frv.eavdam.data.Simulation;
 	    	
 	    	List<EAVDAMUser> users = this.retrieveAllEAVDAMUsers();
 	    	for(EAVDAMUser u : users){
-	    		data.add(this.retrieveEAVDAMData(u.getUserDBID()+"", STATUS_ACTIVE+""));
+	    		if(u.getUserDBID() == defaultUser.getUserDBID()){
+	    			data.setUser(u);
+	    			
+	    			//Gets both active, proposed (to this user) and planned stations...
+	    			data.setActiveStations(this.retrieveEAVDAMData(u.getUserDBID(),STATUS_ACTIVE).getActiveStations());
+	    			data.setOldStations(this.retrieveEAVDAMData(u.getUserDBID(), STATUS_OLD).getOldStations());
+	    			
+	    			//TODO Simulation
+	    			data.setSimulatedStations(this.retrieveEAVDAMData(u.getUserDBID(), STATUS_SIMULATED).getSimulatedStations());
+	    			
+	    			
+	    			
+	    		}else{
+	    			//Get "other user data"
+	    			OtherUserStations o = new OtherUserStations();
+	    			EAVDAMData others = this.retrieveEAVDAMData(u.getUserDBID(), STATUS_ACTIVE);
+	    			o.setUser(u);
+	    			o.setStations(others.getActiveStations());
+	    			
+	    			//TODO What about proposals to this user?
+	    			EAVDAMData prop = this.retrieveEAVDAMData(u.getUserDBID(), STATUS_PROPOSED);
+	    			o.getStations().addAll(prop.getActiveStations());
+	    			
+	    			List<OtherUserStations> lo = data.getOtherUsersStations();
+	    			if(lo == null) lo = new ArrayList<OtherUserStations>();
+	    			lo.add(o);
+	    			data.setOtherUsersStations(lo);
+	    		}
+	    		
 	    	}
 	    	
 	    	
@@ -717,7 +929,7 @@ import dk.frv.eavdam.data.Simulation;
 	    		u.setCountryID(res.getString(3));
 	    		u.setPhone(res.getString(4));
 	    		u.setFax(res.getString(5));
-	    		u.setWww(new URL(res.getString(6)));
+	    		u.setWww((res.getString(6) != null || res.getString(6).length() > 0 ? new URL((res.getString(6).startsWith("http://") ? res.getString(6) : "http://"+res.getString(6))) : null));
 	    		u.setDescription(res.getString(7));
 	    		
 	    		
@@ -791,22 +1003,22 @@ import dk.frv.eavdam.data.Simulation;
 	     * @param user Either database userID (int) OR organization name. 
 	     * @return
 	     */
-	    public EAVDAMData retrieveEAVDAMData(String user, String status) throws Exception{
+	    public EAVDAMData retrieveEAVDAMData(int user, int status) throws Exception{
 //	    	System.out.println("Retrieving EAVDAMData for user "+user+" with status "+status);
 	    	EAVDAMData data = new EAVDAMData();
-	    	EAVDAMUser u = this.retrieveEAVDAMUser(user);
+	    	EAVDAMUser u = this.retrieveEAVDAMUser(user+"");
 	    	
 	    	if(u == null) return null;
 	    	
 	    	data.setUser(u);
 
 	    	
-	    	if(status == null){
+	    	if(status <= 0){
 	    	
 		    	//Get the active stations.
-		    	List<AISFixedStationData> activeStations = this.retrieveAISStation(STATUS_ACTIVE, u.getUserDBID());
+		    	List<AISFixedStationData> activeStations = this.retrieveAISStations(STATUS_ACTIVE, u.getUserDBID());
 		    	//Proposed stations...
-		    	List<AISFixedStationData> proposedStations = this.retrieveAISStation(STATUS_PROPOSED, u.getUserDBID());
+		    	List<AISFixedStationData> proposedStations = this.retrieveAISStations(STATUS_PROPOSED, u.getUserDBID());
 	
 		    	for(AISFixedStationData prop : proposedStations){
 			    	//Transform this list to ActiveStation list...
@@ -823,11 +1035,11 @@ import dk.frv.eavdam.data.Simulation;
 			    	data.setActiveStations(a);
 		    	}
 		    	
-		    	List<AISFixedStationData> oldStations = this.retrieveAISStation(STATUS_OLD, u.getUserDBID());
+		    	List<AISFixedStationData> oldStations = this.retrieveAISStations(STATUS_OLD, u.getUserDBID());
 		    	data.setOldStations(oldStations);
 		    	
 		    	
-		    	List<AISFixedStationData> otherUserStations = this.retrieveAISStation(STATUS_ACTIVE, -1);
+		    	List<AISFixedStationData> otherUserStations = this.retrieveAISStations(STATUS_ACTIVE, -1);
 		    	List<OtherUserStations> other = new ArrayList<OtherUserStations>();
 		    	OtherUserStations o = new OtherUserStations();
 		    	
@@ -838,22 +1050,26 @@ import dk.frv.eavdam.data.Simulation;
 		    	data.setSimulatedStations(null);
 		    	
 	    	}else{
-	    		if(status.equals(STATUS_ACTIVE+"")){
+	    		if(status == STATUS_ACTIVE){
+
+	    			data.setActiveStations(this.retrieveActiveStations(user));
+	    		}else if(status == STATUS_OLD){
+	    			List<AISFixedStationData> oldStations = this.retrieveAISStations(STATUS_OLD, u.getUserDBID());
+	    			data.setOldStations(oldStations);
 	    			
-	    			List<AISFixedStationData> activeStations = this.retrieveAISStation(STATUS_ACTIVE, u.getUserDBID());
-	    			System.out.println("Retrieved "+activeStations.size()+" active stations for user "+u.getUserDBID());
+	    		}else if(status == STATUS_PROPOSED){
+	    			
+	    		}else if(status == STATUS_PLANNED){
+	    		
+	    			List<AISFixedStationData> plannedStations = this.retrieveAISStations(STATUS_PLANNED, u.getUserDBID());
 	    			ActiveStation as = new ActiveStation();
-	    			as.setStations(activeStations);
+	    			as.setStations(plannedStations);
+	    			
 	    			List<ActiveStation> al = new ArrayList<ActiveStation>();
 	    			al.add(as);
 	    			data.setActiveStations(al);
-	    		}else if(status.equals(STATUS_OLD+"")){
 	    			
-	    		}else if(status.equals(STATUS_PROPOSED+"")){
-	    			
-	    		}else if(status.equals(STATUS_PLANNED+"")){
-	    			
-	    		}else if(status.equals(STATUS_SIMULATED+"")){
+	    		}else if(status == STATUS_SIMULATED){
 	    			
 	    		}
 	    		
@@ -861,6 +1077,29 @@ import dk.frv.eavdam.data.Simulation;
 	    	
 	    	
 	    	return data;
+	    }
+	    
+	    private List<ActiveStation> retrieveActiveStations(int user) throws Exception{
+			List<ActiveStation> activeStations = new ArrayList<ActiveStation>();
+	    	if(user < 0) return null;
+	    	
+	    	List<AISFixedStationData> active = this.retrieveAISStations(STATUS_ACTIVE, user);
+	    	if(active != null && active.size() > 0){
+				for(AISFixedStationData a : active){
+					ActiveStation act = new ActiveStation();
+					List<AISFixedStationData> list = new ArrayList<AISFixedStationData>();
+					list.add(a);
+					
+					List<AISFixedStationData> planned = this.retrieveAISStation(a.getStationDBID(), STATUS_PLANNED, user);
+					if(planned != null && planned.size() > 0) list.addAll(planned); 
+					
+					
+					act.setStations(list);
+					activeStations.add(act);
+				}	
+	    	}
+	    	
+	    	return activeStations;
 	    }
 	    
 	    /**
@@ -872,7 +1111,146 @@ import dk.frv.eavdam.data.Simulation;
 	     * @param userID 
 	     * @return
 	     */
-	    public List<AISFixedStationData> retrieveAISStation(int statusID, int userID) throws Exception{
+	    public List<AISFixedStationData> retrieveAISStations(int statusID, int userID) throws Exception{
+	    	ArrayList<AISFixedStationData> data = new ArrayList<AISFixedStationData>();
+	    	
+	    	String sql = "select " +
+	    			"FIXEDSTATION.id, " +  //1.
+	    			"FIXEDSTATION.name, " +  //2.
+	    			"FIXEDSTATION.owner, " +  //3.
+	    			"FIXEDSTATION.mmsi, " + //4.
+	    			"FIXEDSTATION.lat, " +  //5.
+	    			"FIXEDSTATION.lon, " +  //6.
+	    			"FIXEDSTATION.transmissionpower, " +  //7.
+	    			"FIXEDSTATION.description, " + //8.
+	    			"FIXEDSTATION.stationtype, "+  //9.
+	    			"FIXEDSTATION.anyvalue, "+  //10.
+	    			"FIXEDSTATION.proposee, "+  //11.
+	    			"STATUS.statustype, "+   //12.
+	    			"STATUS.startdate, "+   //13.
+	    			"STATUS.enddate, "+  //14.
+	    			"STATUS.refstation,"+ //15
+	    			"FIXEDSTATION.stationtype " +  //16.
+	    			"from FIXEDSTATION, STATUS " +
+	    			"where FIXEDSTATION.ID = STATUS.STATION";
+	    	String whereClause = "";
+	    	if(statusID > 0){
+	    		whereClause += " AND STATUS.statustype="+statusID;
+	    	}
+	    	
+	    	HashMap<String, EAVDAMUser> users = new HashMap<String, EAVDAMUser>();
+	    	if(userID >= 0){
+	    		whereClause += " AND FIXEDSTATION.owner="+userID;
+	    		
+	    		users.put(userID+"", this.retrieveEAVDAMUser(userID+""));
+	    		
+	    	}else{
+	    		for(EAVDAMUser u : this.retrieveAllEAVDAMUsers()){
+	    			users.put(u.getUserDBID()+"", u);
+	    		}
+	    	}
+	    	
+	    	PreparedStatement ps = conn.prepareStatement(sql+whereClause);
+	    	
+	    	ResultSet rs = ps.executeQuery();
+	    	//TODO Add FATDMA and COVERAGE objects! 
+	    	while(rs.next()){
+	    		AISFixedStationData ais = new AISFixedStationData();
+	    		ais.setStationDBID(rs.getInt(1));
+	    		ais.setStationName(rs.getString(2));
+	    		ais.setMmsi(rs.getString(4));
+	    		ais.setLat(rs.getDouble(5));
+	    		ais.setLon(rs.getDouble(6));
+	    		ais.setTransmissionPower(rs.getDouble(7));
+	    		ais.setDescription(rs.getString(8));
+	    		ais.setProposee(rs.getInt(11));
+	    		
+	    		//Get the owner?
+	    		ais.setOperator(users.get(rs.getInt(3)+""));
+	    		
+	    		ais.setRefStationID(rs.getInt(15));
+
+	    		
+	    		AISFixedStationStatus status = new AISFixedStationStatus();
+	    		status.setStartDate(rs.getDate(13));
+	    		status.setEndDate(rs.getDate(14));
+	    		status.setStatusID(rs.getInt(12));
+	    		ais.setStatus(status);
+	    		
+	    		int stationType = rs.getInt(16);
+	    		if(stationType == STATION_ATON){
+	    			ais.setStationType(AISFixedStationType.ATON);
+	    		}else if(stationType == STATION_BASE){
+	    			ais.setStationType(AISFixedStationType.BASESTATION);
+	    		} else if(stationType == STATION_RECEIVER){
+	    			ais.setStationType(AISFixedStationType.RECEIVER);
+	    		} else if(stationType == STATION_REPEATER){
+	    			ais.setStationType(AISFixedStationType.REPEATER);
+	    		} else{
+	    			ais.setStationType(null);
+	    		}
+	    		
+	    		//TODO Get this data also...
+	    		ais.setCoverage(null);
+	    		ais.setFatdmaAllocation(null);
+	    		ais.setAnything(null);
+	    		
+	    		data.add(ais);
+	    	}
+	    	
+	    	//Get the antenna information
+	    	for(AISFixedStationData ais : data){
+		    	sql = "select " +
+		    			"ANTENNA.antennaheight, " +  //1.
+		    			"ANTENNA.terrainheight, " +  //2.
+		    			"ANTENNA.antennaheading, " +  //3.
+		    			"ANTENNA.fieldofviewangle, " +  //4.
+		    			"ANTENNA.gain, " +  //5.
+		    			"ANTENNA.antennatype " +  //6.
+		    			"from ANTENNA " +
+		    			"where ANTENNA.station = ?";
+		    	
+		    	
+		    	ps = conn.prepareStatement(sql);
+		    	ps.setInt(1, ais.getStationDBID());
+		    	
+		    	rs.close();
+		    	rs = ps.executeQuery();
+		    	while(rs.next()){
+		    		Antenna antenna = new Antenna();
+		    		antenna.setAntennaHeight(rs.getDouble(1));
+		    		if(rs.getInt(6) == ANTENNA_DIRECTIONAL){
+		    			antenna.setAntennaType(AntennaType.DIRECTIONAL);
+		    		}else{
+		    			antenna.setAntennaType(AntennaType.OMNIDIRECTIONAL);
+		    		}
+		    		antenna.setFieldOfViewAngle(rs.getInt(4));
+		    		antenna.setGain(rs.getDouble(5));
+		    		antenna.setHeading(3);
+		    		antenna.setTerrainHeight(rs.getDouble(2));
+		    		ais.setAntenna(antenna);
+		    	}
+	    	}
+	    	
+	    	rs.close();
+	    	ps.close();
+	    	
+	    	return data;
+	    }
+	    
+
+	    /**
+	     * Retrieves a specific station.
+	     * 
+	     * NOTE! If status == STATUS_PLANNED, the stationID should indicate the reference station to which the planned station maps to!
+	     * 
+	     * @param stationID
+	     * @param statusID
+	     * @param userID
+	     * @return
+	     * @throws Exception
+	     */
+	    private List<AISFixedStationData> retrieveAISStation(int stationID, int statusID, int userID) throws Exception{
 	    	ArrayList<AISFixedStationData> data = new ArrayList<AISFixedStationData>();
 	    	
 	    	String sql = "select " +
@@ -896,6 +1274,7 @@ import dk.frv.eavdam.data.Simulation;
 	    	String whereClause = "";
 	    	if(statusID > 0){
 	    		whereClause += " AND STATUS.statustype="+statusID;
+	    		
 	    	}
 	    	
 	    	HashMap<String, EAVDAMUser> users = new HashMap<String, EAVDAMUser>();
@@ -907,6 +1286,14 @@ import dk.frv.eavdam.data.Simulation;
 	    	}else{
 	    		for(EAVDAMUser u : this.retrieveAllEAVDAMUsers()){
 	    			users.put(u.getUserDBID()+"", u);
+	    		}
+	    	}
+	    	
+	    	if(stationID >= 0){
+	    		if(statusID == STATUS_PLANNED){
+	    			whereClause += " AND STATUS.REFSTATION = "+stationID;
+	    		}else{
+	    			whereClause += " AND FIXEDSTATION.ID = "+stationID;
 	    		}
 	    	}
 	    	
@@ -997,7 +1384,6 @@ import dk.frv.eavdam.data.Simulation;
 	    	return data;
 	    }
 	    
-
 	    /**
 	     * Transforms the list of proposed stations into Map of proposed stations
 	     * 
@@ -1380,9 +1766,9 @@ import dk.frv.eavdam.data.Simulation;
 							+ "NAME VARCHAR(120),"
 							+ "OWNER INT,"
 							+ "MMSI VARCHAR(15),"
-							+ "LAT DECIMAL,"
-							+ "LON DECIMAL,"
-							+ "TRANSMISSIONPOWER DECIMAL,"
+							+ "LAT DECIMAL (7,4),"
+							+ "LON DECIMAL (7,4),"
+							+ "TRANSMISSIONPOWER DECIMAL (7,4),"
 							+ "DESCRIPTION VARCHAR(1000),"
 							+ "STATIONTYPE INT,"
 							+ "ANYVALUE VARCHAR(2000),"
@@ -1399,6 +1785,7 @@ import dk.frv.eavdam.data.Simulation;
 				try {
 					s.execute("CREATE TABLE STATUS"
 							+ "(STATION INT,"
+							+ "REFSTATION INT,"
 							+ "STATUSTYPE INT,"
 							+ "STARTDATE DATE,"
 							+ "ENDDATE DATE,"
@@ -1412,11 +1799,11 @@ import dk.frv.eavdam.data.Simulation;
 				try {
 					s.execute("CREATE TABLE ANTENNA"
 							+ "(STATION INT,"
-							+ "ANTENNAHEIGHT DECIMAL,"
-							+ "TERRAINHEIGHT DECIMAL,"
+							+ "ANTENNAHEIGHT DECIMAL (7,4),"
+							+ "TERRAINHEIGHT DECIMAL (7,4),"
 							+ "ANTENNAHEADING INT,"
-							+ "FIELDOFVIEWANGLE DECIMAL,"
-							+ "GAIN DECIMAL,"
+							+ "FIELDOFVIEWANGLE DECIMAL (7,4),"
+							+ "GAIN DECIMAL (7,4),"
 							+ "ANTENNATYPE INT,"
 							+ "CONSTRAINT fk_s_a FOREIGN KEY (STATION) references FIXEDSTATION(ID))");
 				} catch (Exception e) {
@@ -1428,8 +1815,8 @@ import dk.frv.eavdam.data.Simulation;
 					s.execute("CREATE TABLE COVERAGEPOINTS"
 							+ "(ID INT PRIMARY KEY,"
 							+ "STATION INT,"
-							+ "LAT DECIMAL,"
-							+ "LON DECIMAL,"
+							+ "LAT DECIMAL (7,4),"
+							+ "LON DECIMAL (7,4),"
 							+ "CONSTRAINT fk_s_cp FOREIGN KEY (STATION) references FIXEDSTATION(ID))");
 				} catch (Exception e) {
 					if(log)
@@ -1513,7 +1900,7 @@ import dk.frv.eavdam.data.Simulation;
 	    		Connection conn = db.getDBConnection(null, false);
 	    		String sql = "";
 	    		sql = "select id, organizationname from ORGANIZATION";
-	    		sql = "select FIXEDSTATION.id, FIXEDSTATION.name, STATUS.statustype, FIXEDSTATION.owner from FIXEDSTATION, STATUS where STATUS.station = FIXEDSTATION.id";
+	    		sql = "select FIXEDSTATION.id, FIXEDSTATION.name, STATUS.statustype, FIXEDSTATION.owner, FIXEDSTATION.lat, FIXEDSTATION.lon from FIXEDSTATION, STATUS where STATUS.station = FIXEDSTATION.id";
 //	    		sql = "select id, name, email from PERSON";
 	    		
 	    		
@@ -1522,7 +1909,7 @@ import dk.frv.eavdam.data.Simulation;
 	    		
 	    		System.out.println("Table holds:\nID\tName\tStatus\tOwner");
 	    		while(rs.next()){
-	    			System.out.println(rs.getInt(1)+"\t"+rs.getString(2)+"\t"+rs.getInt(3)+"\t"+rs.getInt(4));
+	    			System.out.println(rs.getInt(1)+"\t"+rs.getString(2)+"\t"+rs.getInt(3)+"\t"+rs.getInt(4)+"\t"+rs.getDouble(5)+"\t"+rs.getDouble(6));
 	    		}
 	    		
 	    		EAVDAMUser def = db.retrieveDefaultUser();

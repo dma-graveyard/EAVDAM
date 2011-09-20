@@ -37,6 +37,7 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.InputStreamReader;
 import java.net.MalformedURLException;
+import java.sql.Date;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -1442,6 +1443,8 @@ class StationInformationMenuItemActionListener implements ActionListener, Change
 
     private AISFixedStationData getSelectedStationData(int selectedIndex) {
     
+    	if(selectedIndex < 0) return null;
+    	
         AISFixedStationData selectedStationData = null;
     
         if (((String) selectDatasetComboBox.getSelectedItem()).startsWith(StationInformationMenuItem.OWN_ACTIVE_STATIONS_LABEL)) {
@@ -2279,6 +2282,8 @@ class StationInformationMenuItemActionListener implements ActionListener, Change
             return false;
         }
 
+//        System.out.println("SAVING: "+station.getLat()+" vs. "+station.getLon());
+        
         if (((String) selectDatasetComboBox.getSelectedItem()).startsWith(StationInformationMenuItem.OWN_ACTIVE_STATIONS_LABEL)) {
             if (data != null && data.getActiveStations() != null && stationIndex < data.getActiveStations().size()) {
                 ActiveStation as = data.getActiveStations().get(stationIndex);
@@ -2350,6 +2355,7 @@ class StationInformationMenuItemActionListener implements ActionListener, Change
             return;
         }
      
+ 
         AISFixedStationData newActiveStationData = new AISFixedStationData();
         try {
             newActiveStationData.setStationName(stationNameTextField.getText().trim());
@@ -2419,6 +2425,7 @@ class StationInformationMenuItemActionListener implements ActionListener, Change
             }
             AISFixedStationStatus status = new AISFixedStationStatus();
             status.setStatusID(DerbyDBInterface.STATUS_ACTIVE);
+            status.setStartDate(new Date(System.currentTimeMillis()));
             newActiveStationData.setStatus(status);
         } catch (IllegalArgumentException e) {
             // should not occur as the station is saved
@@ -2428,9 +2435,20 @@ class StationInformationMenuItemActionListener implements ActionListener, Change
         for (int i=0; i<as.getStations().size(); i++) {                        
             AISFixedStationData temp = as.getStations().get(i);
             if (temp.getStatus().getStatusID() == DerbyDBInterface.STATUS_ACTIVE) {
-                as.getStations().set(i, newActiveStationData);
-                break;                
+            	System.out.println("Found active station. Changing it to old...");
+//                temp.getStatus().setStatusID(DerbyDBInterface.STATUS_OLD);
+//                temp.getStatus().setStartDate(new Date(System.currentTimeMillis()));
+//                as.getStations().set(i, temp);
+            	newActiveStationData.setStationDBID(temp.getStationDBID());
+            	newActiveStationData.setOperator(temp.getOperator());
+            	as.getStations().set(i, newActiveStationData);
+                break;
+                
             }
+            
+//            System.out.println("ADDING: "+newActiveStationData.getLat()+" "+newActiveStationData.getLon());
+//            as.getStations().add(newActiveStationData);
+            
             data.getActiveStations().set(stationIndex, as);            
         }
             
@@ -2446,7 +2464,27 @@ class StationInformationMenuItemActionListener implements ActionListener, Change
         if (data != null) {            
             if (((String) selectDatasetComboBox.getSelectedItem()).startsWith(StationInformationMenuItem.OWN_ACTIVE_STATIONS_LABEL)) {            
                 if (data != null && data.getActiveStations() != null && stationIndex < data.getActiveStations().size()) {
-                    data.getActiveStations().remove(stationIndex);                                    
+
+                	//Create an object that tells which station is removed = Is stored as an old station...
+                	EAVDAMData remove = new EAVDAMData();
+                	remove.setUser(data.getUser());
+                	List<ActiveStation> list = new ArrayList<ActiveStation>();
+                	AISFixedStationData removeAIS = data.getActiveStations().get(stationIndex).getStations().get(0);
+                	AISFixedStationStatus status = new AISFixedStationStatus();
+                	status.setEndDate(new Date(System.currentTimeMillis()));
+                	status.setStatusID(DerbyDBInterface.STATUS_OLD);
+                	removeAIS.setStatus(status);
+                	ActiveStation as = new ActiveStation();
+                	List<AISFixedStationData> aisList = new ArrayList<AISFixedStationData>();
+                	aisList.add(removeAIS);
+                	as.setStations(aisList);
+                	list.add(as);
+                	remove.setActiveStations(list);
+                	DBHandler.saveData(remove);
+                	
+                			
+                	data.getActiveStations().remove(stationIndex);   
+                    
                 }
                        
             } else if (((String) selectDatasetComboBox.getSelectedItem()).startsWith(StationInformationMenuItem.SIMULATION_LABEL)) {
@@ -2462,7 +2500,7 @@ class StationInformationMenuItemActionListener implements ActionListener, Change
                 }
             }            
             
-            DBHandler.saveData(data);         
+//            DBHandler.saveData(data);         
         }
     }
     

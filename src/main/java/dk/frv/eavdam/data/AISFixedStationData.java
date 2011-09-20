@@ -83,6 +83,12 @@ public class AISFixedStationData {
 	private int proposee;
 	
 	/**
+	 * Id of the station to which the planned station maps to.
+	 * 
+	 */
+	private int refStationID;
+	
+	/**
 	 * ID that is used in the database.
 	 * 
 	 */
@@ -275,5 +281,13 @@ public class AISFixedStationData {
 
 	public void setStationDBID(int stationDBID) {
 		this.stationDBID = stationDBID;
+	}
+
+	public int getRefStationID() {
+		return refStationID;
+	}
+
+	public void setRefStationID(int refStationID) {
+		this.refStationID = refStationID;
 	}
 }

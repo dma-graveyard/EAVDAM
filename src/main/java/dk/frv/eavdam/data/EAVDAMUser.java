@@ -75,11 +75,14 @@ public class EAVDAMUser {
 	}
 
 	public void setPhone(String phone) {
-		if (phone != null && !phone.matches("\\+[0-9 -]+")) {
+		if (phone != null && phone.length() > 0 && !phone.matches("\\+[0-9 -]+")) {
 			throw new IllegalArgumentException(
 					"Phone number invalid, must start with + followed by digits, space and dashes allowed.");
 		}
-		this.phone = phone;
+		if(phone != null && !phone.equals("+0"))
+			this.phone = phone;
+		else
+			this.phone = "";
 	}
 
 	public String getFax() {
@@ -87,11 +90,15 @@ public class EAVDAMUser {
 	}
 
 	public void setFax(String fax) {
-		if (fax != null && !fax.matches("\\+[0-9 -]+")) {
+		if (fax != null && fax.length() > 0 && !fax.matches("\\+[0-9 -]+")) {
 			throw new IllegalArgumentException(
 					"Fax number invalid, must start with + followed by digits, space and dashes allowed.");
 		}
-		this.fax = fax;
+		
+		if(fax != null && !fax.equals("+0"))
+			this.fax = fax;
+		else
+			this.fax = "";
 	}
 
 	public java.net.URL getWww() {
