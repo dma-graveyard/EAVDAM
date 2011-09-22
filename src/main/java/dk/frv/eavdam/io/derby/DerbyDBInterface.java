@@ -15,6 +15,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 
+import sun.dc.pr.PRError;
+
 import dk.frv.eavdam.data.AISFixedStationData;
 import dk.frv.eavdam.data.AISFixedStationStatus;
 import dk.frv.eavdam.data.AISFixedStationType;
@@ -25,6 +27,8 @@ import dk.frv.eavdam.data.AntennaType;
 import dk.frv.eavdam.data.EAVDAMData;
 import dk.frv.eavdam.data.EAVDAMUser;
 import dk.frv.eavdam.data.FATDMASlotAllocation;
+import dk.frv.eavdam.data.FTP;
+import dk.frv.eavdam.data.Options;
 import dk.frv.eavdam.data.OtherUserStations;
 import dk.frv.eavdam.data.Person;
 import dk.frv.eavdam.data.Simulation;
@@ -1718,6 +1722,20 @@ import dk.frv.eavdam.data.Simulation;
 						e.printStackTrace();
 				}
 				
+				try {
+					s.execute("DROP TABLE SENDTOFTP");
+				} catch (Exception e) {
+					if(log)
+						e.printStackTrace();
+				}
+				
+				try {
+					s.execute("DROP TABLE SENDTOEMAIL");
+				} catch (Exception e) {
+					if(log)
+						e.printStackTrace();
+				}
+				
 				//Then create the tables.
 				try {
 					s.execute("CREATE TABLE ADDRESS" + "(ID INT PRIMARY KEY,"
@@ -1881,6 +1899,30 @@ import dk.frv.eavdam.data.Simulation;
 						e.printStackTrace();
 				}
 				
+				try {
+					s.execute("CREATE TABLE SENDTOFTP"
+							+ "(SERVER VARCHAR(75),"
+							+ "DIRECTORY VARCHAR(20),"
+							+ "USERNAME VARCHAR(50),"
+							+ "PASSWORD VARCHAR(25))");
+				} catch (Exception e) {
+					if(log)
+						e.printStackTrace();
+				}
+
+				try {
+					s.execute("CREATE TABLE SENDTOEMAIL"
+							+ "(EMAILTO VARCHAR(100),"
+							+ "EMAILFROM VARCHAR(100),"
+							+ "SUBJECT VARCHAR(500),"
+							+ "SMTPSERVER VARCHAR(75)," 
+							+ "AUTHENTICATION INT," 
+							+ "USERNAME VARCHAR(50)," 
+							+ "PASSWORD VARCHAR(25))");
+				} catch (Exception e) {
+					if(log)
+						e.printStackTrace();
+				}
 				
 				//Insert the predefined data
 	    		s.execute("INSERT INTO ANTENNATYPE VALUES("+ANTENNA_DIRECTIONAL+", 'Directional Antenna')");
@@ -1939,43 +1981,167 @@ import dk.frv.eavdam.data.Simulation;
 	    	}
 	    }
 	    
-	    public static void dbTester(){
-	    	try{
+	 
 
-	    		
-	    		DerbyDBInterface db = new DerbyDBInterface();
-	    		Connection conn = db.getDBConnection(null, false);
-	    		EAVDAMUser def = db.retrieveDefaultUser();
-	    		System.out.println("Default user = "+def.getOrganizationName());
-	    		
-	    		String sql = "";
+	    /**
+	     * Retrieves the options for FTP and email xml sending.
+	     * 
+	     * @return
+	     */
+		public Options getOptions() {
+			Options op = new Options();
+			
+			op.setFTPs(this.retrieveFTPSettings());
+			
+			try{
+				PreparedStatement ps = conn.prepareStatement("select EMAILTO, EMAILFROM, SUBJECT, SMTPSERVER, AUTHENTICATION, USERNAME, PASSWORD from SENDTOEMAIL");
+				ResultSet rs = ps.executeQuery();
+				if(rs.next()){
+					
+					op.setEmailAuth((rs.getInt(5) == 1 ? true : false));
+					op.setEmailFrom(rs.getString(2));
+					op.setEmailHost(rs.getString(4));
+					op.setEmailPassword(rs.getString(6));
+					op.setEmailSubject(rs.getString(3));
+					op.setEmailTo(rs.getString(1));
+					op.setEmailUsername(rs.getString(7));
+				}
+				
+				rs.close();
+				ps.close();
+				
+			}catch(Exception e){
+				e.printStackTrace();
+			}
+			
+			return op;
+		}
 
-	    		sql = "select FIXEDSTATION.id, FIXEDSTATION.name, STATUS.statustype, FIXEDSTATION.owner, FIXEDSTATION.lat, FIXEDSTATION.lon from FIXEDSTATION, STATUS where STATUS.station = FIXEDSTATION.id";
-//	    		sql = "select id, name, email from PERSON";
-	    		
-	    		
-	    		PreparedStatement ps = conn.prepareStatement(sql);
-	    		ResultSet rs = ps.executeQuery();
-	    		
-	    		System.out.println("Table holds:\nID\tName\tStatus\tOwner");
-	    		while(rs.next()){
-	    			System.out.println(rs.getInt(1)+"\t"+rs.getString(2)+"\t"+rs.getInt(3)+"\t"+rs.getInt(4)+"\t"+rs.getDouble(5)+"\t"+rs.getDouble(6));
-	    		}
-	    		rs.close();
-	    		ps.close();
-	    		System.out.println("\nOrganization table holds:");
-	    		sql = "select id, organizationname from ORGANIZATION";
-	    		ps = conn.prepareStatement(sql);
-	    		rs = ps.executeQuery();
-	    		
-	    		System.out.println("ID\tName");
-	    		while(rs.next()){
-	    			System.out.println(rs.getInt(1)+"\t"+rs.getString(2));
-	    		}
-	    		
-	    	}catch(Exception e){
-	    		e.printStackTrace();
-	    	}
-	    }
+		/**
+		 * Retrieves the FTP settings from the database.
+		 * 
+		 * @return
+		 */
+		private List<FTP> retrieveFTPSettings() {
+			try{
+				if(this.conn == null) this.getDBConnection(null, false);
+				
+				List<FTP> ftps = new ArrayList<FTP>();
+
+				PreparedStatement ps = conn.prepareStatement("select SERVER, DIRECTORY, USERNAME, PASSWORD from SENDTOFTP");
+				ResultSet rs = ps.executeQuery();
+				while(rs.next()){
+					FTP ftp = new FTP();
+					
+					ftp.setServer(rs.getString(1));
+					ftp.setDirectory(rs.getString(2));
+					ftp.setUsername(rs.getString(3));
+					ftp.setPassword(rs.getString(4));
+					
+					ftps.add(ftp);
+				}
+				
+				rs.close();
+				ps.close();
+				
+				return ftps;
+			}catch(Exception e){
+				
+			}
+			return null;
+		}
 	    
+		/**
+		 * Inserts the options to the database.
+		 * 
+		 * @param options
+		 */
+		public void insertOptions(Options options){
+			try{
+				if(options == null) return;
+				
+				if(this.conn == null) this.getDBConnection(null, false);
+				
+				PreparedStatement ps = conn.prepareStatement("delete from SENDTOEMAIL"); //Delete the old values...
+				ps.executeUpdate();
+				if(options.getEmailHost() != null && options.getEmailHost().length() > 0){
+
+					
+					ps = conn.prepareStatement("insert into SENDTOEMAIL values (?,?,?,?,?,?,?)");
+					ps.setString(1, options.getEmailTo());
+					ps.setString(2, options.getEmailFrom());
+					ps.setString(3, options.getEmailSubject());
+					ps.setString(4, options.getEmailHost());
+					ps.setInt(5, (options.isEmailAuth() ? 1 : 0));
+					ps.setString(6, options.getEmailUsername());
+					ps.setString(7, options.getEmailPassword());
+					
+					ps.executeUpdate();
+					
+					ps.close();
+				}
+				
+				this.insertFTPSettings(options.getFTPs());
+				
+			}catch(Exception e){
+				e.printStackTrace();
+			}
+			
+		}
+		
+		private void insertFTPSettings(List<FTP> ftps) throws Exception{
+			PreparedStatement del = conn.prepareStatement("delete from SENDTOFTP");
+			del.executeUpdate();
+			del.close();
+			
+			for(FTP f : ftps){
+				PreparedStatement ps = conn.prepareStatement("insert into SENDTOFTP values (?,?,?,?)");
+				ps.setString(1, f.getServer());
+				ps.setString(2, f.getDirectory());
+				ps.setString(3, f.getUsername());
+				ps.setString(4, f.getPassword());
+				ps.executeUpdate();
+				ps.close();
+			}
+		}
+		
+		
+		public static void dbTester(){
+			try{
+
+		    		
+		    		DerbyDBInterface db = new DerbyDBInterface();
+		    		Connection conn = db.getDBConnection(null, false);
+		    		EAVDAMUser def = db.retrieveDefaultUser();
+		    		System.out.println("Default user = "+def.getOrganizationName());
+		    		
+		    		String sql = "";
+
+		    		sql = "select FIXEDSTATION.id, FIXEDSTATION.name, STATUS.statustype, FIXEDSTATION.owner, FIXEDSTATION.lat, FIXEDSTATION.lon from FIXEDSTATION, STATUS where STATUS.station = FIXEDSTATION.id";
+//		    		sql = "select id, name, email from PERSON";
+		    		
+		    		
+		    		PreparedStatement ps = conn.prepareStatement(sql);
+		    		ResultSet rs = ps.executeQuery();
+		    		
+		    		System.out.println("Table holds:\nID\tName\tStatus\tOwner");
+		    		while(rs.next()){
+		    			System.out.println(rs.getInt(1)+"\t"+rs.getString(2)+"\t"+rs.getInt(3)+"\t"+rs.getInt(4)+"\t"+rs.getDouble(5)+"\t"+rs.getDouble(6));
+		    		}
+		    		rs.close();
+		    		ps.close();
+		    		System.out.println("\nOrganization table holds:");
+		    		sql = "select id, organizationname from ORGANIZATION";
+		    		ps = conn.prepareStatement(sql);
+		    		rs = ps.executeQuery();
+		    		
+		    		System.out.println("ID\tName");
+		    		while(rs.next()){
+		    			System.out.println(rs.getInt(1)+"\t"+rs.getString(2));
+		    		}
+		    		
+		    	}catch(Exception e){
+		    		e.printStackTrace();
+		    	}
+		}
 }

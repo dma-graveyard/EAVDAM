@@ -10,7 +10,7 @@ import java.io.IOException;
 public class FTPSender {
     
     public static void sendDataToFTP(FTP ftp, String filename) throws IOException {
-
+    	System.out.println("Sending "+filename+" to FTP server "+ftp.getServer());
         if (ftp == null || ftp.getServer() == null || ftp.getUsername() == null || ftp.getPassword() == null) {
             throw new IOException("FTP object or its contents is null");
         }
@@ -27,7 +27,7 @@ public class FTPSender {
         if (filename.indexOf("/") != -1) {
             i = filename.lastIndexOf("/")+1;
         }
-        String prefix = filename.substring(i, filename.length()-18);  // parses the directory and the date + extension from the filename
+        String prefix = filename; //.substring(i, filename.length()-18);  // parses the directory and the date + extension from the filename
         FTPFile[] files = ftpClient.listFiles();
         for (FTPFile file : files) {
             if (file.getName().startsWith(prefix)) {

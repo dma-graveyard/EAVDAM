@@ -2,6 +2,8 @@ package dk.frv.eavdam.utils;
 
 import dk.frv.eavdam.data.EAVDAMData;
 import dk.frv.eavdam.data.EAVDAMUser;
+import dk.frv.eavdam.data.FTP;
+import dk.frv.eavdam.data.Options;
 import dk.frv.eavdam.io.XMLExporter;
 import dk.frv.eavdam.io.XMLImporter;
 import java.io.File;
@@ -11,6 +13,7 @@ import java.util.Calendar;
 import dk.frv.eavdam.io.derby.DerbyDBInterface;
 import java.util.ArrayList;
 import java.util.GregorianCalendar;
+import java.util.List;
 
 public class DBHandler {
         
@@ -19,29 +22,30 @@ public class DBHandler {
     private static boolean updatedXML = false;
     
     public static EAVDAMData getData() {        
-    	
+
+    	EAVDAMData dat = new EAVDAMData();
     	if(!initialized){
-    		DBHandler.importXML("import/import.xml");
+    		dat = XMLHandler.importData();
     		initialized = true;
-    	}
+    	}else{
     	
-    	EAVDAMData dat = new EAVDAMData(); 
-    	
-    	try {
-    		DerbyDBInterface d = new DerbyDBInterface();
-            EAVDAMUser user = d.retrieveDefaultUser();  
-            System.out.println("Retrieved default user: "+user.getOrganizationName());
-            dat = d.retrieveAllEAVDAMData(user);
-                    
-                    
-                    
+ 
+	    	
+	    	try {
+	    		DerbyDBInterface d = new DerbyDBInterface();
+	            EAVDAMUser user = d.retrieveDefaultUser();  
+	            System.out.println("Retrieved default user: "+user.getOrganizationName());
+	            dat = d.retrieveAllEAVDAMData(user);
+	                    
+	                    
+	                    
+	
+	    	} catch (Exception e) {
+	    		e.printStackTrace();
+	//    		System.out.println(e.getMessage());
+	    	}
 
-    	} catch (Exception e) {
-    		e.printStackTrace();
-//    		System.out.println(e.getMessage());
     	}
-
-            
             
         return dat;
 
@@ -59,10 +63,7 @@ public class DBHandler {
 			System.out.println("Writing the xml to file...");
 			try {
 
-				DerbyDBInterface db = new DerbyDBInterface();
-	    		EAVDAMData export = db.retrieveEAVDAMDataForXML();
-	
-	    		XMLExporter.writeXML(export, new File("generated/export.xml"));
+				XMLHandler.exportData();
 	    		System.out.println("Writing finished!");
 			} catch (Exception e) {
 				e.printStackTrace();
@@ -83,42 +84,25 @@ public class DBHandler {
     	}
     }
     
-    public static void exportXML(String filename){
-		System.out.println("Writing the xml to file...");
-		try {
-
-			DerbyDBInterface db = new DerbyDBInterface();
-    		EAVDAMData data = db.retrieveEAVDAMDataForXML();
-
-    		XMLExporter.writeXML(data, new File(filename));
-    		System.out.println("Writing finished!");
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-    }
-    
-    public static void importXML(String filename){
+    /**
+     * Retrieves the options from the database..
+     * 
+     * @return
+     */
+    public static Options getOptions() {
+		Options op = new Options();
+    	
+		DerbyDBInterface db = new DerbyDBInterface();
 		
-		try {
-			File inFile = new File(filename);
-			if(inFile != null && inFile.exists()){
-				System.out.println("Reading the xml to file...");	
-				EAVDAMData d = XMLImporter.readXML(inFile);
-				System.out.println("Read finished. Storing the data to database...");
-				
-				DerbyDBInterface db = new DerbyDBInterface();
-	    		
-				
-				
-				db.insertEAVDAMData(d);
-	    		
-	    		System.out.println("Process finished!");
-			}else{
-				System.out.println("Import file "+inFile.getAbsolutePath()+" does not exist!");
-			}
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
+    	op = db.getOptions();
+		
+		
+		return op;
+	}
+    		
+    public static void saveOptions(Options options){
+    	DerbyDBInterface db = new DerbyDBInterface();
+    	db.insertOptions(options);
     }
 }
         

@@ -6,6 +6,7 @@ import com.bbn.openmap.gui.Tool;
 import dk.frv.eavdam.data.FTP;
 import dk.frv.eavdam.data.Options;
 import dk.frv.eavdam.io.FTPSender;
+import dk.frv.eavdam.io.derby.DerbyDBInterface;
 import dk.frv.eavdam.menus.OptionsMenuItem;
 import dk.frv.eavdam.utils.XMLHandler;
 import java.awt.Color;
@@ -51,6 +52,8 @@ public class SendFTPButton extends OMToolComponent implements ActionListener, To
 	
 	 public void actionPerformed(ActionEvent e) {
 	    
+		 XMLHandler.exportData();
+		 
 	     int response = JOptionPane.showConfirmDialog(openMapFrame, "This will send the latest data file to all defined ftp directories. Are you sure you want to do this?", "Confirm action", JOptionPane.YES_NO_OPTION);
          if (response == JOptionPane.YES_OPTION) {
             Options options = OptionsMenuItem.loadOptions();
@@ -59,6 +62,7 @@ public class SendFTPButton extends OMToolComponent implements ActionListener, To
                 boolean errors = false;
                 for (FTP ftp : ftps) {
                     try {
+
                         FTPSender.sendDataToFTP(ftp, XMLHandler.getLatestDataFileName());                                       
                     } catch (IOException ex) {
                         System.out.println(ex.getMessage());

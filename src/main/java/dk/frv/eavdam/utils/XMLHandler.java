@@ -15,12 +15,14 @@ import javax.xml.bind.JAXBException;
 public class XMLHandler {
     
     //public static EAVDAMData currentEAVDAMData;
+	private static final String exportDataFolder = "generated";
+	private static final String importDataFolder = "import";
     
     public static String getLatestDataFileName() {
         
         String datafile = "";
         
-        File dir = new File("data");
+        File dir = new File(exportDataFolder);
         String[] children = dir.list();
         if (children != null) {
             for (int i=0; i<children.length; i++) {
@@ -36,7 +38,7 @@ public class XMLHandler {
         if (datafile.isEmpty()) {
             return null;
         } else {
-            return "data/" + datafile;
+            return exportDataFolder+"/" + datafile;
         }        
     }
     
@@ -92,7 +94,7 @@ public class XMLHandler {
         for (char c : illegalCharacters) {
             organisationName.replace(c, '_');
         }
-        return "data/" + organisationName + "_" + year + month + day + hours + minutes + seconds + ".xml"; 
+        return exportDataFolder+ "/" + organisationName+".xml";// + "_" + year + month + day + hours + minutes + seconds + ".xml"; 
     }
     
     public static void deleteOldDataFiles() {
@@ -115,22 +117,34 @@ public class XMLHandler {
         }
     }
     
-    public static EAVDAMData getData() {
     
-        /*
-        if (currentEAVDAMData != null) {
-            return currentEAVDAMData;
-        }
-        */
-    
-        try {
-            if (getLatestDataFileName() != null) {
-                return XMLImporter.readXML(new File(getLatestDataFileName()));
-            }
+    /**
+     * Imports the data from the importDataFolder (default: import/) and stores it to the database. After storing, all the data is retrieved from the database.
+     * 
+     * @return Data that holds all the relevant stations.
+     */
+    public static EAVDAMData importData() {
+    	System.out.println("Importing data...");
+		DerbyDBInterface db = new DerbyDBInterface();
+    	try {
+        	File importFolder = new File(importDataFolder);
+        	String[] files = importFolder.list();
+        	for(String file : files){
+        		System.out.println("Importing file: "+file);
+        		EAVDAMData d = XMLImporter.readXML(new File(importFolder+"/"+file));
+				
+        		System.out.println("USER: "+d.getUser().getOrganizationName());
+				db.insertEAVDAMData(d);
+	            
+        	}
+        	
+        	return db.retrieveAllEAVDAMData(db.retrieveDefaultUser());
         } catch (MalformedURLException ex) {
             System.out.println(ex.getMessage());
         } catch (JAXBException ex) {
             //System.out.println(ex.getMessage());
+        } catch (Exception e){
+        	e.printStackTrace();
         }
         
         return null;
@@ -142,29 +156,35 @@ public class XMLHandler {
      *
      * @param data  Data to be saved
      */    
-    public static void saveData(EAVDAMData data) {
+    public static void exportData() {
         try {
-            File file = new File("data");
+			DerbyDBInterface db = new DerbyDBInterface();
+    		EAVDAMData exportData = db.retrieveEAVDAMDataForXML();
+        	
+            File file = new File(exportDataFolder);
             if (!file.exists()) {
                 file.mkdir();
             }
+            
             String organisationName = null;
-            if (data != null) {
-                EAVDAMUser user = data.getUser();
+            if (exportData != null) {
+                EAVDAMUser user = exportData.getUser();
                 if (user != null) {
                     organisationName = user.getOrganizationName();
                 }
             }
             //currentEAVDAMData = data;
-            XMLExporter.writeXML(data, new File(getNewDataFileName(organisationName)));            
-            deleteOldDataFiles();
+            XMLExporter.writeXML(exportData, new File(getNewDataFileName(organisationName)));            
+//            deleteOldDataFiles();
         } catch (FileNotFoundException ex) {
             System.out.println("FileNotFoundException: " + ex.getMessage());
             ex.printStackTrace();
         } catch (JAXBException ex) {
             System.out.println("JAXBException: " + ex.getMessage());
             //ex.printStackTrace();
-        }            
+        }        
+        
+        
     }
     
 }

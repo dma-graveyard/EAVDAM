@@ -2,6 +2,9 @@ package dk.frv.eavdam.menus;
 
 import dk.frv.eavdam.data.FTP;
 import dk.frv.eavdam.data.Options;
+import dk.frv.eavdam.io.derby.DerbyDBInterface;
+import dk.frv.eavdam.utils.DBHandler;
+
 import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.awt.Font;
@@ -70,58 +73,63 @@ public class OptionsMenuItem extends JMenuItem {
 
         Options op = new Options();
 
-        StringBuilder contents = new StringBuilder();
+//        StringBuilder contents = new StringBuilder();
     
-        try {
-            BufferedReader input =  new BufferedReader(new FileReader("data/settings.txt"));
-            try {
-                String line = null;
-                List<FTP> ftps = new ArrayList<FTP>();                
-                while ((line = input.readLine()) != null) {
-                    if (line.startsWith("ftp:")) {
-                        String temp = line.substring(4).trim();
-                        String[] arr = temp.split(";");
-                        if (arr.length == 4) {
-                            FTP ftp = new FTP(arr[0], arr[1], arr[2], arr[3]);
-                            ftps.add(ftp);
-                        }                        
-                    } else if (line.startsWith("email-to:")) {
-                        op.setEmailTo(line.substring(9).trim());                        
-                    } else if (line.startsWith("email-from:")) {
-                        op.setEmailFrom(line.substring(11).trim());                            
-                    } else if (line.startsWith("email-subject:")) {
-                        op.setEmailSubject(line.substring(14).trim());                            
-                    } else if (line.startsWith("email-host:")) {                                                
-                        op.setEmailHost(line.substring(11).trim());                            
-                    } else if (line.startsWith("email-auth:")) {
-                        String temp = line.substring(11).trim();
-                        if (temp.equals("true")) {
-                            op.setEmailAuth(true);
-                        } else if (temp.equals("false")) {
-                            op.setEmailAuth(false);
-                        }
-                    } else if (line.startsWith("email-username:")) {
-                        op.setEmailUsername(line.substring(15).trim());    
-                    } else if (line.startsWith("email-password:")) {
-                        op.setEmailPassword(line.substring(15).trim());                                                    
-                    } else if (line.startsWith("icons:")) {
-                        String temp = line.substring(7).trim();
-                        if (temp.equals("large")) {
-                            op.setIconsSize(Options.LARGE_ICONS);
-                        } else if (temp.equals("small")) {
-                            op.setIconsSize(Options.SMALL_ICONS);
-                        }
-                    }
-                }
-                op.setFTPs(ftps);
-            } finally {
-                input.close();
-            }    
-        } catch (IOException ex){
-            System.out.println("Settings file could not be loaded");
-        }
-    
+        
+        op = DBHandler.getOptions();
+        
+        
         return op;
+//        try {
+//            BufferedReader input =  new BufferedReader(new FileReader("data/settings.txt"));
+//            try {
+//                String line = null;
+//                List<FTP> ftps = new ArrayList<FTP>();                
+//                while ((line = input.readLine()) != null) {
+//                    if (line.startsWith("ftp:")) {
+//                        String temp = line.substring(4).trim();
+//                        String[] arr = temp.split(";");
+//                        if (arr.length == 4) {
+//                            FTP ftp = new FTP(arr[0], arr[1], arr[2], arr[3]);
+//                            ftps.add(ftp);
+//                        }                        
+//                    } else if (line.startsWith("email-to:")) {
+//                        op.setEmailTo(line.substring(9).trim());                        
+//                    } else if (line.startsWith("email-from:")) {
+//                        op.setEmailFrom(line.substring(11).trim());                            
+//                    } else if (line.startsWith("email-subject:")) {
+//                        op.setEmailSubject(line.substring(14).trim());                            
+//                    } else if (line.startsWith("email-host:")) {                                                
+//                        op.setEmailHost(line.substring(11).trim());                            
+//                    } else if (line.startsWith("email-auth:")) {
+//                        String temp = line.substring(11).trim();
+//                        if (temp.equals("true")) {
+//                            op.setEmailAuth(true);
+//                        } else if (temp.equals("false")) {
+//                            op.setEmailAuth(false);
+//                        }
+//                    } else if (line.startsWith("email-username:")) {
+//                        op.setEmailUsername(line.substring(15).trim());    
+//                    } else if (line.startsWith("email-password:")) {
+//                        op.setEmailPassword(line.substring(15).trim());                                                    
+//                    } else if (line.startsWith("icons:")) {
+//                        String temp = line.substring(7).trim();
+//                        if (temp.equals("large")) {
+//                            op.setIconsSize(Options.LARGE_ICONS);
+//                        } else if (temp.equals("small")) {
+//                            op.setIconsSize(Options.SMALL_ICONS);
+//                        }
+//                    }
+//                }
+//                op.setFTPs(ftps);
+//            } finally {
+//                input.close();
+//            }    
+//        } catch (IOException ex){
+//            System.out.println("Settings file could not be loaded");
+//        }
+//    
+//        return op;
     }    
 
 }
@@ -868,45 +876,62 @@ class OptionsActionListener implements ActionListener, ChangeListener, DocumentL
      */        
     private boolean saveOptions() {
 
-        try {
-            File file = new File("data");
-            if (!file.exists()) {
-                file.mkdir();
-            }
-            String data = "";
-            for (FTP ftp : ftps) {       
-                if (!ftp.getServer().isEmpty() && !ftp.getUsername().isEmpty() && !ftp.getPassword().isEmpty()) {
-                    data += "ftp:" + ftp.getServer() + ";" + ftp.getDirectory() + ";" + ftp.getUsername() + ";" + ftp.getPassword() + "\n";
-                }
-            }
-            data += "email-to: " + emailToTextArea.getText() + "\n" +
-                "email-from: " + emailFromTextField.getText() + "\n" +
-                "email-subject: " + emailSubjectTextField.getText() + "\n" +
-                "email-host: " + emailHostTextField.getText() + "\n" +
-                "email-auth: ";
-            if (((String) emailAuthComboBox.getSelectedItem()).equals("Yes")) {
-                data += "true\n";
-            } else if (((String) emailAuthComboBox.getSelectedItem()).equals("No")) {
-                data += "false\n";
-            }
-            data +=
-                "email-username: " + emailUsernameTextField.getText() + "\n" +
-                "email-password: " + new String(emailPasswordTextField.getPassword()) + "\n" +
-                "icons: ";
-            if (iconsSizeComboBox.getSelectedIndex() == 0) {
-                data += "large\n";
-            } else if (iconsSizeComboBox.getSelectedIndex() == 1) {
-                data += "small\n";
-            }
-            File optionsFile = new File("data/settings.txt");
-            FileWriter fw = new FileWriter(optionsFile);
-            fw.write(data);
-            fw.close();
-        } catch (FileNotFoundException ex) {
-            System.out.println(ex.getMessage());
-        } catch (IOException ex) {
-            System.out.println(ex.getMessage());
-        }
+    	if(options == null) options = new Options();
+    	options.setFTPs(this.ftps);
+    	options.setEmailFrom(emailFromTextField.getText());
+    	options.setEmailTo(emailToTextArea.getText());
+    	options.setEmailHost(emailHostTextField.getText());
+    	options.setEmailSubject(emailSubjectTextField.getText());
+    	options.setEmailUsername(emailUsernameTextField.getText());
+    	options.setEmailPassword(new String(emailPasswordTextField.getPassword()));
+ 
+    	if (((String) emailAuthComboBox.getSelectedItem()).equals("Yes")) {
+    		options.setEmailAuth(true);	
+    	} else if (((String) emailAuthComboBox.getSelectedItem()).equals("No")) {
+    		options.setEmailAuth(false);
+    	}
+  
+    	DBHandler.saveOptions(options); 
+    	
+//        try {
+//            File file = new File("data");
+//            if (!file.exists()) {
+//                file.mkdir();
+//            }
+//            String data = "";
+//            for (FTP ftp : ftps) {       
+//                if (!ftp.getServer().isEmpty() && !ftp.getUsername().isEmpty() && !ftp.getPassword().isEmpty()) {
+//                    data += "ftp:" + ftp.getServer() + ";" + ftp.getDirectory() + ";" + ftp.getUsername() + ";" + ftp.getPassword() + "\n";
+//                }
+//            }
+//            data += "email-to: " + emailToTextArea.getText() + "\n" +
+//                "email-from: " + emailFromTextField.getText() + "\n" +
+//                "email-subject: " + emailSubjectTextField.getText() + "\n" +
+//                "email-host: " + emailHostTextField.getText() + "\n" +
+//                "email-auth: ";
+//            if (((String) emailAuthComboBox.getSelectedItem()).equals("Yes")) {
+//                data += "true\n";
+//            } else if (((String) emailAuthComboBox.getSelectedItem()).equals("No")) {
+//                data += "false\n";
+//            }
+//            data +=
+//                "email-username: " + emailUsernameTextField.getText() + "\n" +
+//                "email-password: " + new String(emailPasswordTextField.getPassword()) + "\n" +
+//                "icons: ";
+//            if (iconsSizeComboBox.getSelectedIndex() == 0) {
+//                data += "large\n";
+//            } else if (iconsSizeComboBox.getSelectedIndex() == 1) {
+//                data += "small\n";
+//            }
+//            File optionsFile = new File("data/settings.txt");
+//            FileWriter fw = new FileWriter(optionsFile);
+//            fw.write(data);
+//            fw.close();
+//        } catch (FileNotFoundException ex) {
+//            System.out.println(ex.getMessage());
+//        } catch (IOException ex) {
+//            System.out.println(ex.getMessage());
+//        }
 
         return true;
     }
