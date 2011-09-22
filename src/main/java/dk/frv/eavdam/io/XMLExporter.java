@@ -109,6 +109,8 @@ public class XMLExporter {
 		JAXBElement<EavdamData> element = factory.createEavdamData(xData);
  		
 		marshaller.marshal(element, new FileOutputStream(file));
+		
+
 	}
 
 	private static Person convert(dk.frv.eavdam.data.Person person) {

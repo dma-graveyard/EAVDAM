@@ -16,6 +16,7 @@ public class DBHandler {
         
     private static EAVDAMData data = new EAVDAMData();  // for testing before the database works        
     private static boolean initialized = false;    
+    private static boolean updatedXML = false;
     
     public static EAVDAMData getData() {        
     	
@@ -54,7 +55,21 @@ public class DBHandler {
 //        System.out.println("Saving data for user "+data.getUser().getOrganizationName()+" ("+data.getActiveStations().get(0).getStations().get(0).getStationName()+")");
         d.insertEAVDAMData(data);
 
+        if(!updatedXML){
+			System.out.println("Writing the xml to file...");
+			try {
 
+				DerbyDBInterface db = new DerbyDBInterface();
+	    		EAVDAMData export = db.retrieveEAVDAMDataForXML();
+	
+	    		XMLExporter.writeXML(export, new File("generated/export.xml"));
+	    		System.out.println("Writing finished!");
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+			
+			updatedXML = true;
+        }
     }
     
     public static void saveUserData(EAVDAMUser user){

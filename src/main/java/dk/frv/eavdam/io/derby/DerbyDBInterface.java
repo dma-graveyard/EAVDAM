@@ -196,7 +196,7 @@ import dk.frv.eavdam.data.Simulation;
 	        	
 	        	//Insert the data from XML import...
 	        	if(data.getStations() != null && data.getStations().length > 0){
-	        		System.out.println("XML IMPORT!");
+//	        		System.out.println("XML IMPORT!");
 	        		for(AISFixedStationData s : data.getStations()){
 	        			this.insertStation(s, -1, orgID, 0);
 	        		}
