@@ -3,15 +3,28 @@ package dk.frv.eavdam.io;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
+import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.util.ArrayList;
+import java.util.Date;
+import java.util.GregorianCalendar;
 import java.util.List;
+import java.util.Locale;
+import java.util.TimeZone;
 
 import javax.xml.bind.JAXBContext;
+import javax.xml.bind.JAXBElement;
 import javax.xml.bind.JAXBException;
 import javax.xml.bind.Marshaller;
+import javax.xml.datatype.DatatypeFactory;
+import javax.xml.datatype.Duration;
+import javax.xml.datatype.XMLGregorianCalendar;
+import javax.xml.namespace.QName;
 
 import dk.frv.eavdam.data.AISFixedStationData;
+import dk.frv.eavdam.data.AISFixedStationStatus;
 import dk.frv.eavdam.data.AntennaType;
+import dk.frv.eavdam.io.derby.DerbyDBInterface;
 import dk.frv.eavdam.io.jaxb.Address;
 import dk.frv.eavdam.io.jaxb.AisFixedStationCoverage;
 import dk.frv.eavdam.io.jaxb.AisFixedStationData;
@@ -25,6 +38,7 @@ import dk.frv.eavdam.io.jaxb.FatdmaSlotAllocation;
 import dk.frv.eavdam.io.jaxb.ObjectFactory;
 import dk.frv.eavdam.io.jaxb.OmnidirectionalAntenna;
 import dk.frv.eavdam.io.jaxb.Person;
+import dk.frv.eavdam.io.jaxb.Status;
 
 /**
  * Class that is responsible for converting AIS base station network data
@@ -68,6 +82,18 @@ public class XMLExporter {
 			xUser.getAny().addAll(user.getAnything());
 		}
 		xData.setUser(xUser);
+		
+		try{
+			GregorianCalendar c = new GregorianCalendar();
+			c.setTime(new Date(System.currentTimeMillis()));
+			XMLGregorianCalendar date2 = DatatypeFactory.newInstance().newXMLGregorianCalendar(c);
+			xData.setTimestamp(date2);
+		}catch(Exception e){
+			e.printStackTrace();
+		}
+		
+		//TODO convert active etc. stations?!?!?
+		
 		// Stations
 		List<AisFixedStationData> xStations = xData.getStation();
 		for (AISFixedStationData station : data.getStations()) {
@@ -78,7 +104,11 @@ public class XMLExporter {
 		Marshaller marshaller = jc.createMarshaller();
 		//marshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, new Boolean(
 		//		true));
-		marshaller.marshal(xData, new FileOutputStream(file));
+		
+		ObjectFactory factory = new ObjectFactory();
+		JAXBElement<EavdamData> element = factory.createEavdamData(xData);
+ 		
+		marshaller.marshal(element, new FileOutputStream(file));
 	}
 
 	private static Person convert(dk.frv.eavdam.data.Person person) {
@@ -128,8 +158,7 @@ public class XMLExporter {
 						.getStationType().toString()));
 			}
 			if (data.getStatus() != null) {
-				xData.setStatus(AisFixedStationStatus.valueOf(data.getStatus()
-						.toString()));
+				xData.setStatus(convert(data.getStatus()));
 			}
 			if (data.getAnything() != null) {
 				xData.getAny().addAll(data.getAnything());
@@ -150,6 +179,51 @@ public class XMLExporter {
 		return null;
 	}
 
+	private static Status convert(dk.frv.eavdam.data.AISFixedStationStatus status){
+		if(status != null){
+			Status xStatus = new Status();
+			if(status.getStatusID() == DerbyDBInterface.STATUS_ACTIVE){
+				xStatus.setStatus(AisFixedStationStatus.OPERATIVE);
+			}else if(status.getStatusID() == DerbyDBInterface.STATUS_OLD){
+				xStatus.setStatus(AisFixedStationStatus.OLD);
+			} else if(status.getStatusID() == DerbyDBInterface.STATUS_SIMULATED){
+				xStatus.setStatus(AisFixedStationStatus.SIMULATED);
+			} else if(status.getStatusID() == DerbyDBInterface.STATUS_PLANNED){
+				xStatus.setStatus(AisFixedStationStatus.PLANNED);
+			} else if(status.getStatusID() == DerbyDBInterface.STATUS_PROPOSED){
+				xStatus.setStatus(AisFixedStationStatus.PROPOSED);
+			}  
+			
+			if(status.getStartDate() != null){
+				try{
+					GregorianCalendar c = new GregorianCalendar();
+					c.setTime(status.getStartDate());
+					XMLGregorianCalendar date2 = DatatypeFactory.newInstance().newXMLGregorianCalendar(c);
+					xStatus.setStartDate(date2);
+				}catch(Exception e){
+					e.printStackTrace();
+				}
+			}	
+			
+			if(status.getEndDate() != null){
+				try{
+					GregorianCalendar c = new GregorianCalendar();
+					
+					c.setTime(status.getEndDate());
+					XMLGregorianCalendar date2 = DatatypeFactory.newInstance().newXMLGregorianCalendar(c);
+					xStatus.setEndDate(date2);
+				}catch(Exception e){
+					e.printStackTrace();
+				}
+			}
+			
+			return xStatus;
+		}
+		
+		
+		return null;
+	}
+	
 	private static Antenna convert(dk.frv.eavdam.data.Antenna antenna) {
 		if (antenna != null) {
 			Antenna xAntenna = new Antenna();

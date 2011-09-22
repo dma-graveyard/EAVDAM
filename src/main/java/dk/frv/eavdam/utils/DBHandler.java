@@ -15,8 +15,15 @@ import java.util.GregorianCalendar;
 public class DBHandler {
         
     private static EAVDAMData data = new EAVDAMData();  // for testing before the database works        
-        
+    private static boolean initialized = false;    
+    
     public static EAVDAMData getData() {        
+    	
+    	if(!initialized){
+    		DBHandler.importXML("import/import.xml");
+    		initialized = true;
+    	}
+    	
     	EAVDAMData dat = new EAVDAMData(); 
     	
     	try {
@@ -61,5 +68,42 @@ public class DBHandler {
     	}
     }
     
+    public static void exportXML(String filename){
+		System.out.println("Writing the xml to file...");
+		try {
+
+			DerbyDBInterface db = new DerbyDBInterface();
+    		EAVDAMData data = db.retrieveEAVDAMDataForXML();
+
+    		XMLExporter.writeXML(data, new File(filename));
+    		System.out.println("Writing finished!");
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+    }
+    
+    public static void importXML(String filename){
+		
+		try {
+			File inFile = new File(filename);
+			if(inFile != null && inFile.exists()){
+				System.out.println("Reading the xml to file...");	
+				EAVDAMData d = XMLImporter.readXML(inFile);
+				System.out.println("Read finished. Storing the data to database...");
+				
+				DerbyDBInterface db = new DerbyDBInterface();
+	    		
+				
+				
+				db.insertEAVDAMData(d);
+	    		
+	    		System.out.println("Process finished!");
+			}else{
+				System.out.println("Import file "+inFile.getAbsolutePath()+" does not exist!");
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+    }
 }
         

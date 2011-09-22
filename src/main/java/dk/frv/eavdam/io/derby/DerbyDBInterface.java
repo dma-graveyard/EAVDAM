@@ -65,7 +65,7 @@ import dk.frv.eavdam.data.Simulation;
 	    }
 	    
 	    public static void main(String[] args) {
-
+	    	
 	    	if(args == null || (args.length > 0 && args[0].equalsIgnoreCase("test"))){
 		    	System.out.println("Testing the database. Printing the base stations...");
 		    	dbTester();
@@ -194,6 +194,13 @@ import dk.frv.eavdam.data.Simulation;
 	        		}
 	        	}
 	        	
+	        	//Insert the data from XML import...
+	        	if(data.getStations() != null && data.getStations().length > 0){
+	        		System.out.println("XML IMPORT!");
+	        		for(AISFixedStationData s : data.getStations()){
+	        			this.insertStation(s, -1, orgID, 0);
+	        		}
+	        	}
 	        	
             	
 	        }catch(Exception e){
@@ -362,8 +369,9 @@ import dk.frv.eavdam.data.Simulation;
         		ps.close();
         		this.insertOrganization(user, orgID, defaultUser);
         	}else{
-        		System.out.println("Organization found! Updating its information...");
+        		
         		orgID = res.getInt(1);
+        		System.out.println("Organization found (id: "+orgID+")! Updating its information...");
         		
         		user.setUserDBID(orgID);
         		this.updateOrganization(user);
@@ -373,6 +381,8 @@ import dk.frv.eavdam.data.Simulation;
         	
         	ps.close();
         	res.close();
+        	
+        	user.setUserDBID(orgID);
         	
         	return orgID;
 	    }
@@ -453,7 +463,7 @@ import dk.frv.eavdam.data.Simulation;
 				   
 				   
 				   System.out.println("Updating status...");
-				   this.updateAISStation(s);
+				   this.updateAISStation(s, organizationID);
 				   
 			   }
 		   }else{
@@ -496,6 +506,8 @@ import dk.frv.eavdam.data.Simulation;
 	    	//Check if the station exists.
 	    	
 
+	    	
+	    	
 	    	String update_sql = "select id " +
 	    			"from FIXEDSTATION, STATUS " +
 	    			"where FIXEDSTATION.id = STATUS.station AND STATUS.statustype = ? AND " +
@@ -511,10 +523,11 @@ import dk.frv.eavdam.data.Simulation;
 	    	if(res.next()){
 	    		int id = res.getInt(1);
 	    		if(id >= 0){
-	    			System.out.println("Station exists. Updating its information!");
-	    			this.updateAISStation(as);
 	    			
-	    			res.close();
+	    			System.out.println("Station exists. Updating its information! (id: "+as.getStationDBID()+" vs. dbid: "+id+", status: "+as.getStatus().getStatusID()+", owner: "+organizationID+")");
+	    			this.updateAISStation(as, organizationID);
+	    			
+	    			res.close();	    			
 	    			update.close();
 	    			return id;
 	    		}
@@ -593,14 +606,16 @@ import dk.frv.eavdam.data.Simulation;
 	    }
 	    
 	    public void insertAntenna(Antenna antenna, int stationID, int antennaID) throws Exception{
+	    	if(antenna == null) return;
+	    	
 	    	PreparedStatement psc = conn.prepareStatement("insert into ANTENNA values (?,?,?,?,?,?,?)");
 	    	
 	    	psc.setInt(1, stationID);
 	    	psc.setDouble(2, antenna.getAntennaHeight());
 	    	psc.setDouble(3, antenna.getTerrainHeight());
-	    	psc.setInt(4, antenna.getHeading());
-	    	psc.setDouble(5, antenna.getFieldOfViewAngle());
-	    	psc.setDouble(6, antenna.getGain());
+	    	psc.setInt(4, (antenna.getHeading() != null ? antenna.getHeading() : 0));
+	    	psc.setDouble(5, (antenna.getFieldOfViewAngle() != null ? antenna.getFieldOfViewAngle() : 0));
+	    	psc.setDouble(6, (antenna.getGain() != null ? antenna.getGain() : 0));
 	    	psc.setInt(7, antennaID);
 	    	psc.executeUpdate();
 	    	
@@ -614,7 +629,7 @@ import dk.frv.eavdam.data.Simulation;
 	    	psc.setInt(1, stationID);
 	    	psc.setInt(2, refstation);
 	    	psc.setInt(3, statusID);
-	    	psc.setDate(4, status.getStartDate());
+	    	psc.setDate(4, (status.getStartDate() != null ? status.getStartDate() : null));
 	    	psc.setDate(5, status.getEndDate());
 	    	psc.executeUpdate();
 	    	
@@ -709,10 +724,10 @@ import dk.frv.eavdam.data.Simulation;
 	     * 
 	     * @param ais
 	     */
-	    public void updateAISStation(AISFixedStationData ais) throws Exception{
+	    public void updateAISStation(AISFixedStationData ais, int orgID) throws Exception{
 	    	if(this.conn == null) this.getDBConnection(null, false);
 	    	
-	    	int owner = this.getOrganizationID(ais.getOperator(), false);
+	    	int owner = orgID; //this.getOrganizationID(ais.getOperator(), false);
 	    	
 	    	int stationType = 1;
 	    	switch(ais.getStationType()){
@@ -722,7 +737,7 @@ import dk.frv.eavdam.data.Simulation;
 	    		case REPEATER: stationType = STATION_REPEATER; break;
 	    	}
 	    	
-//	    	System.out.println("UPDATING: "+ais.getLat()+" vs. "+ais.getLon());
+	    	System.out.println("UPDATING: orgID="+orgID+" stationID: "+ais.getStationDBID());
 	    	
 	    	String sql = "update FIXEDSTATION set " +
 	    			"NAME = ?, " + //1.
@@ -777,9 +792,9 @@ import dk.frv.eavdam.data.Simulation;
 	    	PreparedStatement ps = conn.prepareStatement(sql);
 	    	ps.setDouble(1, antenna.getAntennaHeight());
 	    	ps.setDouble(2, antenna.getTerrainHeight());
-	    	ps.setInt(3, antenna.getHeading());
-	    	ps.setInt(4, antenna.getFieldOfViewAngle());
-	    	ps.setDouble(5, antenna.getGain());
+	    	ps.setInt(3, (antenna.getHeading() != null ? antenna.getHeading() : 0));
+	    	ps.setInt(4, (antenna.getFieldOfViewAngle() != null ? antenna.getFieldOfViewAngle() : 0));
+	    	ps.setDouble(5, (antenna.getGain() != null ? antenna.getGain() : 0));
 	    	ps.setInt(6, antennaType);
 	    	ps.setInt(7, stationId);
 	    	
@@ -841,19 +856,27 @@ import dk.frv.eavdam.data.Simulation;
 	    			
 	    			
 	    		}else{
+	    			System.out.println("Retrieving data for \"other user\" "+u.getOrganizationName());
 	    			//Get "other user data"
 	    			OtherUserStations o = new OtherUserStations();
 	    			EAVDAMData others = this.retrieveEAVDAMData(u.getUserDBID(), STATUS_ACTIVE);
 	    			o.setUser(u);
 	    			o.setStations(others.getActiveStations());
 	    			
+//	    			System.out.println("There are "+o.getStations().size()+" stations: "+(o.getStations().size() > 0 ? o.getStations().get(0).getStations().get(0).getStationName() : " "));
+	    			
 	    			//TODO What about proposals to this user?
 	    			EAVDAMData prop = this.retrieveEAVDAMData(u.getUserDBID(), STATUS_PROPOSED);
-	    			o.getStations().addAll(prop.getActiveStations());
+	    			if(prop != null)
+	    				o.getStations().addAll(prop.getActiveStations());
 	    			
 	    			List<OtherUserStations> lo = data.getOtherUsersStations();
 	    			if(lo == null) lo = new ArrayList<OtherUserStations>();
-	    			lo.add(o);
+	    			
+	    			if(o != null && o.getStations() != null && o.getStations().size() > 0){
+	    				lo.add(o);
+	    			}
+	    			
 	    			data.setOtherUsersStations(lo);
 	    		}
 	    		
@@ -1480,13 +1503,32 @@ import dk.frv.eavdam.data.Simulation;
 	    }
 	    
 	    /**
-	     * Retrieves the data that will be sent to the FTP-server in an xml-file. 
+	     * Retrieves the data that will be stored in an xml-file. 
 	     * 
-	     * This includes the active stations and ...
+	     * This includes the active stations (STATUS_ACTIVE), and proposed stations (STATUS_PROPOSED).
+	     * The proposed stations are the stations that this user has proposed to another user.
 	     * 
 	     * @return
 	     */
-	    public ArrayList<EAVDAMData> retrieveSendData(){
+	    public EAVDAMData retrieveEAVDAMDataForXML(){
+	    	try{
+	    		EAVDAMData data = new EAVDAMData();
+	    		
+	    		EAVDAMUser defaultUser = this.retrieveDefaultUser();
+	    		data.setUser(defaultUser);
+	    		
+	    		List<AISFixedStationData> activeStations = this.retrieveAISStations(STATUS_ACTIVE, defaultUser.getUserDBID());
+	    		
+	    		List<AISFixedStationData> proposals = this.retrieveAISStations(STATUS_PROPOSED, defaultUser.getUserDBID());
+	    		activeStations.addAll(proposals);
+	    		data.setStations(activeStations);
+	    		
+	    		
+	    		return data;
+	    	}catch(Exception e){
+	    		e.printStackTrace();
+	    	}
+	    	
 	    	return null;
 	    }
 	    
@@ -1695,8 +1737,8 @@ import dk.frv.eavdam.data.Simulation;
 							+ "(ID INT PRIMARY KEY,"
 							+ "NAME VARCHAR(150) NOT NULL,"
 							+ "EMAIL VARCHAR(150) NOT NULL,"
-							+ "PHONE VARCHAR(15),"
-							+ "FAX VARCHAR(15),"
+							+ "PHONE VARCHAR(25),"
+							+ "FAX VARCHAR(25),"
 							+ "DESCRIPTION VARCHAR(1000),"
 							+ "VISITINGADDRESS INT,"
 							+ "POSTALADDRESS INT,"
@@ -1712,8 +1754,8 @@ import dk.frv.eavdam.data.Simulation;
 							+ "(ID INT PRIMARY KEY,"
 							+ "ORGANIZATIONNAME VARCHAR(100) NOT NULL,"
 							+ "COUNTRYID VARCHAR(3) NOT NULL,"
-							+ "PHONE VARCHAR(15),"
-							+ "FAX VARCHAR(15),"
+							+ "PHONE VARCHAR(25),"
+							+ "FAX VARCHAR(25),"
 							+ "WWW VARCHAR(50),"
 							+ "DESCRIPTION VARCHAR(1000),"
 							+ "CONTACTPERSON INT,"
@@ -1858,7 +1900,7 @@ import dk.frv.eavdam.data.Simulation;
 	    		//Insert "unknown" values.
 	    		s.execute("INSERT INTO ANTENNATYPE VALUES(0, 'No antenna')");
 	    		s.execute("INSERT INTO ADDRESS VALUES(0,'Unknown','Unknown',null,null,null)");
-	    		s.execute("INSERT INTO PERSON VALUES(0,'Unknown','Unknown','+0','+0','',0,0)");
+	    		s.execute("INSERT INTO PERSON VALUES(0,'Unknown','Unknown','','','',0,0)");
 	    		s.execute("INSERT INTO ORGANIZATION VALUES(0,'Unknown','NO','','','','',0,0,0,0,0)");
 	    		
 	    		System.out.println("Inserting default user to the database for demonstration purposis. Default user name: DaMSA");
@@ -1899,10 +1941,15 @@ import dk.frv.eavdam.data.Simulation;
 	    
 	    public static void dbTester(){
 	    	try{
+
+	    		
 	    		DerbyDBInterface db = new DerbyDBInterface();
 	    		Connection conn = db.getDBConnection(null, false);
+	    		EAVDAMUser def = db.retrieveDefaultUser();
+	    		System.out.println("Default user = "+def.getOrganizationName());
+	    		
 	    		String sql = "";
-	    		sql = "select id, organizationname from ORGANIZATION";
+
 	    		sql = "select FIXEDSTATION.id, FIXEDSTATION.name, STATUS.statustype, FIXEDSTATION.owner, FIXEDSTATION.lat, FIXEDSTATION.lon from FIXEDSTATION, STATUS where STATUS.station = FIXEDSTATION.id";
 //	    		sql = "select id, name, email from PERSON";
 	    		
@@ -1914,9 +1961,17 @@ import dk.frv.eavdam.data.Simulation;
 	    		while(rs.next()){
 	    			System.out.println(rs.getInt(1)+"\t"+rs.getString(2)+"\t"+rs.getInt(3)+"\t"+rs.getInt(4)+"\t"+rs.getDouble(5)+"\t"+rs.getDouble(6));
 	    		}
+	    		rs.close();
+	    		ps.close();
+	    		System.out.println("\nOrganization table holds:");
+	    		sql = "select id, organizationname from ORGANIZATION";
+	    		ps = conn.prepareStatement(sql);
+	    		rs = ps.executeQuery();
 	    		
-	    		EAVDAMUser def = db.retrieveDefaultUser();
-	    		System.out.println("Default user = "+def.getOrganizationName());
+	    		System.out.println("ID\tName");
+	    		while(rs.next()){
+	    			System.out.println(rs.getInt(1)+"\t"+rs.getString(2));
+	    		}
 	    		
 	    	}catch(Exception e){
 	    		e.printStackTrace();

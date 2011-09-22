@@ -10,10 +10,10 @@ public class XMLImporterTest {
 	public static void main(String[] args) {
 		try {
 			EAVDAMData data = XMLImporter.readXML(new File(
-					"C:\\Projects\\Damsa\\generated\\export.xml"));
-			System.out.println(data);
+					"C:\\Projects\\Damsa\\eavdam\\import\\import.xml"));
+			
 			for (AISFixedStationData d:data.getStations()) {
-				System.out.println(d.getAnythingString());
+				System.out.println(d.getStationName()+" - "+d.getLat()+", "+d.getLon());
 			}
 		} catch (Exception e) {
 			e.printStackTrace();

@@ -2,12 +2,14 @@ package dk.frv.eavdam.io;
 
 import java.io.File;
 import java.net.MalformedURLException;
+import java.sql.Date;
 import java.util.List;
 
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBElement;
 import javax.xml.bind.JAXBException;
 import javax.xml.bind.Unmarshaller;
+import javax.xml.datatype.XMLGregorianCalendar;
 
 import org.w3c.dom.Element;
 
@@ -15,6 +17,7 @@ import dk.frv.eavdam.data.AISFixedStationStatus;
 import dk.frv.eavdam.data.AISFixedStationType;
 import dk.frv.eavdam.data.AntennaType;
 import dk.frv.eavdam.data.EAVDAMData;
+import dk.frv.eavdam.io.derby.DerbyDBInterface;
 import dk.frv.eavdam.io.jaxb.Address;
 import dk.frv.eavdam.io.jaxb.AisFixedStationCoverage;
 import dk.frv.eavdam.io.jaxb.AisFixedStationData;
@@ -23,6 +26,7 @@ import dk.frv.eavdam.io.jaxb.EavdamData;
 import dk.frv.eavdam.io.jaxb.EavdamUser;
 import dk.frv.eavdam.io.jaxb.FatdmaSlotAllocation;
 import dk.frv.eavdam.io.jaxb.Person;
+import dk.frv.eavdam.io.jaxb.Status;
 
 public class XMLImporter {
 
@@ -35,6 +39,7 @@ public class XMLImporter {
 			for (AisFixedStationData xd : xData.getStation()) {
 				dk.frv.eavdam.data.AISFixedStationData d = convert(xd);
 				d.setOperator(user);
+				d.setStationDBID(-1);
 				data.addStation(d);
 			}
 			return data;
@@ -112,9 +117,9 @@ public class XMLImporter {
 						.getStationType().toString()));
 			}
 			if (xData.getStatus() != null) {
-//				data.setStatus(AISStatus.valueOf(xData.getStatus().
-//						.toString()));
+				data.setStatus(convert(xData.getStatus()));
 			}
+			
 			List<Element> anything = xData.getAny();
 			data.setAnything(anything);
 			
@@ -123,6 +128,38 @@ public class XMLImporter {
 		return null;
 	}
 
+	private static dk.frv.eavdam.data.AISFixedStationStatus convert(Status xStatus){
+		if(xStatus != null){
+			AISFixedStationStatus s = new AISFixedStationStatus();
+
+			XMLGregorianCalendar start_xcal = xStatus.getStartDate();
+			if(start_xcal != null){
+				long s_dt = start_xcal.toGregorianCalendar().getTime().getTime();
+				s.setStartDate(new Date(s_dt));
+			}
+			
+			XMLGregorianCalendar end_xcal = xStatus.getEndDate();
+			
+			if(end_xcal != null){
+				long e_dt = end_xcal.toGregorianCalendar().getTime().getTime();
+				s.setEndDate(new Date(e_dt));
+			}
+			
+			s.setStatusName(xStatus.getStatus().name());
+			
+			switch(xStatus.getStatus()){
+				case OLD: s.setStatusID(DerbyDBInterface.STATUS_OLD); break;
+				case OPERATIVE: s.setStatusID(DerbyDBInterface.STATUS_ACTIVE); break;
+				case PLANNED: s.setStatusID(DerbyDBInterface.STATUS_PLANNED); break;
+				case PROPOSED: s.setStatusID(DerbyDBInterface.STATUS_PROPOSED); break;
+				case SIMULATED: s.setStatusID(DerbyDBInterface.STATUS_SIMULATED); break;
+			}
+			
+			return s;
+		}
+		return null;
+	}
+	
 	private static dk.frv.eavdam.data.Antenna convert(Antenna xData) {
 		if (xData != null) {
 			dk.frv.eavdam.data.Antenna data = new dk.frv.eavdam.data.Antenna();

@@ -147,9 +147,9 @@
 	</xs:simpleType>
 	<xs:complexType name="status">
 		<xs:sequence>
-			<xs:element name="status" type="ns:aisFixedStationStatus"></xs:element>
-			<xs:element name="startDate" type="ns:startDate"></xs:element>
-			<xs:element name="endDate" type="ns:endDate"></xs:element>
+			<xs:element name="status" type="ns:aisFixedStationStatus"/>
+			<xs:element name="startDate" type="ns:startDate"/>
+			<xs:element name="endDate" type="ns:endDate"/>
 		</xs:sequence>
 	</xs:complexType>
 	<xs:complexType name="person">
@@ -313,6 +313,11 @@
 			<xs:enumeration value="SIMULATED">
 				<xs:annotation>
 					<xs:documentation>The station is a simulation.</xs:documentation>
+				</xs:annotation>
+			</xs:enumeration>
+			<xs:enumeration value="PROPOSED">
+				<xs:annotation>
+					<xs:documentation>There are some proposals to the station.</xs:documentation>
 				</xs:annotation>
 			</xs:enumeration>
 		</xs:restriction>

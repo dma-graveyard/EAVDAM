@@ -32,7 +32,7 @@ public class EAVDAMUser {
 	 */
 	private List<Element> anything;
 
-	private int userDBID;
+	private int userDBID = -1;
 
 
 	public EAVDAMUser() {

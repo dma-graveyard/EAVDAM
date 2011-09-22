@@ -54,7 +54,7 @@ public class EAVDAMData {
         this.oldStations = oldStations;
     }
     
-    // TO BE REMOVED -->
+    // DO NOT REMOVE. NEEDED FOR XML TO SIMPLIFY PARSING
 	public AISFixedStationData[] getStations() {
 		return stations.toArray(new AISFixedStationData[stations.size()]);
 	}
@@ -72,6 +72,6 @@ public class EAVDAMData {
 			this.stations.addAll(stations);
 		}
 	}
-	// <-- TO BE REMOVED
+	// DO NOT REMOVE. NEEDED FOR XML
 
 }
