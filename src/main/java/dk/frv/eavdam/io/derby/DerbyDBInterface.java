@@ -179,10 +179,7 @@ import dk.frv.eavdam.data.Simulation;
 	        	
 	        	if(data.getSimulatedStations() != null && data.getSimulatedStations().size() > 0){
 	        		for(Simulation sim : data.getSimulatedStations()){
-	        			for(AISFixedStationData ais : sim.getStations()){
-//	        				System.out.println("Inserting simulated station to the database...");
-	        				this.insertSimulatedStation(ais, orgID, 0);
-	        			}
+	        			this.insertSimulationDataset(sim, orgID);
 	        		}
 	        	}
 	        	
@@ -217,10 +214,6 @@ import dk.frv.eavdam.data.Simulation;
 	        return success;
 	    }
 	    
-	    private void insertSimulatedStation(AISFixedStationData ais, int orgID, int i) {
-			// TODO Auto-generated method stub
-			
-		}
 
 		/**
 	     * Finds the id for the address. Returns -x if the address is new.
@@ -602,7 +595,7 @@ import dk.frv.eavdam.data.Simulation;
 	    	
 	    	
 	    	//Insert FATDMA Allocations
-	    	this.insertFATDMAAllocations(as.getFatdmaAllocation());
+	    	this.insertFATDMAAllocations(as.getFatdmaAllocation(), stationID);
 	    	
 	    	as.setStationDBID(stationID);
 	    	
@@ -640,7 +633,101 @@ import dk.frv.eavdam.data.Simulation;
 	    	psc.close();
 	    }
 	    
-	    public void insertFATDMAAllocations(FATDMASlotAllocation fatdma){
+	    
+	   /**
+	    * Inserts the FATDMA allocations to the database for the given station.
+	    *  
+	    * @param fatdma
+	    * @param stationID
+	    */
+	    public void insertFATDMAAllocations(FATDMASlotAllocation fatdma, int stationID){
+	    	
+	    }
+	    
+	    private void insertSimulationDataset(Simulation sim, int organizationID) throws Exception{
+	    	if(this.conn == null) this.getDBConnection(null, false);
+	    	
+	    	int simID = 0;
+	    	PreparedStatement ps = conn.prepareStatement("select ID from SIMULATION where name = ?");
+	    	ps.setString(1, sim.getName());
+	    	ResultSet rs = ps.executeQuery();
+	    	if(rs.next()){
+	    		simID = rs.getInt(1);
+	    	}else{
+	    		ps = conn.prepareStatement("select count(ID) from SIMULATION");
+	    		rs = ps.executeQuery();
+	    		if(rs.next()){
+	    			simID = rs.getInt(1)+1;
+	    		}else{
+	    			simID = 1;
+	    		}
+
+	    		ps = conn.prepareStatement("insert into SIMULATION values (?,?)");
+	    		ps.setInt(simID, 1);
+	    		ps.setString(2, sim.getName());
+	    		ps.executeUpdate();
+	    	}
+	    	
+	    	for(AISFixedStationData s : sim.getStations()){
+	    		this.insertSimulatedStation(s, simID, organizationID);
+	    	}
+	    	
+	    	rs.close();
+	    	ps.close();
+	    	
+	    }
+	    
+	    private void insertSimulatedStation(AISFixedStationData station, int simulationID, int orgID) throws Exception{
+	    	int stationID = this.insertStation(station, -1, orgID, 0);
+	    	
+	    	PreparedStatement check = conn.prepareStatement("select * from SIMULATIONSTATION where STATIONID = ? AND SIMULATIONID = ?");
+	    	check.setInt(1, stationID);
+	    	check.setInt(2, simulationID);
+	    	ResultSet rs = check.executeQuery();
+	    	if(!rs.next()){
+		    	PreparedStatement ps = conn.prepareStatement("insert into SIMULATIONSTATION values (?,?)");
+		    	ps.setInt(1, stationID);
+		    	ps.setInt(2, simulationID);
+		    	ps.executeUpdate();
+		    	ps.close();
+	    	}
+	    	
+	    	rs.close();
+	    	check.close();
+	    }
+	    
+	    /**
+	     * Deletes the given simulation.
+	     * 
+	     * @param simulation This can be either the name or the id of the simulation
+	     */
+	    public void deleteSimulation(String simulation) throws Exception{
+	    	if(this.conn == null) this.getDBConnection(null, false);
+	    	
+	    	
+	    	int simID = 0;
+	    	
+	    	PreparedStatement ps = conn.prepareStatement("select id from SIMULATION where name = ? OR id = ?");
+	    	ps.setString(1, simulation);
+	    	ps.setString(2, simulation);
+	    	ResultSet rs = ps.executeQuery();
+	    	if(rs.next()){
+	    		simID = rs.getInt(1);
+	    	}
+	    	
+	    	rs.close();
+	    	
+	    	if(simID <= 0) return;
+	    	
+	    	ps = conn.prepareStatement("delete from SIMULATIONSTATION where simulationid = ?");
+	    	ps.setInt(1, simID);
+	    	ps.executeUpdate();
+	    	
+	    	ps = conn.prepareStatement("delete from SIMULATION where id = ?");
+	    	ps.setInt(1, simID);
+	    	ps.executeUpdate();
+	    	
+	    	ps.close();
 	    	
 	    }
 	    
@@ -1100,7 +1187,8 @@ import dk.frv.eavdam.data.Simulation;
 	    			data.setActiveStations(al);
 	    			
 	    		}else if(status == STATUS_SIMULATED){
-	    			
+	    			List<Simulation> sims = this.retrieveSimulations(u);
+	    			data.setSimulatedStations(sims);
 	    		}
 	    		
 	    	}
@@ -1415,6 +1503,57 @@ import dk.frv.eavdam.data.Simulation;
 	    }
 	    
 	    /**
+	     * Retrieves all the simulations found from the database.
+	     * 
+	     * 
+	     * @return
+	     * @throws Exception
+	     */
+	    public List<Simulation> retrieveSimulations(EAVDAMUser user) throws Exception{
+	    	List<Simulation> simulations = new ArrayList<Simulation>();
+	    	
+	    	
+	    	if(this.conn == null) this.getDBConnection(null, false);
+	    	 
+	    	PreparedStatement ps = conn.prepareStatement("select name from SIMULATION");
+	    	ResultSet rs = ps.executeQuery();
+	    	while(rs.next()){
+	    		Simulation sim = new Simulation();
+	    		sim.setName(rs.getString(1));
+	    		
+	    		simulations.add(sim);
+	    	}
+	    		
+	    	ps.close();
+	    	rs.close();
+	    	if(simulations.size() == 0) return null;
+	    	
+	    	for(Simulation sim : simulations){
+	    		ps = conn.prepareStatement("select SIMULATIONSTATION.stationid FROM SIMULATIONSTATION, SIMULATION where SIMULATION.id = SIMULATIONSTATION.simulationid AND SIMULATION.name = ?");
+	    		ps.setString(1, sim.getName());
+	    		rs = ps.executeQuery();
+	    		List<Integer> stationIDs = new ArrayList<Integer>();
+	    		while(rs.next()){
+	    			stationIDs.add(new Integer(rs.getInt(1)));
+	    		}
+	    		
+	    		rs.close();
+	    		ps.close();
+	    		
+	    		List<AISFixedStationData> stations = new ArrayList<AISFixedStationData>();
+	    		for(Integer id : stationIDs){
+	    			stations.addAll(this.retrieveAISStation(id.intValue(), STATUS_SIMULATED, user.getUserDBID())); 
+	    		}
+	    		sim.setStations(stations);
+	    	
+	    	}
+	    	
+	    	
+	    	return simulations;
+	    }
+	    
+	    
+	    /**
 	     * Transforms the list of proposed stations into Map of proposed stations
 	     * 
 	     * @return
@@ -1630,7 +1769,7 @@ import dk.frv.eavdam.data.Simulation;
 	    }
 	    
 	    public void createDatabase(String dbName){
-	    	boolean log = false;
+	    	boolean log = true;
 	    	
 	    	try{
 	    		if(this.conn == null) this.getDBConnection(null, true);
@@ -1670,6 +1809,15 @@ import dk.frv.eavdam.data.Simulation;
 						e.printStackTrace();
 				}
 	    		
+				
+				
+				try {
+					s.execute("DROP TABLE SIMULATIONSTATION");
+				} catch (Exception e) {
+					if(log)
+						e.printStackTrace();
+				}
+				
 				try {
 					s.execute("DROP TABLE FIXEDSTATION");
 				} catch (Exception e) {
@@ -1735,6 +1883,15 @@ import dk.frv.eavdam.data.Simulation;
 					if(log)
 						e.printStackTrace();
 				}
+
+				
+				try {
+					s.execute("DROP TABLE SIMULATION");
+				} catch (Exception e) {
+					if(log)
+						e.printStackTrace();
+				}
+
 				
 				//Then create the tables.
 				try {
@@ -1919,6 +2076,26 @@ import dk.frv.eavdam.data.Simulation;
 							+ "AUTHENTICATION INT," 
 							+ "USERNAME VARCHAR(50)," 
 							+ "PASSWORD VARCHAR(25))");
+				} catch (Exception e) {
+					if(log)
+						e.printStackTrace();
+				}
+				
+				try {
+					s.execute("CREATE TABLE SIMULATION"
+							+ "(ID INT PRIMARY KEY, " 
+							+ "NAME VARCHAR(100))");
+				} catch (Exception e) {
+					if(log)
+						e.printStackTrace();
+				}
+				
+				try {
+					s.execute("CREATE TABLE SIMULATIONSTATION"
+							+ "(STATIONID INT, " 
+							+ "SIMULATIONID INT,"
+							+ "CONSTRAINT fk_sim_station FOREIGN KEY (STATIONID) references FIXEDSTATION(ID)," 
+							+ "CONSTRAINT fk_sim FOREIGN KEY (SIMULATIONID) references SIMULATION(ID))");
 				} catch (Exception e) {
 					if(log)
 						e.printStackTrace();
