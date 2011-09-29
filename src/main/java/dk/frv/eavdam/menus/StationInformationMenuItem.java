@@ -1634,7 +1634,7 @@ class StationInformationMenuItemActionListener implements ActionListener, Change
         }
         
         data.setSimulatedStations(simulatedStations);
-        DBHandler.saveData(data);
+        DBHandler.deleteSimulation(simulationName);
     }
 
     private boolean addStation() {

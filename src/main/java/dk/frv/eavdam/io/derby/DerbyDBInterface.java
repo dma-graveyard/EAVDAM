@@ -17,6 +17,7 @@ import java.util.Properties;
 
 import sun.dc.pr.PRError;
 
+import dk.frv.eavdam.data.AISFixedStationCoverage;
 import dk.frv.eavdam.data.AISFixedStationData;
 import dk.frv.eavdam.data.AISFixedStationStatus;
 import dk.frv.eavdam.data.AISFixedStationType;
@@ -588,7 +589,7 @@ import dk.frv.eavdam.data.Simulation;
 		    	this.insertAntenna(as.getAntenna(), stationID, antennaType);
 	    	}
 	    	
-
+	    	this.insertCoverage(as.getCoverage(), stationID);
 	    	
 	    	//Insert Status
 	    	this.insertStatus(as.getStatus(), refstation, as.getStatus().getStatusID(), stationID);
@@ -637,11 +638,96 @@ import dk.frv.eavdam.data.Simulation;
 	   /**
 	    * Inserts the FATDMA allocations to the database for the given station.
 	    *  
-	    * @param fatdma
-	    * @param stationID
+	    * @param fatdma The FATDMA allocations.
+	    * @param stationID Station that has the given allocations.
 	    */
-	    public void insertFATDMAAllocations(FATDMASlotAllocation fatdma, int stationID){
+	    public void insertFATDMAAllocations(FATDMASlotAllocation fatdma, int stationID) throws Exception{
+	    	if(fatdma == null) return;
 	    	
+	    	
+	    	if(this.conn == null) this.conn = getDBConnection(null,false);
+	    	
+	    	for(Integer id : fatdma.getAllocations()){
+	    		try{
+		    		PreparedStatement psc = conn.prepareStatement("insert into FATDMA values (?,?,?)");
+			    	
+			    	psc.setInt(1, stationID);
+			    	psc.setInt(2, id.intValue());
+			    	psc.setInt(3, 0);
+			    	psc.executeUpdate();
+			    	
+			    	psc.close();
+	    		}catch(Exception e){
+	    			e.printStackTrace();
+	    		}
+	    	}
+	    }
+	    
+	    public void insertCoverage(AISFixedStationCoverage coverage, int stationID) throws Exception{
+	    	if(coverage == null) return;
+	    	
+	    	for(Object c : coverage.getCoveragePoints()){
+	    		try{
+		    		PreparedStatement psc = conn.prepareStatement("insert into COVERAGEPOINTS values (?,?,?)");
+			    	
+			    	psc.setInt(1, stationID);
+			    	psc.setInt(2, 0); //TODO lat
+			    	psc.setInt(3, 0); //TODO lon
+			    	psc.executeUpdate();
+			    	
+			    	psc.close();
+	    		}catch(Exception e){
+	    			e.printStackTrace();
+	    		}
+	    	}
+	    	
+	    	
+	    }
+	    
+	    private FATDMASlotAllocation retrieveFATDMAAllocations(int stationID) throws Exception{
+	    	FATDMASlotAllocation fatdma = new FATDMASlotAllocation();
+	    	
+	    	PreparedStatement psc = conn.prepareStatement("select allocationindex from FATDMA where station = ?");
+	    	
+	    	
+	    	psc.setInt(1, stationID);
+	    	
+	    	ResultSet rs = psc.executeQuery();
+	    	while(rs.next()){
+	    		fatdma.addAllocation(rs.getInt(1));
+	    	}
+	    	
+	    	psc.close();
+	    	
+	    	return fatdma;
+	    }
+	    
+	    /**
+	     * Deletes the given allocations from the database. 
+	     * 
+	     * @param stationID Station from which the allocations are deleted.
+	     * @param allocations The deleted allocations.
+	     * @throws Exception SQLException
+	     */
+	    public void deletedFATDMAAllocations(int stationID, FATDMASlotAllocation allocations) throws Exception{
+	    	if(allocations.getAllocations() == null || allocations.getAllocations().size() <= 0) return;
+	    	
+	    	String deleteClause = "";
+	    	int ith = 0;
+	    	for(Integer id : allocations.getAllocations()){
+	    		deleteClause += "allocationindex = "+id;
+	    		
+	    		if(ith < allocations.getAllocations().size()-1){
+	    			deleteClause += " OR ";
+	    		}
+	    		
+	    		++ith;
+	    	}
+	    	
+	    	PreparedStatement psc = conn.prepareStatement("delete from FATDMA where station = ? AND ("+deleteClause+")");
+	    	psc.setInt(1, stationID);
+    		psc.executeUpdate();
+    		psc.close();
 	    }
 	    
 	    private void insertSimulationDataset(Simulation sim, int organizationID) throws Exception{
@@ -699,7 +785,7 @@ import dk.frv.eavdam.data.Simulation;
 	    /**
 	     * Deletes the given simulation.
 	     * 
-	     * @param simulation This can be either the name or the id of the simulation
+	     * @param simulation This should be the name of the simulation
 	     */
 	    public void deleteSimulation(String simulation) throws Exception{
 	    	if(this.conn == null) this.getDBConnection(null, false);
@@ -707,9 +793,8 @@ import dk.frv.eavdam.data.Simulation;
 	    	
 	    	int simID = 0;
 	    	
-	    	PreparedStatement ps = conn.prepareStatement("select id from SIMULATION where name = ? OR id = ?");
+	    	PreparedStatement ps = conn.prepareStatement("select id from SIMULATION where name = ?");
 	    	ps.setString(1, simulation);
-	    	ps.setString(2, simulation);
 	    	ResultSet rs = ps.executeQuery();
 	    	if(rs.next()){
 	    		simID = rs.getInt(1);
@@ -1308,9 +1393,10 @@ import dk.frv.eavdam.data.Simulation;
 	    			ais.setStationType(null);
 	    		}
 	    		
+	    		ais.setFatdmaAllocation(this.retrieveFATDMAAllocations(ais.getStationDBID()));
+	    		
 	    		//TODO Get this data also...
 	    		ais.setCoverage(null);
-	    		ais.setFatdmaAllocation(null);
 	    		ais.setAnything(null);
 	    		
 	    		data.add(ais);
@@ -1526,7 +1612,7 @@ import dk.frv.eavdam.data.Simulation;
 	    		
 	    	ps.close();
 	    	rs.close();
-	    	if(simulations.size() == 0) return null;
+//	    	if(simulations.size() == 0) return null;
 	    	
 	    	for(Simulation sim : simulations){
 	    		ps = conn.prepareStatement("select SIMULATIONSTATION.stationid FROM SIMULATIONSTATION, SIMULATION where SIMULATION.id = SIMULATIONSTATION.simulationid AND SIMULATION.name = ?");
@@ -2033,10 +2119,10 @@ import dk.frv.eavdam.data.Simulation;
 				
 				try {
 					s.execute("CREATE TABLE COVERAGEPOINTS"
-							+ "(ID INT PRIMARY KEY,"
-							+ "STATION INT,"
+							+ "(STATION INT,"
 							+ "LAT DECIMAL (7,4),"
 							+ "LON DECIMAL (7,4),"
+							+ "CONSTRAINT pk_cp PRIMARY KEY (STATION, LAT, LON),"
 							+ "CONSTRAINT fk_s_cp FOREIGN KEY (STATION) references FIXEDSTATION(ID))");
 				} catch (Exception e) {
 					if(log)
@@ -2046,10 +2132,10 @@ import dk.frv.eavdam.data.Simulation;
 		
 				try {
 					s.execute("CREATE TABLE FATDMA"
-							+ "(ID INT PRIMARY KEY,"
-							+ "STATION INT,"
+							+ "(STATION INT,"
 							+ "ALLOCATIONINDEX INT,"
 							+ "ALLOCATIONVALUE INT,"
+							+ "CONSTRAINT pk_fatdma PRIMARY KEY (STATION,ALLOCATIONINDEX), "
 							+ "CONSTRAINT fk_s_fatdma FOREIGN KEY (STATION) references FIXEDSTATION(ID))");
 				} catch (Exception e) {
 					if(log)
@@ -2076,6 +2162,14 @@ import dk.frv.eavdam.data.Simulation;
 							+ "AUTHENTICATION INT," 
 							+ "USERNAME VARCHAR(50)," 
 							+ "PASSWORD VARCHAR(25))");
+				} catch (Exception e) {
+					if(log)
+						e.printStackTrace();
+				}
+				
+				try {
+					s.execute("CREATE TABLE SETTINGS"
+							+ "(ICONSIZE INT)");
 				} catch (Exception e) {
 					if(log)
 						e.printStackTrace();
@@ -2182,10 +2276,20 @@ import dk.frv.eavdam.data.Simulation;
 					op.setEmailSubject(rs.getString(3));
 					op.setEmailTo(rs.getString(1));
 					op.setEmailUsername(rs.getString(7));
+					
 				}
 				
 				rs.close();
 				ps.close();
+
+				ps = conn.prepareStatement("select iconsize from SETTINGS");
+				rs = ps.executeQuery();
+				if(rs.next()){
+					op.setIconsSize(rs.getInt(1));
+				}
+				
+				ps.close();
+				rs.close();
 				
 			}catch(Exception e){
 				e.printStackTrace();
@@ -2257,6 +2361,13 @@ import dk.frv.eavdam.data.Simulation;
 					
 					ps.close();
 				}
+				ps = conn.prepareStatement("delete from SETTINGS");
+				ps.executeUpdate();
+				
+				ps = conn.prepareStatement("insert into SETTINGS values (?)");
+				ps.setInt(1, options.getIconsSize());
+				ps.executeUpdate();
+				ps.close();
 				
 				this.insertFTPSettings(options.getFTPs());
 				
@@ -2316,6 +2427,25 @@ import dk.frv.eavdam.data.Simulation;
 		    		while(rs.next()){
 		    			System.out.println(rs.getInt(1)+"\t"+rs.getString(2));
 		    		}
+		    		
+		    		sql = "select iconsize from SETTINGS";
+		    		ps = conn.prepareStatement(sql);
+		    		rs = ps.executeQuery();
+		    		
+		    		System.out.println("\nICONSIZE");
+		    		while(rs.next()){
+		    			System.out.println(rs.getInt(1));
+		    		}
+		    		
+		    		sql = "select id, name from SIMULATION";
+		    		ps = conn.prepareStatement(sql);
+		    		rs = ps.executeQuery();
+		    		
+		    		System.out.println("\nSIMULATION\nId\tName");
+		    		while(rs.next()){
+		    			System.out.println(rs.getInt(1)+"\t"+rs.getString(2));
+		    		}
+		    		
 		    		
 		    	}catch(Exception e){
 		    		e.printStackTrace();

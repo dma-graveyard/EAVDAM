@@ -4,6 +4,7 @@ import dk.frv.eavdam.data.EAVDAMData;
 import dk.frv.eavdam.data.EAVDAMUser;
 import dk.frv.eavdam.data.FTP;
 import dk.frv.eavdam.data.Options;
+import dk.frv.eavdam.data.Simulation;
 import dk.frv.eavdam.io.XMLExporter;
 import dk.frv.eavdam.io.XMLImporter;
 import java.io.File;
@@ -103,6 +104,15 @@ public class DBHandler {
     public static void saveOptions(Options options){
     	DerbyDBInterface db = new DerbyDBInterface();
     	db.insertOptions(options);
+    }
+    
+    public static void deleteSimulation(String simulationName){
+    	try{
+    		DerbyDBInterface db = new DerbyDBInterface();
+    		db.deleteSimulation(simulationName);
+    	}catch (Exception e) {
+			e.printStackTrace();
+		}
     }
 }
         

@@ -4,8 +4,8 @@ import java.util.List;
 
 public class Options {
     
-    public static int LARGE_ICONS = 1;
-    public static int SMALL_ICONS = 2;
+    public static final int LARGE_ICONS = 1;
+    public static final int SMALL_ICONS = 2;
         
     private String emailTo = null;  // can be a comma separated list of multiple e-mail addresses
     private String emailFrom = null;

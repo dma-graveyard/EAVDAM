@@ -747,7 +747,7 @@ class OptionsActionListener implements ActionListener, ChangeListener, DocumentL
     }        
 
     private JPanel getVisualPane() {
-    
+    	
         if (iconsSizeComboBox == null) {
             iconsSizeComboBox = new JComboBox(new String[] {"Large", "Small"});                     
             if (options.getIconsSize() == Options.LARGE_ICONS) {
@@ -891,6 +891,12 @@ class OptionsActionListener implements ActionListener, ChangeListener, DocumentL
     		options.setEmailAuth(false);
     	}
   
+    	if (iconsSizeComboBox.getSelectedIndex() == 0) {
+    		options.setIconsSize(Options.LARGE_ICONS);
+    	} else if (iconsSizeComboBox.getSelectedIndex() == 1) {
+    		options.setIconsSize(Options.SMALL_ICONS);
+    	}
+    	
     	DBHandler.saveOptions(options); 
     	
 //        try {
