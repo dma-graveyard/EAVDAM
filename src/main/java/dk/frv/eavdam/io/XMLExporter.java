@@ -24,6 +24,7 @@ import javax.xml.namespace.QName;
 import dk.frv.eavdam.data.AISFixedStationData;
 import dk.frv.eavdam.data.AISFixedStationStatus;
 import dk.frv.eavdam.data.AntennaType;
+import dk.frv.eavdam.data.FATDMASlotAllocation;
 import dk.frv.eavdam.io.derby.DerbyDBInterface;
 import dk.frv.eavdam.io.jaxb.Address;
 import dk.frv.eavdam.io.jaxb.AisFixedStationCoverage;
@@ -154,6 +155,7 @@ public class XMLExporter {
 				xData.getCoverage().addAll(convert(data.getCoverage()));
 			}
 			xData.setAntenna(convert(data.getAntenna()));
+			
 			xData.setFatdmaAllocation(convert(data.getFatdmaAllocation()));
 			if (data.getStationType() != null) {
 				xData.setStationType(AisFixedStationType.valueOf(data
@@ -248,8 +250,13 @@ public class XMLExporter {
 	private static FatdmaSlotAllocation convert(
 			dk.frv.eavdam.data.FATDMASlotAllocation allocation) {
 		if (allocation != null) {
+			List<String> a = new ArrayList<String>();
 			FatdmaSlotAllocation xAllocation = new FatdmaSlotAllocation();
-			// TODO: fatdma allocation
+			for(Integer f : allocation.getAllocations()){
+				xAllocation.getFatdmaAllocationID().add(f.intValue()+"");
+			}
+			
+			
 			return xAllocation;
 		}
 		return null;
