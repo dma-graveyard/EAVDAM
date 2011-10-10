@@ -15,8 +15,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 
-import sun.dc.pr.PRError;
-
 import dk.frv.eavdam.data.AISFixedStationCoverage;
 import dk.frv.eavdam.data.AISFixedStationData;
 import dk.frv.eavdam.data.AISFixedStationStatus;
