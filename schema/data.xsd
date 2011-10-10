@@ -223,9 +223,9 @@
 			</xs:element>
 		</xs:sequence>
 	</xs:complexType>
-	<xs:complexType name="fatdmaSlotAllocation">
+	<xs:complexType name="fatdmaSlotAllocation" >
 		<xs:sequence>
-			<xs:element name="fatdmaAllocationID" type="ns:fatdmaAllocation">
+			<xs:element name="fatdmaAllocationID" type="ns:fatdmaAllocation"  minOccurs="0" maxOccurs="unbounded">
 				<xs:annotation>
 					<xs:documentation>List of allocated FATDMA Slots</xs:documentation>
 				</xs:annotation>
@@ -306,7 +306,7 @@
 			<xs:documentation>A class for holding all information for AIS base station coverage area.</xs:documentation>
 		</xs:annotation>
 		<xs:sequence>
-			<xs:element name="point" type="ns:coveragePoint"> </xs:element>
+			<xs:element name="point" type="ns:coveragePoint"/>
 		</xs:sequence>
 	</xs:complexType>
 	<xs:complexType name="coveragePoint">
@@ -314,10 +314,10 @@
 			<xs:documentation>lat,lon point of the coverage.</xs:documentation>
 		</xs:annotation>
 		<xs:sequence>
-			<xs:element name="lat" type="ns:lat"></xs:element>
-			<xs:element name="lon" type="ns:lon"></xs:element>
+			<xs:element name="lat" type="ns:lat"/>
+			<xs:element name="lon" type="ns:lon"/>
 		</xs:sequence>
-	</xs:complexType>	
+	</xs:complexType>
 	<xs:simpleType name="aisFixedStationStatus">
 		<xs:restriction base="xs:string">
 			<xs:enumeration value="OPERATIVE">

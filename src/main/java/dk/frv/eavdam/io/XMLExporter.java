@@ -250,7 +250,6 @@ public class XMLExporter {
 	private static FatdmaSlotAllocation convert(
 			dk.frv.eavdam.data.FATDMASlotAllocation allocation) {
 		if (allocation != null) {
-			List<String> a = new ArrayList<String>();
 			FatdmaSlotAllocation xAllocation = new FatdmaSlotAllocation();
 			for(Integer f : allocation.getAllocations()){
 				xAllocation.getFatdmaAllocationID().add(f.intValue()+"");
