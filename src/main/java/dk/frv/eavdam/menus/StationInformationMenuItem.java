@@ -439,7 +439,7 @@ class StationInformationMenuItemActionListener implements ActionListener, Change
                     deleteSimulationButton.setVisible(false);
                 }
                 ignoreListeners = false;
-                eavdamMenu.getStationLayer().updateSimulations();
+//                eavdamMenu.getStationLayer().updateSimulations();
             } else if (response == JOptionPane.NO_OPTION) {                        
                 // do nothing
             } 
@@ -462,7 +462,7 @@ class StationInformationMenuItemActionListener implements ActionListener, Change
                     } else {
                         updateTabbedPane();
                     }
-                    eavdamMenu.getStationLayer().updateSimulations();
+//                    eavdamMenu.getStationLayer().updateSimulations();
                     addStationButton.setVisible(true);         
                 }
             }

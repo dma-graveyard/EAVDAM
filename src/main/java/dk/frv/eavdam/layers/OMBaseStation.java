@@ -10,14 +10,24 @@ public class OMBaseStation extends ByteRasterLocation {
 	private static final long serialVersionUID = 1L;
 
 	private ArrayList<double[]> workingArea;
+	private Object datasetSource;
 	private AISFixedStationData stationData;	
 
-	public OMBaseStation(AISFixedStationData stationData, byte[] bytearr) {	    	    
+	public OMBaseStation(Object datasetSource, AISFixedStationData stationData, byte[] bytearr) {	    	    
 		super(stationData.getLat(), stationData.getLon(), stationData.getStationName(), bytearr);		
+		this.datasetSource = datasetSource;
 		this.stationData = stationData;		
         this.setShowName(false);
 	}
-
+	
+	public Object getDatasetSource() {
+		return datasetSource;
+	}
+	
+	public void setDatasetSource(Object datasetSource) {
+		this.datasetSource = datasetSource;
+	}
+	
 	public AISFixedStationData getStationData() {
 		return stationData;
 	}
