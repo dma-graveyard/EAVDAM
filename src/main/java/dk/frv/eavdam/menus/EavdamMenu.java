@@ -43,6 +43,10 @@ public class EavdamMenu extends AbstractOpenMapMenu implements MenuListener {
         // add(new JSeparator());
 		addMenuListener(this);
     }
+		
+	public void rebuildShowOnMapMenu() {
+		showOnMapMenu = new ShowOnMapMenu(this);
+	}
 	
 	public void	menuCanceled(MenuEvent e) {}
 	public void	menuDeselected(MenuEvent e) {}

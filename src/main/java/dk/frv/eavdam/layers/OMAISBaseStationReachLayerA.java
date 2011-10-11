@@ -23,8 +23,7 @@ public class OMAISBaseStationReachLayerA extends OMGraphicHandlerLayer implement
 
 	private OMGraphicList graphics = new OMGraphicList();
 	private InformationDelegator infoDelegator;
-	//private SidePanel sidePanel;
-
+	
 	public OMAISBaseStationReachLayerA() {
 		// TODO Auto-generated constructor stub
 	}
@@ -54,11 +53,11 @@ public class OMAISBaseStationReachLayerA extends OMGraphicHandlerLayer implement
 	public MapMouseListener getMapMouseListener() {
 		return this;
 	}
-
-	public void addBaseStationReachArea(OMBaseStation bs) {
+	
+	public Object addBaseStationReachArea(OMBaseStation bs) {
 	    
 		if (bs.getReachArea() == null) {
-		    return;
+		    return null;
 		}
 
 		if (bs.getReachArea().size() < 2) {
@@ -77,9 +76,10 @@ public class OMAISBaseStationReachLayerA extends OMGraphicHandlerLayer implement
 			graphics.project(getProjection(), true);
 			this.repaint();
 			this.validate();
+			return baseCircle;
 			
 		} else if (bs.getReachArea().size() == 2) {
-			return;
+			return null;
 			
 		} else {
 
@@ -103,6 +103,7 @@ public class OMAISBaseStationReachLayerA extends OMGraphicHandlerLayer implement
 			graphics.add(baseReach);
 			graphics.project(getProjection(), true);
 			this.repaint();
+			return baseReach;
 
 		}
 	}
@@ -117,15 +118,14 @@ public class OMAISBaseStationReachLayerA extends OMGraphicHandlerLayer implement
 
 	@Override
 	public boolean mouseClicked(MouseEvent e) {
+	/*
 		//if (this.sidePanel != null) {
 		//	this.sidePanel.setText(null);
 		//}
 		OMList<OMGraphic> allClosest = graphics.findAll(e.getX(), e.getY(), 5.0f);
 		for (OMGraphic omGraphic : allClosest) {
 			if (omGraphic instanceof OMBaseStation) {
-				System.out.println("Mouse clicked on omGraphic: " + omGraphic);
-
-                /*
+				System.out.println("Mouse clicked on omGraphic: " + omGraphic);               
 				if (this.sidePanel != null) {
 					OMBaseStation r = (OMBaseStation) omGraphic;
 					String text = 
@@ -148,14 +148,17 @@ public class OMAISBaseStationReachLayerA extends OMGraphicHandlerLayer implement
 				}
 				*/
 				// Consumed by this
+				/*
 				return true;
 			}
 		}
+		*/
 		return false;
 	}
 
 	@Override
 	public boolean mouseDragged(MouseEvent e) {
+	/*
 		OMList<OMGraphic> allClosest = graphics.findAll(e.getX(), e.getY(),
 				5.0f);
 		for (OMGraphic omGraphic : allClosest) {
@@ -175,19 +178,18 @@ public class OMAISBaseStationReachLayerA extends OMGraphicHandlerLayer implement
 				return true;
 			}
 		}
+		*/
 		return false;
 	}
 
 	@Override
 	public void mouseEntered(MouseEvent e) {
 		// TODO Auto-generated method stub
-
 	}
 
 	@Override
 	public void mouseExited(MouseEvent e) {
 		// TODO Auto-generated method stub
-
 	}
 
 	@Override
@@ -223,12 +225,8 @@ public class OMAISBaseStationReachLayerA extends OMGraphicHandlerLayer implement
 
 	@Override
 	public void findAndInit(Object obj) {
-		System.out.println("Other object in MapHandler: " + obj.getClass());
 		if (obj instanceof InformationDelegator) {
 			this.infoDelegator = (InformationDelegator) obj;	    
-		//} else if (obj instanceof SidePanel) {
-		//	this.sidePanel = (SidePanel) obj;
-		//	this.sidePanel.setStationReachLayerA(this);
 		}
 	}
 

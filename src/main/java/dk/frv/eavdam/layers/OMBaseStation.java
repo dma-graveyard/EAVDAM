@@ -11,7 +11,7 @@ public class OMBaseStation extends ByteRasterLocation {
 
 	private ArrayList<double[]> workingArea;
 	private Object datasetSource;
-	private AISFixedStationData stationData;	
+	private AISFixedStationData stationData;
 
 	public OMBaseStation(Object datasetSource, AISFixedStationData stationData, byte[] bytearr) {	    	    
 		super(stationData.getLat(), stationData.getLon(), stationData.getStationName(), bytearr);		

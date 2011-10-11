@@ -8,13 +8,18 @@ import com.bbn.openmap.event.MapMouseListener;
 import com.bbn.openmap.event.NavMouseMode;
 import com.bbn.openmap.event.SelectMouseMode;
 import com.bbn.openmap.layer.OMGraphicHandlerLayer;
+import com.bbn.openmap.omGraphics.OMAction;
 import com.bbn.openmap.omGraphics.OMCircle;
 import com.bbn.openmap.omGraphics.OMDistance;
 import com.bbn.openmap.omGraphics.OMGraphic;
 import com.bbn.openmap.omGraphics.OMGraphicList;
 import com.bbn.openmap.omGraphics.OMList;
+import com.bbn.openmap.omGraphics.OMPoly;
 import com.bbn.openmap.omGraphics.OMRect;
 import com.bbn.openmap.proj.Length;
+import com.bbn.openmap.tools.drawing.DrawingTool;
+import com.bbn.openmap.tools.drawing.DrawingToolRequestor;
+import com.bbn.openmap.tools.drawing.OMDrawingTool;
 import dk.frv.eavdam.app.SidePanel;
 import dk.frv.eavdam.data.ActiveStation;
 import dk.frv.eavdam.data.AISFixedStationData;
@@ -42,7 +47,9 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.net.MalformedURLException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import javax.xml.bind.JAXBException;
 import javax.swing.ButtonGroup;
 import javax.swing.JMenu;
@@ -51,17 +58,20 @@ import javax.swing.JPopupMenu;
 import javax.swing.JCheckBoxMenuItem;
 import javax.swing.SwingUtilities;
 
-public class StationLayer extends OMGraphicHandlerLayer implements MapMouseListener, ActionListener {
+public class StationLayer extends OMGraphicHandlerLayer implements MapMouseListener, ActionListener, DrawingToolRequestor {
 
 	private static final long serialVersionUID = 1L;
 
     private MapBean mapBean;
 	private OMGraphicList graphics = new OMGraphicList();
 	private InformationDelegator infoDelegator;
+    private DrawingTool drawingTool;
+    private final com.bbn.openmap.tools.drawing.DrawingToolRequestor layer = this;
 	private SidePanel sidePanel;
 	private OMAISBaseStationReachLayerA reachLayerA;
 	private EavdamMenu eavdamMenu;	
 	private JMenuItem editStationMenuItem;
+	private JMenuItem editCoverageMenuItem;
 	//private JCheckBoxMenuItem ownOperativeStationsMenuItem;
 	//private JCheckBoxMenuItem ownPlannedStationsMenuItem;
 	private OMBaseStation currentlySelectedOMBaseStation;
@@ -70,6 +80,10 @@ public class StationLayer extends OMGraphicHandlerLayer implements MapMouseListe
 	private int currentIcons = -1;
 	//private List<JCheckBoxMenuItem> simulationMenuItems;
 	//private List<JCheckBoxMenuItem> otherUsersStationsMenuItems;
+	
+	private boolean stationsInitiallyUpdated = false;
+	
+	private Map<OMBaseStation, OMGraphic> reachAreas = new HashMap<OMBaseStation, OMGraphic>();
 	
     public StationLayer() {}
 
@@ -119,7 +133,7 @@ public class StationLayer extends OMGraphicHandlerLayer implements MapMouseListe
         }
         
         OMBaseStation base = new OMBaseStation(datasetSource, stationData, bytearr);
-//		base.randomReachArea(1);
+		base.randomReachArea(1);
 //		base.orderReachArea();
 		
 		graphics.add(base);
@@ -127,8 +141,14 @@ public class StationLayer extends OMGraphicHandlerLayer implements MapMouseListe
 		this.repaint();
 		this.validate();
 
-		//this.addBaseStationReachArea(base);
-		//reachLayerA.addBaseStationReachArea(base);
+		Object reachAreaGraphics = reachLayerA.addBaseStationReachArea(base);
+		if (reachAreaGraphics != null) {
+			if (reachAreaGraphics instanceof OMCircle) {
+				reachAreas.put(base, (OMCircle) reachAreaGraphics);
+			} else if (reachAreaGraphics instanceof OMPoly) {
+				reachAreas.put(base, (OMPoly) reachAreaGraphics);
+			}		
+		}
 		
 	}
 
@@ -149,7 +169,6 @@ public class StationLayer extends OMGraphicHandlerLayer implements MapMouseListe
 	public MapMouseListener getMapMouseListener() {
 		return this;
 	}
-
 		
 	@Override
 	public String[] getMouseModeServiceList() {
@@ -158,7 +177,55 @@ public class StationLayer extends OMGraphicHandlerLayer implements MapMouseListe
 		ret[1] = SelectMouseMode.modeID;
 		return ret;
 	}
+	
+	 public DrawingTool getDrawingTool() {
+        // Usually set in the findAndInit() method.
+        return drawingTool;
+    }
 
+    public void setDrawingTool(DrawingTool dt) {
+        // Called by the findAndInit method.
+        drawingTool = dt;
+    }
+	
+    /**
+     * Called when the DrawingTool is complete, providing the layer with the
+     * modified OMGraphic.
+     */
+	@Override	 
+    public void drawingComplete(OMGraphic omg, OMAction action) {
+        System.out.println("DrawingTool complete");
+		if (omg instanceof OMCircle) {
+			System.out.println("New radius is " + ((OMCircle) omg).getRadius());
+		}
+		// set currentlySelectedOMBaseStation coverage to omg's points (omg is either OMCircle or OMPoly)
+		
+/*
+        Object obj = omg.getAppObject();
+
+        if (obj != null && (obj == internalKey || obj == externalKey)
+                && !action.isMask(OMGraphicConstants.DELETE_GRAPHIC_MASK)) {
+
+            java.awt.Shape filterShape = omg.getShape();
+            OMGraphicList filteredList = filter(filterShape,
+                    (omg.getAppObject() == internalKey));
+            if (Debug.debugging("demo")) {
+                Debug.output("DemoLayer filter: "
+                        + filteredList.getDescription());
+            }
+        } else {
+            if (!doAction(omg, action)) {
+                // null OMGraphicList on failure, should only occur if
+                // OMGraphic is added to layer before it's ever been
+                // on the map.
+                setList(new OMGraphicList());
+                doAction(omg, action);
+            }
+        }
+*/
+        repaint();
+    }		
+	
 	@Override
 	public boolean mouseClicked(MouseEvent e) {			
 		if (SwingUtilities.isLeftMouseButton(e)) {
@@ -169,7 +236,9 @@ public class StationLayer extends OMGraphicHandlerLayer implements MapMouseListe
     				OMBaseStation omBaseStation = (OMBaseStation) omGraphic;
     				sidePanel.showInfo(omBaseStation);
     				return true;
-    			}
+    			} else {
+					System.out.println("Mouse clicked on omGraphic: " + omGraphic);
+				}
     		}
     	} else if (SwingUtilities.isRightMouseButton(e)) {
             OMList<OMGraphic> allClosest = graphics.findAll(e.getX(), e.getY(), 5.0f);
@@ -210,10 +279,13 @@ public class StationLayer extends OMGraphicHandlerLayer implements MapMouseListe
         		for (OMGraphic omGraphic : allClosest) {
         			if (omGraphic instanceof OMBaseStation) {
         			    currentlySelectedOMBaseStation = (OMBaseStation) omGraphic;
-        	            JPopupMenu popup = new JPopupMenu();
+        	            JPopupMenu popup = new JPopupMenu();					
                         editStationMenuItem = new JMenuItem("Edit station");
                         editStationMenuItem.addActionListener(this);
                         popup.add(editStationMenuItem);
+                        editCoverageMenuItem = new JMenuItem("Edit coverage");
+                        editCoverageMenuItem.addActionListener(this);
+                        popup.add(editCoverageMenuItem);							
                         popup.show(mapBean, e.getX(), e.getY());
                         return true;
                     }
@@ -316,6 +388,13 @@ public class StationLayer extends OMGraphicHandlerLayer implements MapMouseListe
 					selectedOrganization, currentlySelectedOMBaseStation.getName()).doClick(); 							
             }
 
+		} else if (e.getSource() == editCoverageMenuItem) {
+
+			DrawingTool dt = getDrawingTool();
+			if (dt != null) {
+				dt.edit(reachAreas.get(currentlySelectedOMBaseStation), this);
+			}
+			
         } else {
             updateStations();
         }
@@ -323,44 +402,22 @@ public class StationLayer extends OMGraphicHandlerLayer implements MapMouseListe
 
 	@Override
 	public void findAndInit(Object obj) {
-		System.out.println("Other object in MapHandler: " + obj.getClass());
 	    if (obj instanceof MapBean) {
 			this.mapBean = (MapBean) obj;
 		} else if (obj instanceof InformationDelegator) {
 			this.infoDelegator = (InformationDelegator) obj;
-		//} else if (obj instanceof SidePanel) {
-		//	this.sidePanel = (SidePanel) obj;
-		//	this.sidePanel.setStationLayer(this);
 		} else if (obj instanceof OMAISBaseStationReachLayerA) {
 			this.reachLayerA = (OMAISBaseStationReachLayerA) obj;
-//			this.sidePanel.setStationLayer(this);
-        
-            /*
-            this.addBaseStation(60.1, 23.8, "base 1", AISFixedStationType.BASESTATION);
-            this.addBaseStation(60.3, 23.6, "base 2", AISFixedStationType.REPEATER);
-            this.addBaseStation(60.5, 24.0, "base 3", AISFixedStationType.RECEIVER);            
-            this.addBaseStation(61.0, 23.8, "base 4", AISFixedStationType.ATON);  
-            */
-                        
-            /*
-            OMCircle o1 = new OMCircle(60.1, 23.8, 0.01);
-            o1.setFillPaint(Color.blue);
-            graphics.add(o1);
-            OMCircle o2 = new OMCircle(60.3, 23.6, 0.01);
-            o2.setFillPaint(Color.blue);
-            graphics.add(o2);
-            OMCircle o3 = new OMCircle(60.5, 24.0, 0.01);
-            o3.setFillPaint(Color.blue);                        
-            graphics.add(o3);
-            this.repaint();
-            */
 		} else if (obj instanceof EavdamMenu) {
 		    this.eavdamMenu = (EavdamMenu) obj;
-            //updateSimulations();
-            //updateOtherUsers();
-            updateStations();
 		} else if (obj instanceof SidePanel) {
 		    this.sidePanel = (SidePanel) obj;
+		} else if (obj instanceof DrawingTool) {
+            setDrawingTool((DrawingTool) obj);
+        }
+		if (eavdamMenu != null && reachLayerA != null && sidePanel != null && !stationsInitiallyUpdated) {
+			updateStations();
+			stationsInitiallyUpdated = true;
 		}
 	}
 
@@ -382,39 +439,6 @@ public class StationLayer extends OMGraphicHandlerLayer implements MapMouseListe
         return null;
     }
 
-	/*
-    public void updateSimulations() {        
-        simulationMenuItems = new ArrayList<JCheckBoxMenuItem>();
-        EAVDAMData data = DBHandler.getData();                        
-        if (data != null) {            
-            List<Simulation> simulatedStations = data.getSimulatedStations();
-            if (simulatedStations != null) {
-                for (Simulation s : simulatedStations) {
-                    JCheckBoxMenuItem simulationMenuItem = new JCheckBoxMenuItem(StationInformationMenuItem.SIMULATION_LABEL + ": " + s.getName(), false);
-                    simulationMenuItem.addActionListener(this);
-                    simulationMenuItems.add(simulationMenuItem);
-                }
-            }
-        }
-    }
-    
-    public void updateOtherUsers() {        
-        otherUsersStationsMenuItems = new ArrayList<JCheckBoxMenuItem>();
-        EAVDAMData data = DBHandler.getData();
-        if (data != null) {            
-            List<OtherUserStations> otherUsersStations = data.getOtherUsersStations();
-            if (otherUsersStations != null) {
-                for (OtherUserStations ous : otherUsersStations) {
-                    EAVDAMUser user = ous.getUser();
-                    JCheckBoxMenuItem otherUsersStationsMenuItem = new JCheckBoxMenuItem(StationInformationMenuItem.STATIONS_OF_ORGANIZATION_LABEL + " " + user.getOrganizationName(), true);
-                    otherUsersStationsMenuItem.addActionListener(this);
-                    otherUsersStationsMenuItems.add(otherUsersStationsMenuItem);
-                }
-            }
-        }
-    }    
-	*/
-    
     public void updateStations() {
 	
 		if (eavdamMenu == null || eavdamMenu.getShowOnMapMenu() == null) {
