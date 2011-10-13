@@ -28,10 +28,12 @@ import dk.frv.eavdam.data.FATDMASlotAllocation;
 import dk.frv.eavdam.io.derby.DerbyDBInterface;
 import dk.frv.eavdam.io.jaxb.Address;
 import dk.frv.eavdam.io.jaxb.AisFixedStationCoverage;
+import dk.frv.eavdam.io.jaxb.AisFixedStationCoverageType;
 import dk.frv.eavdam.io.jaxb.AisFixedStationData;
 import dk.frv.eavdam.io.jaxb.AisFixedStationStatus;
 import dk.frv.eavdam.io.jaxb.AisFixedStationType;
 import dk.frv.eavdam.io.jaxb.Antenna;
+import dk.frv.eavdam.io.jaxb.CoveragePoint;
 import dk.frv.eavdam.io.jaxb.DirectionalAntenna;
 import dk.frv.eavdam.io.jaxb.EavdamData;
 import dk.frv.eavdam.io.jaxb.EavdamUser;
@@ -152,8 +154,17 @@ public class XMLExporter {
 			xData.setTransmissionPower(data.getTransmissionPower());
 			xData.setDescription(data.getDescription());
 			if (data.getTransmissionCoverage() != null) {
-				xData.getCoverage().addAll(convert(data.getTransmissionCoverage()));
+				xData.getCoverage().addAll(convert(data.getTransmissionCoverage(), DerbyDBInterface.COVERAGE_TRANSMIT));
 			}
+
+			if (data.getReceiveCoverage() != null) {
+				xData.getCoverage().addAll(convert(data.getReceiveCoverage(), DerbyDBInterface.COVERAGE_RECEIVE));
+			}
+			
+			if (data.getInterferenceCoverage() != null) {
+				xData.getCoverage().addAll(convert(data.getInterferenceCoverage(), DerbyDBInterface.COVERAGE_INTERFERENCE));
+			}
+			
 			xData.setAntenna(convert(data.getAntenna()));
 			
 			xData.setFatdmaAllocation(convert(data.getFatdmaAllocation()));
@@ -174,9 +185,25 @@ public class XMLExporter {
 	}
 
 	private static List<AisFixedStationCoverage> convert(
-			dk.frv.eavdam.data.AISFixedStationCoverage coverage) {
+			dk.frv.eavdam.data.AISFixedStationCoverage coverage, int coverageType) {
 		if (coverage != null) {
 			List<AisFixedStationCoverage> xCoverage = new ArrayList<AisFixedStationCoverage>();
+
+			AisFixedStationCoverage c = new AisFixedStationCoverage();
+			switch(coverageType){
+				case DerbyDBInterface.COVERAGE_INTERFERENCE: c.setCoverageType(AisFixedStationCoverageType.INTERFERENCE); break;
+				case DerbyDBInterface.COVERAGE_TRANSMIT: c.setCoverageType(AisFixedStationCoverageType.TRANSMISSION); break;
+				case DerbyDBInterface.COVERAGE_RECEIVE: c.setCoverageType(AisFixedStationCoverageType.RECEIVE); break;
+			}
+			
+			for(double[] p : coverage.getCoveragePoints()){
+				CoveragePoint cp = new CoveragePoint();
+				cp.setLat(p[0]);
+				cp.setLon(p[1]);
+				c.getPoint().add(cp);
+			}
+			
+			xCoverage.add(c);
 			// TODO: coverage
 			return xCoverage;
 		}

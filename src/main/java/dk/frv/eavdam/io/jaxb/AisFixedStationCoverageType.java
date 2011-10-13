@@ -13,63 +13,49 @@ import javax.xml.bind.annotation.XmlType;
 
 
 /**
- * <p>Java class for aisFixedStationStatus.
+ * <p>Java class for aisFixedStationCoverageType.
  * 
  * <p>The following schema fragment specifies the expected content contained within this class.
  * <p>
  * <pre>
- * &lt;simpleType name="aisFixedStationStatus">
+ * &lt;simpleType name="aisFixedStationCoverageType">
  *   &lt;restriction base="{http://www.w3.org/2001/XMLSchema}string">
- *     &lt;enumeration value="OPERATIVE"/>
- *     &lt;enumeration value="OLD"/>
- *     &lt;enumeration value="PLANNED"/>
- *     &lt;enumeration value="SIMULATED"/>
- *     &lt;enumeration value="PROPOSED"/>
+ *     &lt;enumeration value="TRANSMISSION"/>
+ *     &lt;enumeration value="RECEIVE"/>
+ *     &lt;enumeration value="INTERFERENCE"/>
  *   &lt;/restriction>
  * &lt;/simpleType>
  * </pre>
  * 
  */
-@XmlType(name = "aisFixedStationStatus")
+@XmlType(name = "aisFixedStationCoverageType")
 @XmlEnum
-public enum AisFixedStationStatus {
+public enum AisFixedStationCoverageType {
 
 
     /**
-     * Indicator that the station is in operative use.
+     * Indicator of the transimission coverage area type.
      * 
      */
-    OPERATIVE,
+    TRANSMISSION,
 
     /**
-     * Indicator that the station is not in operative use anymore and exists only as a history record.
+     * Indicator of the receive coverage area type.
      * 
      */
-    OLD,
+    RECEIVE,
 
     /**
-     * Indicator that the station is planned but is not in operational use.
+     * Indicator of the interference coverage area type.
      * 
      */
-    PLANNED,
-
-    /**
-     * The station is a simulation.
-     * 
-     */
-    SIMULATED,
-
-    /**
-     * There are some proposals to the station.
-     * 
-     */
-    PROPOSED;
+    INTERFERENCE;
 
     public String value() {
         return name();
     }
 
-    public static AisFixedStationStatus fromValue(String v) {
+    public static AisFixedStationCoverageType fromValue(String v) {
         return valueOf(v);
     }
 

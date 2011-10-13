@@ -13,6 +13,7 @@ import javax.xml.datatype.XMLGregorianCalendar;
 
 import org.w3c.dom.Element;
 
+import dk.frv.eavdam.data.AISFixedStationCoverage;
 import dk.frv.eavdam.data.AISFixedStationStatus;
 import dk.frv.eavdam.data.AISFixedStationType;
 import dk.frv.eavdam.data.AntennaType;
@@ -20,8 +21,10 @@ import dk.frv.eavdam.data.EAVDAMData;
 import dk.frv.eavdam.io.derby.DerbyDBInterface;
 import dk.frv.eavdam.io.jaxb.Address;
 import dk.frv.eavdam.io.jaxb.AisFixedStationCoverage;
+import dk.frv.eavdam.io.jaxb.AisFixedStationCoverageType;
 import dk.frv.eavdam.io.jaxb.AisFixedStationData;
 import dk.frv.eavdam.io.jaxb.Antenna;
+import dk.frv.eavdam.io.jaxb.CoveragePoint;
 import dk.frv.eavdam.io.jaxb.EavdamData;
 import dk.frv.eavdam.io.jaxb.EavdamUser;
 import dk.frv.eavdam.io.jaxb.FatdmaSlotAllocation;
@@ -109,9 +112,14 @@ public class XMLImporter {
 			data.setMmsi(xData.getMmsi());
 			data.setTransmissionPower(xData.getTransmissionPower());
 			data.setDescription(xData.getDescription());
-			data.setTransmissionCoverage(convert(xData.getCoverage()));
+			
 			data.setAntenna(convert(xData.getAntenna()));
 			data.setFatdmaAllocation(convert(xData.getFatdmaAllocation()));
+			
+			data.setInterferenceCoverage(convert(xData.getCoverage(), DerbyDBInterface.COVERAGE_INTERFERENCE));
+			data.setTransmissionCoverage(convert(xData.getCoverage(), DerbyDBInterface.COVERAGE_TRANSMIT));
+			data.setReceiveCoverage(convert(xData.getCoverage(),DerbyDBInterface.COVERAGE_RECEIVE));
+			
 			if (xData.getStationType() != null) {
 				data.setStationType(AISFixedStationType.valueOf(xData
 						.getStationType().toString()));
@@ -181,9 +189,26 @@ public class XMLImporter {
 
 	// TODO
 	private static dk.frv.eavdam.data.AISFixedStationCoverage convert(
-			List<AisFixedStationCoverage> xDataList) {
+			List<AisFixedStationCoverage> xDataList, int coverageType) {
 		if (xDataList != null) {
-
+			dk.frv.eavdam.data.AISFixedStationCoverage coverage = new AISFixedStationCoverage();
+			for(AisFixedStationCoverage c : xDataList){
+				if(c.getCoverageType() == AisFixedStationCoverageType.TRANSMISSION && coverageType == DerbyDBInterface.COVERAGE_TRANSMIT){
+					for(CoveragePoint p : c.getPoint()){
+						coverage.addCoveragePoint(p.getLat(), p.getLon());
+					}
+				}else if(c.getCoverageType() == AisFixedStationCoverageType.RECEIVE && coverageType == DerbyDBInterface.COVERAGE_RECEIVE){
+					for(CoveragePoint p : c.getPoint()){
+						coverage.addCoveragePoint(p.getLat(), p.getLon());
+					}
+				} else if(c.getCoverageType() == AisFixedStationCoverageType.INTERFERENCE && coverageType == DerbyDBInterface.COVERAGE_INTERFERENCE){
+					for(CoveragePoint p : c.getPoint()){
+						coverage.addCoveragePoint(p.getLat(), p.getLon());
+					}
+				}
+			}
+			
+			return coverage;
 		}
 		return null;
 	}

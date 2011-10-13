@@ -223,9 +223,9 @@
 			</xs:element>
 		</xs:sequence>
 	</xs:complexType>
-	<xs:complexType name="fatdmaSlotAllocation" >
+	<xs:complexType name="fatdmaSlotAllocation">
 		<xs:sequence>
-			<xs:element name="fatdmaAllocationID" type="ns:fatdmaAllocation"  minOccurs="0" maxOccurs="unbounded">
+			<xs:element name="fatdmaAllocationID" type="ns:fatdmaAllocation" minOccurs="0" maxOccurs="unbounded">
 				<xs:annotation>
 					<xs:documentation>List of allocated FATDMA Slots</xs:documentation>
 				</xs:annotation>
@@ -306,7 +306,14 @@
 			<xs:documentation>A class for holding all information for AIS base station coverage area.</xs:documentation>
 		</xs:annotation>
 		<xs:sequence>
-			<xs:element name="point" type="ns:coveragePoint"/>
+			<xs:element name="coverageType" type="ns:aisFixedStationCoverageType" nillable="false" minOccurs="1" maxOccurs="1">
+				<xs:annotation>
+					<xs:documentation>Type of coverage.</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:sequence>
+				<xs:element name="point" type="ns:coveragePoint" nillable="false" minOccurs="0" maxOccurs="unbounded"/>
+			</xs:sequence>
 		</xs:sequence>
 	</xs:complexType>
 	<xs:complexType name="coveragePoint">
@@ -318,6 +325,25 @@
 			<xs:element name="lon" type="ns:lon"/>
 		</xs:sequence>
 	</xs:complexType>
+	<xs:simpleType name="aisFixedStationCoverageType">
+		<xs:restriction base="xs:string">
+			<xs:enumeration value="TRANSMISSION">
+				<xs:annotation>
+					<xs:documentation>Indicator of the transimission coverage area type.</xs:documentation>
+				</xs:annotation>
+			</xs:enumeration>
+			<xs:enumeration value="RECEIVE">
+				<xs:annotation>
+					<xs:documentation>Indicator of the receive coverage area type.</xs:documentation>
+				</xs:annotation>
+			</xs:enumeration>
+			<xs:enumeration value="INTERFERENCE">
+				<xs:annotation>
+					<xs:documentation>Indicator of the interference coverage area type.</xs:documentation>
+				</xs:annotation>
+			</xs:enumeration>
+		</xs:restriction>
+	</xs:simpleType>
 	<xs:simpleType name="aisFixedStationStatus">
 		<xs:restriction base="xs:string">
 			<xs:enumeration value="OPERATIVE">
