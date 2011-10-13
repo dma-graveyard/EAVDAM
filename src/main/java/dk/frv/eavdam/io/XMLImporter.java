@@ -190,7 +190,7 @@ public class XMLImporter {
 	// TODO
 	private static dk.frv.eavdam.data.AISFixedStationCoverage convert(
 			List<AisFixedStationCoverage> xDataList, int coverageType) {
-		if (xDataList != null) {
+		if (xDataList != null ) {
 			dk.frv.eavdam.data.AISFixedStationCoverage coverage = new AISFixedStationCoverage();
 			for(AisFixedStationCoverage c : xDataList){
 				if(c.getCoverageType() == AisFixedStationCoverageType.TRANSMISSION && coverageType == DerbyDBInterface.COVERAGE_TRANSMIT){

@@ -154,15 +154,21 @@ public class XMLExporter {
 			xData.setTransmissionPower(data.getTransmissionPower());
 			xData.setDescription(data.getDescription());
 			if (data.getTransmissionCoverage() != null) {
-				xData.getCoverage().addAll(convert(data.getTransmissionCoverage(), DerbyDBInterface.COVERAGE_TRANSMIT));
+				List<AisFixedStationCoverage> c = convert(data.getTransmissionCoverage(), DerbyDBInterface.COVERAGE_TRANSMIT);
+				if(c != null)
+					xData.getCoverage().addAll(c);
 			}
 
 			if (data.getReceiveCoverage() != null) {
-				xData.getCoverage().addAll(convert(data.getReceiveCoverage(), DerbyDBInterface.COVERAGE_RECEIVE));
+				List<AisFixedStationCoverage> c = convert(data.getReceiveCoverage(), DerbyDBInterface.COVERAGE_RECEIVE);
+				if(c != null)
+					xData.getCoverage().addAll(c);
 			}
 			
 			if (data.getInterferenceCoverage() != null) {
-				xData.getCoverage().addAll(convert(data.getInterferenceCoverage(), DerbyDBInterface.COVERAGE_INTERFERENCE));
+				List<AisFixedStationCoverage> c = convert(data.getInterferenceCoverage(), DerbyDBInterface.COVERAGE_INTERFERENCE);
+				if(c != null)
+					xData.getCoverage().addAll(c);
 			}
 			
 			xData.setAntenna(convert(data.getAntenna()));
@@ -186,9 +192,11 @@ public class XMLExporter {
 
 	private static List<AisFixedStationCoverage> convert(
 			dk.frv.eavdam.data.AISFixedStationCoverage coverage, int coverageType) {
-		if (coverage != null) {
+		if (coverage != null && coverage.getCoveragePoints() != null) {
 			List<AisFixedStationCoverage> xCoverage = new ArrayList<AisFixedStationCoverage>();
 
+			
+			
 			AisFixedStationCoverage c = new AisFixedStationCoverage();
 			switch(coverageType){
 				case DerbyDBInterface.COVERAGE_INTERFERENCE: c.setCoverageType(AisFixedStationCoverageType.INTERFERENCE); break;
