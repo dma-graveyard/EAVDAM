@@ -662,21 +662,29 @@ import dk.frv.eavdam.data.Simulation;
 	    }
 	    
 	    public void insertCoverage(AISFixedStationCoverage coverage, int stationID) throws Exception{
-	    	if(coverage == null) return;
+	    	if(coverage == null || coverage.getCoveragePoints() == null) return;
 	    	
-	    	for(Object c : coverage.getCoveragePoints()){
+	    	int ith = 1;
+	    	for(double[] c : coverage.getCoveragePoints()){
 	    		try{
-		    		PreparedStatement psc = conn.prepareStatement("insert into COVERAGEPOINTS values (?,?,?)");
+		    		PreparedStatement psc = conn.prepareStatement("insert into COVERAGEPOINTS values (?,?,?,?)");
 			    	
+		    		System.out.println("Inserting: "+stationID+", "+c[0]+", "+c[1]);
+		    		
 			    	psc.setInt(1, stationID);
-			    	psc.setInt(2, 0); //TODO lat
-			    	psc.setInt(3, 0); //TODO lon
+			    	psc.setDouble(2, c[0]); //TODO lat
+			    	psc.setDouble(3, c[1]); //TODO lon
+			    	psc.setDouble(4, ith); //TODO lon
 			    	psc.executeUpdate();
+			    
+			    	++ith;
 			    	
 			    	psc.close();
 	    		}catch(Exception e){
 	    			e.printStackTrace();
 	    		}
+	    		
+	    		
 	    	}
 	    	
 	    	
@@ -944,9 +952,23 @@ import dk.frv.eavdam.data.Simulation;
 	    	if(ais.getAntenna() != null) this.updateAntenna(ais.getAntenna(), ais.getStationDBID());
 	    	
 	    	if(ais.getStatus() != null) this.updateStatus(ais.getStatus(), ais.getStationDBID());
+	    	
+	    	if(ais.getCoverage() != null) this.updateCoverage(ais.getCoverage(), ais.getStationDBID());
 	    }
 	    
-	    private void updateAntenna(Antenna antenna, int stationId) throws Exception{
+	    private void updateCoverage(AISFixedStationCoverage coverage, int stationDBID) throws Exception{
+
+	    	//Check if the coverage can be found
+	    	String sql = "delete from COVERAGEPOINTS where station = ?";
+	    	PreparedStatement ps = conn.prepareStatement(sql);
+	    	ps.setInt(1, stationDBID);
+	    	ps.executeUpdate();
+
+    		this.insertCoverage(coverage, stationDBID);
+			
+		}
+
+		private void updateAntenna(Antenna antenna, int stationId) throws Exception{
 	    	
 	    	
 	    	int antennaType = 1;
@@ -1408,7 +1430,7 @@ import dk.frv.eavdam.data.Simulation;
 	    		ais.setFatdmaAllocation(this.retrieveFATDMAAllocations(ais.getStationDBID()));
 	    		
 	    		//TODO Get this data also...
-	    		ais.setCoverage(null);
+	    		ais.setCoverage(this.retrieveCoverageArea(ais.getStationDBID()));
 	    		ais.setAnything(null);
 	    		
 	    		data.add(ais);
@@ -1553,7 +1575,7 @@ import dk.frv.eavdam.data.Simulation;
 	    		}
 	    		
 	    		//TODO Get this data also...
-	    		ais.setCoverage(null);
+	    		ais.setCoverage(this.retrieveCoverageArea(stationID));
 	    		ais.setFatdmaAllocation(null);
 	    		ais.setAnything(null);
 	    		
@@ -1600,7 +1622,27 @@ import dk.frv.eavdam.data.Simulation;
 	    	return data;
 	    }
 	    
-	    /**
+	    private AISFixedStationCoverage retrieveCoverageArea(int stationID) throws Exception{
+	    	AISFixedStationCoverage c = new AISFixedStationCoverage();
+	    	
+	    	String sql = "select lat, lon, orderline from COVERAGEPOINTS where station = ? order by orderline ASC";
+	    	PreparedStatement ps = conn.prepareStatement(sql);
+	    	ps.setInt(1, stationID);
+	    	
+	    	ResultSet rs = ps.executeQuery();
+	    	while(rs.next()){
+	    		double[] point = new double[2];
+	    		point[0] = rs.getDouble(1);
+	    		point[1] = rs.getDouble(2);
+	    		
+	    		c.addCoveragePoint(point[0], point[1]);
+	    	}
+	    	
+	    	
+	    	return c;
+		}
+
+		/**
 	     * Retrieves all the simulations found from the database.
 	     * 
 	     * 
@@ -1867,7 +1909,7 @@ import dk.frv.eavdam.data.Simulation;
 	    }
 	    
 	    public void createDatabase(String dbName){
-	    	boolean log = true;
+	    	boolean log = false;
 	    	
 	    	try{
 	    		if(this.conn == null) this.getDBConnection(null, true);
@@ -2134,7 +2176,8 @@ import dk.frv.eavdam.data.Simulation;
 							+ "(STATION INT,"
 							+ "LAT DECIMAL (7,4),"
 							+ "LON DECIMAL (7,4),"
-							+ "CONSTRAINT pk_cp PRIMARY KEY (STATION, LAT, LON),"
+							+ "ORDERLINE INT,"
+//							+ "CONSTRAINT pk_cp PRIMARY KEY (STATION, LAT, LON),"
 							+ "CONSTRAINT fk_s_cp FOREIGN KEY (STATION) references FIXEDSTATION(ID))");
 				} catch (Exception e) {
 					if(log)

@@ -22,7 +22,12 @@ public class AISFixedStationCoverage {
 	public void addCoveragePoint(double lat, double lon){
 		if(this.coveragePoints == null) coveragePoints = new ArrayList<double[]>();
 		
-		//TODO Add a coverage object.
+		double[] c = new double[2];
+		c[0] = lat;
+		c[1] = lon;
+		
+		coveragePoints.add(c);
+		
 	}
 
 
