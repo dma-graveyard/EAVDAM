@@ -247,9 +247,8 @@ public class XMLExporter {
 		return null;
 	}
 
-	private static FatdmaSlotAllocation convert(
-			dk.frv.eavdam.data.FATDMASlotAllocation allocation) {
-		if (allocation != null) {
+	private static FatdmaSlotAllocation convert(dk.frv.eavdam.data.FATDMASlotAllocation allocation) {
+		if (allocation != null && allocation.getAllocations() != null) {
 			FatdmaSlotAllocation xAllocation = new FatdmaSlotAllocation();
 			for(Integer f : allocation.getAllocations()){
 				xAllocation.getFatdmaAllocationID().add(f.intValue()+"");

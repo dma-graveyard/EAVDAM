@@ -601,7 +601,7 @@ import dk.frv.eavdam.data.Simulation;
 	    	return stationID;
 	    }
 	    
-	    public void insertAntenna(Antenna antenna, int stationID, int antennaID) throws Exception{
+	    public void insertAntenna(Antenna antenna, int stationID, int antennaType) throws Exception{
 	    	if(antenna == null) return;
 	    	
 	    	PreparedStatement psc = conn.prepareStatement("insert into ANTENNA values (?,?,?,?,?,?,?)");
@@ -612,7 +612,7 @@ import dk.frv.eavdam.data.Simulation;
 	    	psc.setInt(4, (antenna.getHeading() != null ? antenna.getHeading() : 0));
 	    	psc.setDouble(5, (antenna.getFieldOfViewAngle() != null ? antenna.getFieldOfViewAngle() : 0));
 	    	psc.setDouble(6, (antenna.getGain() != null ? antenna.getGain() : 0));
-	    	psc.setInt(7, antennaID);
+	    	psc.setInt(7, antennaType);
 	    	psc.executeUpdate();
 	    	
 	    	psc.close();
@@ -948,12 +948,26 @@ import dk.frv.eavdam.data.Simulation;
 	    
 	    private void updateAntenna(Antenna antenna, int stationId) throws Exception{
 	    	
+	    	
 	    	int antennaType = 1;
 	    	switch(antenna.getAntennaType()){
 	    		case DIRECTIONAL: antennaType = ANTENNA_DIRECTIONAL; break;
 	    		case OMNIDIRECTIONAL: antennaType = ANTENNA_OMNIDIR; break;
 	    	
 	    	}
+	    	
+	    	//Check if the antenna exists
+	    	String find = "select * from ANTENNA where station = ?";
+
+	    	PreparedStatement update = conn.prepareStatement(find);
+	    	update.setInt(1, stationId);
+	    	
+	    	ResultSet res = update.executeQuery();
+	    	if(!res.next()){
+	    		this.insertAntenna(antenna, stationId, antennaType);
+	    		return;
+	    	}
+
 	    	
 	    	String sql = "update ANTENNA set " +
 	    			"ANTENNAHEIGHT = ?, " + //1.

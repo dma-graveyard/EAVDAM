@@ -23,8 +23,8 @@ public class RoundCoverage {
 	 * @param receiverHeight Height of the receiver. Default is 4.0 meters.
 	 * @param centerLat Location of the base station (lat)
 	 * @param centerLon Location of the base station (lon)
-	 * @param numberOfPoints Number of points in the polygon. Should be at least 10
-	 * @return
+	 * @param numberOfPoints Number of points in the polygon. Should be at least 10.
+	 * @return List of points (lat,lon) in the polygon. The first and the last point is the same. The index 0 in the double array has the latitude and the index 1 has the longitude. 
 	 */
 	public static List<double[]> getRoundCoverage(double antennaHeight, double receiverHeight, double centerLat, double centerLon, int numberOfPoints){
 		List<double[]> points = new ArrayList<double[]>();
@@ -148,7 +148,7 @@ public class RoundCoverage {
      * @param args
      */
     public static void main(String[] args){
-    	List<double[]> points = getRoundCoverage(10, 4, 12.0, 55.0, 10);
+    	List<double[]> points = getRoundCoverage(10, 4, 12.0, 55.0, 11);
     	
     	for(double[] p : points){
     		System.out.println(p[0]+","+p[1]);
