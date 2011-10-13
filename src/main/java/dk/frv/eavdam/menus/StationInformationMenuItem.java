@@ -2566,7 +2566,7 @@ class StationInformationMenuItemActionListener implements ActionListener, Change
                         proposedData.setMmsi(currentData.getMmsi());
                         proposedData.setTransmissionPower(currentData.getTransmissionPower());
                         proposedData.setDescription(currentData.getDescription());
-                        proposedData.setCoverage(currentData.getCoverage());
+                        proposedData.setTransmissionCoverage(currentData.getTransmissionCoverage());
                         proposedData.setAntenna(currentData.getAntenna());
                         proposedData.setFatdmaAllocation(currentData.getFatdmaAllocation());                                                                                                                                                                        
                         proposedData.setStationType(currentData.getStationType());

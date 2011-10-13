@@ -138,8 +138,8 @@ public class StationLayer extends OMGraphicHandlerLayer implements MapMouseListe
         OMBaseStation base = new OMBaseStation(datasetSource, stationData, bytearr);		
 		Antenna antenna = stationData.getAntenna();
 		if (antenna != null) {			
-			if (stationData.getCoverage() != null && stationData.getCoverage().getCoveragePoints() != null && stationData.getCoverage().getCoveragePoints().size() > 2) {
-				base.setReachArea(stationData.getCoverage().getCoveragePoints());
+			if (stationData.getTransmissionCoverage() != null && stationData.getTransmissionCoverage().getCoveragePoints() != null && stationData.getTransmissionCoverage().getCoveragePoints().size() > 2) {
+				base.setReachArea(stationData.getTransmissionCoverage().getCoveragePoints());
 			} else {
 				ArrayList<double[]> points = (ArrayList<double[]>) RoundCoverage.getRoundCoverage(antenna.getAntennaHeight()+antenna.getTerrainHeight(), 4, stationData.getLat(), stationData.getLon(), 25);  // XXX: receiverHeight?				
 				base.setReachArea(points);
@@ -236,12 +236,12 @@ public class StationLayer extends OMGraphicHandlerLayer implements MapMouseListe
 							for (int j=0; j<as.getStations().size(); j++) {
 								AISFixedStationData stationData = as.getStations().get(j);
 								if (stationData.getStationDBID() == currentlySelectedOMBaseStation.getStationData().getStationDBID()) {
-									AISFixedStationCoverage coverage = stationData.getCoverage();
+									AISFixedStationCoverage coverage = stationData.getTransmissionCoverage();
 									if (coverage == null) {
 										coverage = new AISFixedStationCoverage();
 									}
 									coverage.setCoveragePoints(points);
-									stationData.setCoverage(coverage);
+									stationData.setTransmissionCoverage(coverage);
 									as.getStations().set(j, stationData);
 									data.getActiveStations().set(i, as);		
 									break;									
@@ -259,12 +259,12 @@ public class StationLayer extends OMGraphicHandlerLayer implements MapMouseListe
 						for (int i=0; i<stations.size(); i++) {
 							AISFixedStationData stationData = stations.get(i);
 							if (stationData.getStationDBID() == currentlySelectedOMBaseStation.getStationData().getStationDBID()) {
-								AISFixedStationCoverage coverage = stationData.getCoverage();
+								AISFixedStationCoverage coverage = stationData.getTransmissionCoverage();
 								if (coverage == null) {
 									coverage = new AISFixedStationCoverage();
 								}
 								coverage.setCoveragePoints(points);
-								stationData.setCoverage(coverage);
+								stationData.setTransmissionCoverage(coverage);
 								stations.set(i, stationData);
 								s.setStations(stations);
 								data.setSimulatedStations(simulatedStations);
@@ -285,12 +285,12 @@ public class StationLayer extends OMGraphicHandlerLayer implements MapMouseListe
 								for (int k=0; k<as.getStations().size(); k++) {
 									AISFixedStationData stationData = as.getStations().get(k);
 									if (stationData.getStationDBID() == currentlySelectedOMBaseStation.getStationData().getStationDBID()) {
-										AISFixedStationCoverage coverage = stationData.getCoverage();
+										AISFixedStationCoverage coverage = stationData.getTransmissionCoverage();
 										if (coverage == null) {
 											coverage = new AISFixedStationCoverage();
 										}
 										coverage.setCoveragePoints(points);
-										stationData.setCoverage(coverage);
+										stationData.setTransmissionCoverage(coverage);
 										as.getStations().set(k, stationData);										
 										ous.getStations().set(j, as);
 										data.getOtherUsersStations().set(i, ous);		
