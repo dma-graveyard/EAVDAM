@@ -68,7 +68,12 @@ import dk.frv.eavdam.data.Simulation;
 	    }
 	    
 	    public DerbyDBInterface(){
-	    	
+	    	try{
+	    		if(this.conn == null)
+	    			this.conn = this.getDBConnection(null, false);
+	    	}catch(Exception e){
+	    		e.printStackTrace();
+	    	}
 	    }
 	    
 	    public static void main(String[] args) {
