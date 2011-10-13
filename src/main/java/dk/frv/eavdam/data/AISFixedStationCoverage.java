@@ -11,7 +11,7 @@ import java.util.List;
  */
 public class AISFixedStationCoverage {
 	
-	List<Object> coveragePoints;
+	ArrayList<double[]> coveragePoints;
 	
 	
 	public AISFixedStationCoverage(){
@@ -20,18 +20,18 @@ public class AISFixedStationCoverage {
 
 	
 	public void addCoveragePoint(double lat, double lon){
-		if(this.coveragePoints == null) coveragePoints = new ArrayList<Object>();
+		if(this.coveragePoints == null) coveragePoints = new ArrayList<double[]>();
 		
 		//TODO Add a coverage object.
 	}
 
 
-	public List<Object> getCoveragePoints() {
+	public ArrayList<double[]> getCoveragePoints() {
 		return coveragePoints;
 	}
 
 
-	public void setCoveragePoints(List<Object> coveragePoints) {
+	public void setCoveragePoints(ArrayList<double[]> coveragePoints) {
 		this.coveragePoints = coveragePoints;
 	}
 
