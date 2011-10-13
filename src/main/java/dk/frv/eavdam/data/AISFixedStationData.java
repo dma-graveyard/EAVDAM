@@ -47,10 +47,23 @@ public class AISFixedStationData {
 	 * A free text description of the station.
 	 */
 	private String description;
+
 	/**
-	 * Coverage information for the station.
+	 * Transmission coverage information for the station.
 	 */
-	private AISFixedStationCoverage coverage;
+	private AISFixedStationCoverage transmissionCoverage;
+	
+	/**
+	 * Receive coverage information for the station.
+	 */
+	private AISFixedStationCoverage receiveCoverage;
+	
+	/**
+	 * Interference coverage information for the station.
+	 */
+	private AISFixedStationCoverage interferenceCoverage;
+	
+	
 	/**
 	 * Antenna information for the station.
 	 */
@@ -175,12 +188,12 @@ public class AISFixedStationData {
 		}
 	}
 
-	public AISFixedStationCoverage getCoverage() {
-		return coverage;
+	public AISFixedStationCoverage getTransmissionCoverage() {
+		return transmissionCoverage;
 	}
 
-	public void setCoverage(AISFixedStationCoverage coverage) {
-		this.coverage = coverage;
+	public void setTransmissionCoverage(AISFixedStationCoverage coverage) {
+		this.transmissionCoverage = coverage;
 	}
 
 	public Antenna getAntenna() {
@@ -261,7 +274,7 @@ public class AISFixedStationData {
 		return "AISFixedStationData [stationName=" + stationName + ", lat="
 				+ lat + ", lon=" + lon + ", mmsi=" + mmsi
 				+ ", transmissionPower=" + transmissionPower + ", description="
-				+ description + ", coverage=" + coverage + ", antenna="
+				+ description + ", transmitCoverage=" + transmissionCoverage + ", antenna="
 				+ antenna + ", fatdmaAllocation=" + fatdmaAllocation
 				+ ", stationType=" + stationType + ", operator=" + operator
 				+ ", status=" + status + ", anything=" + anything + "]";
@@ -289,5 +302,21 @@ public class AISFixedStationData {
 
 	public void setRefStationID(int refStationID) {
 		this.refStationID = refStationID;
+	}
+
+	public AISFixedStationCoverage getReceiveCoverage() {
+		return receiveCoverage;
+	}
+
+	public void setReceiveCoverage(AISFixedStationCoverage receiveCoverage) {
+		this.receiveCoverage = receiveCoverage;
+	}
+
+	public AISFixedStationCoverage getInterferenceCoverage() {
+		return interferenceCoverage;
+	}
+
+	public void setInterferenceCoverage(AISFixedStationCoverage interferenceCoverage) {
+		this.interferenceCoverage = interferenceCoverage;
 	}
 }

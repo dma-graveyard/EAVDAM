@@ -12,7 +12,7 @@ import java.util.List;
 public class AISFixedStationCoverage {
 	
 	ArrayList<double[]> coveragePoints;
-	
+	int coverageType; //1 = transmit, 2 = receiver, 3 = interference
 	
 	public AISFixedStationCoverage(){
 
@@ -38,6 +38,16 @@ public class AISFixedStationCoverage {
 
 	public void setCoveragePoints(ArrayList<double[]> coveragePoints) {
 		this.coveragePoints = coveragePoints;
+	}
+
+
+	public int getCoverageType() {
+		return coverageType;
+	}
+
+
+	public void setCoverageType(int coverageType) {
+		this.coverageType = coverageType;
 	}
 
 }

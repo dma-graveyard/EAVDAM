@@ -56,6 +56,10 @@ import dk.frv.eavdam.data.Simulation;
 	    public static final int STATION_RECEIVER = 3;
 	    public static final int STATION_ATON = 4;
 	    
+	    public static final int COVERAGE_TRANSMIT= 1;
+	    public static final int COVERAGE_RECEIVE = 2;
+	    public static final int COVERAGE_INTERFERENCE = 3;
+	    
 	    Connection conn = null;
 	    
 	    public DerbyDBInterface(String driver, String protocol){
@@ -587,7 +591,10 @@ import dk.frv.eavdam.data.Simulation;
 		    	this.insertAntenna(as.getAntenna(), stationID, antennaType);
 	    	}
 	    	
-	    	this.insertCoverage(as.getCoverage(), stationID);
+	    	//Insert the different coverage types.
+	    	this.insertCoverage(as.getTransmissionCoverage(), stationID, COVERAGE_TRANSMIT);
+	    	this.insertCoverage(as.getReceiveCoverage(), stationID, COVERAGE_RECEIVE);
+	    	this.insertCoverage(as.getInterferenceCoverage(), stationID, COVERAGE_INTERFERENCE);
 	    	
 	    	//Insert Status
 	    	this.insertStatus(as.getStatus(), refstation, as.getStatus().getStatusID(), stationID);
@@ -661,20 +668,21 @@ import dk.frv.eavdam.data.Simulation;
 	    	}
 	    }
 	    
-	    public void insertCoverage(AISFixedStationCoverage coverage, int stationID) throws Exception{
+	    public void insertCoverage(AISFixedStationCoverage coverage, int stationID, int coverageType) throws Exception{
 	    	if(coverage == null || coverage.getCoveragePoints() == null) return;
 	    	
 	    	int ith = 1;
 	    	for(double[] c : coverage.getCoveragePoints()){
 	    		try{
-		    		PreparedStatement psc = conn.prepareStatement("insert into COVERAGEPOINTS values (?,?,?,?)");
+		    		PreparedStatement psc = conn.prepareStatement("insert into COVERAGEPOINTS values (?,?,?,?,?)");
 			    	
 		    		System.out.println("Inserting: "+stationID+", "+c[0]+", "+c[1]);
 		    		
 			    	psc.setInt(1, stationID);
 			    	psc.setDouble(2, c[0]); //TODO lat
 			    	psc.setDouble(3, c[1]); //TODO lon
-			    	psc.setDouble(4, ith); //TODO lon
+			    	psc.setDouble(4, ith); 
+			    	psc.setDouble(5, coverageType); 
 			    	psc.executeUpdate();
 			    
 			    	++ith;
@@ -953,18 +961,29 @@ import dk.frv.eavdam.data.Simulation;
 	    	
 	    	if(ais.getStatus() != null) this.updateStatus(ais.getStatus(), ais.getStationDBID());
 	    	
-	    	if(ais.getCoverage() != null) this.updateCoverage(ais.getCoverage(), ais.getStationDBID());
+	    	if(ais.getTransmissionCoverage() != null){
+	    		this.updateCoverage(ais.getTransmissionCoverage(), ais.getStationDBID(), COVERAGE_TRANSMIT);
+	    	}
+	    	
+	    	if(ais.getReceiveCoverage() != null){
+	    		this.updateCoverage(ais.getReceiveCoverage(), ais.getStationDBID(), COVERAGE_RECEIVE);
+	    	}
+	    	
+	    	if(ais.getInterferenceCoverage() != null){
+	    		this.updateCoverage(ais.getInterferenceCoverage(), ais.getStationDBID(), COVERAGE_INTERFERENCE);
+	    	}
 	    }
 	    
-	    private void updateCoverage(AISFixedStationCoverage coverage, int stationDBID) throws Exception{
+	    private void updateCoverage(AISFixedStationCoverage coverage, int stationDBID, int coverageType) throws Exception{
 
 	    	//Check if the coverage can be found
-	    	String sql = "delete from COVERAGEPOINTS where station = ?";
+	    	String sql = "delete from COVERAGEPOINTS where station = ? and coverageType = ?";
 	    	PreparedStatement ps = conn.prepareStatement(sql);
 	    	ps.setInt(1, stationDBID);
+	    	ps.setInt(2, coverageType);
 	    	ps.executeUpdate();
 
-    		this.insertCoverage(coverage, stationDBID);
+    		this.insertCoverage(coverage, stationDBID, coverageType);
 			
 		}
 
@@ -1430,7 +1449,13 @@ import dk.frv.eavdam.data.Simulation;
 	    		ais.setFatdmaAllocation(this.retrieveFATDMAAllocations(ais.getStationDBID()));
 	    		
 	    		//TODO Get this data also...
-	    		ais.setCoverage(this.retrieveCoverageArea(ais.getStationDBID()));
+	    		int stationID = ais.getStationDBID();
+	    		ais.setTransmissionCoverage(this.retrieveCoverageArea(stationID,COVERAGE_TRANSMIT));
+	    		ais.setReceiveCoverage(this.retrieveCoverageArea(stationID, COVERAGE_RECEIVE));
+	    		ais.setInterferenceCoverage(this.retrieveCoverageArea(stationID, COVERAGE_INTERFERENCE));
+	    		
+	    		
+	    		
 	    		ais.setAnything(null);
 	    		
 	    		data.add(ais);
@@ -1575,7 +1600,11 @@ import dk.frv.eavdam.data.Simulation;
 	    		}
 	    		
 	    		//TODO Get this data also...
-	    		ais.setCoverage(this.retrieveCoverageArea(stationID));
+	    		ais.setTransmissionCoverage(this.retrieveCoverageArea(stationID,COVERAGE_TRANSMIT));
+	    		ais.setReceiveCoverage(this.retrieveCoverageArea(stationID, COVERAGE_RECEIVE));
+	    		ais.setInterferenceCoverage(this.retrieveCoverageArea(stationID, COVERAGE_INTERFERENCE));
+	    		
+	    		
 	    		ais.setFatdmaAllocation(null);
 	    		ais.setAnything(null);
 	    		
@@ -1622,13 +1651,14 @@ import dk.frv.eavdam.data.Simulation;
 	    	return data;
 	    }
 	    
-	    private AISFixedStationCoverage retrieveCoverageArea(int stationID) throws Exception{
+	    private AISFixedStationCoverage retrieveCoverageArea(int stationID, int coverageType) throws Exception{
 	    	AISFixedStationCoverage c = new AISFixedStationCoverage();
 	    	
-	    	String sql = "select lat, lon, orderline from COVERAGEPOINTS where station = ? order by orderline ASC";
+	    	String sql = "select lat, lon, orderline from COVERAGEPOINTS where station = ? AND coverageType = ? order by orderline ASC";
 	    	PreparedStatement ps = conn.prepareStatement(sql);
 	    	ps.setInt(1, stationID);
-	    	
+	     	ps.setInt(2, coverageType);
+	     	
 	    	ResultSet rs = ps.executeQuery();
 	    	while(rs.next()){
 	    		double[] point = new double[2];
@@ -2177,6 +2207,7 @@ import dk.frv.eavdam.data.Simulation;
 							+ "LAT DECIMAL (7,4),"
 							+ "LON DECIMAL (7,4),"
 							+ "ORDERLINE INT,"
+							+ "COVERAGETYPE INT,"
 //							+ "CONSTRAINT pk_cp PRIMARY KEY (STATION, LAT, LON),"
 							+ "CONSTRAINT fk_s_cp FOREIGN KEY (STATION) references FIXEDSTATION(ID))");
 				} catch (Exception e) {

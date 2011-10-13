@@ -151,8 +151,8 @@ public class XMLExporter {
 			xData.setMmsi(data.getMmsi());
 			xData.setTransmissionPower(data.getTransmissionPower());
 			xData.setDescription(data.getDescription());
-			if (data.getCoverage() != null) {
-				xData.getCoverage().addAll(convert(data.getCoverage()));
+			if (data.getTransmissionCoverage() != null) {
+				xData.getCoverage().addAll(convert(data.getTransmissionCoverage()));
 			}
 			xData.setAntenna(convert(data.getAntenna()));
 			
