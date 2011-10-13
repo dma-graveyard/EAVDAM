@@ -99,7 +99,8 @@ public class OMAISBaseStationReachLayerA extends OMGraphicHandlerLayer implement
 
 			System.out.println("Drawing reach area. There are "+latlon.length+" coordinates...");
 
-			baseReach.setFillPaint(Color.GREEN);
+			Color c = new Color(0, 255, 0, 100);
+			baseReach.setFillPaint(c);
 			graphics.add(baseReach);
 			graphics.project(getProjection(), true);
 			this.repaint();

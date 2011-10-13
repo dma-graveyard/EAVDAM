@@ -22,9 +22,11 @@ import com.bbn.openmap.tools.drawing.DrawingToolRequestor;
 import com.bbn.openmap.tools.drawing.OMDrawingTool;
 import dk.frv.eavdam.app.SidePanel;
 import dk.frv.eavdam.data.ActiveStation;
+import dk.frv.eavdam.data.AISFixedStationCoverage;
 import dk.frv.eavdam.data.AISFixedStationData;
 import dk.frv.eavdam.data.AISFixedStationStatus;
 import dk.frv.eavdam.data.AISFixedStationType;
+import dk.frv.eavdam.data.Antenna;
 import dk.frv.eavdam.data.EAVDAMData;
 import dk.frv.eavdam.data.EAVDAMUser;
 import dk.frv.eavdam.data.Options;
@@ -36,6 +38,7 @@ import dk.frv.eavdam.menus.EavdamMenu;
 import dk.frv.eavdam.menus.OptionsMenuItem;
 import dk.frv.eavdam.menus.StationInformationMenuItem;
 import dk.frv.eavdam.utils.DBHandler;
+import dk.frv.eavdam.utils.RoundCoverage;
 import java.awt.Color;
 import java.awt.event.ActionListener;
 import java.awt.event.ActionEvent;
@@ -132,8 +135,17 @@ public class StationLayer extends OMGraphicHandlerLayer implements MapMouseListe
             }
         }
         
-        OMBaseStation base = new OMBaseStation(datasetSource, stationData, bytearr);
-		base.randomReachArea(1);
+        OMBaseStation base = new OMBaseStation(datasetSource, stationData, bytearr);		
+		Antenna antenna = stationData.getAntenna();
+		if (antenna != null) {			
+			if (stationData.getCoverage() != null && stationData.getCoverage().getCoveragePoints() != null && stationData.getCoverage().getCoveragePoints().size() > 2) {
+				base.setReachArea(stationData.getCoverage().getCoveragePoints());
+			} else {
+				ArrayList<double[]> points = (ArrayList<double[]>) RoundCoverage.getRoundCoverage(antenna.getAntennaHeight()+antenna.getTerrainHeight(), 4, stationData.getLat(), stationData.getLon(), 25);  // XXX: receiverHeight?				
+				base.setReachArea(points);
+			}
+		}
+//		base.randomReachArea(1);
 //		base.orderReachArea();
 		
 		graphics.add(base);
@@ -194,12 +206,107 @@ public class StationLayer extends OMGraphicHandlerLayer implements MapMouseListe
      */
 	@Override	 
     public void drawingComplete(OMGraphic omg, OMAction action) {
-        System.out.println("DrawingTool complete");
 		if (omg instanceof OMCircle) {
-			System.out.println("New radius is " + ((OMCircle) omg).getRadius());
+			// circles are currently presented as OMPolys
+		} else if (omg instanceof OMPoly) {
+			// saves the data
+			
+			ArrayList<double[]> points = new ArrayList<double[]>();
+			double[] latlonArray = ((OMPoly) omg).getLatLonArray();
+			int index=0;
+			while (index+1<latlonArray.length) {
+				double lat = latlonArray[index];
+				double lon = latlonArray[index+1];
+				double[] latlon = new double[2];
+				latlon[0] = RoundCoverage.radians2degrees(lat);
+				latlon[1] = RoundCoverage.radians2degrees(lon);
+				points.add(latlon);
+				index = index+2;
+			}
+
+			if (data == null) {
+				data = DBHandler.getData();                        
+			}
+			if (currentlySelectedOMBaseStation.getDatasetSource() == null) {
+				List<ActiveStation> activeStations = data.getActiveStations();
+				if (activeStations != null) {
+					for (int i=0; i< activeStations.size(); i++) {
+						ActiveStation as = activeStations.get(i);
+						if (as.getStations() != null) {
+							for (int j=0; j<as.getStations().size(); j++) {
+								AISFixedStationData stationData = as.getStations().get(j);
+								if (stationData.getStationDBID() == currentlySelectedOMBaseStation.getStationData().getStationDBID()) {
+									AISFixedStationCoverage coverage = stationData.getCoverage();
+									if (coverage == null) {
+										coverage = new AISFixedStationCoverage();
+									}
+									coverage.setCoveragePoints(points);
+									stationData.setCoverage(coverage);
+									as.getStations().set(j, stationData);
+									data.getActiveStations().set(i, as);		
+									break;									
+								}
+							}
+						}
+					}
+				}
+			} else if (currentlySelectedOMBaseStation.getDatasetSource() instanceof String) {  // simulation
+				String selectedSimulation = (String) currentlySelectedOMBaseStation.getDatasetSource();				
+                List<Simulation> simulatedStations = data.getSimulatedStations();
+                for (Simulation s : data.getSimulatedStations()) {
+                    if (selectedSimulation.equals(s.getName())) {
+                        List<AISFixedStationData> stations = s.getStations();
+						for (int i=0; i<stations.size(); i++) {
+							AISFixedStationData stationData = stations.get(i);
+							if (stationData.getStationDBID() == currentlySelectedOMBaseStation.getStationData().getStationDBID()) {
+								AISFixedStationCoverage coverage = stationData.getCoverage();
+								if (coverage == null) {
+									coverage = new AISFixedStationCoverage();
+								}
+								coverage.setCoveragePoints(points);
+								stationData.setCoverage(coverage);
+								stations.set(i, stationData);
+								s.setStations(stations);
+								data.setSimulatedStations(simulatedStations);
+								break;																	
+							}	
+						}
+                    }
+                }
+		    } else if (currentlySelectedOMBaseStation.getDatasetSource() instanceof EAVDAMUser) {  // Other user's dataset
+				String selectedOrganization = ((EAVDAMUser) currentlySelectedOMBaseStation.getDatasetSource()).getOrganizationName();           
+                for (int i=0; i<data.getOtherUsersStations().size(); i++) {
+                    OtherUserStations ous = data.getOtherUsersStations().get(i);
+                    if (selectedOrganization.equals(ous.getUser().getOrganizationName())) {
+                        List<ActiveStation> stations = ous.getStations();
+						for (int j=0; j< stations.size(); j++) {
+							ActiveStation as = stations.get(j);
+							if (as.getStations() != null) {
+								for (int k=0; k<as.getStations().size(); k++) {
+									AISFixedStationData stationData = as.getStations().get(k);
+									if (stationData.getStationDBID() == currentlySelectedOMBaseStation.getStationData().getStationDBID()) {
+										AISFixedStationCoverage coverage = stationData.getCoverage();
+										if (coverage == null) {
+											coverage = new AISFixedStationCoverage();
+										}
+										coverage.setCoveragePoints(points);
+										stationData.setCoverage(coverage);
+										as.getStations().set(k, stationData);										
+										ous.getStations().set(j, as);
+										data.getOtherUsersStations().set(i, ous);		
+										break;									
+									}
+								}
+							}
+						}
+					}
+                }
+            }          
+		     
+			DBHandler.saveData(data);    		
+			
 		}
-		// set currentlySelectedOMBaseStation coverage to omg's points (omg is either OMCircle or OMPoly)
-		
+	
 /*
         Object obj = omg.getAppObject();
 
@@ -445,7 +552,7 @@ public class StationLayer extends OMGraphicHandlerLayer implements MapMouseListe
 			return;
 		}
 
-        EAVDAMData data = DBHandler.getData();                        
+        data = DBHandler.getData();                        
         if (data != null) {
              Options options = OptionsMenuItem.loadOptions();
              currentIcons = options.getIconsSize();

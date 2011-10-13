@@ -68,11 +68,11 @@ public class RoundCoverage {
 	}
 	
 	
-    private static double degrees2radians(double d) {
+    public static double degrees2radians(double d) {
         return d * Math.PI / 180;
     }
 
-    private static double radians2degrees(double r) {
+    public static double radians2degrees(double r) {
         return r * 180 / Math.PI;
     }
 
@@ -84,7 +84,7 @@ public class RoundCoverage {
      * @param S Seconds
      * @return Decimal degree
      */
-    private static double convertToDecimalDegrees(double D, double M, double S) {
+    public static double convertToDecimalDegrees(double D, double M, double S) {
         return (D + M / 60 + S / 3600);
     }
 
