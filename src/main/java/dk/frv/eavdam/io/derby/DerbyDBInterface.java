@@ -118,6 +118,7 @@ import dk.frv.eavdam.data.Simulation;
             
             //Test if the database exists:
             if(!creatingDatabase){
+            	boolean createdDB = false;
 	            try{
 	            	PreparedStatement ps = conn.prepareStatement("SELECT id, name FROM STATIONTYPE WHERE id=1");
 	            	ResultSet rs = ps.executeQuery();
@@ -129,12 +130,55 @@ import dk.frv.eavdam.data.Simulation;
 //	            	e.printStackTrace();
 	            	System.out.println("Database does not exist, creating it...");
 	            	this.createDatabase(dbName);
+	            	createdDB = true;
 	            }
+
+	            if(!createdDB){
+		            try{
+			            PreparedStatement ps = conn.prepareStatement("insert into COVERAGEPOINTS values (1,1,1,1,1)");
+			            ps.executeUpdate();
+			            	
+
+			            ps = conn.prepareStatement("delete from COVERAGEPOINTS where station = 1 AND orderline = 1 AND lat = 1 AND lon = 1 AND coveragetype = 1");
+			            ps.executeUpdate();
+			            ps.close();
+			            	
+			            	
+			            }catch(SQLException e){
+							System.out.println("Coveragepoints table out-of-date. Creating the table again.");
+			            	try {
+			            		Statement s = conn.createStatement();
+			            		s.executeUpdate("DROP TABLE COVERAGEPOINTS");
+			            		
+								s.execute("CREATE TABLE COVERAGEPOINTS"
+										+ "(STATION INT,"
+										+ "LAT DECIMAL (7,4),"
+										+ "LON DECIMAL (7,4),"
+										+ "ORDERLINE INT,"
+										+ "COVERAGETYPE INT,"
+		//								+ "CONSTRAINT pk_cp PRIMARY KEY (STATION, LAT, LON),"
+										+ "CONSTRAINT fk_s_cp FOREIGN KEY (STATION) references FIXEDSTATION(ID))");
+							} catch (Exception e2) {
+								
+							}
+		            	}
+	            }
+	            
+	            
 	    	}	
             
             return this.conn;
 	    }
 	
+	    public void closeConnection(){
+	    	try{
+		    	if(this.conn != null)
+		    		this.conn.close();
+	    	}catch(Exception e){
+	    		e.printStackTrace();
+	    	}
+	    }
+	    
 	    /**
 	     * Inserts the data to the database. Depending on the data 
 	     * 
@@ -530,6 +574,7 @@ import dk.frv.eavdam.data.Simulation;
 	    		if(id >= 0){
 	    			
 	    			System.out.println("Station exists. Updating its information! (id: "+as.getStationDBID()+" vs. dbid: "+id+", status: "+as.getStatus().getStatusID()+", owner: "+organizationID+")");
+	    			as.setStationDBID(id);
 	    			this.updateAISStation(as, organizationID);
 	    			
 	    			res.close();	    			
@@ -681,7 +726,7 @@ import dk.frv.eavdam.data.Simulation;
 	    		try{
 		    		PreparedStatement psc = conn.prepareStatement("insert into COVERAGEPOINTS values (?,?,?,?,?)");
 			    	
-		    		System.out.println("Inserting: "+stationID+", "+c[0]+", "+c[1]);
+//		    		System.out.println("Inserting: "+stationID+", "+c[0]+", "+c[1]);
 		    		
 			    	psc.setInt(1, stationID);
 			    	psc.setDouble(2, c[0]); //TODO lat
@@ -2212,7 +2257,7 @@ import dk.frv.eavdam.data.Simulation;
 							+ "LAT DECIMAL (7,4),"
 							+ "LON DECIMAL (7,4),"
 							+ "ORDERLINE INT,"
-							+ "COVERAGETYPE INT,"
+//							+ "COVERAGETYPE INT,"
 //							+ "CONSTRAINT pk_cp PRIMARY KEY (STATION, LAT, LON),"
 							+ "CONSTRAINT fk_s_cp FOREIGN KEY (STATION) references FIXEDSTATION(ID))");
 				} catch (Exception e) {

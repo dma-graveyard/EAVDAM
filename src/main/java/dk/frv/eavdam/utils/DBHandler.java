@@ -26,9 +26,9 @@ public class DBHandler {
 
     	EAVDAMData dat = new EAVDAMData();
     	if(!initialized){
-    		//Check if the database exists.
+    		//Check if the database exists. It does the check in the constructor.
     		DerbyDBInterface d = new DerbyDBInterface();
-    		
+    		d.closeConnection();
     		
     		dat = XMLHandler.importData();
     		initialized = true;
