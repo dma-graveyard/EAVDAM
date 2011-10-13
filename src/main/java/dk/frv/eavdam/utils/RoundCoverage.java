@@ -53,19 +53,57 @@ public class RoundCoverage {
 		return points;
 	}
 	
+	/**
+	 * Gets the coverage area in a polygon form. 
+	 * 
+	 * @param antennaHeight Height of the antenna.
+	 * @param receiverHeight Height of the receiver. Default is 4.0 meters.
+	 * @param centerLat Location of the base station (lat)
+	 * @param centerLon Location of the base station (lon)
+	 * @param numberOfPoints Number of points in the polygon. Should be at least 10.
+	 * @return List of points (lat,lon) in the polygon. The first and the last point is the same. The index 0 in the double array has the latitude and the index 1 has the longitude. 
+	 */
+	public static List<double[]> getRoundInterferenceCoverage(double centerLat, double centerLon, int numberOfPoints){
+		List<double[]> points = new ArrayList<double[]>();
+		
+		double radius = 120*1.852;
+		
+		if(numberOfPoints < 10) numberOfPoints = 10;
+		
+		double partOfCircleAngle = 360.0/numberOfPoints;
+		double[] startPoint = null;
+		for(double angle = 0; angle <= 360.0; angle += partOfCircleAngle){
+			
+			double[] point = getCoordinates(centerLat, centerLon, radius, angle);
+			
+			if(angle == 0){
+				startPoint = point;
+			}
+			
+			points.add(point);
+		}
+		
+		if(points.get(points.size()-1)[0] != startPoint[0] || points.get(points.size()-1)[1] != startPoint[1]){
+			points.add(startPoint);
+		}
+		
+		return points;
+	}
+	
     /**
 	 * Calculates the radius for the circle.
 	 * 
 	 * @param antennaHeight Height of the antenna. Either antennaHeight or antennaHeight + terrainHeight
 	 * @param receiverHeight The height of the receiving antenna. Default: 4m (if less than 0 is given, the default is used).
-	 * @return The radius in nautical miles
+	 * @return The radius in kilometers
 	 */
 	private static double getRoundCoverageRadius(double antennaHeight, double receiverHeight){
 		if(receiverHeight < 0) receiverHeight = DEFAULT_RECEIVER_HEIGHT;
 		
-		return 2.5*(Math.pow(antennaHeight, 0.5) + Math.pow(receiverHeight, 0.5));
+		return 2.5*(Math.pow(antennaHeight, 0.5) + Math.pow(receiverHeight, 0.5))*1.852;
 		
 	}
+	
 	
 	
     public static double degrees2radians(double d) {
@@ -141,6 +179,8 @@ public class RoundCoverage {
         
         return coord;
     }
+    
+    
     
     /**
      * Just for testing... 
