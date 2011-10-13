@@ -109,7 +109,7 @@ public class XMLImporter {
 			data.setMmsi(xData.getMmsi());
 			data.setTransmissionPower(xData.getTransmissionPower());
 			data.setDescription(xData.getDescription());
-			data.setCoverage(convert(xData.getCoverage()));
+			data.setTransmissionCoverage(convert(xData.getCoverage()));
 			data.setAntenna(convert(xData.getAntenna()));
 			data.setFatdmaAllocation(convert(xData.getFatdmaAllocation()));
 			if (xData.getStationType() != null) {
