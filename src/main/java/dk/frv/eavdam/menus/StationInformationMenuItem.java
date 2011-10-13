@@ -1575,22 +1575,46 @@ class StationInformationMenuItemActionListener implements ActionListener, Change
             gainTextField_.setText("");
             gainTextField_.setEnabled(false); 
         } else if (antennaTypeComboBox_.getSelectedIndex() == 1) {  // omnidirectional
-            antennaHeightTextField_.setEnabled(true);
-            terrainHeightTextField_.setEnabled(true);
-            headingTextField_.setText("");
+			if (antennaHeightTextField_ == addAntennaHeightTextField ||
+					tabbedPane.getTitleAt(tabbedPane.getSelectedIndex()).equals(StationInformationMenuItem.PLANNED_LABEL) ||
+					tabbedPane.getTitleAt(tabbedPane.getSelectedIndex()).startsWith(StationInformationMenuItem.SIMULATED_LABEL) ||
+					tabbedPane.getTitleAt(tabbedPane.getSelectedIndex()).startsWith(StationInformationMenuItem.PROPOSAL_TO_LABEL)) {  
+				antennaHeightTextField_.setEnabled(true);
+				terrainHeightTextField_.setEnabled(true);
+			} else if ((((String) selectDatasetComboBox.getSelectedItem()).startsWith(StationInformationMenuItem.STATIONS_OF_ORGANIZATION_LABEL) &&
+					(tabbedPane.getTitleAt(tabbedPane.getSelectedIndex()).equals(StationInformationMenuItem.OPERATIVE_LABEL) ||
+					tabbedPane.getTitleAt(tabbedPane.getSelectedIndex()).equals(StationInformationMenuItem.PLANNED_LABEL))) ||
+					tabbedPane.getTitleAt(tabbedPane.getSelectedIndex()).equals(StationInformationMenuItem.OPERATIVE_LABEL) ||
+					tabbedPane.getTitleAt(tabbedPane.getSelectedIndex()).startsWith(StationInformationMenuItem.PROPOSAL_FROM_LABEL)) {
+				antennaHeightTextField_.setEnabled(false);
+				terrainHeightTextField_.setEnabled(false);
+			}
+			headingTextField_.setText("");
             headingTextField_.setEnabled(false);
             fieldOfViewAngleTextField_.setText("");
             fieldOfViewAngleTextField_.setEnabled(false);
             gainTextField_.setText("");
             gainTextField_.setEnabled(false); 
         } else if (antennaTypeComboBox_.getSelectedIndex() == 2) {  // directional
-            antennaHeightTextField_.setEnabled(true);
-            terrainHeightTextField_.setEnabled(true);
+			if (antennaHeightTextField_ == addAntennaHeightTextField ||
+					tabbedPane.getTitleAt(tabbedPane.getSelectedIndex()).equals(StationInformationMenuItem.PLANNED_LABEL) ||
+					tabbedPane.getTitleAt(tabbedPane.getSelectedIndex()).startsWith(StationInformationMenuItem.SIMULATED_LABEL) ||
+					tabbedPane.getTitleAt(tabbedPane.getSelectedIndex()).startsWith(StationInformationMenuItem.PROPOSAL_TO_LABEL)) {  
+				antennaHeightTextField_.setEnabled(true);
+				terrainHeightTextField_.setEnabled(true);
+			} else if ((((String) selectDatasetComboBox.getSelectedItem()).startsWith(StationInformationMenuItem.STATIONS_OF_ORGANIZATION_LABEL) &&
+					(tabbedPane.getTitleAt(tabbedPane.getSelectedIndex()).equals(StationInformationMenuItem.OPERATIVE_LABEL) ||
+					tabbedPane.getTitleAt(tabbedPane.getSelectedIndex()).equals(StationInformationMenuItem.PLANNED_LABEL))) ||
+					tabbedPane.getTitleAt(tabbedPane.getSelectedIndex()).equals(StationInformationMenuItem.OPERATIVE_LABEL) ||
+					tabbedPane.getTitleAt(tabbedPane.getSelectedIndex()).startsWith(StationInformationMenuItem.PROPOSAL_FROM_LABEL)) {
+				antennaHeightTextField_.setEnabled(false);
+				terrainHeightTextField_.setEnabled(false);
+			}
             headingTextField_.setEnabled(true);
             fieldOfViewAngleTextField_.setEnabled(true);
             gainTextField_.setEnabled(true); 
         } 
-    }    
+    }
 
     private boolean addSimulation(String simulationName) {
         

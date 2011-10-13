@@ -557,7 +557,7 @@ public class StationLayer extends OMGraphicHandlerLayer implements MapMouseListe
              Options options = OptionsMenuItem.loadOptions();
              currentIcons = options.getIconsSize();
              graphics.clear();
-            //reachLayerA.getGraphicsList().clear();
+			 reachLayerA.getGraphicsList().clear();
             if (eavdamMenu.getShowOnMapMenu().getOwnOperativeStationsMenuItem().isSelected() || eavdamMenu.getShowOnMapMenu().getOwnPlannedStationsMenuItem().isSelected()) {
                 List<ActiveStation> activeStations = data.getActiveStations();
                 if (activeStations != null) {
