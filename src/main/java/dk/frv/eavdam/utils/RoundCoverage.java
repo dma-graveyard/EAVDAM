@@ -97,7 +97,7 @@ public class RoundCoverage {
 	 * @param receiverHeight The height of the receiving antenna. Default: 4m (if less than 0 is given, the default is used).
 	 * @return The radius in kilometers
 	 */
-	private static double getRoundCoverageRadius(double antennaHeight, double receiverHeight){
+	public static double getRoundCoverageRadius(double antennaHeight, double receiverHeight){
 		if(receiverHeight < 0) receiverHeight = DEFAULT_RECEIVER_HEIGHT;
 		
 		return 2.5*(Math.pow(antennaHeight, 0.5) + Math.pow(receiverHeight, 0.5))*1.852;
