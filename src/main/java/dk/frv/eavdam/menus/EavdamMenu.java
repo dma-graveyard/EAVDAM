@@ -1,5 +1,6 @@
 package dk.frv.eavdam.menus;
 
+import com.bbn.openmap.LayerHandler;
 import com.bbn.openmap.gui.AbstractOpenMapMenu;
 import com.bbn.openmap.gui.OpenMapFrame;
 import dk.frv.eavdam.io.EmailSender;
@@ -20,10 +21,12 @@ public class EavdamMenu extends AbstractOpenMapMenu implements MenuListener {
     
     private OpenMapFrame openMapFrame;
     private StationLayer stationLayer;
+	private LayerHandler layerHandler;
 	
 	private UserInformationMenuItem userInformationMenuItem;
 	private StationInformationMenuItem stationInformationMenuItem;
 	private ShowOnMapMenu showOnMapMenu;
+	private ShapeLayersMenu shapeLayersMenu;
 	private OptionsMenuItem optionsMenuItem;
 
     public EavdamMenu() {
@@ -38,6 +41,8 @@ public class EavdamMenu extends AbstractOpenMapMenu implements MenuListener {
         add(stationInformationMenuItem);         
 		showOnMapMenu = new ShowOnMapMenu(this);
 		add(showOnMapMenu);
+		shapeLayersMenu = new ShapeLayersMenu(this);
+		add(shapeLayersMenu);
 		optionsMenuItem = new OptionsMenuItem(this);
         add(optionsMenuItem);
         // add(new JSeparator());
@@ -55,6 +60,7 @@ public class EavdamMenu extends AbstractOpenMapMenu implements MenuListener {
 		add(userInformationMenuItem);
 		add(stationInformationMenuItem);
 		add(showOnMapMenu);
+		add(shapeLayersMenu);
 		add(optionsMenuItem);
 	}
 	
@@ -65,17 +71,27 @@ public class EavdamMenu extends AbstractOpenMapMenu implements MenuListener {
     public StationLayer getStationLayer() {
         return stationLayer;
     }
+
+    public LayerHandler getLayerHandler() {
+        return layerHandler;
+    }    
 	
 	public ShowOnMapMenu getShowOnMapMenu() {
 		return showOnMapMenu;
 	}
 
+	public ShapeLayersMenu getShapeLayersMenu() {
+		return shapeLayersMenu;
+	}
+	
 	@Override
 	public void findAndInit(Object obj) {
 		if (obj instanceof OpenMapFrame) {
 			this.openMapFrame = (OpenMapFrame) obj;
 		} else if (obj instanceof StationLayer) {
 		    this.stationLayer = (StationLayer) obj;
+		} else if (obj instanceof LayerHandler) {
+		    this.layerHandler = (LayerHandler) obj;
 		}
 	}
 
