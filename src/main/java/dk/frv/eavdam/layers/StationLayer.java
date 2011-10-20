@@ -251,9 +251,11 @@ public class StationLayer extends OMGraphicHandlerLayer implements MapMouseListe
 		
 			if (omg instanceof OMCircle) {
 				double[] radiuses = new double[2];
-				radiuses[0] = ((OMCircle) omg).getRadius();
-				radiuses[1] = ((OMCircle) omg).getRadius();
-				// XXX: radius is decimal degrees, should be kilometers - utility function for this ?!
+				double degrees = ((OMCircle) omg).getRadius();
+				double radians = RoundCoverage.degrees2radians(degrees);
+				double kilometers = radians * RoundCoverage.EARTH_RADIUS;
+				radiuses[0] = kilometers;
+				radiuses[1] = kilometers;
 				points.add(radiuses);
 				
 			} else if (omg instanceof OMPoly) {					

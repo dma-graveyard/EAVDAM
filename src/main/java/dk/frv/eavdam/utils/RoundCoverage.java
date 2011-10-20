@@ -13,7 +13,7 @@ public class RoundCoverage {
 
 	public static final double DEFAULT_RECEIVER_HEIGHT = 4.0;
     private static final double DEGREES_TO_RADIANS = (Math.PI / 180.0);
-    private static final double EARTH_RADIUS = 6371.0;
+    public static final double EARTH_RADIUS = 6371.0;
 	
 
 	/**
