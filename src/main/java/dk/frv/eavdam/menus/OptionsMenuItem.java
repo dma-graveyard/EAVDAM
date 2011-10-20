@@ -231,7 +231,7 @@ class OptionsActionListener implements ActionListener, ChangeListener, DocumentL
             tabbedPane = new JTabbedPane();
             tabbedPane.addTab("E-mail", null, new JPanel(), "E-mail");
             tabbedPane.addTab("FTP", null, new JPanel(), "FTP");            
-            tabbedPane.addTab("Visual", null, new JPanel(), "GUI");
+            //tabbedPane.addTab("Visual", null, new JPanel(), "GUI");  // only one set of icons used from now on
             tabbedPane.setSelectedIndex(1);
             tabbedPane.addChangeListener(this);
             tabbedPane.setSelectedIndex(0);

@@ -5,7 +5,7 @@ import com.bbn.openmap.gui.OpenMapFrame;
 import com.bbn.openmap.gui.Tool;
 import dk.frv.eavdam.data.FTP;
 import dk.frv.eavdam.data.Options;
-import dk.frv.eavdam.io.FTPSender;
+import dk.frv.eavdam.io.FTPHandler;
 import dk.frv.eavdam.io.derby.DerbyDBInterface;
 import dk.frv.eavdam.menus.OptionsMenuItem;
 import dk.frv.eavdam.utils.XMLHandler;
@@ -63,7 +63,7 @@ public class SendFTPButton extends OMToolComponent implements ActionListener, To
                 for (FTP ftp : ftps) {
                     try {
 
-                        FTPSender.sendDataToFTP(ftp, XMLHandler.getLatestDataFileName());                                       
+                        FTPHandler.sendDataToFTP(ftp, XMLHandler.getLatestDataFileName());                                       
                     } catch (IOException ex) {
                         System.out.println(ex.getMessage());
                         ex.printStackTrace();
