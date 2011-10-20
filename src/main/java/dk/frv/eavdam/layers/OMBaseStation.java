@@ -9,7 +9,9 @@ public class OMBaseStation extends ByteRasterLocation {
 
 	private static final long serialVersionUID = 1L;
 
-	private ArrayList<double[]> workingArea;
+	private ArrayList<double[]> transmitCoverageArea;
+	private ArrayList<double[]> receiveCoverageArea;
+	private ArrayList<double[]> interferenceCoverageArea;
 	private Object datasetSource;
 	private AISFixedStationData stationData;
 
@@ -36,18 +38,34 @@ public class OMBaseStation extends ByteRasterLocation {
 		this.stationData = stationData;
 	}
 
-
-	public ArrayList<double[]> getReachArea() {
-		return workingArea;
+	public ArrayList<double[]> getTransmitCoverageArea() {
+		return transmitCoverageArea;
 	}
 
-	public void setReachArea(ArrayList<double[]> workingArea) {
-		this.workingArea = workingArea;
+	public void setTransmitCoverageArea(ArrayList<double[]> transmitCoverageArea) {
+		this.transmitCoverageArea = transmitCoverageArea;
 	}
+	
+	public ArrayList<double[]> getReceiveCoverageArea() {
+		return receiveCoverageArea;
+	}
+
+	public void setReceiveCoverageArea(ArrayList<double[]> receiveCoverageArea) {
+		this.receiveCoverageArea = receiveCoverageArea;
+	}
+
+	public ArrayList<double[]> getInterferenceCoverageArea() {
+		return interferenceCoverageArea;
+	}
+
+	public void setInterferenceCoverageArea(ArrayList<double[]> interferenceCoverageArea) {
+		this.interferenceCoverageArea = interferenceCoverageArea;
+	}	
 	
 	/**
 	 * For testing
 	 */
+	 /*
 	public void randomReachArea(int numberOfPoints){
 		this.workingArea = new ArrayList<double[]>();
 		for(int i = 0; i < numberOfPoints; ++i){
@@ -101,5 +119,6 @@ public class OMBaseStation extends ByteRasterLocation {
 		
 		this.workingArea = order;
 	}
+	*/
 	
 }

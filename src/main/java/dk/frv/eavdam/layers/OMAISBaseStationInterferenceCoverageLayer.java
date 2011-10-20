@@ -12,25 +12,27 @@ import com.bbn.openmap.omGraphics.OMGraphic;
 import com.bbn.openmap.omGraphics.OMGraphicList;
 import com.bbn.openmap.omGraphics.OMList;
 import com.bbn.openmap.omGraphics.OMPoly;
+import com.bbn.openmap.proj.Length;
 import dk.frv.eavdam.data.AISFixedStationData;
 import java.awt.Color;
 import java.awt.event.MouseEvent;
 import java.awt.geom.Point2D;
 
-public class OMAISBaseStationReachLayerA extends OMGraphicHandlerLayer implements MapMouseListener {
+public class OMAISBaseStationInterferenceCoverageLayer extends OMGraphicHandlerLayer implements MapMouseListener {
 
 	private static final long serialVersionUID = 1L;
 
 	private OMGraphicList graphics = new OMGraphicList();
 	private InformationDelegator infoDelegator;
 	
-	public OMAISBaseStationReachLayerA() {
+	public OMAISBaseStationInterferenceCoverageLayer() {
 		// TODO Auto-generated constructor stub
 	}
 
-	public void addReachArea(OMBaseStation base) {	
-		this.addBaseStationReachArea(base);		
-	}
+	/*
+	public void addInterferenceCoverageArea(OMBaseStation base) {	
+		this.addInterferenceCoverageArea(base);		
+	}*/
 	
 	public OMGraphicList getGraphicsList() {
 	    return graphics;
@@ -54,23 +56,23 @@ public class OMAISBaseStationReachLayerA extends OMGraphicHandlerLayer implement
 		return this;
 	}
 	
-	public Object addBaseStationReachArea(OMBaseStation bs) {
+	public Object addInterferenceCoverageArea(OMBaseStation bs) {
 	    
-		if (bs.getReachArea() == null) {
+		if (bs.getInterferenceCoverageArea() == null) {
 		    return null;
 		}
 
-		if (bs.getReachArea().size() < 2) {
+		if (bs.getInterferenceCoverageArea().size() < 2) {
 			
 			AISFixedStationData stationData = bs.getStationData();
 			
 			//Get the radius
-			double radius = Math.min(Math.abs(stationData.getLat()-bs.getReachArea().get(0)[0]),Math.abs(stationData.getLon()-bs.getReachArea().get(0)[1]));
+			double radius = Math.min(Math.abs(stationData.getLat()-bs.getInterferenceCoverageArea().get(0)[0]),Math.abs(stationData.getLon()-bs.getInterferenceCoverageArea().get(0)[1]));
 
 			//Create a circle
-			OMCircle baseCircle = new OMCircle(stationData.getLat(), stationData.getLon(), radius);
+			OMCircle baseCircle = new OMCircle(stationData.getLat(), stationData.getLon(), radius, Length.KM);
 			
-			Color c = new Color(0, 255, 0, 100);
+			Color c = new Color(255, 0, 0, 100);
 			baseCircle.setFillPaint(c);
 			graphics.add(baseCircle);
 			graphics.project(getProjection(), true);
@@ -78,28 +80,28 @@ public class OMAISBaseStationReachLayerA extends OMGraphicHandlerLayer implement
 			this.validate();
 			return baseCircle;
 			
-		} else if (bs.getReachArea().size() == 2) {
+		} else if (bs.getInterferenceCoverageArea().size() == 2) {
 			return null;
 			
 		} else {
 
-			double[] latlon = new double[bs.getReachArea().size()*2+2];
+			double[] latlon = new double[bs.getInterferenceCoverageArea().size()*2+2];
 			int ith = 0;
-			for(double[] ll : bs.getReachArea()){
+			for(double[] ll : bs.getInterferenceCoverageArea()){
 				latlon[ith] = ll[0];
 				++ith;
 				latlon[ith] = ll[1];
 				++ith;
 			}
 
-			latlon[latlon.length-2] = bs.getReachArea().get(0)[0];
-			latlon[latlon.length-1] = bs.getReachArea().get(0)[1];
+			latlon[latlon.length-2] = bs.getInterferenceCoverageArea().get(0)[0];
+			latlon[latlon.length-1] = bs.getInterferenceCoverageArea().get(0)[1];
 
 			OMPoly baseReach = new OMPoly(latlon, OMGraphic.DECIMAL_DEGREES, OMGraphic.LINETYPE_GREATCIRCLE);
 
 			System.out.println("Drawing reach area. There are "+latlon.length+" coordinates...");
 
-			Color c = new Color(0, 255, 0, 100);
+			Color c = new Color(255, 0, 0, 100);
 			baseReach.setFillPaint(c);
 			graphics.add(baseReach);
 			graphics.project(getProjection(), true);

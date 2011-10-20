@@ -7,6 +7,7 @@ import com.bbn.openmap.event.MapMouseEvent;
 import com.bbn.openmap.event.MapMouseListener;
 import com.bbn.openmap.event.NavMouseMode;
 import com.bbn.openmap.event.SelectMouseMode;
+import com.bbn.openmap.gui.OpenMapFrame;
 import com.bbn.openmap.layer.OMGraphicHandlerLayer;
 import com.bbn.openmap.omGraphics.OMAction;
 import com.bbn.openmap.omGraphics.OMCircle;
@@ -57,8 +58,10 @@ import javax.xml.bind.JAXBException;
 import javax.swing.ButtonGroup;
 import javax.swing.JMenu;
 import javax.swing.JMenuItem;
+import javax.swing.JOptionPane;
 import javax.swing.JPopupMenu;
 import javax.swing.JCheckBoxMenuItem;
+import javax.swing.JSeparator;
 import javax.swing.SwingUtilities;
 
 public class StationLayer extends OMGraphicHandlerLayer implements MapMouseListener, ActionListener, DrawingToolRequestor {
@@ -66,34 +69,53 @@ public class StationLayer extends OMGraphicHandlerLayer implements MapMouseListe
 	private static final long serialVersionUID = 1L;
 
     private MapBean mapBean;
+	private OpenMapFrame openMapFrame;
 	private OMGraphicList graphics = new OMGraphicList();
 	private InformationDelegator infoDelegator;
     private DrawingTool drawingTool;
     private final com.bbn.openmap.tools.drawing.DrawingToolRequestor layer = this;
 	private SidePanel sidePanel;
-	private OMAISBaseStationReachLayerA reachLayerA;
+	private OMAISBaseStationTransmitCoverageLayer transmitCoverageLayer;
+	private OMAISBaseStationReceiveCoverageLayer receiveCoverageLayer;
+	private OMAISBaseStationInterferenceCoverageLayer interferenceCoverageLayer;	
 	private EavdamMenu eavdamMenu;	
 	private JMenuItem editStationMenuItem;
-	private JMenuItem editCoverageMenuItem;
-	//private JCheckBoxMenuItem ownOperativeStationsMenuItem;
-	//private JCheckBoxMenuItem ownPlannedStationsMenuItem;
+	private JMenuItem editTransmitCoverageMenuItem;
+	private JMenuItem resetTransmitCoverageToCircleMenuItem;
+	private JMenuItem resetTransmitCoverageToPolygonMenuItem;
+	private JMenuItem editReceiveCoverageMenuItem;
+	private JMenuItem resetReceiveCoverageToCircleMenuItem;
+	private JMenuItem resetReceiveCoverageToPolygonMenuItem;
+	private JMenuItem editInterferenceCoverageMenuItem;	
+	private JMenuItem resetInterferenceCoverageToCircleMenuItem;
+	private JMenuItem resetInterferenceCoverageToPolygonMenuItem;	
 	private OMBaseStation currentlySelectedOMBaseStation;
 	
 	private EAVDAMData data;
 	private int currentIcons = -1;
-	//private List<JCheckBoxMenuItem> simulationMenuItems;
-	//private List<JCheckBoxMenuItem> otherUsersStationsMenuItems;
 	
 	private boolean stationsInitiallyUpdated = false;
 	
-	private Map<OMBaseStation, OMGraphic> reachAreas = new HashMap<OMBaseStation, OMGraphic>();
+	private OMGraphicHandlerLayer currentlyEditingLayer;
 	
+	private Map<OMBaseStation, OMGraphic> transmitCoverageAreas = new HashMap<OMBaseStation, OMGraphic>();
+	private Map<OMBaseStation, OMGraphic> receiveCoverageAreas = new HashMap<OMBaseStation, OMGraphic>();
+	private Map<OMBaseStation, OMGraphic> interferenceCoverageAreas = new HashMap<OMBaseStation, OMGraphic>();
+		
     public StationLayer() {}
 
-    public OMAISBaseStationReachLayerA getReachLayer() {
-        return reachLayerA;
+    public OMAISBaseStationTransmitCoverageLayer getTransmitCoverageLayer() {
+        return transmitCoverageLayer;
     }
 
+    public OMAISBaseStationReceiveCoverageLayer getReceiveCoverageLayer() {
+        return receiveCoverageLayer;
+    }
+
+    public OMAISBaseStationInterferenceCoverageLayer getInterferenceCoverageLayer() {
+        return interferenceCoverageLayer;
+    }
+	
     public void addBaseStation(Object datasetSource, AISFixedStationData stationData) {
 
 	    byte[] bytearr = null;
@@ -138,39 +160,56 @@ public class StationLayer extends OMGraphicHandlerLayer implements MapMouseListe
         OMBaseStation base = new OMBaseStation(datasetSource, stationData, bytearr);		
 		Antenna antenna = stationData.getAntenna();
 		if (antenna != null) {			
-			if (stationData.getTransmissionCoverage() != null && stationData.getTransmissionCoverage().getCoveragePoints() != null && stationData.getTransmissionCoverage().getCoveragePoints().size() > 2) {
-				base.setReachArea(stationData.getTransmissionCoverage().getCoveragePoints());
+			if (stationData.getTransmissionCoverage() != null && stationData.getTransmissionCoverage().getCoveragePoints() != null) {
+				base.setTransmitCoverageArea(stationData.getTransmissionCoverage().getCoveragePoints());
 			} else {
-				ArrayList<double[]> points = (ArrayList<double[]>) RoundCoverage.getRoundCoverage(antenna.getAntennaHeight()+antenna.getTerrainHeight(), 4, stationData.getLat(), stationData.getLon(), 25);  // XXX: receiverHeight?				
-				base.setReachArea(points);
+				ArrayList<double[]> points = (ArrayList<double[]>) RoundCoverage.getRoundCoverage(antenna.getAntennaHeight()+antenna.getTerrainHeight(), 4, stationData.getLat(), stationData.getLon(), 25);
+				base.setTransmitCoverageArea(points);
 			}
+			if (stationData.getReceiveCoverage() != null && stationData.getReceiveCoverage().getCoveragePoints() != null) {
+				base.setReceiveCoverageArea(stationData.getReceiveCoverage().getCoveragePoints());
+			} else {
+				ArrayList<double[]> points = (ArrayList<double[]>) RoundCoverage.getRoundCoverage(antenna.getAntennaHeight()+antenna.getTerrainHeight(), 4, stationData.getLat(), stationData.getLon(), 25);
+				base.setReceiveCoverageArea(points);
+			}
+			if (stationData.getInterferenceCoverage() != null && stationData.getInterferenceCoverage().getCoveragePoints() != null) {
+				base.setInterferenceCoverageArea(stationData.getInterferenceCoverage().getCoveragePoints());
+			} else {
+				ArrayList<double[]> points = (ArrayList<double[]>) RoundCoverage.getRoundInterferenceCoverage(stationData.getLat(), stationData.getLon(), 25);
+				base.setInterferenceCoverageArea(points);
+			}						
 		}
-//		base.randomReachArea(1);
-//		base.orderReachArea();
-		
+
 		graphics.add(base);
 		graphics.project(getProjection(), true);
 		this.repaint();
 		this.validate();
 
-		Object reachAreaGraphics = reachLayerA.addBaseStationReachArea(base);
-		if (reachAreaGraphics != null) {
-			if (reachAreaGraphics instanceof OMCircle) {
-				reachAreas.put(base, (OMCircle) reachAreaGraphics);
-			} else if (reachAreaGraphics instanceof OMPoly) {
-				reachAreas.put(base, (OMPoly) reachAreaGraphics);
+		Object transmitCoverageAreaGraphics = transmitCoverageLayer.addTransmitCoverageArea(base);
+		if (transmitCoverageAreaGraphics != null) {
+			if (transmitCoverageAreaGraphics instanceof OMCircle) {
+				transmitCoverageAreas.put(base, (OMCircle) transmitCoverageAreaGraphics);
+			} else if (transmitCoverageAreaGraphics instanceof OMPoly) {
+				transmitCoverageAreas.put(base, (OMPoly) transmitCoverageAreaGraphics);
 			}		
 		}
-		
+		Object receiveCoverageAreaGraphics = receiveCoverageLayer.addReceiveCoverageArea(base);
+		if (receiveCoverageAreaGraphics != null) {
+			if (receiveCoverageAreaGraphics instanceof OMCircle) {
+				receiveCoverageAreas.put(base, (OMCircle) receiveCoverageAreaGraphics);
+			} else if (receiveCoverageAreaGraphics instanceof OMPoly) {
+				receiveCoverageAreas.put(base, (OMPoly) receiveCoverageAreaGraphics);
+			}		
+		}
+		Object interferenceCoverageAreaGraphics = interferenceCoverageLayer.addInterferenceCoverageArea(base);
+		if (interferenceCoverageAreaGraphics != null) {
+			if (interferenceCoverageAreaGraphics instanceof OMCircle) {
+				interferenceCoverageAreas.put(base, (OMCircle) interferenceCoverageAreaGraphics);
+			} else if (interferenceCoverageAreaGraphics instanceof OMPoly) {
+				interferenceCoverageAreas.put(base, (OMPoly) interferenceCoverageAreaGraphics);
+			}		
+		}
 	}
-
-	// public void addRect(double latN, double lonW, double latS, double lonE) {
-	// OMRect r = new OMRect(latN, lonW, latS, lonE, OMGraphic.LINETYPE_RHUMB);
-	// r.setFillPaint(Color.blue);
-	// graphics.add(r);
-	// graphics.project(getProjection(), true);
-	// this.repaint();
-	// }
 
 	@Override
 	public synchronized OMGraphicList prepare() {
@@ -206,104 +245,37 @@ public class StationLayer extends OMGraphicHandlerLayer implements MapMouseListe
      */
 	@Override	 
     public void drawingComplete(OMGraphic omg, OMAction action) {
-		if (omg instanceof OMCircle) {
-			// circles are currently presented as OMPolys
-		} else if (omg instanceof OMPoly) {
-			// saves the data
-			
+	
+		if (currentlyEditingLayer != null) {
 			ArrayList<double[]> points = new ArrayList<double[]>();
-			double[] latlonArray = ((OMPoly) omg).getLatLonArray();
-			int index=0;
-			while (index+1<latlonArray.length) {
-				double lat = latlonArray[index];
-				double lon = latlonArray[index+1];
-				double[] latlon = new double[2];
-				latlon[0] = RoundCoverage.radians2degrees(lat);
-				latlon[1] = RoundCoverage.radians2degrees(lon);
-				points.add(latlon);
-				index = index+2;
+		
+			if (omg instanceof OMCircle) {
+				double[] radiuses = new double[2];
+				radiuses[0] = ((OMCircle) omg).getRadius();
+				radiuses[1] = ((OMCircle) omg).getRadius();
+				// XXX: radius is decimal degrees, should be kilometers - utility function for this ?!
+				points.add(radiuses);
+				
+			} else if (omg instanceof OMPoly) {					
+				double[] latlonArray = ((OMPoly) omg).getLatLonArray();
+				int index=0;
+				while (index+1<latlonArray.length) {
+					double lat = latlonArray[index];
+					double lon = latlonArray[index+1];
+					double[] latlon = new double[2];
+					latlon[0] = RoundCoverage.radians2degrees(lat);
+					latlon[1] = RoundCoverage.radians2degrees(lon);
+					points.add(latlon);
+					index = index+2;
+				}
 			}
 
 			if (data == null) {
 				data = DBHandler.getData();                        
 			}
-			if (currentlySelectedOMBaseStation.getDatasetSource() == null) {
-				List<ActiveStation> activeStations = data.getActiveStations();
-				if (activeStations != null) {
-					for (int i=0; i< activeStations.size(); i++) {
-						ActiveStation as = activeStations.get(i);
-						if (as.getStations() != null) {
-							for (int j=0; j<as.getStations().size(); j++) {
-								AISFixedStationData stationData = as.getStations().get(j);
-								if (stationData.getStationDBID() == currentlySelectedOMBaseStation.getStationData().getStationDBID()) {
-									AISFixedStationCoverage coverage = stationData.getTransmissionCoverage();
-									if (coverage == null) {
-										coverage = new AISFixedStationCoverage();
-									}
-									coverage.setCoveragePoints(points);
-									stationData.setTransmissionCoverage(coverage);
-									as.getStations().set(j, stationData);
-									data.getActiveStations().set(i, as);		
-									break;									
-								}
-							}
-						}
-					}
-				}
-			} else if (currentlySelectedOMBaseStation.getDatasetSource() instanceof String) {  // simulation
-				String selectedSimulation = (String) currentlySelectedOMBaseStation.getDatasetSource();				
-                List<Simulation> simulatedStations = data.getSimulatedStations();
-                for (Simulation s : data.getSimulatedStations()) {
-                    if (selectedSimulation.equals(s.getName())) {
-                        List<AISFixedStationData> stations = s.getStations();
-						for (int i=0; i<stations.size(); i++) {
-							AISFixedStationData stationData = stations.get(i);
-							if (stationData.getStationDBID() == currentlySelectedOMBaseStation.getStationData().getStationDBID()) {
-								AISFixedStationCoverage coverage = stationData.getTransmissionCoverage();
-								if (coverage == null) {
-									coverage = new AISFixedStationCoverage();
-								}
-								coverage.setCoveragePoints(points);
-								stationData.setTransmissionCoverage(coverage);
-								stations.set(i, stationData);
-								s.setStations(stations);
-								data.setSimulatedStations(simulatedStations);
-								break;																	
-							}	
-						}
-                    }
-                }
-		    } else if (currentlySelectedOMBaseStation.getDatasetSource() instanceof EAVDAMUser) {  // Other user's dataset
-				String selectedOrganization = ((EAVDAMUser) currentlySelectedOMBaseStation.getDatasetSource()).getOrganizationName();           
-                for (int i=0; i<data.getOtherUsersStations().size(); i++) {
-                    OtherUserStations ous = data.getOtherUsersStations().get(i);
-                    if (selectedOrganization.equals(ous.getUser().getOrganizationName())) {
-                        List<ActiveStation> stations = ous.getStations();
-						for (int j=0; j< stations.size(); j++) {
-							ActiveStation as = stations.get(j);
-							if (as.getStations() != null) {
-								for (int k=0; k<as.getStations().size(); k++) {
-									AISFixedStationData stationData = as.getStations().get(k);
-									if (stationData.getStationDBID() == currentlySelectedOMBaseStation.getStationData().getStationDBID()) {
-										AISFixedStationCoverage coverage = stationData.getTransmissionCoverage();
-										if (coverage == null) {
-											coverage = new AISFixedStationCoverage();
-										}
-										coverage.setCoveragePoints(points);
-										stationData.setTransmissionCoverage(coverage);
-										as.getStations().set(k, stationData);										
-										ous.getStations().set(j, as);
-										data.getOtherUsersStations().set(i, ous);		
-										break;									
-									}
-								}
-							}
-						}
-					}
-                }
-            }          
-		     
-			DBHandler.saveData(data);    		
+			data = saveCoverage(data, points, currentlyEditingLayer);
+			currentlyEditingLayer = null;
+			DBHandler.saveData(data);    					
 			
 		}
 	
@@ -350,35 +322,7 @@ public class StationLayer extends OMGraphicHandlerLayer implements MapMouseListe
     	} else if (SwingUtilities.isRightMouseButton(e)) {
             OMList<OMGraphic> allClosest = graphics.findAll(e.getX(), e.getY(), 5.0f);
             if (allClosest == null || allClosest.isEmpty()) {			  
-	            JPopupMenu popup = new JPopupMenu();
-				/*
-	            JMenu showOnMapMenu = new JMenu("Show on map");
-                //ButtonGroup group = new ButtonGroup();
-                if (ownOperativeStationsMenuItem == null) {
-                    ownOperativeStationsMenuItem = new JCheckBoxMenuItem("Own operative stations", true);
-	                ownOperativeStationsMenuItem.addActionListener(this);
-	            }
-                //group.add(ownOperativeStationsMenuItem);
-                showOnMapMenu.add(ownOperativeStationsMenuItem);
-                if (ownPlannedStationsMenuItem == null) {
-                    ownPlannedStationsMenuItem = new JCheckBoxMenuItem("Own planned stations", false);
-	                ownPlannedStationsMenuItem.addActionListener(this);
-	            }
-                //group.add(ownPlannedStationsMenuItem);
-                showOnMapMenu.add(ownPlannedStationsMenuItem);  
-                if (simulationMenuItems != null) {
-                    for (JCheckBoxMenuItem simulationMenuItem : simulationMenuItems) {
-                        //group.add(simulationMenuItem);
-                        showOnMapMenu.add(simulationMenuItem);
-                    }
-                }    
-               if (otherUsersStationsMenuItems != null) {
-                    for (JCheckBoxMenuItem otherUsersStationsMenuItem : otherUsersStationsMenuItems) {
-                        //group.add(otherUsersStationsMenuItem);
-                        showOnMapMenu.add(otherUsersStationsMenuItem);
-                    }
-                }                        
-				*/				
+	            JPopupMenu popup = new JPopupMenu();			
                 popup.add(eavdamMenu.getShowOnMapMenu());
                 popup.show(mapBean, e.getX(), e.getY());
                 return true;            
@@ -387,12 +331,56 @@ public class StationLayer extends OMGraphicHandlerLayer implements MapMouseListe
         			if (omGraphic instanceof OMBaseStation) {
         			    currentlySelectedOMBaseStation = (OMBaseStation) omGraphic;
         	            JPopupMenu popup = new JPopupMenu();					
-                        editStationMenuItem = new JMenuItem("Edit station");
+                        editStationMenuItem = new JMenuItem("Edit station information");
                         editStationMenuItem.addActionListener(this);
                         popup.add(editStationMenuItem);
-                        editCoverageMenuItem = new JMenuItem("Edit coverage");
-                        editCoverageMenuItem.addActionListener(this);
-                        popup.add(editCoverageMenuItem);							
+						JSeparator last = new JSeparator();
+						popup.add(last);
+						if (currentlySelectedOMBaseStation.getDatasetSource() == null ||  // own stations
+								currentlySelectedOMBaseStation.getDatasetSource() instanceof String) {  // simulation	
+							AISFixedStationData stationData = currentlySelectedOMBaseStation.getStationData();
+							Antenna antenna = stationData.getAntenna();
+							if (transmitCoverageLayer.isVisible() && antenna != null) {
+								editTransmitCoverageMenuItem = new JMenuItem("Edit transmit coverage");
+								editTransmitCoverageMenuItem.addActionListener(this);								
+								popup.add(editTransmitCoverageMenuItem);							
+								resetTransmitCoverageToCircleMenuItem = new JMenuItem("Reset transmit coverage to circle");
+								resetTransmitCoverageToCircleMenuItem.addActionListener(this);
+								popup.add(resetTransmitCoverageToCircleMenuItem);
+								resetTransmitCoverageToPolygonMenuItem = new JMenuItem("Reset transmit coverage to polygon");
+								resetTransmitCoverageToPolygonMenuItem.addActionListener(this);
+								popup.add(resetTransmitCoverageToPolygonMenuItem);
+								last = new JSeparator();
+								popup.add(last);
+								}
+							if (receiveCoverageLayer.isVisible() && antenna != null) {
+								editReceiveCoverageMenuItem = new JMenuItem("Edit receice coverage");
+								editReceiveCoverageMenuItem.addActionListener(this);
+								popup.add(editReceiveCoverageMenuItem);							
+								resetReceiveCoverageToCircleMenuItem = new JMenuItem("Reset receive coverage to circle");
+								resetReceiveCoverageToCircleMenuItem.addActionListener(this);
+								popup.add(resetReceiveCoverageToCircleMenuItem);
+								resetReceiveCoverageToPolygonMenuItem = new JMenuItem("Reset receive coverage to polygon");
+								resetReceiveCoverageToPolygonMenuItem.addActionListener(this);
+								popup.add(resetReceiveCoverageToPolygonMenuItem);								
+								last = new JSeparator();
+								popup.add(last);
+								}
+							if (interferenceCoverageLayer.isVisible()) {
+								editInterferenceCoverageMenuItem = new JMenuItem("Edit interference coverage");
+								editInterferenceCoverageMenuItem.addActionListener(this);
+								popup.add(editInterferenceCoverageMenuItem);							
+								resetInterferenceCoverageToCircleMenuItem = new JMenuItem("Reset interference coverage to circle");
+								resetInterferenceCoverageToCircleMenuItem.addActionListener(this);
+								popup.add(resetInterferenceCoverageToCircleMenuItem);
+								resetInterferenceCoverageToPolygonMenuItem = new JMenuItem("Reset interference coverage to polygon");
+								resetInterferenceCoverageToPolygonMenuItem.addActionListener(this);
+								popup.add(resetInterferenceCoverageToPolygonMenuItem);
+								last = new JSeparator();
+								popup.add(last);
+							}						
+						}
+						popup.remove(last);
                         popup.show(mapBean, e.getX(), e.getY());
                         return true;
                     }
@@ -438,15 +426,6 @@ public class StationLayer extends OMGraphicHandlerLayer implements MapMouseListe
 
 	@Override
 	public boolean mouseMoved(MouseEvent e) {
-		// OMList<OMGraphic> allClosest = graphics.findAll(e.getX(), e.getY(),
-		// 5.0f);
-		// for (OMGraphic omGraphic : allClosest) {
-		// if (omGraphic instanceof OMRect) {
-		// System.out.println("Mouse over omGraphic: " + omGraphic);
-		// // Consumed by this
-		// return true;
-		// }
-		// }
 		OMList<OMGraphic> allClosest = graphics.findAll(e.getX(), e.getY(), 5.0f);
 		for (OMGraphic omGraphic : allClosest) {
 			if (omGraphic instanceof OMBaseStation) {	    
@@ -468,13 +447,11 @@ public class StationLayer extends OMGraphicHandlerLayer implements MapMouseListe
 
 	@Override
 	public boolean mousePressed(MouseEvent e) {
-		// TODO Auto-generated method stub
 		return false;
 	}
 
 	@Override
 	public boolean mouseReleased(MouseEvent e) {
-		// TODO Auto-generated method stub
 		return false;
 	}
 	
@@ -495,17 +472,310 @@ public class StationLayer extends OMGraphicHandlerLayer implements MapMouseListe
 					selectedOrganization, currentlySelectedOMBaseStation.getName()).doClick(); 							
             }
 
-		} else if (e.getSource() == editCoverageMenuItem) {
+		} else if (e.getSource() == editTransmitCoverageMenuItem) {
 
 			DrawingTool dt = getDrawingTool();
 			if (dt != null) {
-				dt.edit(reachAreas.get(currentlySelectedOMBaseStation), this);
+				dt.edit(transmitCoverageAreas.get(currentlySelectedOMBaseStation), this);
+				currentlyEditingLayer = transmitCoverageLayer;
+			}
+
+		} else if (e.getSource() == editReceiveCoverageMenuItem) {
+
+			DrawingTool dt = getDrawingTool();
+			if (dt != null) {
+				dt.edit(receiveCoverageAreas.get(currentlySelectedOMBaseStation), this);
+				currentlyEditingLayer = receiveCoverageLayer;
+			}
+
+		} else if (e.getSource() == editInterferenceCoverageMenuItem) {
+
+			DrawingTool dt = getDrawingTool();
+			if (dt != null) {
+				dt.edit(interferenceCoverageAreas.get(currentlySelectedOMBaseStation), this);
+				currentlyEditingLayer = interferenceCoverageLayer;
 			}
 			
+		} else if (e.getSource() == resetTransmitCoverageToCircleMenuItem) {
+		
+			int response = JOptionPane.showConfirmDialog(openMapFrame, "This will reset the transmit coverage to a circle calculated\n" +
+				"based on the station's antenna information?\nAre you sure you want to do this?", "Confirm action", JOptionPane.YES_NO_OPTION);
+            if (response == JOptionPane.YES_OPTION) {
+					
+				AISFixedStationData stationData = currentlySelectedOMBaseStation.getStationData();
+				Antenna antenna = stationData.getAntenna();
+				if (antenna != null) {							
+					ArrayList<double[]> points = new ArrayList<double[]>();
+					double radius = RoundCoverage.getRoundCoverageRadius(antenna.getAntennaHeight()+antenna.getTerrainHeight(), 4);
+					double[] radiuses = new double[2];
+					radiuses[0] = radius;
+					radiuses[1] = radius;
+					points.add(radiuses);
+
+					if (data == null) {
+						data = DBHandler.getData();                        
+					}					
+					data = saveCoverage(data, points, transmitCoverageLayer);
+                }
+                      
+				DBHandler.saveData(data);    					
+				updateStations();
+                
+            } else if (response == JOptionPane.NO_OPTION) {                        
+                // do nothing		
+			}
+		
+		} else if (e.getSource() == resetTransmitCoverageToPolygonMenuItem) {
+
+			String input = JOptionPane.showInputDialog(openMapFrame, "This will reset the transmit coverage to a polygon calculated\n" +
+				"based on the station's antenna information.\nPlease, define how many points do you want the polygon to have?\n" +
+				"The value must be between 3 and 1000. Default value is 25.", "25"); 	
+				
+			if (input != null) {
+				int numberOfPoints = -1;
+				try {
+					Integer temp = Integer.valueOf(input);
+					if (temp.intValue() < 3 || temp.intValue() > 1000) {
+						JOptionPane.showMessageDialog(openMapFrame, "Number of points must be an integer between 3 and 1000!", "Error!", JOptionPane.ERROR_MESSAGE); 
+					} else {
+						numberOfPoints = temp.intValue();
+					}
+				} catch (NumberFormatException ex) {
+					JOptionPane.showMessageDialog(openMapFrame, "Number of points must be an integer between 3 and 1000!", "Error!", JOptionPane.ERROR_MESSAGE); 
+				}
+				if (numberOfPoints != -1) {
+					AISFixedStationData stationData = currentlySelectedOMBaseStation.getStationData();
+					Antenna antenna = stationData.getAntenna();
+					if (antenna != null) {
+						ArrayList<double[]> points = (ArrayList<double[]>) RoundCoverage.getRoundCoverage(antenna.getAntennaHeight()+antenna.getTerrainHeight(), 4, stationData.getLat(), stationData.getLon(), numberOfPoints);
+						if (data == null) {
+							data = DBHandler.getData();                        
+						}					
+						data = saveCoverage(data, points, transmitCoverageLayer);
+					}
+						  
+					DBHandler.saveData(data);    					
+					updateStations();			
+				}
+			
+			} else if (input == null) {
+				// user canceled, do nothing
+			}		
+		
+		} else if (e.getSource() == resetReceiveCoverageToCircleMenuItem) {
+
+			int response = JOptionPane.showConfirmDialog(openMapFrame, "This will reset the receive coverage to a circle calculated\n" +
+				"based on the station's antenna information?\nAre you sure you want to do this?", "Confirm action", JOptionPane.YES_NO_OPTION);
+            if (response == JOptionPane.YES_OPTION) {
+					
+				Antenna antenna = currentlySelectedOMBaseStation.getStationData().getAntenna();
+				if (antenna != null) {							
+					ArrayList<double[]> points = new ArrayList<double[]>();
+					double radius = RoundCoverage.getRoundCoverageRadius(antenna.getAntennaHeight()+antenna.getTerrainHeight(), 4);
+					double[] radiuses = new double[2];
+					radiuses[0] = radius;
+					radiuses[1] = radius;
+					points.add(radiuses);
+
+					if (data == null) {
+						data = DBHandler.getData();                        
+					}					
+					data = saveCoverage(data, points, receiveCoverageLayer);
+                }
+                      
+				DBHandler.saveData(data);    					
+				updateStations();
+			
+            } else if (response == JOptionPane.NO_OPTION) {                        
+                // do nothing		
+			}
+		
+		
+		} else if (e.getSource() == resetReceiveCoverageToPolygonMenuItem) {
+
+			String input = JOptionPane.showInputDialog(openMapFrame, "This will reset the receive coverage to a polygon calculated\n" +
+				"based on the station's antenna information.\nPlease, define how many points do you want the polygon to have?\n" +
+				"The value must be between 3 and 1000. Default value is 25.", "25"); 	
+				
+			if (input != null) {
+				int numberOfPoints = -1;
+				try {
+					Integer temp = Integer.valueOf(input);
+					if (temp.intValue() < 3 || temp.intValue() > 1000) {
+						JOptionPane.showMessageDialog(openMapFrame, "Number of points must be an integer between 3 and 1000!", "Error!", JOptionPane.ERROR_MESSAGE); 
+					} else {
+						numberOfPoints = temp.intValue();
+					}
+				} catch (NumberFormatException ex) {
+					JOptionPane.showMessageDialog(openMapFrame, "Number of points must be an integer between 3 and 1000!", "Error!", JOptionPane.ERROR_MESSAGE); 
+				}
+				if (numberOfPoints != -1) {
+					AISFixedStationData stationData = currentlySelectedOMBaseStation.getStationData();
+					Antenna antenna = stationData.getAntenna();
+					if (antenna != null) {
+						ArrayList<double[]> points = (ArrayList<double[]>) RoundCoverage.getRoundCoverage(antenna.getAntennaHeight()+antenna.getTerrainHeight(), 4, stationData.getLat(), stationData.getLon(), numberOfPoints);
+						if (data == null) {
+							data = DBHandler.getData();                        
+						}					
+						data = saveCoverage(data, points, receiveCoverageLayer);
+					}
+						  
+					DBHandler.saveData(data);    					
+					updateStations();			
+				}
+			
+			} else if (input == null) {
+				// user canceled, do nothing
+			}				
+		
+		} else if (e.getSource() == resetInterferenceCoverageToCircleMenuItem) {
+		
+			int response = JOptionPane.showConfirmDialog(openMapFrame, "This will reset the interference coverage to a circle calculated\n" +
+				"based on the station's information?\nAre you sure you want to do this?", "Confirm action", JOptionPane.YES_NO_OPTION);
+            if (response == JOptionPane.YES_OPTION) {
+
+			ArrayList<double[]> points = new ArrayList<double[]>();
+				double radius = 120*1.852;
+				double[] radiuses = new double[2];
+				radiuses[0] = radius;
+				radiuses[1] = radius;
+				points.add(radiuses);
+
+				if (data == null) {
+					data = DBHandler.getData();                        
+				}					
+				data = saveCoverage(data, points, interferenceCoverageLayer);                
+                      
+				DBHandler.saveData(data);    					
+				updateStations();                
+				
+            } else if (response == JOptionPane.NO_OPTION) {                        
+                // do nothing		
+			}
+		
+		
+		} else if (e.getSource() == resetInterferenceCoverageToPolygonMenuItem) {				
+
+			String input = JOptionPane.showInputDialog(openMapFrame, "This will reset the interference coverage to a polygon calculated\n" +
+				"based on the station's information.\nPlease, define how many points do you want the polygon to have?\n" +
+				"The value must be between 3 and 1000. Default value is 25.", "25"); 	
+				
+			if (input != null) {
+				int numberOfPoints = -1;
+				try {
+					Integer temp = Integer.valueOf(input);
+					if (temp.intValue() < 3 || temp.intValue() > 1000) {
+						JOptionPane.showMessageDialog(openMapFrame, "Number of points must be an integer between 3 and 1000!", "Error!", JOptionPane.ERROR_MESSAGE); 
+					} else {
+						numberOfPoints = temp.intValue();
+					}
+				} catch (NumberFormatException ex) {
+					JOptionPane.showMessageDialog(openMapFrame, "Number of points must be an integer between 3 and 1000!", "Error!", JOptionPane.ERROR_MESSAGE); 
+				}
+				if (numberOfPoints != -1) {
+					AISFixedStationData stationData = currentlySelectedOMBaseStation.getStationData();
+					ArrayList<double[]> points = (ArrayList<double[]>) RoundCoverage.getRoundInterferenceCoverage(stationData.getLat(), stationData.getLon(), numberOfPoints);
+					if (data == null) {
+						data = DBHandler.getData();                        
+					}					
+					data = saveCoverage(data, points, interferenceCoverageLayer);					
+						  
+					DBHandler.saveData(data);    					
+					updateStations();			
+				}
+			
+			} else if (input == null) {
+				// user canceled, do nothing
+			}				
+		
         } else {
             updateStations();
         }
     }
+	
+	private EAVDAMData saveCoverage(EAVDAMData data, ArrayList<double[]> points, OMGraphicHandlerLayer activeLayer) {
+		if (currentlySelectedOMBaseStation.getDatasetSource() == null) {
+			List<ActiveStation> activeStations = data.getActiveStations();
+			if (activeStations != null) {
+				for (int i=0; i< activeStations.size(); i++) {
+					ActiveStation as = activeStations.get(i);
+					if (as.getStations() != null) {
+						for (int j=0; j<as.getStations().size(); j++) {
+							AISFixedStationData stationData = as.getStations().get(j);
+							if (stationData.getStationDBID() == currentlySelectedOMBaseStation.getStationData().getStationDBID()) {
+								if (activeLayer == transmitCoverageLayer) {
+									AISFixedStationCoverage coverage = stationData.getTransmissionCoverage();
+									if (coverage == null) {
+										coverage = new AISFixedStationCoverage();
+									}
+									coverage.setCoveragePoints(points);
+									stationData.setTransmissionCoverage(coverage);
+								} else if (activeLayer == receiveCoverageLayer) {
+									AISFixedStationCoverage coverage = stationData.getReceiveCoverage();
+									if (coverage == null) {
+										coverage = new AISFixedStationCoverage();
+									}
+									coverage.setCoveragePoints(points);
+									stationData.setReceiveCoverage(coverage);
+								} else if (activeLayer == interferenceCoverageLayer) {
+									AISFixedStationCoverage coverage = stationData.getInterferenceCoverage();
+									if (coverage == null) {
+										coverage = new AISFixedStationCoverage();
+									}
+									coverage.setCoveragePoints(points);
+									stationData.setInterferenceCoverage(coverage);										
+								}								
+								as.getStations().set(j, stationData);
+								data.getActiveStations().set(i, as);		
+								break;									
+							}
+						}
+					}
+				}
+			}
+		} else if (currentlySelectedOMBaseStation.getDatasetSource() instanceof String) {  // simulation
+			String selectedSimulation = (String) currentlySelectedOMBaseStation.getDatasetSource();				
+			List<Simulation> simulatedStations = data.getSimulatedStations();
+			for (Simulation s : data.getSimulatedStations()) {
+				if (selectedSimulation.equals(s.getName())) {
+					List<AISFixedStationData> stations = s.getStations();
+					for (int i=0; i<stations.size(); i++) {
+						AISFixedStationData stationData = stations.get(i);
+						if (stationData.getStationDBID() == currentlySelectedOMBaseStation.getStationData().getStationDBID()) {								
+							if (activeLayer == transmitCoverageLayer) {
+								AISFixedStationCoverage coverage = stationData.getTransmissionCoverage();
+								if (coverage == null) {
+									coverage = new AISFixedStationCoverage();
+								}
+								coverage.setCoveragePoints(points);
+								stationData.setTransmissionCoverage(coverage);
+							} else if (activeLayer == receiveCoverageLayer) {
+								AISFixedStationCoverage coverage = stationData.getReceiveCoverage();
+								if (coverage == null) {
+									coverage = new AISFixedStationCoverage();
+								}
+								coverage.setCoveragePoints(points);
+								stationData.setReceiveCoverage(coverage);
+							} else if (activeLayer == interferenceCoverageLayer) {
+								AISFixedStationCoverage coverage = stationData.getInterferenceCoverage();
+								if (coverage == null) {
+									coverage = new AISFixedStationCoverage();
+								}
+								coverage.setCoveragePoints(points);
+								stationData.setInterferenceCoverage(coverage);										
+							}							
+							stations.set(i, stationData);
+							s.setStations(stations);
+							data.setSimulatedStations(simulatedStations);
+							break;																	
+						}
+					}
+				}	
+			}
+		}	
+		
+		return data;	
+	}
 
 	@Override
 	public void findAndInit(Object obj) {
@@ -513,8 +783,14 @@ public class StationLayer extends OMGraphicHandlerLayer implements MapMouseListe
 			this.mapBean = (MapBean) obj;
 		} else if (obj instanceof InformationDelegator) {
 			this.infoDelegator = (InformationDelegator) obj;
-		} else if (obj instanceof OMAISBaseStationReachLayerA) {
-			this.reachLayerA = (OMAISBaseStationReachLayerA) obj;
+		} else if (obj instanceof OpenMapFrame) {
+			this.openMapFrame = (OpenMapFrame) obj;
+		} else if (obj instanceof OMAISBaseStationTransmitCoverageLayer) {
+			this.transmitCoverageLayer = (OMAISBaseStationTransmitCoverageLayer) obj;
+		} else if (obj instanceof OMAISBaseStationReceiveCoverageLayer) {
+			this.receiveCoverageLayer = (OMAISBaseStationReceiveCoverageLayer) obj;
+		} else if (obj instanceof OMAISBaseStationInterferenceCoverageLayer) {
+			this.interferenceCoverageLayer = (OMAISBaseStationInterferenceCoverageLayer) obj;			
 		} else if (obj instanceof EavdamMenu) {
 		    this.eavdamMenu = (EavdamMenu) obj;
 		} else if (obj instanceof SidePanel) {
@@ -522,7 +798,7 @@ public class StationLayer extends OMGraphicHandlerLayer implements MapMouseListe
 		} else if (obj instanceof DrawingTool) {
             setDrawingTool((DrawingTool) obj);
         }
-		if (eavdamMenu != null && reachLayerA != null && sidePanel != null && !stationsInitiallyUpdated) {
+		if (eavdamMenu != null && transmitCoverageLayer != null && receiveCoverageLayer != null && interferenceCoverageLayer != null && sidePanel != null && !stationsInitiallyUpdated) {
 			updateStations();
 			stationsInitiallyUpdated = true;
 		}
@@ -557,8 +833,10 @@ public class StationLayer extends OMGraphicHandlerLayer implements MapMouseListe
              Options options = OptionsMenuItem.loadOptions();
              currentIcons = options.getIconsSize();
              graphics.clear();
-			 reachLayerA.getGraphicsList().clear();
-            if (eavdamMenu.getShowOnMapMenu().getOwnOperativeStationsMenuItem().isSelected() || eavdamMenu.getShowOnMapMenu().getOwnPlannedStationsMenuItem().isSelected()) {
+			 transmitCoverageLayer.getGraphicsList().clear();
+			 receiveCoverageLayer.getGraphicsList().clear();
+			 interferenceCoverageLayer.getGraphicsList().clear();			 
+			 if (eavdamMenu.getShowOnMapMenu().getOwnOperativeStationsMenuItem().isSelected() || eavdamMenu.getShowOnMapMenu().getOwnPlannedStationsMenuItem().isSelected()) {
                 List<ActiveStation> activeStations = data.getActiveStations();
                 if (activeStations != null) {
                     for (ActiveStation as : activeStations) {
