@@ -14,7 +14,7 @@ import javax.swing.event.MenuListener;
  */
 public class EavdamMenu extends AbstractOpenMapMenu implements MenuListener {
 
-    public static final long serialVersionUID = 3L;
+    public static final long serialVersionUID = 4L;
 
     private String defaultText = "Eavdam";
     private int defaultMnemonic = 'E';

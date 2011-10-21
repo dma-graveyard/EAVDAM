@@ -32,22 +32,27 @@ public class DBHandler {
     		DerbyDBInterface d = new DerbyDBInterface();
 			
 			// loads other users' xmls
-			Options options = getOptions();
-			String ownFileName = XMLHandler.getLatestDataFileName();
-			if (ownFileName.indexOf("/") != -1) {
-				ownFileName = ownFileName.substring(ownFileName.lastIndexOf("/")+1);
-			}			
-            List<FTP> ftps = options.getFTPs();
-            if (ftps != null && !ftps.isEmpty()) {
-                for (FTP ftp : ftps) {
-                    try {
-                        FTPHandler.importDataFromFTP(ftp, XMLHandler.importDataFolder, ownFileName);                                       
-                    } catch (IOException ex) {
-                        System.out.println(ex.getMessage());
-                        ex.printStackTrace();
-                    }
-                }
-			}
+			try {
+				Options options = getOptions();
+				String ownFileName = XMLHandler.getLatestDataFileName();
+				if (ownFileName != null && ownFileName.indexOf("/") != -1) {
+					ownFileName = ownFileName.substring(ownFileName.lastIndexOf("/")+1);
+				}			
+				List<FTP> ftps = options.getFTPs();
+				if (ftps != null && !ftps.isEmpty()) {
+					for (FTP ftp : ftps) {
+						try {
+							FTPHandler.importDataFromFTP(ftp, XMLHandler.importDataFolder, ownFileName);                                       
+						} catch (IOException ex) {
+							System.out.println(ex.getMessage());
+							ex.printStackTrace();
+						}
+					}
+				}	
+	    	} catch (Exception e) {
+	    		e.printStackTrace();
+	//    		System.out.println(e.getMessage());
+	    	}	
 			
     		d.closeConnection();
     		
