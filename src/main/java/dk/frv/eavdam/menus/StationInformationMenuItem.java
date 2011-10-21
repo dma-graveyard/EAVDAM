@@ -119,11 +119,11 @@ class StationInformationMenuItemActionListener implements ActionListener, Change
 
     private JTextField addStationNameTextField;
     private JComboBox addStationTypeComboBox;
+	private JComboBox addStationStatusComboBox;
     private JTextField addLatitudeTextField;
     private JTextField addLongitudeTextField;    
     private JTextField addMMSINumberTextField;
     private JTextField addTransmissionPowerTextField;
-    private JComboBox addStationStatusComboBox;
 
     private JComboBox addAntennaTypeComboBox;
     private JTextField addAntennaHeightTextField;
@@ -499,6 +499,8 @@ class StationInformationMenuItemActionListener implements ActionListener, Change
             addStationNameTextField = getTextField(16);
             addStationTypeComboBox = getComboBox(new String[] {"AIS Base Station", "AIS Repeater", "AIS Receiver station", "AIS AtoN station"});
             addStationTypeComboBox.addItemListener(this);
+			addStationStatusComboBox = getComboBox(new String[] {"Operative", "Planned"});
+			addStationStatusComboBox.addItemListener(this);
 
             addLatitudeTextField = getTextField(16);
             addLongitudeTextField = getTextField(16);
@@ -526,6 +528,12 @@ class StationInformationMenuItemActionListener implements ActionListener, Change
             updateAntennaTypeComboBox(addAntennaTypeComboBox, addAntennaHeightTextField, addTerrainHeightTextField,
                 addHeadingTextField, addFieldOfViewAngleTextField, addGainTextField);
                 
+			if (((String) selectDatasetComboBox.getSelectedItem()).startsWith(StationInformationMenuItem.OWN_ACTIVE_STATIONS_LABEL)) {   
+				addStationStatusComboBox = getComboBox(new String[] {"Operative", "Planned"});	
+			} else if (((String) selectDatasetComboBox.getSelectedItem()).startsWith(StationInformationMenuItem.SIMULATION_LABEL)) {				
+				addStationStatusComboBox = getComboBox(new String[] {"Simulation"});	
+			}						
+				
             JPanel panel = new JPanel();
             panel.setLayout(new GridBagLayout());
                               
@@ -539,24 +547,28 @@ class StationInformationMenuItemActionListener implements ActionListener, Change
             c = updateGBC(c, 0, 1, 0.5, GridBagConstraints.LINE_START, GridBagConstraints.NONE, new Insets(5,5,5,5));                    
             p2.add(new JLabel("Station type:"), c);
             c = updateGBC(c, 1, 1, 0.5, GridBagConstraints.LINE_START, GridBagConstraints.NONE, new Insets(5,5,5,5));    
-            p2.add(addStationTypeComboBox, c);                                                                       
-            c = updateGBC(c, 0, 2, 0.5, GridBagConstraints.LINE_START, GridBagConstraints.NONE, new Insets(5,5,5,5));                                        
+            p2.add(addStationTypeComboBox, c);     
+			c = updateGBC(c, 0, 2, 0.5, GridBagConstraints.LINE_START, GridBagConstraints.NONE, new Insets(5,5,5,5));                    
+            p2.add(new JLabel("Station status:"), c);
+            c = updateGBC(c, 1, 2, 0.5, GridBagConstraints.LINE_START, GridBagConstraints.NONE, new Insets(5,5,5,5));    
+            p2.add(addStationStatusComboBox, c);     			
+            c = updateGBC(c, 0, 3, 0.5, GridBagConstraints.LINE_START, GridBagConstraints.NONE, new Insets(5,5,5,5));                                        
             p2.add(new JLabel("Latitude (WGS84):"), c);
-            c = updateGBC(c, 1, 2, 0.5, GridBagConstraints.LINE_START, GridBagConstraints.NONE, new Insets(5,5,5,5));                   
-            p2.add(addLatitudeTextField, c);                    
-            c = updateGBC(c, 0, 3, 0.5, GridBagConstraints.LINE_START, GridBagConstraints.NONE, new Insets(5,5,5,5));                 
-            p2.add(new JLabel("Longitude (WGS84):"), c);
             c = updateGBC(c, 1, 3, 0.5, GridBagConstraints.LINE_START, GridBagConstraints.NONE, new Insets(5,5,5,5));                   
+            p2.add(addLatitudeTextField, c);                    
+            c = updateGBC(c, 0, 4, 0.5, GridBagConstraints.LINE_START, GridBagConstraints.NONE, new Insets(5,5,5,5));                 
+            p2.add(new JLabel("Longitude (WGS84):"), c);
+            c = updateGBC(c, 1, 4, 0.5, GridBagConstraints.LINE_START, GridBagConstraints.NONE, new Insets(5,5,5,5));                   
             p2.add(addLongitudeTextField, c);        
-            c = updateGBC(c, 0, 4, 0.5, GridBagConstraints.LINE_START, GridBagConstraints.NONE, new Insets(5,5,5,5));                
-            p2.add(new JLabel("MMSI number:"), c);
-            c = updateGBC(c, 1, 4, 0.5, GridBagConstraints.LINE_START, GridBagConstraints.NONE, new Insets(5,5,5,5));                    
-            p2.add(addMMSINumberTextField, c);
             c = updateGBC(c, 0, 5, 0.5, GridBagConstraints.LINE_START, GridBagConstraints.NONE, new Insets(5,5,5,5));                
+            p2.add(new JLabel("MMSI number:"), c);
+            c = updateGBC(c, 1, 5, 0.5, GridBagConstraints.LINE_START, GridBagConstraints.NONE, new Insets(5,5,5,5));                    
+            p2.add(addMMSINumberTextField, c);
+            c = updateGBC(c, 0, 6, 0.5, GridBagConstraints.LINE_START, GridBagConstraints.NONE, new Insets(5,5,5,5));                
             p2.add(new JLabel("Transmission power (Watt):"), c);
-            c = updateGBC(c, 1, 5, 0.5, GridBagConstraints.LINE_START, GridBagConstraints.NONE, new Insets(5,5,5,5));                   
+            c = updateGBC(c, 1, 6, 0.5, GridBagConstraints.LINE_START, GridBagConstraints.NONE, new Insets(5,5,5,5));                   
             p2.add(addTransmissionPowerTextField, c);
-            c = updateGBC(c, 0, 6, 0.5, GridBagConstraints.LINE_START, GridBagConstraints.NONE, new Insets(5,5,5,5));              
+            c = updateGBC(c, 0, 7, 0.5, GridBagConstraints.LINE_START, GridBagConstraints.NONE, new Insets(5,5,5,5));              
             /*
             p2.add(new JLabel("Status of the fixed AIS station:"), c);
             c = updateGBC(c, 1, 6, 0.5, GridBagConstraints.LINE_START, GridBagConstraints.NONE, new Insets(5,5,5,5));               
@@ -682,10 +694,15 @@ class StationInformationMenuItemActionListener implements ActionListener, Change
             } else {
                 int response = JOptionPane.showConfirmDialog(dialog, "Are you sure you want to turn the planned station into the operative station?", "Confirm action", JOptionPane.YES_NO_OPTION);
                 if (response == JOptionPane.YES_OPTION) {
+				
                     ignoreListeners = true;
-                    int selectedStationIndex = selectStationComboBox.getSelectedIndex();                
-                    turnPlannedIntoOperativeStation(selectedStationIndex);                
+                    int selectedStationIndex = selectStationComboBox.getSelectedIndex();                            
+					turnPlannedIntoOperativeStation(selectedStationIndex);                
                     updateSelectStationComboBox(selectStationComboBox.getSelectedIndex());                                              
+					ActiveStation as = data.getActiveStations().get(selectedStationIndex);
+					initializeTabbedPane(as);
+					tabbedPane.setSelectedIndex(tabbedPane.getTabCount()-1);
+                    updateTabbedPane(); 
                     eavdamMenu.getStationLayer().updateStations();
                     ignoreListeners = false;                
                 } else if (response == JOptionPane.NO_OPTION) {                        
@@ -1764,53 +1781,34 @@ class StationInformationMenuItemActionListener implements ActionListener, Change
             return false;
         }
         
-        AISFixedStationData operativeStation = new AISFixedStationData();
-        AISFixedStationData plannedStation = new AISFixedStationData();        
-         
+        AISFixedStationData stationData = new AISFixedStationData();
+
         try {                 
-            operativeStation.setStationName(addStationNameTextField.getText().trim());
-            plannedStation.setStationName(addStationNameTextField.getText().trim());
+            stationData.setStationName(addStationNameTextField.getText().trim());
             if (addStationTypeComboBox.getSelectedIndex() == 0) {
-                operativeStation.setStationType(AISFixedStationType.BASESTATION);
-                plannedStation.setStationType(AISFixedStationType.BASESTATION);
+                stationData.setStationType(AISFixedStationType.BASESTATION);
             } else if (addStationTypeComboBox.getSelectedIndex() == 1) {
-                operativeStation.setStationType(AISFixedStationType.REPEATER); 
-                plannedStation.setStationType(AISFixedStationType.REPEATER);
+                stationData.setStationType(AISFixedStationType.REPEATER); 
             } else if (addStationTypeComboBox.getSelectedIndex() == 2) {
-                operativeStation.setStationType(AISFixedStationType.RECEIVER); 
-                plannedStation.setStationType(AISFixedStationType.RECEIVER); 
+                stationData.setStationType(AISFixedStationType.RECEIVER); 
             } else if (addStationTypeComboBox.getSelectedIndex() == 3) {
-                operativeStation.setStationType(AISFixedStationType.ATON); 
-                plannedStation.setStationType(AISFixedStationType.ATON); 
+                stationData.setStationType(AISFixedStationType.ATON); 
             }  
-            operativeStation.setLat(new Double(addLatitudeTextField.getText().replace(",", ".").trim()).doubleValue());                                
-            plannedStation.setLat(new Double(addLatitudeTextField.getText().replace(",", ".").trim()).doubleValue()); 
-            operativeStation.setLon(new Double(addLongitudeTextField.getText().replace(",", ".").trim()).doubleValue());  
-            plannedStation.setLon(new Double(addLongitudeTextField.getText().replace(",", ".").trim()).doubleValue());  
+            stationData.setLat(new Double(addLatitudeTextField.getText().replace(",", ".").trim()).doubleValue());                                
+            stationData.setLon(new Double(addLongitudeTextField.getText().replace(",", ".").trim()).doubleValue());  
             if (addMMSINumberTextField.getText().trim().isEmpty()) {
-                operativeStation.setMmsi(null);
-                plannedStation.setMmsi(null);
+                stationData.setMmsi(null);
             } else {
-                operativeStation.setMmsi(addMMSINumberTextField.getText().trim());
-                plannedStation.setMmsi(addMMSINumberTextField.getText().trim());
+                stationData.setMmsi(addMMSINumberTextField.getText().trim());
             }
             if (addTransmissionPowerTextField.getText().trim().isEmpty()) {
-                operativeStation.setTransmissionPower(null);
-                plannedStation.setTransmissionPower(null);
+                stationData.setTransmissionPower(null);
             } else {
-                operativeStation.setTransmissionPower(new Double(addTransmissionPowerTextField.getText().replace(",", ".").trim()));
-                plannedStation.setTransmissionPower(new Double(addTransmissionPowerTextField.getText().replace(",", ".").trim()));                
+                stationData.setTransmissionPower(new Double(addTransmissionPowerTextField.getText().replace(",", ".").trim()));               
             }
-            AISFixedStationStatus status = new AISFixedStationStatus();
-            status.setStatusID(DerbyDBInterface.STATUS_ACTIVE);
-            operativeStation.setStatus(status);
-            status = new AISFixedStationStatus();
-            status.setStatusID(DerbyDBInterface.STATUS_PLANNED);
-            plannedStation.setStatus(status);
-            Antenna antenna = operativeStation.getAntenna();
+            Antenna antenna = stationData.getAntenna();
             if (addAntennaTypeComboBox.getSelectedIndex() == 0) {
-                operativeStation.setAntenna(null);
-                plannedStation.setAntenna(null);
+                stationData.setAntenna(null);
             } else if (addAntennaTypeComboBox.getSelectedIndex() == 1) {
                 if (antenna == null) {
                     antenna = new Antenna();
@@ -1850,15 +1848,12 @@ class StationInformationMenuItemActionListener implements ActionListener, Change
             }
             if (addAntennaTypeComboBox.getSelectedIndex() == 1 ||
                     addAntennaTypeComboBox.getSelectedIndex() == 2) {
-                operativeStation.setAntenna(antenna);
-                plannedStation.setAntenna(antenna);
+                stationData.setAntenna(antenna);
             }
             if (addAdditionalInformationJTextArea.getText().trim().isEmpty()) {
-                operativeStation.setDescription(null);
-                plannedStation.setDescription(null);
+                stationData.setDescription(null);
             } else {
-                operativeStation.setDescription(addAdditionalInformationJTextArea.getText().trim());
-                plannedStation.setDescription(addAdditionalInformationJTextArea.getText().trim());
+                stationData.setDescription(addAdditionalInformationJTextArea.getText().trim());
             }
         } catch (IllegalArgumentException e) {
             JOptionPane.showMessageDialog(addStationDialog, e.getMessage());              
@@ -1867,26 +1862,21 @@ class StationInformationMenuItemActionListener implements ActionListener, Change
 
         if (((String) selectDatasetComboBox.getSelectedItem()).startsWith(StationInformationMenuItem.OWN_ACTIVE_STATIONS_LABEL)) {            
 
+			if (addStationStatusComboBox.getSelectedIndex() == 0) {  // operative
+				AISFixedStationStatus status = new AISFixedStationStatus();
+				status.setStatusID(DerbyDBInterface.STATUS_ACTIVE);
+				stationData.setStatus(status);
+			} else if (addStationStatusComboBox.getSelectedIndex() == 1) {  // planned
+				AISFixedStationStatus status = new AISFixedStationStatus();
+				status.setStatusID(DerbyDBInterface.STATUS_PLANNED);				
+				stationData.setStatus(status);
+			}
+		
             ActiveStation activeStation = new ActiveStation();
             List<AISFixedStationData> stations = new ArrayList<AISFixedStationData>();
-            stations.add(operativeStation);
-            stations.add(plannedStation);            
-            activeStation.setStations(stations);                      
-            
-            // FOR TESTING -->
-            /*
-            EAVDAMUser testUser = new EAVDAMUser();
-            testUser.setOrganizationName("test");
-            AISFixedStationData testData = new AISFixedStationData();
-            testData.setStationName("test");
-            testData.setLat(62.2);
-            testData.setLon(19.2);
-            Map<EAVDAMUser, AISFixedStationData> proposals = new HashMap<EAVDAMUser, AISFixedStationData>();
-            proposals.put(testUser, testData);
-            activeStation.setProposals(proposals);            
-            */
-            // <-- FOR TESTING
-                        
+            stations.add(stationData);            
+            activeStation.setStations(stations);
+						
             List<ActiveStation> activeStations = null;
             if (data == null || data.getActiveStations() == null) {
                 activeStations =  new ArrayList<ActiveStation>();
@@ -1897,17 +1887,19 @@ class StationInformationMenuItemActionListener implements ActionListener, Change
             data.setActiveStations(activeStations);
   
         } else if (((String) selectDatasetComboBox.getSelectedItem()).startsWith(StationInformationMenuItem.SIMULATION_LABEL)) {
-            if (data != null && data.getSimulatedStations() != null) {                
+
+            AISFixedStationStatus status = new AISFixedStationStatus();
+            status.setStatusID(DerbyDBInterface.STATUS_SIMULATED);
+            stationData.setStatus(status);
+
+			if (data != null && data.getSimulatedStations() != null) {                
                 for (Simulation s : data.getSimulatedStations()) {
                     if (((String) selectDatasetComboBox.getSelectedItem()).endsWith(s.getName())) {
                         List<AISFixedStationData> stations = s.getStations();
                         if (stations == null) {
                             stations = new ArrayList<AISFixedStationData>();
                         }
-                        AISFixedStationStatus status = new AISFixedStationStatus();
-                        status.setStatusID(DerbyDBInterface.STATUS_SIMULATED);
-                        operativeStation.setStatus(status);
-                        stations.add(operativeStation);                        
+                        stations.add(stationData);
                     }
                 }
             }
@@ -1935,13 +1927,25 @@ class StationInformationMenuItemActionListener implements ActionListener, Change
                     for (int i=0; i< data.getActiveStations().size(); i++) {
                         ActiveStation as = data.getActiveStations().get(i);
                         if (as.getStations() != null) {
-                            for (AISFixedStationData stationData : as.getStations()) {
-                                if (stationData.getStatus().getStatusID() == DerbyDBInterface.STATUS_ACTIVE &&
+							boolean activeFound = false;
+							for (AISFixedStationData stationData : as.getStations()) {                        
+								if (stationData.getStatus().getStatusID() == DerbyDBInterface.STATUS_ACTIVE &&
                                         initiallySelectedStationName.equals(stationData.getStationName())) {
                                     selectedIndex = i;
-                                    break;                                                                    
-                                }
-                            }
+									activeFound = true;								
+                                    break;    
+								}									
+							}
+							if (!activeFound) {
+								for (AISFixedStationData stationData : as.getStations()) {                        
+									if (stationData.getStatus().getStatusID() == DerbyDBInterface.STATUS_PLANNED &&
+											initiallySelectedStationName.equals(stationData.getStationName())) {
+										selectedIndex = i;
+										activeFound = true;								
+										break;
+									}
+								}
+							}
                         }
                     }
                 }
@@ -1949,14 +1953,26 @@ class StationInformationMenuItemActionListener implements ActionListener, Change
                 for (int i=0; i< data.getActiveStations().size(); i++) {
                     ActiveStation as = data.getActiveStations().get(i);
                     if (as.getStations() != null) {
-                        for (AISFixedStationData stationData : as.getStations()) {                            
+						boolean activeFound = false;
+						for (AISFixedStationData stationData : as.getStations()) {     
                             if (stationData.getStatus().getStatusID() == DerbyDBInterface.STATUS_ACTIVE) {
                                 selectStationComboBox.addItem(stationData.getStationName());
                                 if (selectedIndex == i) {
                                     selectStationComboBox.setSelectedIndex(i);
                                 }
+								activeFound = true;								
                             }
                         }
+						if (!activeFound) {
+							for (AISFixedStationData stationData : as.getStations()) {                        
+								if (stationData.getStatus().getStatusID() == DerbyDBInterface.STATUS_PLANNED) {
+									selectStationComboBox.addItem(stationData.getStationName());
+									if (selectedIndex == i) {
+										selectStationComboBox.setSelectedIndex(i);
+									}		
+								}
+							}								
+						}						
                     }
                 }
                 
@@ -2378,7 +2394,6 @@ class StationInformationMenuItemActionListener implements ActionListener, Change
         if (data == null ||  data.getActiveStations() == null || data.getActiveStations().isEmpty()) {
             return;
         }
-     
  
         AISFixedStationData newActiveStationData = new AISFixedStationData();
         try {
@@ -2454,10 +2469,11 @@ class StationInformationMenuItemActionListener implements ActionListener, Change
         } catch (IllegalArgumentException e) {
             // should not occur as the station is saved
         }
-     
+		
         ActiveStation as = data.getActiveStations().get(stationIndex);        
+		boolean foundActiveStation = false;
         for (int i=0; i<as.getStations().size(); i++) {                        
-            AISFixedStationData temp = as.getStations().get(i);
+            AISFixedStationData temp = as.getStations().get(i);			
             if (temp.getStatus().getStatusID() == DerbyDBInterface.STATUS_ACTIVE) {
             	System.out.println("Found active station. Changing it to old...");
 //                temp.getStatus().setStatusID(DerbyDBInterface.STATUS_OLD);
@@ -2466,6 +2482,7 @@ class StationInformationMenuItemActionListener implements ActionListener, Change
             	newActiveStationData.setStationDBID(temp.getStationDBID());
             	newActiveStationData.setOperator(temp.getOperator());
             	as.getStations().set(i, newActiveStationData);
+				foundActiveStation = true;
                 break;
                 
             }
@@ -2475,6 +2492,12 @@ class StationInformationMenuItemActionListener implements ActionListener, Change
             
             data.getActiveStations().set(stationIndex, as);            
         }
+		
+		if (!foundActiveStation) {
+            as.getStations().add(newActiveStationData);
+			System.out.println(as.getStations().toString());
+			data.getActiveStations().set(stationIndex, as);			
+		}
             
         DBHandler.saveData(data);
     }
