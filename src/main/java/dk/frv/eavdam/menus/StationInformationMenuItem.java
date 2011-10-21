@@ -712,7 +712,7 @@ class StationInformationMenuItemActionListener implements ActionListener, Change
                     ignoreListeners = true;
                     int selectedStationIndex = selectStationComboBox.getSelectedIndex();                            
 					turnPlannedIntoOperativeStation(selectedStationIndex);                
-                    updateSelectStationComboBox(selectStationComboBox.getSelectedIndex());
+                    updateSelectStationComboBox(selectedStationIndex);
 					ActiveStation as = data.getActiveStations().get(selectedStationIndex);
 					initializeTabbedPane(as);
 					tabbedPane.setSelectedIndex(tabbedPane.getTabCount()-1);
@@ -1969,12 +1969,8 @@ class StationInformationMenuItemActionListener implements ActionListener, Change
             }
         }
 
-		System.out.println("Status ID before saving data is " + data.getActiveStations().get(data.getActiveStations().size()-1).getStations().get(0).getStatus().getStatusID());
-		
         DBHandler.saveData(data);
-		
-		System.out.println("Status ID after saving data is " + data.getActiveStations().get(data.getActiveStations().size()-1).getStations().get(0).getStatus().getStatusID());		
-        
+
         return true;
     }
 
@@ -2678,9 +2674,11 @@ class StationInformationMenuItemActionListener implements ActionListener, Change
 			data.getActiveStations().set(stationIndex, as);
 //			data.getActiveStations().add(0,as);
 		}
-            
-        DBHandler.saveData(data);
-    }
+
+		System.out.println("Station data size before: " + data.getActiveStations().get(stationIndex).getStations().size());
+        DBHandler.saveData(data);		
+		System.out.println("Station data size after: " + data.getActiveStations().get(stationIndex).getStations().size());
+	}
 
     /** 
      * Deletes a station.
