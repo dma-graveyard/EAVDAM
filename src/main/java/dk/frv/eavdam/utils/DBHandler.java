@@ -144,5 +144,14 @@ public class DBHandler {
 			e.printStackTrace();
 		}
     }
+    
+    public static void deleteStation(int stationID){
+    	try{
+    		DerbyDBInterface db = new DerbyDBInterface();
+    		db.deleteStation(stationID);
+    	}catch (Exception e) {
+			e.printStackTrace();
+		}
+    }
 }
         

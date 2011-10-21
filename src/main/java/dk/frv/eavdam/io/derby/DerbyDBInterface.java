@@ -205,12 +205,10 @@ import dk.frv.eavdam.data.Simulation;
 	        
 	        if(data.getUser() == null){
 	        	System.out.println("No user given...");
-	        	//throw new Exception("No user data given in EAVDAMData!");
 	        	return false;
 	        }
 	        
 	        try{
-//	        	if(true) throw new Exception();
 	        	
 	        	if(conn == null) conn = getDBConnection(defaultDB, false);
 	    	
@@ -222,6 +220,9 @@ import dk.frv.eavdam.data.Simulation;
 	        		for(ActiveStation a : data.getActiveStations()){
 	        			this.insertActiveStations(a, orgID);
 	        		}
+	        		
+	        		
+	        		data.setActiveStations(this.retrieveActiveStations(orgID));
 	        	}
 	        	
 	        	if(data.getOldStations() != null && data.getOldStations().size() > 0){
@@ -517,6 +518,14 @@ import dk.frv.eavdam.data.Simulation;
 				   this.updateAISStation(s, organizationID, -1);
 				   
 			   }
+		   }else if(active != null && planned == null){
+			
+			   int stationID = this.insertStation(active, -1, organizationID, 0);
+			   
+			   active.getStatus().setStatusID(STATUS_PLANNED);
+			   this.updateAISStation(active, organizationID, stationID);
+			   
+			   
 		   }else{
 			   
 			   int stationID = -1;
@@ -883,6 +892,50 @@ import dk.frv.eavdam.data.Simulation;
 	    	ps.close();
 	    	
 	    }
+	    
+	    /**
+	     * Deletes the give station from the database.
+	     * 
+	     * @param stationID
+	     */
+		public void deleteStation(int stationID) throws Exception{
+	    	if(this.conn == null) this.getDBConnection(null, false);
+	    	
+	    	PreparedStatement ps = null;
+	    	
+	    	if(stationID <= 0) return;
+	    	
+	    	ps = conn.prepareStatement("delete from COVERAGEPOINTS where station = ?");
+	    	ps.setInt(1, stationID);
+	    	ps.executeUpdate();
+	    	
+	    	ps = conn.prepareStatement("delete from SIMULATIONSTATION where stationid = ?");
+	    	ps.setInt(1, stationID);
+	    	ps.executeUpdate();
+
+
+	    	ps = conn.prepareStatement("delete from FATDMA where station = ?");
+	    	ps.setInt(1, stationID);
+	    	ps.executeUpdate();
+	    	
+
+	    	ps = conn.prepareStatement("delete from STATUS where station = ?");
+	    	ps.setInt(1, stationID);
+	    	ps.executeUpdate();
+	    	
+
+	    	ps = conn.prepareStatement("delete from ANTENNA where station = ?");
+	    	ps.setInt(1, stationID);
+	    	ps.executeUpdate();
+	    	
+	    	ps = conn.prepareStatement("delete from FIXEDSTATION where id = ?");
+	    	ps.setInt(1, stationID);
+	    	ps.executeUpdate();
+	    	
+	    	ps.close();
+	    	
+			
+		}
 	    
 	    /**
 	     * Updates the organization database. Also updates the person database if necessary and insert a new address, if necessary.
@@ -2617,4 +2670,5 @@ import dk.frv.eavdam.data.Simulation;
 		    		e.printStackTrace();
 		    	}
 		}
+
 }
