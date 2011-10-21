@@ -514,7 +514,7 @@ import dk.frv.eavdam.data.Simulation;
 				   
 				   
 				   System.out.println("Updating status...");
-				   this.updateAISStation(s, organizationID);
+				   this.updateAISStation(s, organizationID, -1);
 				   
 			   }
 		   }else{
@@ -579,7 +579,7 @@ import dk.frv.eavdam.data.Simulation;
 	    			
 	    			System.out.println("Station exists. Updating its information! (id: "+as.getStationDBID()+" vs. dbid: "+id+", status: "+as.getStatus().getStatusID()+", owner: "+organizationID+")");
 	    			as.setStationDBID(id);
-	    			this.updateAISStation(as, organizationID);
+	    			this.updateAISStation(as, organizationID, refstation);
 	    			
 	    			res.close();	    			
 	    			update.close();
@@ -968,10 +968,10 @@ import dk.frv.eavdam.data.Simulation;
 	     * 
 	     * @param ais
 	     */
-	    public void updateAISStation(AISFixedStationData ais, int orgID) throws Exception{
+	    public void updateAISStation(AISFixedStationData ais, int orgID, int refstation) throws Exception{
 	    	if(this.conn == null) this.getDBConnection(null, false);
 	    	
-	    	int owner = orgID; //this.getOrganizationID(ais.getOperator(), false);
+	    	int owner = orgID; 
 	    	
 	    	int stationType = 1;
 	    	switch(ais.getStationType()){
@@ -1013,7 +1013,7 @@ import dk.frv.eavdam.data.Simulation;
 	    	
 	    	if(ais.getAntenna() != null) this.updateAntenna(ais.getAntenna(), ais.getStationDBID());
 	    	
-	    	if(ais.getStatus() != null) this.updateStatus(ais.getStatus(), ais.getStationDBID());
+	    	if(ais.getStatus() != null) this.updateStatus(ais.getStatus(), ais.getStationDBID(), refstation);
 	    	
 	    	if(ais.getTransmissionCoverage() != null){
 	    		this.updateCoverage(ais.getTransmissionCoverage(), ais.getStationDBID(), COVERAGE_TRANSMIT);
@@ -1087,18 +1087,20 @@ import dk.frv.eavdam.data.Simulation;
 	    	
 	    }
 	    
-	    private void updateStatus(AISFixedStationStatus status, int stationId) throws Exception{
+	    private void updateStatus(AISFixedStationStatus status, int stationId, int refstation) throws Exception{
 	    	
 	    	String sql = "update STATUS set " +
 	    			"STATUSTYPE = ?, " + //1.
 	    			"STARTDATE = ?," +  //2.
-	    			"ENDDATE = ?" +  //3.
-	    			" where STATION = ?";  //4.
+	    			"ENDDATE = ?," +  //3.
+	    			"REFSTATION = ?" +  //4.
+	    			" where STATION = ?";  //5.
 	    	PreparedStatement ps = conn.prepareStatement(sql);
 	    	ps.setInt(1, status.getStatusID());
 	    	ps.setDate(2, status.getStartDate());
 	    	ps.setDate(3, status.getEndDate());
-	    	ps.setInt(4, stationId);
+	    	ps.setInt(4, refstation);
+	    	ps.setInt(5, stationId);
 	    	
 	    	int n = ps.executeUpdate();
 	    	System.out.println("Updated the status: "+status.getStatusID()+" (n:"+n+", id: "+stationId+")");

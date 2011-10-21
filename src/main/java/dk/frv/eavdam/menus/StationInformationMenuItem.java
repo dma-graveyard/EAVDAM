@@ -2497,7 +2497,7 @@ class StationInformationMenuItemActionListener implements ActionListener, Change
             as.getStations().add(newActiveStationData);
 			System.out.println(as.getStations().toString());
 //			data.getActiveStations().set(stationIndex, as);
-			data.getActiveStations().add(as);
+			data.getActiveStations().add(0,as);
 		}
             
         DBHandler.saveData(data);

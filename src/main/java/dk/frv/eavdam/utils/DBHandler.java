@@ -90,18 +90,18 @@ public class DBHandler {
 //        System.out.println("Saving data for user "+data.getUser().getOrganizationName()+" ("+data.getActiveStations().get(0).getStations().get(0).getStationName()+")");
         d.insertEAVDAMData(data);
 
-        if(!updatedXML){
-			System.out.println("Writing the xml to file...");
-			try {
-
-				XMLHandler.exportData();
-	    		System.out.println("Writing finished!");
-			} catch (Exception e) {
-				e.printStackTrace();
-			}
-			
-			updatedXML = true;
-        }
+//        if(!updatedXML){
+//			System.out.println("Writing the xml to file...");
+//			try {
+//
+//				XMLHandler.exportData();
+//	    		System.out.println("Writing finished!");
+//			} catch (Exception e) {
+//				e.printStackTrace();
+//			}
+//			
+//			updatedXML = true;
+//        }
     }
     
     public static void saveUserData(EAVDAMUser user){
