@@ -294,7 +294,7 @@ class StationInformationMenuItemActionListener implements ActionListener, Change
             
             exitButton = getButton("Exit", 80);            
             exitButton.addActionListener(this);
-			addPlannedButton = getButton("Add planned status", 140);
+			addPlannedButton = getButton("Add planned status", 150);
 			addPlannedButton.addActionListener(this);
             makeOperativeButton = getButton("Make operative", 140);    
             makeOperativeButton.addActionListener(this);			
@@ -497,7 +497,7 @@ class StationInformationMenuItemActionListener implements ActionListener, Change
                 }
             }
             
-            addStationDialog = new JDialog(eavdamMenu.getOpenMapFrame(), "Add Station", true);
+            addStationDialog = new JDialog(eavdamMenu.getOpenMapFrame(), "Add Station", false);  // true for modal dialog
 
             addStationNameTextField = getTextField(16);
             addStationTypeComboBox = getComboBox(new String[] {"AIS Base Station", "AIS Repeater", "AIS Receiver station", "AIS AtoN station"});
@@ -712,7 +712,7 @@ class StationInformationMenuItemActionListener implements ActionListener, Change
                     ignoreListeners = true;
                     int selectedStationIndex = selectStationComboBox.getSelectedIndex();                            
 					turnPlannedIntoOperativeStation(selectedStationIndex);                
-                    updateSelectStationComboBox(selectStationComboBox.getSelectedIndex());                                              
+                    updateSelectStationComboBox(selectStationComboBox.getSelectedIndex());
 					ActiveStation as = data.getActiveStations().get(selectedStationIndex);
 					initializeTabbedPane(as);
 					tabbedPane.setSelectedIndex(tabbedPane.getTabCount()-1);
@@ -875,7 +875,7 @@ class StationInformationMenuItemActionListener implements ActionListener, Change
             dialog.dispose();
         }
 
-        dialog = new JDialog(eavdamMenu.getOpenMapFrame(), "Edit Station Information", true);
+        dialog = new JDialog(eavdamMenu.getOpenMapFrame(), "Edit Station Information", false);  // true for modal dialog
 
         JPanel panel = new JPanel();
         panel.setLayout(new GridBagLayout());                  
@@ -934,7 +934,7 @@ class StationInformationMenuItemActionListener implements ActionListener, Change
                     operativeFound = true;
                 } else if (station.getStatus().getStatusID() == DerbyDBInterface.STATUS_PLANNED) {
                     plannedFound = true;
-                }
+				}
             }                        
             if (operativeFound) {
                 tabbedPane.addTab(StationInformationMenuItem.OPERATIVE_LABEL, null, new JPanel(), StationInformationMenuItem.OPERATIVE_LABEL);
@@ -1378,6 +1378,8 @@ class StationInformationMenuItemActionListener implements ActionListener, Change
 		
 		if (tabbedPane.getTabCount() > 1 && tabbedPane.getTitleAt(1).equals(StationInformationMenuItem.PLANNED_LABEL)) {
 			addPlannedButton.setVisible(false);
+		} else {
+			addPlannedButton.setVisible(true);			
 		}
 
         if (((String) selectDatasetComboBox.getSelectedItem()).startsWith(StationInformationMenuItem.STATIONS_OF_ORGANIZATION_LABEL)) {
@@ -1941,12 +1943,12 @@ class StationInformationMenuItemActionListener implements ActionListener, Change
 						
             List<ActiveStation> activeStations = null;
             if (data == null || data.getActiveStations() == null) {
-                activeStations =  new ArrayList<ActiveStation>();
+                activeStations = new ArrayList<ActiveStation>();
             } else {
-                activeStations =  data.getActiveStations();
+                activeStations = data.getActiveStations();
             }
             activeStations.add(activeStation);                
-            data.setActiveStations(activeStations);
+            data.setActiveStations(activeStations);  
   
         } else if (((String) selectDatasetComboBox.getSelectedItem()).startsWith(StationInformationMenuItem.SIMULATION_LABEL)) {
 
@@ -1967,7 +1969,11 @@ class StationInformationMenuItemActionListener implements ActionListener, Change
             }
         }
 
+		System.out.println("Status ID before saving data is " + data.getActiveStations().get(data.getActiveStations().size()-1).getStations().get(0).getStatus().getStatusID());
+		
         DBHandler.saveData(data);
+		
+		System.out.println("Status ID after saving data is " + data.getActiveStations().get(data.getActiveStations().size()-1).getStations().get(0).getStatus().getStatusID());		
         
         return true;
     }
