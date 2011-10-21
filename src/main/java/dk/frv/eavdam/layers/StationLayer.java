@@ -92,7 +92,7 @@ public class StationLayer extends OMGraphicHandlerLayer implements MapMouseListe
 	private OMBaseStation currentlySelectedOMBaseStation;
 	
 	private EAVDAMData data;
-	private int currentIcons = -1;
+	//private int currentIcons = -1;
 	
 	private boolean stationsInitiallyUpdated = false;
 	
@@ -118,8 +118,71 @@ public class StationLayer extends OMGraphicHandlerLayer implements MapMouseListe
 	
     public void addBaseStation(Object datasetSource, AISFixedStationData stationData) {
 
-	    byte[] bytearr = null;
-	    if (stationData.getStationType() == AISFixedStationType.BASESTATION) {
+	    byte[] bytearr = null;		
+		
+		if (datasetSource == null ||  // own stations
+				datasetSource instanceof String) {  // simulations
+			
+			if (stationData.getStatus().getStatusID() == DerbyDBInterface.STATUS_ACTIVE) {
+
+				if (stationData.getStationType() == AISFixedStationType.BASESTATION) {
+					bytearr = getImage("share/data/images/ais_base_station_own_operative.png");				
+				} else if (stationData.getStationType() == AISFixedStationType.REPEATER) {
+					bytearr = getImage("share/data/images/ais_repeater_own_operative.png");				
+				} else if (stationData.getStationType() == AISFixedStationType.RECEIVER) {
+					bytearr = getImage("share/data/images/ais_receiver_own_operative.png");				
+				} else if (stationData.getStationType() == AISFixedStationType.ATON) {
+					bytearr = getImage("share/data/images/ais_aton_station_own_operative.png");				
+				}
+			
+			} else if (stationData.getStatus().getStatusID() == DerbyDBInterface.STATUS_PLANNED ||
+					stationData.getStatus().getStatusID() == DerbyDBInterface.STATUS_SIMULATED) {
+					
+				if (stationData.getStationType() == AISFixedStationType.BASESTATION) {
+					bytearr = getImage("share/data/images/ais_base_station_own_planned.png");				
+				} else if (stationData.getStationType() == AISFixedStationType.REPEATER) {
+					bytearr = getImage("share/data/images/ais_repeater_own_planned.png");				
+				} else if (stationData.getStationType() == AISFixedStationType.RECEIVER) {
+					bytearr = getImage("share/data/images/ais_receiver_own_planned.png");
+				} else if (stationData.getStationType() == AISFixedStationType.ATON) {
+					bytearr = getImage("share/data/images/ais_aton_station_own_planned.png");				
+				}					
+					
+			}
+							
+		} else if (datasetSource instanceof EAVDAMUser) {  // Other user's dataset		
+		
+			if (stationData.getStatus().getStatusID() == DerbyDBInterface.STATUS_ACTIVE) {
+
+				if (stationData.getStationType() == AISFixedStationType.BASESTATION) {
+					bytearr = getImage("share/data/images/ais_base_station_other_operative.png");				
+				} else if (stationData.getStationType() == AISFixedStationType.REPEATER) {
+					bytearr = getImage("share/data/images/ais_repeater_other_operative.png");				
+				} else if (stationData.getStationType() == AISFixedStationType.RECEIVER) {
+					bytearr = getImage("share/data/images/ais_receiver_other_operative.png");				
+				} else if (stationData.getStationType() == AISFixedStationType.ATON) {
+					bytearr = getImage("share/data/images/ais_aton_station_other_operative.png");
+				}
+			
+			} else if (stationData.getStatus().getStatusID() == DerbyDBInterface.STATUS_PLANNED ||
+					stationData.getStatus().getStatusID() == DerbyDBInterface.STATUS_SIMULATED) {
+					
+				if (stationData.getStationType() == AISFixedStationType.BASESTATION) {
+					bytearr = getImage("share/data/images/ais_base_station_other_planned.png");				
+				} else if (stationData.getStationType() == AISFixedStationType.REPEATER) {
+					bytearr = getImage("share/data/images/ais_repeater_other_planned.png");				
+				} else if (stationData.getStationType() == AISFixedStationType.RECEIVER) {
+					bytearr = getImage("share/data/images/ais_receiver_other_planned.png");				
+				} else if (stationData.getStationType() == AISFixedStationType.ATON) {
+					bytearr = getImage("share/data/images/ais_aton_station_other_planned.png");				
+				}					
+					
+			}
+
+		}				
+		
+	    /*
+		if (stationData.getStationType() == AISFixedStationType.BASESTATION) {
 	        if (currentIcons == Options.LARGE_ICONS) {
                 bytearr = getImage("share/data/images/ais_base_station.png");
             } else if (currentIcons == Options.SMALL_ICONS) {
@@ -156,6 +219,7 @@ public class StationLayer extends OMGraphicHandlerLayer implements MapMouseListe
                 bytearr = getImage("share/data/images/ais_aton_station.png");
             }
         }
+		*/
         
         OMBaseStation base = new OMBaseStation(datasetSource, stationData, bytearr);		
 		Antenna antenna = stationData.getAntenna();
@@ -833,7 +897,7 @@ public class StationLayer extends OMGraphicHandlerLayer implements MapMouseListe
         data = DBHandler.getData();                        
         if (data != null) {
              Options options = OptionsMenuItem.loadOptions();
-             currentIcons = options.getIconsSize();
+             //currentIcons = options.getIconsSize();
              graphics.clear();
 			 transmitCoverageLayer.getGraphicsList().clear();
 			 receiveCoverageLayer.getGraphicsList().clear();

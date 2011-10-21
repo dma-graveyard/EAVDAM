@@ -15,8 +15,8 @@ import javax.xml.bind.JAXBException;
 public class XMLHandler {
     
     //public static EAVDAMData currentEAVDAMData;
-	private static final String exportDataFolder = "generated";
-	private static final String importDataFolder = "import";
+	public static final String exportDataFolder = "generated";
+	public static final String importDataFolder = "import";
     
     public static String getLatestDataFileName() {
         

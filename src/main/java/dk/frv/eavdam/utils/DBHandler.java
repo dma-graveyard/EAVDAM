@@ -5,10 +5,12 @@ import dk.frv.eavdam.data.EAVDAMUser;
 import dk.frv.eavdam.data.FTP;
 import dk.frv.eavdam.data.Options;
 import dk.frv.eavdam.data.Simulation;
+import dk.frv.eavdam.io.FTPHandler;
 import dk.frv.eavdam.io.XMLExporter;
 import dk.frv.eavdam.io.XMLImporter;
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.net.MalformedURLException;
 import java.util.Calendar;
 import dk.frv.eavdam.io.derby.DerbyDBInterface;
@@ -28,6 +30,25 @@ public class DBHandler {
     	if(!initialized){
     		//Check if the database exists. It does the check in the constructor.
     		DerbyDBInterface d = new DerbyDBInterface();
+			
+			// loads other users' xmls
+			Options options = getOptions();
+			String ownFileName = XMLHandler.getLatestDataFileName();
+			if (ownFileName.indexOf("/") != -1) {
+				ownFileName = ownFileName.substring(ownFileName.lastIndexOf("/")+1);
+			}			
+            List<FTP> ftps = options.getFTPs();
+            if (ftps != null && !ftps.isEmpty()) {
+                for (FTP ftp : ftps) {
+                    try {
+                        FTPHandler.importDataFromFTP(ftp, XMLHandler.importDataFolder, ownFileName);                                       
+                    } catch (IOException ex) {
+                        System.out.println(ex.getMessage());
+                        ex.printStackTrace();
+                    }
+                }
+			}
+			
     		d.closeConnection();
     		
     		dat = XMLHandler.importData();
@@ -61,7 +82,7 @@ public class DBHandler {
         DerbyDBInterface d = new DerbyDBInterface();
         //d.createDatabase(null);        
         
-        System.out.println("Saving data for user "+data.getUser().getOrganizationName()+" ("+data.getActiveStations().get(0).getStations().get(0).getStationName()+")");
+//        System.out.println("Saving data for user "+data.getUser().getOrganizationName()+" ("+data.getActiveStations().get(0).getStations().get(0).getStationName()+")");
         d.insertEAVDAMData(data);
 
         if(!updatedXML){

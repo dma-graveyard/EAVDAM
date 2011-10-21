@@ -11,9 +11,11 @@ import java.sql.Statement;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
+import java.util.Set;
 
 import dk.frv.eavdam.data.AISFixedStationCoverage;
 import dk.frv.eavdam.data.AISFixedStationData;
@@ -517,12 +519,14 @@ import dk.frv.eavdam.data.Simulation;
 			   }
 		   }else{
 			   
-	//		   System.out.println("Updating/Inserting active station: "+active.getLat()+" vs. "+active.getLon());
-			   int stationID = this.insertStation(active, -1, organizationID, 0);
+			   int stationID = -1;
+
+			   if(active != null){
+				   stationID = this.insertStation(active, -1, organizationID, 0);
+			   }
 			   
 			   if(planned != null){
-	//			   System.out.println("Updating/inserting planned station: "+planned.getLat()+" vs. "+planned.getLon());
-				   this.insertStation(planned, stationID, organizationID, 0);
+				   stationID = this.insertStation(planned, stationID, organizationID, 0);
 			   }
 		    	
 		   }
@@ -1389,6 +1393,8 @@ import dk.frv.eavdam.data.Simulation;
 			List<ActiveStation> activeStations = new ArrayList<ActiveStation>();
 	    	if(user < 0) return null;
 	    	
+	    	Set<String> plannedIDs = new HashSet<String>();
+	    	
 	    	List<AISFixedStationData> active = this.retrieveAISStations(STATUS_ACTIVE, user);
 	    	if(active != null && active.size() > 0){
 				for(AISFixedStationData a : active){
@@ -1397,13 +1403,35 @@ import dk.frv.eavdam.data.Simulation;
 					list.add(a);
 					
 					List<AISFixedStationData> planned = this.retrieveAISStation(a.getStationDBID(), STATUS_PLANNED, user);
-					if(planned != null && planned.size() > 0) list.addAll(planned); 
+					
+					//Store the ids of the planned stations linked to an active station
+					if(planned != null && planned.size() > 0){
+						for(AISFixedStationData p : planned){
+							plannedIDs.add(p.getStationDBID()+"");
+						}
+						
+						list.addAll(planned);
+					}
 					
 					
 					act.setStations(list);
 					activeStations.add(act);
 				}	
 	    	}
+	    	
+	    	//Retrieve planned stations that have no link to an active station 
+	    	List<AISFixedStationData> planned = this.retrieveAISStations(STATUS_PLANNED, user);
+	    	for(AISFixedStationData d : planned){
+	    		if(!plannedIDs.contains(d.getStationDBID()+"")){
+	    			ActiveStation a = new ActiveStation();
+	    			List<AISFixedStationData> list = new ArrayList<AISFixedStationData>();
+	    			list.add(d);
+	    			a.setStations(list);
+	    			activeStations.add(a);
+	    		}
+	    			
+	    	}
+	    	
 	    	
 	    	return activeStations;
 	    }
