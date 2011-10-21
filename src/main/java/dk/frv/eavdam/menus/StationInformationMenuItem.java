@@ -154,6 +154,7 @@ class StationInformationMenuItemActionListener implements ActionListener, Change
     private JTextArea additionalInformationJTextArea;
   
     private JButton deleteButton;
+	private JButton addPlannedButton;
     private JButton makeOperativeButton;
     private JButton saveButton;
     private JButton acceptProposalButton;
@@ -293,8 +294,10 @@ class StationInformationMenuItemActionListener implements ActionListener, Change
             
             exitButton = getButton("Exit", 80);            
             exitButton.addActionListener(this);
+			addPlannedButton = getButton("Add planned status", 140);
+			addPlannedButton.addActionListener(this);
             makeOperativeButton = getButton("Make operative", 140);    
-            makeOperativeButton.addActionListener(this);
+            makeOperativeButton.addActionListener(this);			
             saveButton = getButton("Save", 80);    
             saveButton.addActionListener(this);             
             deleteButton = getButton("Delete", 100);  
@@ -687,6 +690,18 @@ class StationInformationMenuItemActionListener implements ActionListener, Change
             } else if (response == JOptionPane.NO_OPTION) {                        
                 // do nothing
             }
+			
+		} else if (addPlannedButton != null && e.getSource() == addPlannedButton) {
+		
+			ignoreListeners = true;
+            int selectedStationIndex = selectStationComboBox.getSelectedIndex();                            
+			turnOperativeIntoPlannedStation(selectedStationIndex);                                                            
+			ActiveStation as = data.getActiveStations().get(selectedStationIndex);
+			initializeTabbedPane(as);
+			tabbedPane.setSelectedIndex(tabbedPane.getTabCount()-1);
+            updateTabbedPane(); 
+            eavdamMenu.getStationLayer().updateStations();
+            ignoreListeners = false;   
 
         } else if (makeOperativeButton != null && e.getSource() == makeOperativeButton) {
             if (saveButton.isEnabled()) {
@@ -694,7 +709,6 @@ class StationInformationMenuItemActionListener implements ActionListener, Change
             } else {
                 int response = JOptionPane.showConfirmDialog(dialog, "Are you sure you want to turn the planned station into the operative station?", "Confirm action", JOptionPane.YES_NO_OPTION);
                 if (response == JOptionPane.YES_OPTION) {
-				
                     ignoreListeners = true;
                     int selectedStationIndex = selectStationComboBox.getSelectedIndex();                            
 					turnPlannedIntoOperativeStation(selectedStationIndex);                
@@ -788,25 +802,60 @@ class StationInformationMenuItemActionListener implements ActionListener, Change
                     // do nothing
                 }                         
 
-            } else {                        
-                int response = JOptionPane.showConfirmDialog(dialog, "Are you sure you want to delete the current station?", "Confirm action", JOptionPane.YES_NO_OPTION);
-                if (response == JOptionPane.YES_OPTION) {
-                    ignoreListeners = true;
-                    int selectedStationIndex = selectStationComboBox.getSelectedIndex();
-                    deleteStation(selectedStationIndex);
-                    selectStationComboBox.removeItemAt(selectedStationIndex);
-                    updateSelectStationComboBox(0);
-                    if (selectStationComboBox.getItemCount() <= 0) {
-                        selectStationComboBox.setVisible(false);
-                        tabbedPane.setVisible(false);                    
-                    } else {
-                        updateTabbedPane();
-                    }
-                    eavdamMenu.getStationLayer().updateStations();
-                    ignoreListeners = false;
-                } else if (response == JOptionPane.NO_OPTION) {                        
-                    // do nothing
-                }    
+            } else {
+				if (tabbedPane.getTabCount() <= 1 ||
+						!tabbedPane.getTitleAt(1).equals(StationInformationMenuItem.PLANNED_LABEL)) {  // only operative or planned status exists
+					int response = JOptionPane.showConfirmDialog(dialog, "Are you sure you want to delete the station?", "Confirm action", JOptionPane.YES_NO_OPTION);
+					if (response == JOptionPane.YES_OPTION) {
+						ignoreListeners = true;
+						int selectedStationIndex = selectStationComboBox.getSelectedIndex();
+						deleteStation(selectedStationIndex);
+						selectStationComboBox.removeItemAt(selectedStationIndex);
+						updateSelectStationComboBox(0);
+						if (selectStationComboBox.getItemCount() <= 0) {
+							selectStationComboBox.setVisible(false);
+							tabbedPane.setVisible(false);                    
+						} else {
+							ActiveStation as = data.getActiveStations().get(0);         
+							initializeTabbedPane(as);					
+							updateTabbedPane();
+						}
+						eavdamMenu.getStationLayer().updateStations();
+						ignoreListeners = false;
+					} else if (response == JOptionPane.NO_OPTION) {                        
+						// do nothing
+					}
+				} else if (tabbedPane.getTitleAt(tabbedPane.getSelectedIndex()).equals(StationInformationMenuItem.OPERATIVE_LABEL)) {
+					int response = JOptionPane.showConfirmDialog(dialog, "Are you sure you want to delete the operative status of this station?", "Confirm action", JOptionPane.YES_NO_OPTION);
+					if (response == JOptionPane.YES_OPTION) {
+						ignoreListeners = true;
+						int selectedStationIndex = selectStationComboBox.getSelectedIndex();
+						deleteOperativeStation(selectedStationIndex);
+						updateSelectStationComboBox(selectedStationIndex);
+						ActiveStation as = data.getActiveStations().get(selectedStationIndex);                                              
+						initializeTabbedPane(as);						
+						updateTabbedPane();						
+						eavdamMenu.getStationLayer().updateStations();
+						ignoreListeners = false;
+					} else if (response == JOptionPane.NO_OPTION) {                        
+						// do nothing
+					}				
+				} else if (tabbedPane.getTitleAt(tabbedPane.getSelectedIndex()).equals(StationInformationMenuItem.PLANNED_LABEL)) {
+					int response = JOptionPane.showConfirmDialog(dialog, "Are you sure you want to delete the planned status of this station?", "Confirm action", JOptionPane.YES_NO_OPTION);
+					if (response == JOptionPane.YES_OPTION) {
+						ignoreListeners = true;
+						int selectedStationIndex = selectStationComboBox.getSelectedIndex();
+						deletePlannedStation(selectedStationIndex);
+						ActiveStation as = data.getActiveStations().get(selectedStationIndex);                                         
+						initializeTabbedPane(as);	
+						updateSelectStationComboBox(selectedStationIndex);
+						updateTabbedPane();						
+						eavdamMenu.getStationLayer().updateStations();
+						ignoreListeners = false;
+					} else if (response == JOptionPane.NO_OPTION) {                        
+						// do nothing
+					}					
+				}			
             }
         } else if (exitButton != null && e.getSource() == exitButton) {
             int response = JOptionPane.showConfirmDialog(dialog,
@@ -941,13 +990,15 @@ class StationInformationMenuItemActionListener implements ActionListener, Change
                     deleteSimulationButton.setVisible(false);                            
                     saveButton.setVisible(true);
                     deleteButton.setVisible(true);
-                    makeOperativeButton.setVisible(true);    
+					addPlannedButton.setVisible(true);
+                    makeOperativeButton.setVisible(true);
                     proposeChangesButton.setVisible(false);                    
                 } else if (((String) selectDatasetComboBox.getSelectedItem()).startsWith(StationInformationMenuItem.SIMULATION_LABEL)) { 
                     addStationButton.setVisible(true);
                     deleteSimulationButton.setVisible(true);  
                     saveButton.setVisible(true);
                     deleteButton.setVisible(true);
+					addPlannedButton.setVisible(false);
                     makeOperativeButton.setVisible(false);                        
                     proposeChangesButton.setVisible(false); 
                 } else if (((String) selectDatasetComboBox.getSelectedItem()).startsWith(StationInformationMenuItem.STATIONS_OF_ORGANIZATION_LABEL)) {  
@@ -955,6 +1006,7 @@ class StationInformationMenuItemActionListener implements ActionListener, Change
                     deleteSimulationButton.setVisible(false);                                                
                     saveButton.setVisible(false);
                     deleteButton.setVisible(false);
+					addPlannedButton.setVisible(false);
                     makeOperativeButton.setVisible(false);
                     proposeChangesButton.setVisible(true); 
                 }
@@ -1229,17 +1281,21 @@ class StationInformationMenuItemActionListener implements ActionListener, Change
         if (tabbedPane.getTitleAt(tabbedPane.getSelectedIndex()).equals(StationInformationMenuItem.OPERATIVE_LABEL)) {
             buttonPanel.add(deleteButton, c);
             c.gridx = 1;
+			buttonPanel.add(addPlannedButton, c);
+			c.gridx = 2;
             buttonPanel.add(proposeChangesButton, c);            
-            c.gridx = 2;
+            c.gridx = 3;
             buttonPanel.add(exitButton, c);                    
         } else if (tabbedPane.getTitleAt(tabbedPane.getSelectedIndex()).equals(StationInformationMenuItem.PLANNED_LABEL)) {
             saveButton.setEnabled(false);
             buttonPanel.add(saveButton, c);
             c.gridx = 1;
+			buttonPanel.add(deleteButton, c);
+			c.gridx = 2;
             buttonPanel.add(makeOperativeButton, c);
-            c.gridx = 2;
-            buttonPanel.add(proposeChangesButton, c);
             c.gridx = 3;
+            buttonPanel.add(proposeChangesButton, c);
+            c.gridx = 4;
             buttonPanel.add(exitButton, c);
         } else if (tabbedPane.getTitleAt(tabbedPane.getSelectedIndex()).startsWith(StationInformationMenuItem.SIMULATED_LABEL)) {
             buttonPanel.add(deleteButton, c);
@@ -1319,6 +1375,10 @@ class StationInformationMenuItemActionListener implements ActionListener, Change
             gainTextField.setEnabled(true); 
             additionalInformationJTextArea.setEnabled(true);                          
         }
+		
+		if (tabbedPane.getTabCount() > 1 && tabbedPane.getTitleAt(1).equals(StationInformationMenuItem.PLANNED_LABEL)) {
+			addPlannedButton.setVisible(false);
+		}
 
         if (((String) selectDatasetComboBox.getSelectedItem()).startsWith(StationInformationMenuItem.STATIONS_OF_ORGANIZATION_LABEL)) {
             if (tabbedPane.getTitleAt(tabbedPane.getSelectedIndex()).equals(StationInformationMenuItem.OPERATIVE_LABEL) ||
@@ -1327,6 +1387,7 @@ class StationInformationMenuItemActionListener implements ActionListener, Change
                 deleteSimulationButton.setVisible(false);                                                
                 saveButton.setVisible(false);
                 deleteButton.setVisible(false);
+				addPlannedButton.setVisible(false);
                 makeOperativeButton.setVisible(false);
                 proposeChangesButton.setVisible(true);
             } else if (tabbedPane.getTitleAt(tabbedPane.getSelectedIndex()).startsWith(StationInformationMenuItem.PROPOSAL_TO_LABEL)) {                      
@@ -1334,6 +1395,7 @@ class StationInformationMenuItemActionListener implements ActionListener, Change
                 deleteSimulationButton.setVisible(false);                                                
                 saveButton.setVisible(true);
                 deleteButton.setVisible(true);   
+				addPlannedButton.setVisible(false);
                 makeOperativeButton.setVisible(false);
                 proposeChangesButton.setVisible(true);                         
             }
@@ -2383,6 +2445,118 @@ class StationInformationMenuItemActionListener implements ActionListener, Change
         
         return true;   
     }
+	
+	
+    /**
+     * Turns operative station into planned station.
+     *
+     * @param stationIndex  Index of the station in the stations list
+     */
+    private void turnOperativeIntoPlannedStation(int stationIndex) {
+
+        if (data == null ||  data.getActiveStations() == null || data.getActiveStations().isEmpty()) {
+            return;
+        }
+ 
+        AISFixedStationData newPlannedStationData = new AISFixedStationData();
+        try {
+            newPlannedStationData.setStationName(stationNameTextField.getText().trim());
+            if (stationTypeComboBox.getSelectedIndex() == 0) {
+                newPlannedStationData.setStationType(AISFixedStationType.BASESTATION);
+            } else if (stationTypeComboBox.getSelectedIndex() == 1) {
+                newPlannedStationData.setStationType(AISFixedStationType.REPEATER); 
+            } else if (stationTypeComboBox.getSelectedIndex() == 2) {
+                newPlannedStationData.setStationType(AISFixedStationType.RECEIVER); 
+            } else if (stationTypeComboBox.getSelectedIndex() == 3) {
+                newPlannedStationData.setStationType(AISFixedStationType.ATON); 
+            }  
+            newPlannedStationData.setLat(new Double(latitudeTextField.getText().replace(",", ".").trim()).doubleValue());                                
+            newPlannedStationData.setLon(new Double(longitudeTextField.getText().replace(",", ".").trim()).doubleValue());  
+            if (mmsiNumberTextField.getText().trim().isEmpty()) {
+                newPlannedStationData.setMmsi(null);
+            } else {
+                newPlannedStationData.setMmsi(mmsiNumberTextField.getText().trim());
+            }
+            if (transmissionPowerTextField.getText().trim().isEmpty()) {
+                newPlannedStationData.setTransmissionPower(null);
+            } else {
+                newPlannedStationData.setTransmissionPower(new Double(transmissionPowerTextField.getText().replace(",", ".").trim()));
+            }
+            Antenna antenna = new Antenna();
+            if (antennaTypeComboBox.getSelectedIndex() == 0) {
+                newPlannedStationData.setAntenna(null);
+            } else if (antennaTypeComboBox.getSelectedIndex() == 1) {
+                antenna.setAntennaType(AntennaType.OMNIDIRECTIONAL);                    
+            } else if (antennaTypeComboBox.getSelectedIndex() == 2) {
+                antenna.setAntennaType(AntennaType.DIRECTIONAL);
+            }
+            if (antennaTypeComboBox.getSelectedIndex() == 1 ||
+                    antennaTypeComboBox.getSelectedIndex() == 2) {
+                if (!antennaHeightTextField.getText().trim().isEmpty()) {
+                    antenna.setAntennaHeight(new Double(antennaHeightTextField.getText().replace(",", ".").trim()).doubleValue());
+                }
+                if (!terrainHeightTextField.getText().trim().isEmpty()) {
+                    antenna.setTerrainHeight(new Double(terrainHeightTextField.getText().replace(",", ".").trim()).doubleValue());
+                }
+            }
+            if (antennaTypeComboBox.getSelectedIndex() == 2) {
+                if (headingTextField.getText().trim().isEmpty()) {                        
+                    antenna.setHeading(null);
+                } else {
+                    antenna.setHeading(new Integer(headingTextField.getText().trim()));
+                }
+                if (fieldOfViewAngleTextField.getText().trim().isEmpty()) { 
+                    antenna.setFieldOfViewAngle(null);
+                } else {
+                    antenna.setFieldOfViewAngle(new Integer(fieldOfViewAngleTextField.getText().trim()));
+                }
+                if (gainTextField.getText().trim().isEmpty()) {             
+                    antenna.setGain(null);
+                } else {
+                    antenna.setGain(new Double(gainTextField.getText().replace(",", ".").trim()));
+                }
+            }
+            if (antennaTypeComboBox.getSelectedIndex() == 1 ||
+                    antennaTypeComboBox.getSelectedIndex() == 2) {
+                newPlannedStationData.setAntenna(antenna);
+            }
+            if (additionalInformationJTextArea.getText().trim().isEmpty()) {
+                newPlannedStationData.setDescription(null);
+            } else {
+                newPlannedStationData.setDescription(additionalInformationJTextArea.getText().trim());
+            }
+            AISFixedStationStatus status = new AISFixedStationStatus();
+            status.setStatusID(DerbyDBInterface.STATUS_PLANNED);
+            status.setStartDate(new Date(System.currentTimeMillis()));
+            newPlannedStationData.setStatus(status);
+        } catch (IllegalArgumentException e) {
+            // should not occur as the station is saved
+        }
+		
+        ActiveStation as = data.getActiveStations().get(stationIndex);        
+		boolean foundPlannedStation = false;
+        for (int i=0; i<as.getStations().size(); i++) {                        
+            AISFixedStationData temp = as.getStations().get(i);			
+            if (temp.getStatus().getStatusID() == DerbyDBInterface.STATUS_PLANNED) {            	
+            	newPlannedStationData.setStationDBID(temp.getStationDBID());
+            	newPlannedStationData.setOperator(temp.getOperator());
+            	as.getStations().set(i, newPlannedStationData);
+				foundPlannedStation = true;
+                break;
+                
+            }
+            data.getActiveStations().set(stationIndex, as);            
+        }
+		
+		if (!foundPlannedStation) {
+            as.getStations().add(newPlannedStationData);
+			data.getActiveStations().set(stationIndex, as);
+//			data.getActiveStations().add(0,as);
+		}
+            
+        DBHandler.saveData(data);
+    }	
+	
       
     /**
      * Turns planned station into operative station.
@@ -2492,12 +2666,11 @@ class StationInformationMenuItemActionListener implements ActionListener, Change
             
             data.getActiveStations().set(stationIndex, as);            
         }
-		
+
 		if (!foundActiveStation) {
             as.getStations().add(newActiveStationData);
-			System.out.println(as.getStations().toString());
-//			data.getActiveStations().set(stationIndex, as);
-			data.getActiveStations().add(0,as);
+			data.getActiveStations().set(stationIndex, as);
+//			data.getActiveStations().add(0,as);
 		}
             
         DBHandler.saveData(data);
@@ -2546,11 +2719,58 @@ class StationInformationMenuItemActionListener implements ActionListener, Change
                         }
                     }
                 }
-            }            
-            
-//            DBHandler.saveData(data);         
+				DBHandler.saveData(data); 
+            }                            
         }
     }
+	
+    /** 
+     * Deletes an operative station.
+     *
+     * @param stationIndex  Index of the station to be deleted
+     */
+    private void deleteOperativeStation(int stationIndex) {        
+        if (data != null) {            
+            if (((String) selectDatasetComboBox.getSelectedItem()).startsWith(StationInformationMenuItem.OWN_ACTIVE_STATIONS_LABEL)) {            
+                if (data != null && data.getActiveStations() != null && stationIndex < data.getActiveStations().size()) {
+					ActiveStation as = data.getActiveStations().get(stationIndex);        
+					for (int i=0; i<as.getStations().size(); i++) {                        
+						AISFixedStationData temp = as.getStations().get(i);			
+						if (temp.getStatus().getStatusID() == DerbyDBInterface.STATUS_ACTIVE) {
+							as.getStations().remove(i);
+							break;
+						}
+					}
+				    data.getActiveStations().set(stationIndex, as);
+					DBHandler.saveData(data);
+				}                
+            }
+		}
+	}
+			
+    /** 
+     * Deletes a planned station.
+     *
+     * @param stationIndex  Index of the station to be deleted
+     */
+    private void deletePlannedStation(int stationIndex) {        
+        if (data != null) {            
+            if (((String) selectDatasetComboBox.getSelectedItem()).startsWith(StationInformationMenuItem.OWN_ACTIVE_STATIONS_LABEL)) {            
+                if (data != null && data.getActiveStations() != null && stationIndex < data.getActiveStations().size()) {
+					ActiveStation as = data.getActiveStations().get(stationIndex);        
+					for (int i=0; i<as.getStations().size(); i++) {                        
+						AISFixedStationData temp = as.getStations().get(i);			
+						if (temp.getStatus().getStatusID() == DerbyDBInterface.STATUS_PLANNED) {
+							as.getStations().remove(i);
+							break;
+						}
+					}
+				    data.getActiveStations().set(stationIndex, as);
+					DBHandler.saveData(data);
+				}                
+            }
+		}
+	}
     
     private void deleteProposalFrom(int stationIndex, String organizationName) {
         if (data != null) {
