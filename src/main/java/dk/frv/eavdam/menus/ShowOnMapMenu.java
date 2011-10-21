@@ -69,7 +69,7 @@ public class ShowOnMapMenu extends JMenu implements ActionListener {
             for (JCheckBoxMenuItem otherUsersStationsMenuItem : otherUsersStationsMenuItems) {
                 add(otherUsersStationsMenuItem);
             }
-        }                                                                   
+        }
     }
 
     private void updateSimulations() {        
