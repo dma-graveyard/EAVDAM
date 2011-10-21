@@ -1026,7 +1026,7 @@ import dk.frv.eavdam.data.Simulation;
 	    	if(ais.getInterferenceCoverage() != null){
 	    		this.updateCoverage(ais.getInterferenceCoverage(), ais.getStationDBID(), COVERAGE_INTERFERENCE);
 	    	}
-	    }
+	    } 
 	    
 	    private void updateCoverage(AISFixedStationCoverage coverage, int stationDBID, int coverageType) throws Exception{
 
