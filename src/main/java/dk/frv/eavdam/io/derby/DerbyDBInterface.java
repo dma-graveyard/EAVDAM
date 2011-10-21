@@ -518,12 +518,14 @@ import dk.frv.eavdam.data.Simulation;
 				   this.updateAISStation(s, organizationID, -1);
 				   
 			   }
-		   }else if(active != null && planned == null){
-			
+		   }else if((active != null && planned == null)){
+			   
 			   int stationID = this.insertStation(active, -1, organizationID, 0);
 			   
-			   active.getStatus().setStatusID(STATUS_PLANNED);
-			   this.updateAISStation(active, organizationID, stationID);
+			   
+		   }else if((active == null && planned != null)){
+			   
+			   int stationID = this.insertStation(planned, -1, organizationID, 0);
 			   
 			   
 		   }else{
