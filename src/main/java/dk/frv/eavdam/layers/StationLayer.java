@@ -966,8 +966,8 @@ public class StationLayer extends OMGraphicHandlerLayer implements MapMouseListe
 											}
 										}
 									}
+									break;
 								}
-								break;
 							}
 						}
 					}
