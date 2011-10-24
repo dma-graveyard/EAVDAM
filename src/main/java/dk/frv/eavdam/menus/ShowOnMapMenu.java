@@ -11,6 +11,8 @@ import java.util.ArrayList;
 import java.util.List;
 import javax.swing.JCheckBoxMenuItem;
 import javax.swing.JMenu;
+import javax.swing.JMenuItem;
+import javax.swing.JSeparator;
 
 /**
  * This class represents a menu item where the user can select which stations are shown on the map.
@@ -24,7 +26,11 @@ public class ShowOnMapMenu extends JMenu implements ActionListener {
 	private JCheckBoxMenuItem ownOperativeStationsMenuItem;
 	private JCheckBoxMenuItem ownPlannedStationsMenuItem;
 	private List<JCheckBoxMenuItem> simulationMenuItems;
+	private JCheckBoxMenuItem showAllOtherUsersStationsMenuItem;
 	private List<JCheckBoxMenuItem> otherUsersStationsMenuItems;
+	private JCheckBoxMenuItem showNominalRXCoverageMenuItem;
+	private JCheckBoxMenuItem showNominalTXCoverageMenuItem;
+	private JCheckBoxMenuItem showNominalInterferenceAreaMenuItem;
 	
 	public JCheckBoxMenuItem getOwnOperativeStationsMenuItem() {
 		return ownOperativeStationsMenuItem;
@@ -36,6 +42,10 @@ public class ShowOnMapMenu extends JMenu implements ActionListener {
 	
 	public List<JCheckBoxMenuItem> getSimulationMenuItems() {
 		return simulationMenuItems;
+	}
+	
+	public JCheckBoxMenuItem getShowAllOtherUsersStationsMenuItem() {
+		return showAllOtherUsersStationsMenuItem;
 	}
 	
 	public List<JCheckBoxMenuItem> getOtherUsersStationsMenuItems() {
@@ -51,25 +61,46 @@ public class ShowOnMapMenu extends JMenu implements ActionListener {
 		updateOtherUsers();		
 		
 		if (ownOperativeStationsMenuItem == null) {
-			ownOperativeStationsMenuItem = new JCheckBoxMenuItem("Own operative stations", true);
+			ownOperativeStationsMenuItem = new JCheckBoxMenuItem("Show own operative stations", true);
 	        ownOperativeStationsMenuItem.addActionListener(this);
 	    }
         add(ownOperativeStationsMenuItem);
         if (ownPlannedStationsMenuItem == null) {
-            ownPlannedStationsMenuItem = new JCheckBoxMenuItem("Own planned stations", false);
+            ownPlannedStationsMenuItem = new JCheckBoxMenuItem("Show own planned stations", false);
 	        ownPlannedStationsMenuItem.addActionListener(this);
-	    }
-        add(ownPlannedStationsMenuItem);  
+	    }		
+        add(ownPlannedStationsMenuItem); 
+		if (simulationMenuItems != null && !simulationMenuItems.isEmpty()) { 		
+			add(new JSeparator());
+		}
         if (simulationMenuItems != null) {
             for (JCheckBoxMenuItem simulationMenuItem : simulationMenuItems) {
                 add(simulationMenuItem);
             }
-        }    
+        }
+		if (otherUsersStationsMenuItems != null && !otherUsersStationsMenuItems.isEmpty()) { 		
+			add(new JSeparator());
+			showAllOtherUsersStationsMenuItem = new JCheckBoxMenuItem("Show all other organizations' stations", true);
+			showAllOtherUsersStationsMenuItem.addActionListener(this);
+			add(showAllOtherUsersStationsMenuItem);
+		}
+		add(new JSeparator());
+		showNominalRXCoverageMenuItem = new JCheckBoxMenuItem("Show Nominal RX coverage");
+		showNominalRXCoverageMenuItem.addActionListener(this);
+		add(showNominalRXCoverageMenuItem);
+		showNominalTXCoverageMenuItem = new JCheckBoxMenuItem("Show Nominal TX coverage");
+		showNominalTXCoverageMenuItem.addActionListener(this);
+		add(showNominalTXCoverageMenuItem);
+		showNominalInterferenceAreaMenuItem = new JCheckBoxMenuItem("Show Nominal Interference area");
+		showNominalInterferenceAreaMenuItem.addActionListener(this);
+		add(showNominalInterferenceAreaMenuItem);		
+		/*
         if (otherUsersStationsMenuItems != null) {
             for (JCheckBoxMenuItem otherUsersStationsMenuItem : otherUsersStationsMenuItems) {
                 add(otherUsersStationsMenuItem);
             }
         }
+		*/
     }
 
     private void updateSimulations() {        
@@ -79,7 +110,7 @@ public class ShowOnMapMenu extends JMenu implements ActionListener {
             List<Simulation> simulatedStations = data.getSimulatedStations();
             if (simulatedStations != null) {
                 for (Simulation s : simulatedStations) {
-                    JCheckBoxMenuItem simulationMenuItem = new JCheckBoxMenuItem(StationInformationMenuItem.SIMULATION_LABEL + ": " + s.getName(), false);
+                    JCheckBoxMenuItem simulationMenuItem = new JCheckBoxMenuItem("Show " + StationInformationMenuItem.SIMULATION_LABEL.toLowerCase() + " " + s.getName(), false);
                     simulationMenuItem.addActionListener(this);
                     simulationMenuItems.add(simulationMenuItem);
                 }
@@ -95,7 +126,7 @@ public class ShowOnMapMenu extends JMenu implements ActionListener {
             if (otherUsersStations != null) {
                 for (OtherUserStations ous : otherUsersStations) {
                     EAVDAMUser user = ous.getUser();
-                    JCheckBoxMenuItem otherUsersStationsMenuItem = new JCheckBoxMenuItem(StationInformationMenuItem.STATIONS_OF_ORGANIZATION_LABEL + " " + user.getOrganizationName(), true);
+                    JCheckBoxMenuItem otherUsersStationsMenuItem = new JCheckBoxMenuItem("Show " + StationInformationMenuItem.STATIONS_OF_ORGANIZATION_LABEL.toLowerCase() + " " + user.getOrganizationName(), false);
                     otherUsersStationsMenuItem.addActionListener(this);
                     otherUsersStationsMenuItems.add(otherUsersStationsMenuItem);
                 }
@@ -103,9 +134,63 @@ public class ShowOnMapMenu extends JMenu implements ActionListener {
         }
     }  
 	
+	public void updateCoverageItems(boolean nominalRXCoverageSelected, boolean nominalTXCoverageSelected, boolean nominalInterferenceAreaSelected) {
+		showNominalRXCoverageMenuItem.setSelected(nominalRXCoverageSelected);
+		showNominalTXCoverageMenuItem.setSelected(nominalTXCoverageSelected);
+		showNominalInterferenceAreaMenuItem.setSelected(nominalInterferenceAreaSelected);
+	}
+	
 	@Override
     public void actionPerformed(ActionEvent e) {
-        eavdamMenu.getStationLayer().updateStations();
+		if (e.getSource() == showAllOtherUsersStationsMenuItem) {
+			if (showAllOtherUsersStationsMenuItem.isSelected()) {
+				for (JCheckBoxMenuItem item : otherUsersStationsMenuItems) {
+					remove(item);
+				}				
+			} else {
+				boolean isPresent = false;
+				for (int i=0; i<getItemCount(); i++) {
+					JMenuItem i1 = getItem(i);
+					if (i1 != null) {
+						for (JCheckBoxMenuItem i2 : otherUsersStationsMenuItems) {
+							if (i2 != null) {
+								if (i1.equals(i2)) {
+									isPresent = true;
+									break;
+								}
+							}
+						}
+					}
+				}
+				if (!isPresent) {
+					for (JCheckBoxMenuItem item : otherUsersStationsMenuItems) {
+						item.setSelected(false);
+						add(item, getItemCount()-4);
+					}				
+				}
+			}
+			eavdamMenu.getStationLayer().updateStations();			
+		} else if (e.getSource() == showNominalRXCoverageMenuItem) {
+			if (showNominalRXCoverageMenuItem.isSelected()) {
+				eavdamMenu.getLayerHandler().turnLayerOn(true, eavdamMenu.getStationLayer().getReceiveCoverageLayer());				
+			} else {
+				eavdamMenu.getLayerHandler().turnLayerOn(false, eavdamMenu.getStationLayer().getReceiveCoverageLayer());				
+			}
+		} else if (e.getSource() == showNominalTXCoverageMenuItem) {
+			if (showNominalTXCoverageMenuItem.isSelected()) {
+				eavdamMenu.getLayerHandler().turnLayerOn(true, eavdamMenu.getStationLayer().getTransmitCoverageLayer());	
+			} else {
+				eavdamMenu.getLayerHandler().turnLayerOn(false, eavdamMenu.getStationLayer().getTransmitCoverageLayer());					
+			}		
+		} else if (e.getSource() == showNominalInterferenceAreaMenuItem) {
+			if (showNominalInterferenceAreaMenuItem.isSelected()) {
+				eavdamMenu.getLayerHandler().turnLayerOn(true, eavdamMenu.getStationLayer().getInterferenceCoverageLayer());
+			} else {
+				eavdamMenu.getLayerHandler().turnLayerOn(false, eavdamMenu.getStationLayer().getInterferenceCoverageLayer());			
+			}		 
+		} else {
+			eavdamMenu.getStationLayer().updateStations();
+		}
     }
 
 }
