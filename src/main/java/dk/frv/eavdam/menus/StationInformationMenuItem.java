@@ -2741,6 +2741,7 @@ class StationInformationMenuItemActionListener implements ActionListener, Change
 					for (int i=0; i<as.getStations().size(); i++) {                        
 						AISFixedStationData temp = as.getStations().get(i);			
 						if (temp.getStatus().getStatusID() == DerbyDBInterface.STATUS_ACTIVE) {
+							DBHandler.deleteStation(temp.getStationDBID()); 
 							as.getStations().remove(i);
 							break;
 						}
@@ -2765,6 +2766,7 @@ class StationInformationMenuItemActionListener implements ActionListener, Change
 					for (int i=0; i<as.getStations().size(); i++) {                        
 						AISFixedStationData temp = as.getStations().get(i);			
 						if (temp.getStatus().getStatusID() == DerbyDBInterface.STATUS_PLANNED) {
+							DBHandler.deleteStation(temp.getStationDBID()); 
 							as.getStations().remove(i);
 							break;
 						}

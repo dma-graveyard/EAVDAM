@@ -224,11 +224,19 @@ public class StationLayer extends OMGraphicHandlerLayer implements MapMouseListe
         OMBaseStation base = new OMBaseStation(datasetSource, stationData, bytearr);		
 		Antenna antenna = stationData.getAntenna();
 		if (antenna != null) {			
-			if (stationData.getTransmissionCoverage() != null && stationData.getTransmissionCoverage().getCoveragePoints() != null) {
-				base.setTransmitCoverageArea(stationData.getTransmissionCoverage().getCoveragePoints());
-			} else {
-				ArrayList<double[]> points = (ArrayList<double[]>) RoundCoverage.getRoundCoverage(antenna.getAntennaHeight()+antenna.getTerrainHeight(), 4, stationData.getLat(), stationData.getLon(), 25);
-				base.setTransmitCoverageArea(points);
+			if (stationData.getStationType() != AISFixedStationType.RECEIVER) {		
+				if (stationData.getTransmissionCoverage() != null && stationData.getTransmissionCoverage().getCoveragePoints() != null) {
+					base.setTransmitCoverageArea(stationData.getTransmissionCoverage().getCoveragePoints());
+				} else {
+					ArrayList<double[]> points = (ArrayList<double[]>) RoundCoverage.getRoundCoverage(antenna.getAntennaHeight()+antenna.getTerrainHeight(), 4, stationData.getLat(), stationData.getLon(), 25);
+					base.setTransmitCoverageArea(points);
+				}
+				if (stationData.getInterferenceCoverage() != null && stationData.getInterferenceCoverage().getCoveragePoints() != null) {
+					base.setInterferenceCoverageArea(stationData.getInterferenceCoverage().getCoveragePoints());
+				} else {
+					ArrayList<double[]> points = (ArrayList<double[]>) RoundCoverage.getRoundInterferenceCoverage(stationData.getLat(), stationData.getLon(), 25);
+					base.setInterferenceCoverageArea(points);
+				}
 			}
 			if (stationData.getReceiveCoverage() != null && stationData.getReceiveCoverage().getCoveragePoints() != null) {
 				base.setReceiveCoverageArea(stationData.getReceiveCoverage().getCoveragePoints());
@@ -236,12 +244,7 @@ public class StationLayer extends OMGraphicHandlerLayer implements MapMouseListe
 				ArrayList<double[]> points = (ArrayList<double[]>) RoundCoverage.getRoundCoverage(antenna.getAntennaHeight()+antenna.getTerrainHeight(), 4, stationData.getLat(), stationData.getLon(), 25);
 				base.setReceiveCoverageArea(points);
 			}
-			if (stationData.getInterferenceCoverage() != null && stationData.getInterferenceCoverage().getCoveragePoints() != null) {
-				base.setInterferenceCoverageArea(stationData.getInterferenceCoverage().getCoveragePoints());
-			} else {
-				ArrayList<double[]> points = (ArrayList<double[]>) RoundCoverage.getRoundInterferenceCoverage(stationData.getLat(), stationData.getLon(), 25);
-				base.setInterferenceCoverageArea(points);
-			}						
+						
 		}
 
 		graphics.add(base);
@@ -249,13 +252,23 @@ public class StationLayer extends OMGraphicHandlerLayer implements MapMouseListe
 		this.repaint();
 		this.validate();
 
-		Object transmitCoverageAreaGraphics = transmitCoverageLayer.addTransmitCoverageArea(base);
-		if (transmitCoverageAreaGraphics != null) {
-			if (transmitCoverageAreaGraphics instanceof OMCircle) {
-				transmitCoverageAreas.put(base, (OMCircle) transmitCoverageAreaGraphics);
-			} else if (transmitCoverageAreaGraphics instanceof OMPoly) {
-				transmitCoverageAreas.put(base, (OMPoly) transmitCoverageAreaGraphics);
-			}		
+		if (stationData.getStationType() != AISFixedStationType.RECEIVER) {	
+			Object transmitCoverageAreaGraphics = transmitCoverageLayer.addTransmitCoverageArea(base);
+			if (transmitCoverageAreaGraphics != null) {
+				if (transmitCoverageAreaGraphics instanceof OMCircle) {
+					transmitCoverageAreas.put(base, (OMCircle) transmitCoverageAreaGraphics);
+				} else if (transmitCoverageAreaGraphics instanceof OMPoly) {
+					transmitCoverageAreas.put(base, (OMPoly) transmitCoverageAreaGraphics);
+				}		
+			}
+			Object interferenceCoverageAreaGraphics = interferenceCoverageLayer.addInterferenceCoverageArea(base);
+			if (interferenceCoverageAreaGraphics != null) {
+				if (interferenceCoverageAreaGraphics instanceof OMCircle) {
+					interferenceCoverageAreas.put(base, (OMCircle) interferenceCoverageAreaGraphics);
+				} else if (interferenceCoverageAreaGraphics instanceof OMPoly) {
+					interferenceCoverageAreas.put(base, (OMPoly) interferenceCoverageAreaGraphics);
+				}		
+			}			
 		}
 		Object receiveCoverageAreaGraphics = receiveCoverageLayer.addReceiveCoverageArea(base);
 		if (receiveCoverageAreaGraphics != null) {
@@ -265,14 +278,7 @@ public class StationLayer extends OMGraphicHandlerLayer implements MapMouseListe
 				receiveCoverageAreas.put(base, (OMPoly) receiveCoverageAreaGraphics);
 			}		
 		}
-		Object interferenceCoverageAreaGraphics = interferenceCoverageLayer.addInterferenceCoverageArea(base);
-		if (interferenceCoverageAreaGraphics != null) {
-			if (interferenceCoverageAreaGraphics instanceof OMCircle) {
-				interferenceCoverageAreas.put(base, (OMCircle) interferenceCoverageAreaGraphics);
-			} else if (interferenceCoverageAreaGraphics instanceof OMPoly) {
-				interferenceCoverageAreas.put(base, (OMPoly) interferenceCoverageAreaGraphics);
-			}		
-		}
+
 	}
 
 	@Override
@@ -406,19 +412,34 @@ public class StationLayer extends OMGraphicHandlerLayer implements MapMouseListe
 								currentlySelectedOMBaseStation.getDatasetSource() instanceof String) {  // simulation	
 							AISFixedStationData stationData = currentlySelectedOMBaseStation.getStationData();
 							Antenna antenna = stationData.getAntenna();
-							if (transmitCoverageLayer.isVisible() && antenna != null) {
-								editTransmitCoverageMenuItem = new JMenuItem("Edit transmit coverage");
-								editTransmitCoverageMenuItem.addActionListener(this);								
-								popup.add(editTransmitCoverageMenuItem);							
-								resetTransmitCoverageToCircleMenuItem = new JMenuItem("Reset transmit coverage to circle");
-								resetTransmitCoverageToCircleMenuItem.addActionListener(this);
-								popup.add(resetTransmitCoverageToCircleMenuItem);
-								resetTransmitCoverageToPolygonMenuItem = new JMenuItem("Reset transmit coverage to polygon");
-								resetTransmitCoverageToPolygonMenuItem.addActionListener(this);
-								popup.add(resetTransmitCoverageToPolygonMenuItem);
-								last = new JSeparator();
-								popup.add(last);
+							if (currentlySelectedOMBaseStation.getStationData().getStationType() != AISFixedStationType.RECEIVER) {	
+								if (transmitCoverageLayer.isVisible() && antenna != null) {
+									editTransmitCoverageMenuItem = new JMenuItem("Edit transmit coverage");
+									editTransmitCoverageMenuItem.addActionListener(this);								
+									popup.add(editTransmitCoverageMenuItem);							
+									resetTransmitCoverageToCircleMenuItem = new JMenuItem("Reset transmit coverage to circle");
+									resetTransmitCoverageToCircleMenuItem.addActionListener(this);
+									popup.add(resetTransmitCoverageToCircleMenuItem);
+									resetTransmitCoverageToPolygonMenuItem = new JMenuItem("Reset transmit coverage to polygon");
+									resetTransmitCoverageToPolygonMenuItem.addActionListener(this);
+									popup.add(resetTransmitCoverageToPolygonMenuItem);
+									last = new JSeparator();
+									popup.add(last);
 								}
+								if (interferenceCoverageLayer.isVisible()) {
+									editInterferenceCoverageMenuItem = new JMenuItem("Edit interference coverage");
+									editInterferenceCoverageMenuItem.addActionListener(this);
+									popup.add(editInterferenceCoverageMenuItem);							
+									resetInterferenceCoverageToCircleMenuItem = new JMenuItem("Reset interference coverage to circle");
+									resetInterferenceCoverageToCircleMenuItem.addActionListener(this);
+									popup.add(resetInterferenceCoverageToCircleMenuItem);
+									resetInterferenceCoverageToPolygonMenuItem = new JMenuItem("Reset interference coverage to polygon");
+									resetInterferenceCoverageToPolygonMenuItem.addActionListener(this);
+									popup.add(resetInterferenceCoverageToPolygonMenuItem);
+									last = new JSeparator();
+									popup.add(last);
+								}						
+							}								
 							if (receiveCoverageLayer.isVisible() && antenna != null) {
 								editReceiveCoverageMenuItem = new JMenuItem("Edit receice coverage");
 								editReceiveCoverageMenuItem.addActionListener(this);
@@ -429,19 +450,6 @@ public class StationLayer extends OMGraphicHandlerLayer implements MapMouseListe
 								resetReceiveCoverageToPolygonMenuItem = new JMenuItem("Reset receive coverage to polygon");
 								resetReceiveCoverageToPolygonMenuItem.addActionListener(this);
 								popup.add(resetReceiveCoverageToPolygonMenuItem);								
-								last = new JSeparator();
-								popup.add(last);
-								}
-							if (interferenceCoverageLayer.isVisible()) {
-								editInterferenceCoverageMenuItem = new JMenuItem("Edit interference coverage");
-								editInterferenceCoverageMenuItem.addActionListener(this);
-								popup.add(editInterferenceCoverageMenuItem);							
-								resetInterferenceCoverageToCircleMenuItem = new JMenuItem("Reset interference coverage to circle");
-								resetInterferenceCoverageToCircleMenuItem.addActionListener(this);
-								popup.add(resetInterferenceCoverageToCircleMenuItem);
-								resetInterferenceCoverageToPolygonMenuItem = new JMenuItem("Reset interference coverage to polygon");
-								resetInterferenceCoverageToPolygonMenuItem.addActionListener(this);
-								popup.add(resetInterferenceCoverageToPolygonMenuItem);
 								last = new JSeparator();
 								popup.add(last);
 							}						
