@@ -87,6 +87,7 @@ public class DBHandler {
         DerbyDBInterface d = new DerbyDBInterface();
         //d.createDatabase(null);        
         
+        
 //        System.out.println("Saving data for user "+data.getUser().getOrganizationName()+" ("+data.getActiveStations().get(0).getStations().get(0).getStationName()+")");
         d.insertEAVDAMData(data);
 

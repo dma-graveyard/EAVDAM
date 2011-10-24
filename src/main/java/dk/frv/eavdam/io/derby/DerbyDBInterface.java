@@ -201,6 +201,8 @@ import dk.frv.eavdam.data.Simulation;
 	    public boolean insertEAVDAMData(EAVDAMData data){
 //	    	System.out.println("Inserting data to database!");
 	        
+	
+	    	
 	        boolean success = true;
 	        
 	        if(data.getUser() == null){
@@ -217,7 +219,9 @@ import dk.frv.eavdam.data.Simulation;
 	        	
 	        	
 	        	if(data.getActiveStations() != null && data.getActiveStations().size() > 0){
+	        		
 	        		for(ActiveStation a : data.getActiveStations()){
+	        			
 	        			this.insertActiveStations(a, orgID);
 	        		}
 	        		
@@ -496,11 +500,11 @@ import dk.frv.eavdam.data.Simulation;
 	     */
 	   private void insertActiveStations(ActiveStation station, int organizationID) throws Exception{
 		   if(station == null) return;
-		   
+	    	
 		   AISFixedStationData active = null;
 		   AISFixedStationData planned = null;
 		   
-//		   System.out.println("There are "+station.getStations().size()+" active station...");
+		   System.out.println("There are "+station.getStations().size()+" active station...");
 		   
 		   for(AISFixedStationData d : station.getStations()){
 
@@ -611,7 +615,7 @@ import dk.frv.eavdam.data.Simulation;
 	    		default: stationType = STATION_BASE;
 	    	}
 	    	
-	    	PreparedStatement psc = conn.prepareStatement("select count(id) from FIXEDSTATION");
+	    	PreparedStatement psc = conn.prepareStatement("select max(id) from FIXEDSTATION");
 	    	ResultSet rs = psc.executeQuery();
 	    	int stationID = 0;
 	    	if(!rs.next()){
