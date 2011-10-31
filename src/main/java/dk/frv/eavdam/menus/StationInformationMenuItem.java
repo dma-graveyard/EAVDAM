@@ -131,7 +131,13 @@ class StationInformationMenuItemActionListener implements ActionListener, Change
     private JTextField addHeadingTextField;
     private JTextField addFieldOfViewAngleTextField;
     private JTextField addGainTextField;   
-    
+	
+	private JPanel addStationFATDMAPanel;
+	private JComboBox addStationChannelAComboBox;
+	private JScrollPane addStationChannelAScrollPane;
+	private JComboBox addStationChannelBComboBox;
+	private JScrollPane addStationChannelBScrollPane;
+	
     private JTextArea addAdditionalInformationJTextArea;
     
     private JButton doAddStationButton;
@@ -521,6 +527,11 @@ class StationInformationMenuItemActionListener implements ActionListener, Change
             addFieldOfViewAngleTextField = getTextField(16);           
             addGainTextField = getTextField(16);
             
+			addStationChannelAComboBox = getComboBox(new String[] {"NULL", "AIS1", "AIS2"});
+			addStationChannelAComboBox.addItemListener(this);
+			addStationChannelBComboBox = getComboBox(new String[] {"NULL", "AIS1", "AIS2"});
+			addStationChannelBComboBox.addItemListener(this);
+			
             addAdditionalInformationJTextArea = getTextArea("");
             
             doAddStationButton = getButton("Add station", 140);  
@@ -536,7 +547,7 @@ class StationInformationMenuItemActionListener implements ActionListener, Change
 			} else if (((String) selectDatasetComboBox.getSelectedItem()).startsWith(StationInformationMenuItem.SIMULATION_LABEL)) {				
 				addStationStatusComboBox = getComboBox(new String[] {"Simulation"});	
 			}						
-				
+						
             JPanel panel = new JPanel();
             panel.setLayout(new GridBagLayout());
                               
@@ -608,31 +619,50 @@ class StationInformationMenuItemActionListener implements ActionListener, Change
             c = updateGBC(c, 1, 5, 0.5, GridBagConstraints.LINE_START, GridBagConstraints.NONE, new Insets(5,5,5,5));                      
             p3.add(addGainTextField, c);                       
 
-            c = updateGBC(c, 0, 1, 0.5, GridBagConstraints.FIRST_LINE_START, GridBagConstraints.HORIZONTAL, new Insets(5,5,5,5)); 
+            c = updateGBC(c, 1, 0, 0.5, GridBagConstraints.FIRST_LINE_START, GridBagConstraints.HORIZONTAL, new Insets(5,5,5,5)); 
             panel.add(p3, c);                      
-                                                     
+
+			addStationFATDMAPanel = new JPanel(new GridBagLayout());
+            addStationFATDMAPanel.setBorder(BorderFactory.createTitledBorder("FATDMA information"));
+            c = updateGBC(c, 0, 0, 0, GridBagConstraints.LINE_START, GridBagConstraints.NONE, new Insets(5,5,5,5));
+            addStationFATDMAPanel.add(new JLabel("Channel A:"), c);
+            c = updateGBC(c, 1, 0, 1, GridBagConstraints.LINE_START, GridBagConstraints.NONE, new Insets(5,5,5,5));                    
+            addStationFATDMAPanel.add(addStationChannelAComboBox, c);
+
+			c = updateGBC(c, 0, 1, 0, GridBagConstraints.LINE_START, GridBagConstraints.NONE, new Insets(5,5,5,5));
+            addStationFATDMAPanel.add(new JLabel("Channel B:"), c);
+            c = updateGBC(c, 1, 1, 1, GridBagConstraints.LINE_START, GridBagConstraints.NONE, new Insets(5,5,5,5));                    
+            addStationFATDMAPanel.add(addStationChannelBComboBox, c);
+
+            c = updateGBC(c, 0, 1, 0.5, GridBagConstraints.FIRST_LINE_START, GridBagConstraints.HORIZONTAL, new Insets(5,5,5,5)); 
+			c.gridwidth = 2; 
+            panel.add(addStationFATDMAPanel, c); 
+			c.gridwidth = 1;
+			
             addAdditionalInformationJTextArea.setLineWrap(true);
             addAdditionalInformationJTextArea.setWrapStyleWord(true);                    
-            JScrollPane p4 = new JScrollPane(addAdditionalInformationJTextArea);
-            p4.setBorder(BorderFactory.createTitledBorder("Additional information"));
-            p4.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
-            p4.setPreferredSize(new Dimension(580, 90));
-            p4.setMaximumSize(new Dimension(580, 90));
-            
+            JScrollPane p5 = new JScrollPane(addAdditionalInformationJTextArea);
+            p5.setBorder(BorderFactory.createTitledBorder("Additional information"));
+            p5.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
+            p5.setPreferredSize(new Dimension(580, 90));
+            p5.setMaximumSize(new Dimension(580, 90));
+ 
             c = updateGBC(c, 0, 2, 0.5, GridBagConstraints.FIRST_LINE_START, GridBagConstraints.HORIZONTAL, new Insets(5,5,5,5)); 
-            panel.add(p4, c);
+			c.gridwidth = 2; 
+            panel.add(p5, c);
                         
             JPanel buttonPanel = new JPanel();
             buttonPanel.add(doAddStationButton);          
             buttonPanel.add(cancelAddStationButton);
             c = updateGBC(c, 0, 3, 0.5, GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(5,5,5,5));             
+			c.gridwidth = 2; 
             panel.add(buttonPanel, c);
 
             addStationDialog.getContentPane().add(panel);
 
             Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
-            addStationDialog.setBounds((int) screenSize.getWidth()/2 - 620/2,
-                (int) screenSize.getHeight()/2 - 770/2, 620, 770);
+            addStationDialog.setBounds((int) screenSize.getWidth()/2 - 880/2,
+                (int) screenSize.getHeight()/2 - 770/2, 880, 770);
             addStationDialog.setVisible(true);            
 
         } else if (doAddStationButton != null && e.getSource() == doAddStationButton) {                     
@@ -869,6 +899,184 @@ class StationInformationMenuItemActionListener implements ActionListener, Change
         }
     }
     
+	private void updateAddStationChannelComboBoxesAndScrollPanes() {
+	
+		GridBagConstraints c = new GridBagConstraints();	
+	
+		addStationFATDMAPanel.removeAll();
+	
+		if (addStationTypeComboBox.getSelectedIndex() == 2) {  // receiver
+			
+			// receivers don't have any FATDMA information
+			
+		} else if (addStationTypeComboBox.getSelectedIndex() == 0 || addStationTypeComboBox.getSelectedIndex() == 1) {  // base station or repeater		
+
+            c = updateGBC(c, 0, 0, 0, GridBagConstraints.LINE_START, GridBagConstraints.NONE, new Insets(5,5,5,5));
+            addStationFATDMAPanel.add(new JLabel("Channel A:"), c);
+            c = updateGBC(c, 1, 0, 1, GridBagConstraints.LINE_START, GridBagConstraints.NONE, new Insets(5,5,5,5));                    
+            addStationFATDMAPanel.add(addStationChannelAComboBox, c);
+				
+			if (!((String) addStationChannelAComboBox.getSelectedItem()).equals("NULL")) {
+
+				JPanel channelAPanel = new JPanel(new GridBagLayout());
+				c = updateGBC(c, 0, 0, 0.5, GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(5,5,5,5));			
+				channelAPanel.add(new JLabel("Startslot"), c);			
+				c = updateGBC(c, 1, 0, 0.5, GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(5,5,5,5));			
+				channelAPanel.add(new JLabel("Block size"), c);	
+				c = updateGBC(c, 2, 0, 0.5, GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(5,5,5,5));			
+				channelAPanel.add(new JLabel("Increment"), c);	
+				c = updateGBC(c, 3, 0, 0.5, GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(5,5,5,5));			
+				channelAPanel.add(new JLabel("Ownership"), c);				
+				
+				for (int cols=0; cols<4; cols++) {
+					for (int rows=1; rows<10; rows++) {
+						c = updateGBC(c, cols, rows, 0.5, GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(5,5,5,5));			
+						channelAPanel.add(new JTextField(8), c);					
+					}
+				}
+				
+				addStationChannelAScrollPane = new JScrollPane(channelAPanel);
+				addStationChannelAScrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
+				addStationChannelAScrollPane.setPreferredSize(new Dimension(580, 100));
+				addStationChannelAScrollPane.setMaximumSize(new Dimension(580, 100));
+				addStationChannelAScrollPane.setMinimumSize(new Dimension(580, 100));	
+								
+				c = updateGBC(c, 0, 1, 1, GridBagConstraints.LINE_START, GridBagConstraints.NONE, new Insets(5,5,5,5));   				
+				c.gridwidth = 2;
+				addStationFATDMAPanel.add(addStationChannelAScrollPane, c);
+				c.gridwidth = 1;
+			}
+
+			c = updateGBC(c, 0, 2, 0, GridBagConstraints.LINE_START, GridBagConstraints.NONE, new Insets(5,5,5,5));
+            addStationFATDMAPanel.add(new JLabel("Channel B:"), c);
+            c = updateGBC(c, 1, 2, 1, GridBagConstraints.LINE_START, GridBagConstraints.NONE, new Insets(5,5,5,5));                    
+            addStationFATDMAPanel.add(addStationChannelBComboBox, c);			
+			
+			if (!((String) addStationChannelBComboBox.getSelectedItem()).equals("NULL")) {
+
+				JPanel channelBPanel = new JPanel(new GridBagLayout());
+				c = updateGBC(c, 0, 0, 0.5, GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(5,5,5,5));			
+				channelBPanel.add(new JLabel("Startslot"), c);			
+				c = updateGBC(c, 1, 0, 0.5, GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(5,5,5,5));			
+				channelBPanel.add(new JLabel("Block size"), c);	
+				c = updateGBC(c, 2, 0, 0.5, GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(5,5,5,5));			
+				channelBPanel.add(new JLabel("Increment"), c);	
+				c = updateGBC(c, 3, 0, 0.5, GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(5,5,5,5));			
+				channelBPanel.add(new JLabel("Ownership"), c);				
+				
+				for (int cols=0; cols<4; cols++) {
+					for (int rows=1; rows<10; rows++) {
+						c = updateGBC(c, cols, rows, 0.5, GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(5,5,5,5));			
+						channelBPanel.add(new JTextField(8), c);					
+					}
+				}						
+				
+				addStationChannelBScrollPane = new JScrollPane(channelBPanel);
+				addStationChannelBScrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
+				addStationChannelBScrollPane.setPreferredSize(new Dimension(580, 100));
+				addStationChannelBScrollPane.setMaximumSize(new Dimension(580, 100));
+				addStationChannelBScrollPane.setMinimumSize(new Dimension(580, 100));	
+
+				c = updateGBC(c, 0, 3, 1, GridBagConstraints.LINE_START, GridBagConstraints.NONE, new Insets(5,5,5,5));   				
+				c.gridwidth = 2;
+				addStationFATDMAPanel.add(addStationChannelBScrollPane, c);
+				c.gridwidth = 1;
+			}
+			
+		} else if (addStationTypeComboBox.getSelectedIndex() == 3) {  // aton station
+
+            c = updateGBC(c, 0, 0, 0, GridBagConstraints.LINE_START, GridBagConstraints.NONE, new Insets(5,5,5,5));
+            addStationFATDMAPanel.add(new JLabel("Channel A:"), c);
+            c = updateGBC(c, 1, 0, 1, GridBagConstraints.LINE_START, GridBagConstraints.NONE, new Insets(5,5,5,5));                    
+            addStationFATDMAPanel.add(addStationChannelAComboBox, c);
+
+			if (!((String) addStationChannelAComboBox.getSelectedItem()).equals("NULL")) {
+
+				JPanel channelAPanel = new JPanel(new GridBagLayout());
+				c = updateGBC(c, 0, 0, 0.5, GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(5,5,5,5));			
+				channelAPanel.add(new JLabel("Access scheme"), c);			
+				c = updateGBC(c, 1, 0, 0.5, GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(5,5,5,5));			
+				channelAPanel.add(new JLabel("Message ID"), c);	
+				c = updateGBC(c, 2, 0, 0.5, GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(5,5,5,5));			
+				channelAPanel.add(new JLabel("UTC Hour"), c);	
+				c = updateGBC(c, 3, 0, 0.5, GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(5,5,5,5));			
+				channelAPanel.add(new JLabel("UTC Minute"), c);				
+				c = updateGBC(c, 4, 0, 0.5, GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(5,5,5,5));			
+				channelAPanel.add(new JLabel("Startslot"), c);	
+				c = updateGBC(c, 5, 0, 0.5, GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(5,5,5,5));			
+				channelAPanel.add(new JLabel("Block size"), c);				
+				c = updateGBC(c, 6, 0, 0.5, GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(5,5,5,5));			
+				channelAPanel.add(new JLabel("Increment"), c);						
+				
+				for (int cols=0; cols<7; cols++) {
+					for (int rows=1; rows<10; rows++) {
+						c = updateGBC(c, cols, rows, 0.5, GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(5,5,5,5));			
+						channelAPanel.add(new JTextField(8), c);					
+					}
+				}
+				
+				addStationChannelAScrollPane = new JScrollPane(channelAPanel);
+				addStationChannelAScrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
+				addStationChannelAScrollPane.setPreferredSize(new Dimension(780, 100));
+				addStationChannelAScrollPane.setMaximumSize(new Dimension(780, 100));
+				addStationChannelAScrollPane.setMinimumSize(new Dimension(780, 100));	
+				
+				c = updateGBC(c, 0, 1, 1, GridBagConstraints.LINE_START, GridBagConstraints.NONE, new Insets(5,5,5,5));   				
+				c.gridwidth = 2;
+				addStationFATDMAPanel.add(addStationChannelAScrollPane, c);
+				c.gridwidth = 1;				
+			}
+
+			c = updateGBC(c, 0, 2, 0, GridBagConstraints.LINE_START, GridBagConstraints.NONE, new Insets(5,5,5,5));
+            addStationFATDMAPanel.add(new JLabel("Channel B:"), c);
+            c = updateGBC(c, 1, 2, 1, GridBagConstraints.LINE_START, GridBagConstraints.NONE, new Insets(5,5,5,5));                    
+            addStationFATDMAPanel.add(addStationChannelBComboBox, c);			
+			
+			if (!((String) addStationChannelBComboBox.getSelectedItem()).equals("NULL")) {
+		 
+				JPanel channelBPanel = new JPanel(new GridBagLayout());
+				c = updateGBC(c, 0, 0, 0.5, GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(5,5,5,5));			
+				channelBPanel.add(new JLabel("Access scheme"), c);			
+				c = updateGBC(c, 1, 0, 0.5, GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(5,5,5,5));			
+				channelBPanel.add(new JLabel("Message ID"), c);	
+				c = updateGBC(c, 2, 0, 0.5, GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(5,5,5,5));			
+				channelBPanel.add(new JLabel("UTC Hour"), c);	
+				c = updateGBC(c, 3, 0, 0.5, GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(5,5,5,5));			
+				channelBPanel.add(new JLabel("UTC Minute"), c);				
+				c = updateGBC(c, 4, 0, 0.5, GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(5,5,5,5));			
+				channelBPanel.add(new JLabel("Startslot"), c);	
+				c = updateGBC(c, 5, 0, 0.5, GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(5,5,5,5));			
+				channelBPanel.add(new JLabel("Block size"), c);				
+				c = updateGBC(c, 6, 0, 0.5, GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(5,5,5,5));			
+				channelBPanel.add(new JLabel("Increment"), c);						
+				
+				for (int cols=0; cols<7; cols++) {
+					for (int rows=1; rows<10; rows++) {
+						c = updateGBC(c, cols, rows, 0.5, GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(5,5,5,5));			
+						channelBPanel.add(new JTextField(8), c);					
+					}
+				}
+				
+				addStationChannelBScrollPane = new JScrollPane(channelBPanel);
+				addStationChannelBScrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
+				addStationChannelBScrollPane.setPreferredSize(new Dimension(780, 100));
+				addStationChannelBScrollPane.setMaximumSize(new Dimension(780, 100));
+				addStationChannelBScrollPane.setMinimumSize(new Dimension(780, 100));	
+
+				c = updateGBC(c, 0, 3, 1, GridBagConstraints.LINE_START, GridBagConstraints.NONE, new Insets(5,5,5,5));   				
+				c.gridwidth = 2;
+				addStationFATDMAPanel.add(addStationChannelBScrollPane, c);
+				c.gridwidth = 1;
+			}
+		
+		}
+		
+		addStationDialog.pack();		
+		addStationFATDMAPanel.repaint();
+		addStationFATDMAPanel.validate();
+				
+	}
+	
     private void updateDialog() {
                         
         if (dialog != null) {
@@ -1070,6 +1278,11 @@ class StationInformationMenuItemActionListener implements ActionListener, Change
             updateAntennaTypeComboBox(addAntennaTypeComboBox, addAntennaHeightTextField, addTerrainHeightTextField,
                 addHeadingTextField, addFieldOfViewAngleTextField, addGainTextField);
                
+		} else if ((addStationTypeComboBox != null && e.getItemSelectable() == addStationTypeComboBox && e.getStateChange() == ItemEvent.SELECTED) ||
+				(addStationChannelAComboBox != null && e.getItemSelectable() == addStationChannelAComboBox && e.getStateChange() == ItemEvent.SELECTED) ||
+				(addStationChannelBComboBox != null && e.getItemSelectable() == addStationChannelBComboBox && e.getStateChange() == ItemEvent.SELECTED)) {     
+			updateAddStationChannelComboBoxesAndScrollPanes();
+			   
         } else if (selectStationComboBox != null && e.getItemSelectable() == selectStationComboBox) {            
             if (e.getStateChange() == ItemEvent.DESELECTED) {
                 for (int i=0; i<selectStationComboBox.getItemCount(); i++) {

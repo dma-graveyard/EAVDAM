@@ -69,6 +69,10 @@ public class AISFixedStationData {
 	 */
 	private Antenna antenna;
 	/**
+	 * FATDMA channels
+	 */
+	private List<FATDMAChannel> fatdmaChannels;
+	/**
 	 * FATDMA allocation information for the station.
 	 */
 	private FATDMASlotAllocation fatdmaAllocation;
@@ -204,6 +208,14 @@ public class AISFixedStationData {
 		this.antenna = antenna;
 	}
 
+	public List<FATDMAChannel> getFATDMAChannels() {
+		return fatdmaChannels;
+	}
+	
+	public void setFATDMAChannels(List<FATDMAChannel> fatdmaChannels) {
+		this.fatdmaChannels = fatdmaChannels;
+	}
+	
 	public FATDMASlotAllocation getFatdmaAllocation() {
 		return fatdmaAllocation;
 	}
@@ -275,7 +287,7 @@ public class AISFixedStationData {
 				+ lat + ", lon=" + lon + ", mmsi=" + mmsi
 				+ ", transmissionPower=" + transmissionPower + ", description="
 				+ description + ", transmitCoverage=" + transmissionCoverage + ", antenna="
-				+ antenna + ", fatdmaAllocation=" + fatdmaAllocation
+				+ antenna + ", fatdmaChannels=" + fatdmaChannels.toString()
 				+ ", stationType=" + stationType + ", operator=" + operator
 				+ ", status=" + status + ", anything=" + anything + "]";
 	}
