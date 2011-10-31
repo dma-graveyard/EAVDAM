@@ -37,6 +37,7 @@ import dk.frv.eavdam.io.derby.DerbyDBInterface;
 import dk.frv.eavdam.io.XMLImporter;
 import dk.frv.eavdam.menus.EavdamMenu;
 import dk.frv.eavdam.menus.OptionsMenuItem;
+import dk.frv.eavdam.menus.StationInformationMenu;
 import dk.frv.eavdam.menus.StationInformationMenuItem;
 import dk.frv.eavdam.utils.DBHandler;
 import dk.frv.eavdam.utils.RoundCoverage;
@@ -494,15 +495,15 @@ public class StationLayer extends OMGraphicHandlerLayer implements MapMouseListe
         if (e.getSource() == editStationMenuItem) {
 		
 		    if (currentlySelectedOMBaseStation.getDatasetSource() == null) {
-				new StationInformationMenuItem(eavdamMenu, StationInformationMenuItem.OWN_ACTIVE_STATIONS_LABEL + "/" +
+				new StationInformationMenu(eavdamMenu, StationInformationMenuItem.OWN_ACTIVE_STATIONS_LABEL + "/" +
 					StationInformationMenuItem.OPERATIVE_LABEL, currentlySelectedOMBaseStation.getName()).doClick();        
 			} else if (currentlySelectedOMBaseStation.getDatasetSource() instanceof String) {  // simulation
 				String selectedSimulation = (String) currentlySelectedOMBaseStation.getDatasetSource();
-				new StationInformationMenuItem(eavdamMenu, StationInformationMenuItem.SIMULATION_LABEL + ": " +
+				new StationInformationMenu(eavdamMenu, StationInformationMenuItem.SIMULATION_LABEL + ": " +
 					selectedSimulation, currentlySelectedOMBaseStation.getName()).doClick(); 
 			} else if (currentlySelectedOMBaseStation.getDatasetSource() instanceof EAVDAMUser) {  // Other user's dataset
 				String selectedOrganization = ((EAVDAMUser) currentlySelectedOMBaseStation.getDatasetSource()).getOrganizationName();
-				new StationInformationMenuItem(eavdamMenu, StationInformationMenuItem.STATIONS_OF_ORGANIZATION_LABEL + " " +
+				new StationInformationMenu(eavdamMenu, StationInformationMenuItem.STATIONS_OF_ORGANIZATION_LABEL + " " +
 					selectedOrganization, currentlySelectedOMBaseStation.getName()).doClick(); 							
             }
 

@@ -24,7 +24,7 @@ public class EavdamMenu extends AbstractOpenMapMenu implements MenuListener {
 	private LayerHandler layerHandler;
 	
 	private UserInformationMenuItem userInformationMenuItem;
-	private StationInformationMenuItem stationInformationMenuItem;
+	private StationInformationMenu stationInformationMenu;
 	private ShowOnMapMenu showOnMapMenu;
 	private ShapeLayersMenu shapeLayersMenu;
 	private OptionsMenuItem optionsMenuItem;
@@ -37,8 +37,8 @@ public class EavdamMenu extends AbstractOpenMapMenu implements MenuListener {
 		userInformationMenuItem = new UserInformationMenuItem(this);
         add(userInformationMenuItem);
         //add(new AddStationMenuItem(this));
-		stationInformationMenuItem = new StationInformationMenuItem(this);
-        add(stationInformationMenuItem);         
+		stationInformationMenu = new StationInformationMenu(this);
+        add(stationInformationMenu);         
 		showOnMapMenu = new ShowOnMapMenu(this);
 		add(showOnMapMenu);
 		shapeLayersMenu = new ShapeLayersMenu(this);
@@ -58,7 +58,7 @@ public class EavdamMenu extends AbstractOpenMapMenu implements MenuListener {
     public void	menuSelected(MenuEvent e) {
 		removeAll();
 		add(userInformationMenuItem);
-		add(stationInformationMenuItem);
+		add(stationInformationMenu);
 		add(showOnMapMenu);
 		add(shapeLayersMenu);
 		add(optionsMenuItem);
