@@ -1403,7 +1403,7 @@ import dk.frv.eavdam.data.Simulation;
 					+ "UTCMINUTE = ?,"
 					+ "STARTSLOT = ?,"
 					+ "BLOCKSIZE = ?,"
-					+ "INCREMENT = ?,"
+					+ "INCREMENT = ?"
 	    			+ " where id = ?";
 	    	PreparedStatement ps = conn.prepareStatement(sql);
 	    	ps.setInt(1, r.getMessageID());
@@ -1418,11 +1418,11 @@ import dk.frv.eavdam.data.Simulation;
 	    }
 	    
 	    private void updateFATDMAReservation(FATDMAReservation r) throws Exception{
-	    	String sql = "update FATDMAATON set " 
+	    	String sql = "update FATDMABASE set " 
 					+ "STARTSLOT = ?,"
 					+ "BLOCKSIZE = ?,"
 					+ "INCREMENT = ?,"
-					+ "OWNERSHIP = ?,"
+					+ "OWNERSHIP = ?"
 	    			+ " where id = ?";
 	    	PreparedStatement ps = conn.prepareStatement(sql);
 	    	ps.setInt(1, r.getStartslot());

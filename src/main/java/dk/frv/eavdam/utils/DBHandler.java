@@ -70,8 +70,9 @@ public class DBHandler {
 	            System.out.println("Retrieved default user: "+user.getOrganizationName());
 	            dat = d.retrieveAllEAVDAMData(user);
 	                    
+	            
 //	            System.out.println(((AISBaseAndReceiverStationFATDMAChannel)dat.getActiveStations().get(0).getStations().get(0).getFATDMAChannelA()).getFATDMAScheme().size());        
-	                    
+	                
 	
 	    	} catch (Exception e) {
 	    		e.printStackTrace();
