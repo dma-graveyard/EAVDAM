@@ -14,6 +14,8 @@ public class AtonMessageBroadcastRate {
     private Integer blockSize = null;  // 1..5
     private Integer increment = null;  // 0..324000
 	
+    private Integer dbID = null;
+    
     public AtonMessageBroadcastRate() {}
     
     public AtonMessageBroadcastRate(String accessScheme, Integer messageID, Integer utcHour, Integer utcMinute, Integer startslot, Integer blockSize, Integer increment) {
@@ -102,5 +104,13 @@ public class AtonMessageBroadcastRate {
 		}
 		this.increment = increment;
     }
+
+	public Integer getDbID() {
+		return dbID;
+	}
+
+	public void setDbID(Integer dbID) {
+		this.dbID = dbID;
+	}
 
 }

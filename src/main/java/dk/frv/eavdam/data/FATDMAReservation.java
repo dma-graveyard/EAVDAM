@@ -10,6 +10,8 @@ public class FATDMAReservation {
     private Integer increment = null;  // 0..1125
     private String ownership = null;  // L: use by local station, R: use by remote station
 
+    private Integer dbID = null;
+    
     public FATDMAReservation() {}
     
     public FATDMAReservation(Integer startslot, Integer blockSize, Integer increment, String ownership) {
@@ -62,5 +64,13 @@ public class FATDMAReservation {
 		}
         this.ownership = ownership;
     }
+
+	public Integer getDbID() {
+		return dbID;
+	}
+
+	public void setDbID(Integer dbID) {
+		this.dbID = dbID;
+	}
 
 }

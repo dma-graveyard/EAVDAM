@@ -17,6 +17,8 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
 
+import dk.frv.eavdam.data.AISAtonStationFATDMAChannel;
+import dk.frv.eavdam.data.AISBaseAndReceiverStationFATDMAChannel;
 import dk.frv.eavdam.data.AISFixedStationCoverage;
 import dk.frv.eavdam.data.AISFixedStationData;
 import dk.frv.eavdam.data.AISFixedStationStatus;
@@ -25,8 +27,11 @@ import dk.frv.eavdam.data.ActiveStation;
 import dk.frv.eavdam.data.Address;
 import dk.frv.eavdam.data.Antenna;
 import dk.frv.eavdam.data.AntennaType;
+import dk.frv.eavdam.data.AtonMessageBroadcastRate;
 import dk.frv.eavdam.data.EAVDAMData;
 import dk.frv.eavdam.data.EAVDAMUser;
+import dk.frv.eavdam.data.FATDMAChannel;
+import dk.frv.eavdam.data.FATDMAReservation;
 import dk.frv.eavdam.data.FATDMASlotAllocation;
 import dk.frv.eavdam.data.FTP;
 import dk.frv.eavdam.data.Options;
@@ -199,10 +204,7 @@ import dk.frv.eavdam.data.Simulation;
 	    }
 	    
 	    public boolean insertEAVDAMData(EAVDAMData data){
-//	    	System.out.println("Inserting data to database!");
-	        
-	
-	    	
+ 	
 	        boolean success = true;
 	        
 	        if(data.getUser() == null){
@@ -298,7 +300,7 @@ import dk.frv.eavdam.data.Simulation;
     		if(!res.next()){
     			//No address found. Add new one. First, get the highest id...
     			res.close();
-        		ps = conn.prepareStatement("select count(id) from ADDRESS");
+        		ps = conn.prepareStatement("select max(id) from ADDRESS");
         		res = ps.executeQuery();
     			if(!res.next()){
     				addressID = 0+1;
@@ -347,7 +349,7 @@ import dk.frv.eavdam.data.Simulation;
     		int contactID = -1;
     		if(!res.next()){ //No such person, add new one...
     			res.close();
-        		ps = conn.prepareStatement("select count(id) from PERSON");
+        		ps = conn.prepareStatement("select max(id) from PERSON");
         		res = ps.executeQuery();
     			if(!res.next()){
     				contactID = 1;
@@ -414,7 +416,7 @@ import dk.frv.eavdam.data.Simulation;
         		System.out.println("Organization "+user.getOrganizationName()+" does not exist! Inserting new organization...");
         		
         		//Add the organization.
-        		ps = conn.prepareStatement("select count(id) from ORGANIZATION");
+        		ps = conn.prepareStatement("select max(id) from ORGANIZATION");
         		ResultSet rs = ps.executeQuery();
         		if(!rs.next()){
         			orgID = 1;
@@ -670,7 +672,10 @@ import dk.frv.eavdam.data.Simulation;
 	    	
 	    	
 	    	//Insert FATDMA Allocations
-	    	this.insertFATDMAAllocations(as.getFatdmaAllocation(), stationID);
+	    	if(as.getFATDMAChannels() != null && as.getFATDMAChannels().size() > 0){
+//	    		System.out.println("FATDMA ALLOCATIONS FOUND!");
+	    		this.insertFATDMAAllocations(as.getFATDMAChannels(), stationID);
+	    	}
 	    	
 	    	as.setStationDBID(stationID);
 	    	
@@ -715,26 +720,151 @@ import dk.frv.eavdam.data.Simulation;
 	    * @param fatdma The FATDMA allocations.
 	    * @param stationID Station that has the given allocations.
 	    */
-	    public void insertFATDMAAllocations(FATDMASlotAllocation fatdma, int stationID) throws Exception{
+	    public void insertFATDMAAllocations(List<FATDMAChannel> fatdma, int stationID) throws Exception{
 	    	if(fatdma == null) return;
 	    	
+	    	System.out.println("Inserting FATDMA Allocations");
 	    	
 	    	if(this.conn == null) this.conn = getDBConnection(null,false);
 	    	
-	    	for(Integer id : fatdma.getAllocations()){
+	    	
+	    	for(FATDMAChannel f : fatdma){
 	    		try{
-		    		PreparedStatement psc = conn.prepareStatement("insert into FATDMA values (?,?,?)");
-			    	
-			    	psc.setInt(1, stationID);
-			    	psc.setInt(2, id.intValue());
-			    	psc.setInt(3, 0);
-			    	psc.executeUpdate();
-			    	
-			    	psc.close();
+	    			//Insert the channel
+	    			
+	    			if(f.getDBID() <= 0){
+	    				PreparedStatement fp = conn.prepareStatement("select max(id) from FATDMACHANNEL");
+	    				ResultSet rs = fp.executeQuery();
+	    				if(rs.next()){
+	    					int id = rs.getInt(1)+1;
+	    					f.setDBID(id);
+	    				}else{
+	    					f.setDBID(1);
+	    				}
+	    				
+	    				fp = conn.prepareStatement("insert into FATDMACHANNEL values (?,?,?)");
+	    				fp.setInt(1, f.getDBID());
+	    				fp.setInt(2, stationID);
+	    				fp.setString(3, f.getChannelName());
+	    				fp.executeUpdate();
+	    				
+	    				rs.close();
+	    				fp.close();
+	    			}
+	    			
+	    			if(f instanceof AISAtonStationFATDMAChannel){
+	    				AISAtonStationFATDMAChannel aton = (AISAtonStationFATDMAChannel)f;
+	    				
+	    				
+	    				PreparedStatement p = conn.prepareStatement("select max(id) from FATDMAATON");
+	    				ResultSet rs = p.executeQuery();
+	    				int maxID = 0;
+	    				if(rs.next()){
+	    					maxID = rs.getInt(1);
+	    				}
+	    				
+	    				rs.close();
+	    				p.close();
+	    				for(AtonMessageBroadcastRate r : aton.getAtonMessageBroadcastList()){
+	    					if(r.getDbID() == null || r.getDbID().intValue() <= 0){
+		    		    		maxID += 1;
+		    			    	r.setDbID(new Integer(maxID));
+		    			    	this.insertAtonMessageBroadcastRate(r, f.getDBID());
+	    					}else{
+	    						//UPDATE
+	    						this.updateAtonMessageBroadcastRate(r);
+	    					}
+	    				}
+	    			}else{
+	    				AISBaseAndReceiverStationFATDMAChannel base = (AISBaseAndReceiverStationFATDMAChannel)f;
+	    				
+	    				PreparedStatement p = conn.prepareStatement("select max(id) from FATDMABASE");
+	    				ResultSet rs = p.executeQuery();
+	    				int maxID = 0;
+	    				if(rs.next()){
+	    					maxID = rs.getInt(1);
+	    				}
+	    				
+	    				rs.close();
+	    				p.close();
+	    				
+	    				for(FATDMAReservation r : base.getFATDMAScheme()){
+	    					if(r.getDbID() == null || r.getDbID().intValue() <= 0){
+			    				maxID += 1;
+		    			    	r.setDbID(new Integer(maxID));
+		    			    	this.insertFATDMAReservation(r, f.getDBID());
+	    					}else{
+	    						//UPDATE
+	    						this.updateFATDMAReservation(r);
+	    					}
+	    				}
+	    				
+	    			}
+
 	    		}catch(Exception e){
 	    			e.printStackTrace();
 	    		}
 	    	}
+	    }
+	    
+	    private int insertAtonMessageBroadcastRate(AtonMessageBroadcastRate r, int channelID) throws Exception{
+    		if(r.getDbID() == null || r.getDbID() <= 0){
+				PreparedStatement p = conn.prepareStatement("select max(id) from FATDMAATON");
+				ResultSet rs = p.executeQuery();
+				int maxID = 0;
+				if(rs.next()){
+					maxID = rs.getInt(1);
+				}
+				
+				r.setDbID(new Integer(maxID + 1));
+    		}
+	    	
+	    	
+	    	PreparedStatement psc = conn.prepareStatement("insert into FATDMAATON values (?,?,?,?,?,?,?,?)");
+	    	
+    		psc.setInt(1, r.getDbID());
+	    	psc.setInt(2, channelID);
+	    	psc.setString(3, r.getAccessScheme());
+	    	psc.setInt(4, r.getMessageID());
+	    	psc.setInt(5, r.getUTCHour());
+	    	psc.setInt(6, r.getUTMinute());
+	    	psc.setInt(7, r.getStartslot());
+	    	psc.setInt(8, r.getBlockSize());
+	    	psc.setInt(9, r.getIncrement());
+	    	
+	    	
+	    	psc.executeUpdate();
+	    	
+	    	psc.close();
+	    	
+	    	return r.getDbID();
+	    }
+	    
+	    private int insertFATDMAReservation(FATDMAReservation r, int channelID) throws Exception{
+    		if(r.getDbID() == null || r.getDbID() <= 0){
+				PreparedStatement p = conn.prepareStatement("select max(id) from FATDMABASE");
+				ResultSet rs = p.executeQuery();
+				int maxID = 0;
+				if(rs.next()){
+					maxID = rs.getInt(1);
+				}
+				
+				r.setDbID(new Integer(maxID + 1));
+    		}
+	    	
+	    	PreparedStatement psc = conn.prepareStatement("insert into FATDMABASE values (?,?,?,?,?,?)");
+    		
+	    	psc.setInt(1, r.getDbID());
+	    	psc.setInt(2, channelID);
+	    	psc.setInt(3, r.getStartslot());
+	    	psc.setInt(4, r.getBlockSize());
+	    	psc.setInt(5, r.getIncrement());
+	    	psc.setString(6, r.getOwnership());
+	    	psc.executeUpdate();
+	    	
+	    	psc.close();
+
+	    	return r.getDbID();
 	    }
 	    
 	    public void insertCoverage(AISFixedStationCoverage coverage, int stationID, int coverageType) throws Exception{
@@ -748,8 +878,8 @@ import dk.frv.eavdam.data.Simulation;
 //		    		System.out.println("Inserting: "+stationID+", "+c[0]+", "+c[1]);
 		    		
 			    	psc.setInt(1, stationID);
-			    	psc.setDouble(2, c[0]); //TODO lat
-			    	psc.setDouble(3, c[1]); //TODO lon
+			    	psc.setDouble(2, c[0]); //lat
+			    	psc.setDouble(3, c[1]); //lon
 			    	psc.setDouble(4, ith); 
 			    	psc.setDouble(5, coverageType); 
 			    	psc.executeUpdate();
@@ -767,22 +897,87 @@ import dk.frv.eavdam.data.Simulation;
 	    	
 	    }
 	    
-	    private FATDMASlotAllocation retrieveFATDMAAllocations(int stationID) throws Exception{
-	    	FATDMASlotAllocation fatdma = new FATDMASlotAllocation();
+	    private List<FATDMAChannel> retrieveFATDMAAllocations(int stationID) throws Exception{
+	    	List<FATDMAChannel> channels = new ArrayList<FATDMAChannel>();
 	    	
-	    	PreparedStatement psc = conn.prepareStatement("select allocationindex from FATDMA where station = ?");
-	    	
-	    	
+	    	//GET THE Channel
+	    	PreparedStatement psc = conn.prepareStatement("select id, name from FATDMACHANNEL where station = ?");
 	    	psc.setInt(1, stationID);
+	    	
+	    	List<FATDMAChannel> tempChannels = new ArrayList<FATDMAChannel>();
 	    	
 	    	ResultSet rs = psc.executeQuery();
 	    	while(rs.next()){
-	    		fatdma.addAllocation(rs.getInt(1));
+	    		FATDMAChannel c = new FATDMAChannel();
+	    		c.setDBID(rs.getInt(1));
+	    		c.setChannelName(rs.getString(2));
+	    		
+	    		tempChannels.add(c);
 	    	}
 	    	
 	    	psc.close();
+	    	rs.close();
 	    	
-	    	return fatdma;
+	    	//Get ATON
+	    	for(FATDMAChannel c : tempChannels){
+	    		PreparedStatement ps = conn.prepareStatement("select id, blocksize,increment,messageid,startslot,accessscheme,utchour,utcminute from FATDMABASE where channel = ?");
+		    	ps.setInt(1, c.getDBID());
+		    	
+		    	ResultSet r = ps.executeQuery();
+		    	
+		    	List<AtonMessageBroadcastRate> rates = new ArrayList<AtonMessageBroadcastRate>();
+		    	while(r.next()){
+		    		
+		    		AtonMessageBroadcastRate aton = new AtonMessageBroadcastRate();
+		    		aton.setDbID(new Integer(rs.getInt(1)));
+		    		aton.setBlockSize(new Integer(rs.getInt(2)));
+		    		aton.setIncrement(new Integer(rs.getInt(3)));
+		    		aton.setMessageID(new Integer(rs.getInt(4)));
+		    		aton.setStartslot(new Integer(rs.getInt(5)));
+		    		aton.settAccessScheme(rs.getString(6));
+		    		aton.setUTCHour(new Integer(rs.getInt(7)));
+		    		aton.setUTCMinute(new Integer(rs.getInt(8)));
+		    		
+		    		rates.add(aton);
+		    	}
+		    
+		    	ps.close();
+
+		    	if(rates.size() > 0){ //The channel was an Aton channel
+			    	AISAtonStationFATDMAChannel channel = new AISAtonStationFATDMAChannel(c.getChannelName());
+			    	channel.setDBID(c.getDBID());
+			    	channel.setAtonMessageBroadcastList(rates);
+			    	
+			    	channels.add(channel);
+		    	}else //GET BASE STATION FATDMA
+		    		ps = conn.prepareStatement("select id, blocksize,increment,startslot,ownership from FATDMABASE where channel = ?");
+			    	ps.setInt(1, c.getDBID());
+			    	
+			    	r = ps.executeQuery();
+			    	List<FATDMAReservation> bases = new ArrayList<FATDMAReservation>();
+			    	while(r.next()){
+			    		FATDMAReservation res = new FATDMAReservation();
+			    		res.setDbID(new Integer(r.getInt(1)));
+			    		res.setBlockSize(new Integer(r.getInt(2)));
+			    		res.setIncrement(new Integer(r.getInt(3)));
+			    		res.setStartslot(new Integer(r.getInt(4)));
+			    		res.setOwnership(r.getString(5));
+			    		
+			    		bases.add(res);
+			    	}
+		    		
+		    		if(bases.size() > 0){
+		    			AISBaseAndReceiverStationFATDMAChannel channel = new AISBaseAndReceiverStationFATDMAChannel(c.getChannelName());
+		    			channel.setDBID(c.getDBID());
+		    			channel.setFatdmaScheme(bases);
+		    			
+		    			channels.add(channel);
+		    		}
+			    	
+		    	}
+		    	
+	    	
+	    	return channels;
 	    }
 	    
 	    /**
@@ -792,25 +987,56 @@ import dk.frv.eavdam.data.Simulation;
 	     * @param allocations The deleted allocations.
 	     * @throws Exception SQLException
 	     */
-	    public void deletedFATDMAAllocations(int stationID, FATDMASlotAllocation allocations) throws Exception{
-	    	if(allocations.getAllocations() == null || allocations.getAllocations().size() <= 0) return;
+	    public void deletedFATDMAAllocations(int stationID, List<FATDMAChannel> allocations) throws Exception{
+	    	if(allocations == null || allocations.size() <= 0) return;
 	    	
-	    	String deleteClause = "";
-	    	int ith = 0;
-	    	for(Integer id : allocations.getAllocations()){
-	    		deleteClause += "allocationindex = "+id;
-	    		
-	    		if(ith < allocations.getAllocations().size()-1){
-	    			deleteClause += " OR ";
+	    	for(FATDMAChannel f : allocations){
+	    		if(f instanceof AISAtonStationFATDMAChannel){
+	    			AISAtonStationFATDMAChannel aton = (AISAtonStationFATDMAChannel)f;
+	    			
+	    			for(AtonMessageBroadcastRate r : aton.getAtonMessageBroadcastList()){
+		    			//Update
+				    	String sql = "delete from FATDMAATON" 
+				    			+ " where station = ? and id = ?";
+				    	PreparedStatement ps = conn.prepareStatement(sql);
+				    	ps.setInt(1, stationID);
+				    	ps.setInt(2, r.getDbID());
+				    	ps.executeUpdate();
+				    
+				    	ps.close();
+	    			}
+	    		}else{
+	    			AISBaseAndReceiverStationFATDMAChannel base = (AISBaseAndReceiverStationFATDMAChannel)f;
+	    			
+	    			for(FATDMAReservation r : base.getFATDMAScheme()){
+		    			//Update
+				    	String sql = "delete from FATDMABASE" 
+				    			+ " where station = ? and id = ?";
+				    	PreparedStatement ps = conn.prepareStatement(sql);
+				    	ps.setInt(1, stationID);
+				    	ps.setInt(2, r.getDbID());
+				    	ps.executeUpdate();
+				    	
+				    	ps.close();
+	    			}
 	    		}
 	    		
-	    		++ith;
+	    		
+	    		PreparedStatement p = conn.prepareStatement("select * from FATDMAATON, FATDMABASE where FATDMAATON.channel = ? OR FATDMABASE.channel = ?");
+	    		ResultSet rs = p.executeQuery();
+	    		if(!rs.next()){
+	    			System.out.println("No FATDMA allocation remaining for channel "+f.getChannelName()+"! Deleting the channel!");
+	    			
+	    			p = conn.prepareStatement("delete from FATDMACHANNEL where id = ?");
+	    			p.setInt(1, f.getDBID());
+	    			p.executeUpdate();
+	    		}
+	    		
+	    		rs.close();
+	    		p.close();
+	    		
 	    	}
-	    	
-	    	PreparedStatement psc = conn.prepareStatement("delete from FATDMA where station = ? AND ("+deleteClause+")");
-	    	psc.setInt(1, stationID);
-    		psc.executeUpdate();
-    		psc.close();
+
 	    }
 	    
 	    private void insertSimulationDataset(Simulation sim, int organizationID) throws Exception{
@@ -823,7 +1049,7 @@ import dk.frv.eavdam.data.Simulation;
 	    	if(rs.next()){
 	    		simID = rs.getInt(1);
 	    	}else{
-	    		ps = conn.prepareStatement("select count(ID) from SIMULATION");
+	    		ps = conn.prepareStatement("select max(ID) from SIMULATION");
 	    		rs = ps.executeQuery();
 	    		if(rs.next()){
 	    			simID = rs.getInt(1)+1;
@@ -920,10 +1146,13 @@ import dk.frv.eavdam.data.Simulation;
 	    	ps.executeUpdate();
 
 
-	    	ps = conn.prepareStatement("delete from FATDMA where station = ?");
+	    	ps = conn.prepareStatement("delete from FATDMAATON where station = ?");
 	    	ps.setInt(1, stationID);
 	    	ps.executeUpdate();
 	    	
+	    	ps = conn.prepareStatement("delete from FATDMABASE where station = ?");
+	    	ps.setInt(1, stationID);
+	    	ps.executeUpdate();
 
 	    	ps = conn.prepareStatement("delete from STATUS where station = ?");
 	    	ps.setInt(1, stationID);
@@ -1085,6 +1314,10 @@ import dk.frv.eavdam.data.Simulation;
 	    	if(ais.getInterferenceCoverage() != null){
 	    		this.updateCoverage(ais.getInterferenceCoverage(), ais.getStationDBID(), COVERAGE_INTERFERENCE);
 	    	}
+	    	
+	    	if(ais.getFATDMAChannels() != null && ais.getFATDMAChannels().size() > 0){
+	    		this.updateFATDMAChannel(ais.getFATDMAChannels(), ais.getStationDBID());
+	    	}
 	    } 
 	    
 	    private void updateCoverage(AISFixedStationCoverage coverage, int stationDBID, int coverageType) throws Exception{
@@ -1100,6 +1333,87 @@ import dk.frv.eavdam.data.Simulation;
 			
 		}
 
+	    private void updateFATDMAChannel(List<FATDMAChannel> fatdma, int stationDBID) throws Exception{
+
+	    	for(FATDMAChannel f : fatdma){
+	    		if(f.getDBID() <= 0){
+	    			this.insertFATDMAAllocations(fatdma, stationDBID);
+	    		}else{
+	    		
+			    	PreparedStatement p = conn.prepareStatement("update FATDMACHANNEL set name = ? where id = ?");
+			    	p.setString(1, f.getChannelName());
+			    	p.setInt(2, f.getDBID());
+			    	p.executeUpdate();
+		    		
+		    		
+		    		if(f instanceof AISAtonStationFATDMAChannel){
+		    			AISAtonStationFATDMAChannel aton = (AISAtonStationFATDMAChannel)f;
+		    			
+		    			for(AtonMessageBroadcastRate r : aton.getAtonMessageBroadcastList()){
+		    				if(r.getDbID() != null && r.getDbID().intValue() > 0){
+		    					//Update
+		    					this.updateAtonMessageBroadcastRate(r);
+		    				}else{
+		    					this.insertAtonMessageBroadcastRate(r, f.getDBID());
+		    				}
+		    			}
+		    		}else{
+		    			AISBaseAndReceiverStationFATDMAChannel base = (AISBaseAndReceiverStationFATDMAChannel)f;
+		    			
+		    			for(FATDMAReservation r : base.getFATDMAScheme()){
+		    				if(r.getDbID() != null && r.getDbID().intValue() > 0){
+		    					//Update
+		    					this.updateFATDMAReservation(r);
+		    				}else{
+		    					//Insert
+		    					this.insertFATDMAReservation(r, f.getDBID());
+		    				}
+		    			}
+		    		}
+		    	}
+	    	}
+			
+		}
+	    
+	    private void updateAtonMessageBroadcastRate(AtonMessageBroadcastRate r) throws Exception{
+	    	//Update
+	    	String sql = "update FATDMAATON set " 
+	    			+ "MESSAGEID = ?,"
+					+ "ACCESSSCHEME = ?,"
+					+ "UTCHOUR = ?,"
+					+ "UTCMINUTE = ?,"
+					+ "STARTSLOT = ?,"
+					+ "BLOCKSIZE = ?,"
+					+ "INCREMENT = ?,"
+	    			+ " where id = ?";
+	    	PreparedStatement ps = conn.prepareStatement(sql);
+	    	ps.setInt(1, r.getMessageID());
+	    	ps.setString(2, r.getAccessScheme());
+	    	ps.setInt(3, r.getUTCHour());
+	    	ps.setInt(4, r.getUTMinute());
+	    	ps.setInt(5, r.getStartslot());
+	    	ps.setInt(6, r.getBlockSize());
+	    	ps.setInt(7, r.getIncrement());
+	    	ps.setInt(8, r.getDbID());
+	    	ps.executeUpdate();
+	    }
+	    
+	    private void updateFATDMAReservation(FATDMAReservation r) throws Exception{
+	    	String sql = "update FATDMAATON set " 
+					+ "STARTSLOT = ?,"
+					+ "BLOCKSIZE = ?,"
+					+ "INCREMENT = ?,"
+					+ "OWNERSHIP = ?,"
+	    			+ " where id = ?";
+	    	PreparedStatement ps = conn.prepareStatement(sql);
+	    	ps.setInt(1, r.getStartslot());
+	    	ps.setInt(2, r.getBlockSize());
+	    	ps.setInt(3, r.getIncrement());
+	    	ps.setString(4, r.getOwnership());
+	    	ps.setInt(5, r.getDbID());
+	    	ps.executeUpdate();
+	    }
+	    
 		private void updateAntenna(Antenna antenna, int stationId) throws Exception{
 	    	
 	    	
@@ -1548,7 +1862,7 @@ import dk.frv.eavdam.data.Simulation;
 	    	PreparedStatement ps = conn.prepareStatement(sql+whereClause);
 	    	
 	    	ResultSet rs = ps.executeQuery();
-	    	//TODO Add FATDMA and COVERAGE objects! 
+
 	    	while(rs.next()){
 	    		AISFixedStationData ais = new AISFixedStationData();
 	    		ais.setStationDBID(rs.getInt(1));
@@ -1585,7 +1899,9 @@ import dk.frv.eavdam.data.Simulation;
 	    			ais.setStationType(null);
 	    		}
 	    		
-	    		ais.setFatdmaAllocation(this.retrieveFATDMAAllocations(ais.getStationDBID()));
+	    		ais.setFATDMAChannels(this.retrieveFATDMAAllocations(ais.getStationDBID()));
+	    		
+//	    		System.out.println(ais.getFATDMAChannels().size()+" --> "+(ais.getFATDMAChannels().size() > 0 ? ais.getFATDMAChannels().get(0).getChannelName()+"" : "") );
 	    		
 	    		//TODO Get this data also...
 	    		int stationID = ais.getStationDBID();
@@ -2097,12 +2413,18 @@ import dk.frv.eavdam.data.Simulation;
 				}
 	    		
 				try {
-					s.execute("DROP TABLE FATDMA");
+					s.execute("DROP TABLE FATDMAATON");
 				} catch (Exception e) {
 					if(log)
 						e.printStackTrace();
 				}
 				
+				try {
+					s.execute("DROP TABLE FATDMABASE");
+				} catch (Exception e) {
+					if(log)
+						e.printStackTrace();
+				}
 				
 	    		try {
 					s.execute("DROP TABLE COVERAGEPOINTS");
@@ -2201,7 +2523,7 @@ import dk.frv.eavdam.data.Simulation;
 						e.printStackTrace();
 				}
 
-				
+
 				//Then create the tables.
 				try {
 					s.execute("CREATE TABLE ADDRESS" + "(ID INT PRIMARY KEY,"
@@ -2266,8 +2588,7 @@ import dk.frv.eavdam.data.Simulation;
 				}
 				
 
-				
-				
+
 				try {
 					s.execute("CREATE TABLE STATIONTYPE"
 							+ "(ID INT PRIMARY KEY,"
@@ -2288,16 +2609,17 @@ import dk.frv.eavdam.data.Simulation;
 						e.printStackTrace();
 				}
 
+
 				
 				try {
 					s.execute("CREATE TABLE FIXEDSTATION"
 							+ "(ID INT PRIMARY KEY,"
 							+ "NAME VARCHAR(120),"
 							+ "OWNER INT,"
-							+ "MMSI VARCHAR(15),"
-							+ "LAT DECIMAL (7,4),"
-							+ "LON DECIMAL (7,4),"
-							+ "TRANSMISSIONPOWER DECIMAL (7,4),"
+							+ "MMSI VARCHAR(10),"
+							+ "LAT DECIMAL (10,5),"
+							+ "LON DECIMAL (10,5),"
+							+ "TRANSMISSIONPOWER DECIMAL (10,5),"
 							+ "DESCRIPTION VARCHAR(1000),"
 							+ "STATIONTYPE INT,"
 							+ "ANYVALUE VARCHAR(2000),"
@@ -2328,10 +2650,10 @@ import dk.frv.eavdam.data.Simulation;
 				try {
 					s.execute("CREATE TABLE ANTENNA"
 							+ "(STATION INT,"
-							+ "ANTENNAHEIGHT DECIMAL (7,4),"
-							+ "TERRAINHEIGHT DECIMAL (7,4),"
+							+ "ANTENNAHEIGHT DECIMAL (10,5),"
+							+ "TERRAINHEIGHT DECIMAL (10,5),"
 							+ "ANTENNAHEADING INT,"
-							+ "FIELDOFVIEWANGLE DECIMAL (7,4),"
+							+ "FIELDOFVIEWANGLE DECIMAL (10,5),"
 							+ "GAIN DECIMAL (7,4),"
 							+ "ANTENNATYPE INT,"
 							+ "CONSTRAINT fk_s_a FOREIGN KEY (STATION) references FIXEDSTATION(ID))");
@@ -2343,25 +2665,76 @@ import dk.frv.eavdam.data.Simulation;
 				try {
 					s.execute("CREATE TABLE COVERAGEPOINTS"
 							+ "(STATION INT,"
-							+ "LAT DECIMAL (7,4),"
-							+ "LON DECIMAL (7,4),"
+							+ "LAT DECIMAL (10,5),"
+							+ "LON DECIMAL (10,5),"
 							+ "ORDERLINE INT,"
-//							+ "COVERAGETYPE INT,"
+							+ "COVERAGETYPE INT,"
 //							+ "CONSTRAINT pk_cp PRIMARY KEY (STATION, LAT, LON),"
 							+ "CONSTRAINT fk_s_cp FOREIGN KEY (STATION) references FIXEDSTATION(ID))");
 				} catch (Exception e) {
 					if(log)
 						e.printStackTrace();
 				}
-				
+
+				//ATON
+//			    private String accessScheme = null;  // FATDMA, RATDMA or CSTDMA
+//				private Integer messageID = null;  // 0..64 (Identifies which message type this transmission relates to)
+//			    private Integer utcHour = null;  // 0-23; 24 = UTC hour not available (UTC hour of first transmission of the day)
+//			    private Integer utcMinute = null;  // 0-59; 60 = UTC minute not available (UTC minute of first transmission of the day)
+//			    private Integer startslot = null;  // 0-2249; 4095 = discontinue broadcast (Only relevant for FATDMA)
+//			    private Integer blockSize = null;  // 1..5
+//			    private Integer increment = null;  // 0..324000
 		
+				//BASE
+//			    private Integer startslot = null;  // 0..2249
+//			    private Integer blockSize = null;  // 1..5
+//			    private Integer increment = null;  // 0..1125
+//			    private String ownership = null;  // L: use by local station, R: use by remote station
+				
 				try {
-					s.execute("CREATE TABLE FATDMA"
-							+ "(STATION INT,"
-							+ "ALLOCATIONINDEX INT,"
-							+ "ALLOCATIONVALUE INT,"
-							+ "CONSTRAINT pk_fatdma PRIMARY KEY (STATION,ALLOCATIONINDEX), "
-							+ "CONSTRAINT fk_s_fatdma FOREIGN KEY (STATION) references FIXEDSTATION(ID))");
+					s.execute("CREATE TABLE FATDMACHANNEL"
+							+ "(ID INT," 
+							+ "STATION INT,"
+							+ "NAME VARCHAR(50),"
+							+ "CONSTRAINT pk_fatdmac_a PRIMARY KEY (ID), "
+							+ "CONSTRAINT fk_fatdma FOREIGN KEY (STATION) references FIXEDSTATION(ID))");
+				} catch (Exception e) {
+					if(log)
+						e.printStackTrace();
+				}
+				
+				try {
+					s.execute("CREATE TABLE FATDMAATON"
+							+ "(ID INT," 
+//							+ "STATION INT,"
+//							+ "NAME VARCHAR(50),"
+							+ "CHANNEL INT,"							
+							+ "ACCESSSCHEME VARCHAR(6),"
+							+ "MESSAGEID INT,"
+							+ "UTCHOUR INT,"
+							+ "UTCMINUTE INT,"
+							+ "STARTSLOT INT,"
+							+ "BLOCKSIZE INT,"
+							+ "INCREMENT INT,"
+							+ "CONSTRAINT pk_fatdma_a PRIMARY KEY (ID), "
+							+ "CONSTRAINT fk_a_fatdma FOREIGN KEY (CHANNEL) references FATDMACHANNEL(ID))");
+				} catch (Exception e) {
+					if(log)
+						e.printStackTrace();
+				}
+				
+				try {
+					s.execute("CREATE TABLE FATDMABASE"
+							+ "(ID INT,"
+//							+ "STATION INT,"
+//							+ "NAME VARCHAR(50),"
+							+ "CHANNEL INT,"
+							+ "STARTSLOT INT,"
+							+ "BLOCKSIZE INT,"
+							+ "INCREMENT INT,"
+							+ "OWNERSHIP VARCHAR(1),"
+							+ "CONSTRAINT pk_fatdma_b PRIMARY KEY (ID), "
+							+ "CONSTRAINT fk_b_fatdmab FOREIGN KEY (CHANNEL) references FATDMACHANNEL(ID))");
 				} catch (Exception e) {
 					if(log)
 						e.printStackTrace();
@@ -2453,6 +2826,7 @@ import dk.frv.eavdam.data.Simulation;
 	                 failure = true;
 	                 reportFailure("No rows in ResultSet");
 	             }
+
 
 	             int id;
 	             if ((id = rs.getInt(1)) != 1){
