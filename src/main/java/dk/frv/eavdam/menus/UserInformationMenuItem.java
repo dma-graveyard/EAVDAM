@@ -139,7 +139,7 @@ class UserInformationActionListener implements ActionListener, DocumentListener 
             if (data != null) {
                 user = data.getUser();
             }                                   
-            
+         
             if (user != null) {
                 if (user.getOrganizationName() != null) {
                     organizationNameTextField.setText(user.getOrganizationName());
@@ -357,7 +357,7 @@ class UserInformationActionListener implements ActionListener, DocumentListener 
             c.gridy = 3;
             c.gridwidth = 2;
             c.anchor = GridBagConstraints.CENTER;                    
-            panel.add(buttonPanel, c);
+            panel.add(buttonPanel, c);		
 
             dialog.getContentPane().add(panel);
                                                                          

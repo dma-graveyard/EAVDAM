@@ -1,7 +1,9 @@
 package dk.frv.eavdam.utils;
 
+import dk.frv.eavdam.data.AISBaseAndReceiverStationFATDMAChannel;
 import dk.frv.eavdam.data.EAVDAMData;
 import dk.frv.eavdam.data.EAVDAMUser;
+import dk.frv.eavdam.data.FATDMAReservation;
 import dk.frv.eavdam.data.FTP;
 import dk.frv.eavdam.data.Options;
 import dk.frv.eavdam.data.Simulation;
@@ -68,7 +70,7 @@ public class DBHandler {
 	            System.out.println("Retrieved default user: "+user.getOrganizationName());
 	            dat = d.retrieveAllEAVDAMData(user);
 	                    
-	                    
+//	            System.out.println(((AISBaseAndReceiverStationFATDMAChannel)dat.getActiveStations().get(0).getStations().get(0).getFATDMAChannelA()).getFATDMAScheme().size());        
 	                    
 	
 	    	} catch (Exception e) {

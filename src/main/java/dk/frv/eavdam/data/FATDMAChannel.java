@@ -10,6 +10,7 @@ public class FATDMAChannel {
 	public FATDMAChannel(String channelName) {
 		this.channelName = channelName;		
 	}
+	
 
 	public String getChannelName(){
 		return this.channelName;
