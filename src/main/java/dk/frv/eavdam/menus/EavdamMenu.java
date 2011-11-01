@@ -33,7 +33,7 @@ public class EavdamMenu extends AbstractOpenMapMenu implements MenuListener {
         super();
         setText(defaultText);
         setMnemonic(defaultMnemonic);
-
+		
 		userInformationMenuItem = new UserInformationMenuItem(this);
         add(userInformationMenuItem);
         //add(new AddStationMenuItem(this));
@@ -57,10 +57,25 @@ public class EavdamMenu extends AbstractOpenMapMenu implements MenuListener {
 	public void	menuDeselected(MenuEvent e) {}
     public void	menuSelected(MenuEvent e) {
 		removeAll();
+		if (userInformationMenuItem == null) {
+			userInformationMenuItem = new UserInformationMenuItem(this);
+		}
 		add(userInformationMenuItem);
+		if (stationInformationMenu == null) {
+			stationInformationMenu = new StationInformationMenu(this);
+		}
 		add(stationInformationMenu);
+		if (showOnMapMenu == null) {
+			showOnMapMenu = new ShowOnMapMenu(this);
+		}
 		add(showOnMapMenu);
+		if (shapeLayersMenu == null) {
+			shapeLayersMenu = new ShapeLayersMenu(this);
+		}
 		add(shapeLayersMenu);
+		if (optionsMenuItem == null) {
+			optionsMenuItem = new OptionsMenuItem(this);
+		}		
 		add(optionsMenuItem);
 	}
 	

@@ -17,22 +17,22 @@ public class AtonMessageBroadcastRate {
     public AtonMessageBroadcastRate() {}
     
     public AtonMessageBroadcastRate(String accessScheme, Integer messageID, Integer utcHour, Integer utcMinute, Integer startslot, Integer blockSize, Integer increment) {
-        this.accessScheme = accessScheme;
-        this.messageID = messageID;
-        this.utcHour = utcHour;
-        this.utcMinute = utcMinute;
-        this.startslot = startslot;
-        this.blockSize = blockSize;
-        this.increment = increment;
+        setAccessScheme(accessScheme);
+        setMessageID(messageID);
+        setUTCHour(utcHour);
+        setUTCMinute(utcMinute);
+        setStartslot(startslot);
+        setBlockSize(blockSize);
+        setIncrement(increment);
 	}
 
     public String getAccessScheme() {
         return accessScheme;
     }
     
-    public void settAccessScheme(String accessScheme) {
+    public void setAccessScheme(String accessScheme) {
 		if (accessScheme != null && (!accessScheme.equals(FATDMA_ACCESS_SCHEME) && !accessScheme.equals(RATDMA_ACCESS_SCHEME) && !accessScheme.equals(CSTDMA_ACCESS_SCHEME))) {
-			throw new IllegalArgumentException("accessScheme not one of allowed values [" + FATDMA_ACCESS_SCHEME + ", " + RATDMA_ACCESS_SCHEME +", " + CSTDMA_ACCESS_SCHEME + "]");
+			throw new IllegalArgumentException("Access Scheme not one of allowed values [" + FATDMA_ACCESS_SCHEME + ", " + RATDMA_ACCESS_SCHEME +", " + CSTDMA_ACCESS_SCHEME + "]");
 		}
         this.accessScheme = accessScheme;
     }
@@ -43,7 +43,7 @@ public class AtonMessageBroadcastRate {
     
     public void setMessageID(Integer messageID) {
 		if (messageID != null && (messageID.intValue() < 0 || messageID.intValue() > 64)) {
-			throw new IllegalArgumentException("messageID not in range [0 64]");
+			throw new IllegalArgumentException("Message ID not in range [0 64]");
 		}
         this.messageID = messageID;
     }
@@ -54,18 +54,18 @@ public class AtonMessageBroadcastRate {
     
     public void setUTCHour(Integer utcHour) {
 		if (utcHour != null && (utcHour.intValue() < 0 || utcHour.intValue() > 24)) {
-			throw new IllegalArgumentException("utcHour not in range [0 24]");
+			throw new IllegalArgumentException("UTC Hour not in range [0 24]");
 		}
         this.utcHour = utcHour;
     }
     
-	public Integer getUTMinute() {
+	public Integer getUTCMinute() {
         return utcMinute;
     }
     
     public void setUTCMinute(Integer utcMinute) {
 		if (utcMinute != null && (utcMinute.intValue() < 0 || utcMinute.intValue() > 60)) {
-			throw new IllegalArgumentException("utcMinute not in range [0 60]");
+			throw new IllegalArgumentException("UTC Minute not in range [0 60]");
 		}
         this.utcMinute = utcMinute;
     }
@@ -76,7 +76,7 @@ public class AtonMessageBroadcastRate {
     
     public void setStartslot(Integer startslot) {
 		if (startslot != null && startslot.intValue() != 4095 && (startslot.intValue() < 0 || startslot.intValue() > 2249)) {
-			throw new IllegalArgumentException("startslot not in range [-0 2249] or 4095");
+			throw new IllegalArgumentException("Startslot not in range [0 2249] or 4095");
 		}
         this.startslot = startslot;
     }
@@ -87,7 +87,7 @@ public class AtonMessageBroadcastRate {
     
     public void setBlockSize(Integer blockSize) {
 		if (blockSize != null && (blockSize.intValue() < 1 || blockSize.intValue() > 5)) {
-			throw new IllegalArgumentException("blockSize not in range [1 5]");
+			throw new IllegalArgumentException("Block Size not in range [1 5]");
 		}
 		this.blockSize = blockSize;
     }
@@ -98,9 +98,52 @@ public class AtonMessageBroadcastRate {
     
     public void setIncrement(Integer increment) {
 		if (increment != null && (increment.intValue() < 0 || increment.intValue() > 324000)) {
-			throw new IllegalArgumentException("increment not in range [0 324000]");
+			throw new IllegalArgumentException("Increment not in range [0 324000]");
 		}
 		this.increment = increment;
     }
 
+	public boolean equals(Object aThat) {
+	
+		if (this == aThat) {
+			return true;
+		}
+		
+		if (!(aThat instanceof AtonMessageBroadcastRate)) {
+			return false;
+		}
+  
+		AtonMessageBroadcastRate that = (AtonMessageBroadcastRate) aThat;
+
+		if (!that.getAccessScheme().equals(accessScheme)) {
+			return false;
+		}
+		
+		if (!that.getMessageID().equals(messageID)) {
+			return false;
+		}
+
+		if (!that.getUTCHour().equals(utcHour)) {
+			return false;
+		}
+		
+		if (!that.getUTCMinute().equals(utcMinute)) {
+			return false;
+		}		
+		
+		if (!that.getStartslot().equals(startslot)) {
+			return false;
+		}
+  
+		if (!that.getBlockSize().equals(blockSize)) {
+			return false;
+		}
+		
+		if (!that.getIncrement().equals(increment)) {
+			return false;
+		}
+    
+		return true;
+	}		
+	
 }

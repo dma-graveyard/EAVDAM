@@ -1,12 +1,17 @@
 package dk.frv.eavdam.menus;
 
 import dk.frv.eavdam.data.ActiveStation;
+import dk.frv.eavdam.data.AISAtonStationFATDMAChannel;
+import dk.frv.eavdam.data.AISBaseAndReceiverStationFATDMAChannel;
 import dk.frv.eavdam.data.AISFixedStationData;
 import dk.frv.eavdam.data.AISFixedStationStatus;
 import dk.frv.eavdam.data.AISFixedStationType;
+import dk.frv.eavdam.data.AtonMessageBroadcastRate;
 import dk.frv.eavdam.data.Antenna;
 import dk.frv.eavdam.data.AntennaType;
 import dk.frv.eavdam.data.EAVDAMData;
+import dk.frv.eavdam.data.FATDMAChannel;
+import dk.frv.eavdam.data.FATDMAReservation;
 import dk.frv.eavdam.data.Simulation;
 import dk.frv.eavdam.io.derby.DerbyDBInterface;
 import dk.frv.eavdam.utils.DBHandler;
@@ -459,62 +464,7 @@ public class AddStationDialog extends JDialog implements ActionListener, ItemLis
 				
 			if (!((String) addStationChannelAComboBox.getSelectedItem()).equals("NULL")) {
 
-				channelAPanel = new JPanel(new GridBagLayout());
-				c = menuItem.updateGBC(c, 0, 0, 0.5, GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(5,5,5,5));			
-				JLabel startSlotLabel = new JLabel("<html><u>Startslot</u></html>");
-				startSlotLabel.setToolTipText("FATDMA_startslot (0..2249)");
-				channelAPanel.add(startSlotLabel, c);			
-				c = menuItem.updateGBC(c, 1, 0, 0.5, GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(5,5,5,5));			
-				JLabel blockSizeLabel = new JLabel("<html><u>Block size</u></html>");
-				blockSizeLabel.setToolTipText("FATDMA_block_size (1..5)");				
-				channelAPanel.add(blockSizeLabel, c);	
-				c = menuItem.updateGBC(c, 2, 0, 0.5, GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(5,5,5,5));			
-				JLabel incrementLabel = new JLabel("<html><u>Increment</u></html>");
-				incrementLabel.setToolTipText("FATDMA_increment (0..1125)");		
-				channelAPanel.add(incrementLabel, c);	
-				c = menuItem.updateGBC(c, 3, 0, 0.5, GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(5,5,5,5));			
-				JLabel ownershipLabel = new JLabel("<html><u>Ownership</u></html>");
-				ownershipLabel.setToolTipText("FATDMA_ownership (L: use by local station, R: use by remote station)");
-				channelAPanel.add(ownershipLabel, c);
-				c = menuItem.updateGBC(c, 4, 0, 0.5, GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(5,5,5,5));			
-				channelAPanel.add(new JLabel(""), c);	
-				
-				for (int i=5; i<channelAComponents.length-1; i++) {
-					if (channelAComponents[i] instanceof JButton) {
-						c = menuItem.updateGBC(c, i%5, (channelAPanel.getComponents().length)/5, 0.5, GridBagConstraints.WEST, GridBagConstraints.NONE, new Insets(5,5,5,5));
-					} else {
-						c = menuItem.updateGBC(c, i%5, (channelAPanel.getComponents().length)/5, 0.5, GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(5,5,5,5));						
-					}
-					channelAPanel.add(channelAComponents[i], c);
-				}
-				
-				if (addRowToChannelA) {
-					for (int cols=0; cols<5; cols++) {						
-						JComponent component = null;						
-						if (cols < 3) {
-							component = new JTextField(8);				
-							c = menuItem.updateGBC(c, cols, (channelAPanel.getComponents().length)/5, 0.5, GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(5,5,5,5));	
-						} else if (cols == 3) {
-							component = new JComboBox();									
-							((JComboBox) component).addItem("L");
-							((JComboBox) component).addItem("R");
-							((JComboBox) component).setBorder(new EmptyBorder(0, 3, 0, 3));
-							c = menuItem.updateGBC(c, cols, (channelAPanel.getComponents().length)/5, 0.5, GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(5,5,5,5));					
-						} else if (cols == 4) {
-							component = new JButton("Delete row");	
-							((JButton) component).setMargin(new Insets(0, 3, 0, 3));
-							((JButton) component).addActionListener(this);
-							c = menuItem.updateGBC(c, cols, (channelAPanel.getComponents().length)/5, 0.5, GridBagConstraints.WEST, GridBagConstraints.NONE, new Insets(5,5,5,5));
-						}		
-						channelAPanel.add(component, c);						
-					}
-				}
-				
-				JButton button = new JButton("Add row");
-				button.addActionListener(this);				
-				button.setMargin(new Insets(0, 3, 0, 3));
-				c = menuItem.updateGBC(c, 4, (channelAPanel.getComponents().length)/5, 0.5, GridBagConstraints.WEST, GridBagConstraints.NONE, new Insets(5,5,5,5));			
-				channelAPanel.add(button, c);
+				channelAPanel = getChannelPanelForBaseStationOrRepeater(channelAComponents, addRowToChannelA);
 
 				addStationChannelAScrollPane = new JScrollPane(channelAPanel);
 				addStationChannelAScrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
@@ -535,63 +485,8 @@ public class AddStationDialog extends JDialog implements ActionListener, ItemLis
 			
 			if (!((String) addStationChannelBComboBox.getSelectedItem()).equals("NULL")) {
 
-				channelBPanel = new JPanel(new GridBagLayout());
-				c = menuItem.updateGBC(c, 0, 0, 0.5, GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(5,5,5,5));			
-				JLabel startSlotLabel = new JLabel("<html><u>Startslot</u></html>");
-				startSlotLabel.setToolTipText("FATDMA_startslot (0..2249)");
-				channelBPanel.add(startSlotLabel, c);			
-				c = menuItem.updateGBC(c, 1, 0, 0.5, GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(5,5,5,5));			
-				JLabel blockSizeLabel = new JLabel("<html><u>Block size</u></html>");
-				blockSizeLabel.setToolTipText("FATDMA_block_size (1..5)");				
-				channelBPanel.add(blockSizeLabel, c);	
-				c = menuItem.updateGBC(c, 2, 0, 0.5, GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(5,5,5,5));			
-				JLabel incrementLabel = new JLabel("<html><u>Increment</u></html>");
-				incrementLabel.setToolTipText("FATDMA_increment (0..1125)");		
-				channelBPanel.add(incrementLabel, c);	
-				c = menuItem.updateGBC(c, 3, 0, 0.5, GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(5,5,5,5));			
-				JLabel ownershipLabel = new JLabel("<html><u>Ownership</u></html>");
-				ownershipLabel.setToolTipText("FATDMA_ownership (L: use by local station, R: use by remote station)");
-				channelBPanel.add(ownershipLabel, c);
-				c = menuItem.updateGBC(c, 4, 0, 0.5, GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(5,5,5,5));			
-				channelBPanel.add(new JLabel(""), c);	
+				channelBPanel = getChannelPanelForBaseStationOrRepeater(channelBComponents, addRowToChannelB);
 
-				for (int i=5; i<channelBComponents.length-1; i++) {
-					if (channelBComponents[i] instanceof JButton) {
-						c = menuItem.updateGBC(c, i%5, (channelBPanel.getComponents().length)/5, 0.5, GridBagConstraints.WEST, GridBagConstraints.NONE, new Insets(5,5,5,5));
-					} else {
-						c = menuItem.updateGBC(c, i%5, (channelBPanel.getComponents().length)/5, 0.5, GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(5,5,5,5));						
-					}
-					channelBPanel.add(channelBComponents[i], c);
-				}			
-
-				if (addRowToChannelB) {
-					for (int cols=0; cols<5; cols++) {						
-						JComponent component = null;						
-						if (cols < 3) {
-							component = new JTextField(8);				
-							c = menuItem.updateGBC(c, cols, (channelBPanel.getComponents().length)/5, 0.5, GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(5,5,5,5));	
-						} else if (cols == 3) {
-							component = new JComboBox();									
-							((JComboBox) component).addItem("L");
-							((JComboBox) component).addItem("R");
-							((JComboBox) component).setBorder(new EmptyBorder(0, 3, 0, 3));
-							c = menuItem.updateGBC(c, cols, (channelBPanel.getComponents().length)/5, 0.5, GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(5,5,5,5));	
-						} else if (cols == 4) {
-							component = new JButton("Delete row");	
-							((JButton) component).setMargin(new Insets(0, 3, 0, 3));
-							((JButton) component).addActionListener(this);
-							c = menuItem.updateGBC(c, cols, (channelBPanel.getComponents().length)/5, 0.5, GridBagConstraints.WEST, GridBagConstraints.NONE, new Insets(5,5,5,5));
-						}		
-						channelBPanel.add(component, c);						
-					}
-				}
-				
-				JButton button = new JButton("Add row");
-				button.addActionListener(this);				
-				button.setMargin(new Insets(0, 3, 0, 3));
-				c = menuItem.updateGBC(c, 4, (channelBPanel.getComponents().length)/5, 0.5, GridBagConstraints.WEST, GridBagConstraints.NONE, new Insets(5,5,5,5));			
-				channelBPanel.add(button, c);		
-				
 				addStationChannelBScrollPane = new JScrollPane(channelBPanel);
 				addStationChannelBScrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
 				addStationChannelBScrollPane.setPreferredSize(new Dimension(630, 100));
@@ -613,75 +508,7 @@ public class AddStationDialog extends JDialog implements ActionListener, ItemLis
 
 			if (!((String) addStationChannelAComboBox.getSelectedItem()).equals("NULL")) {
 
-				channelAPanel = new JPanel(new GridBagLayout());
-				c = menuItem.updateGBC(c, 0, 0, 0.5, GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(5,5,5,5));			
-				JLabel accessSchemeLabel = new JLabel("<html><u>Access scheme</u></html>");
-				accessSchemeLabel.setToolTipText("Access_scheme (FATDMA, RATDMA, CSTDMA)");
-				channelAPanel.add(accessSchemeLabel, c);
-				c = menuItem.updateGBC(c, 1, 0, 0.5, GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(5,5,5,5));			
-				JLabel messageIDLabel = new JLabel("<html><u>Message ID</u></html>");
-				messageIDLabel.setToolTipText("Message_ID (0..64) (Identifies which message type this transmission relates to)");
-				channelAPanel.add(messageIDLabel, c);
-				c = menuItem.updateGBC(c, 2, 0, 0.5, GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(5,5,5,5));			
-				JLabel utcHourLabel = new JLabel("<html><u>UTC Hour</u></html>");
-				utcHourLabel.setToolTipText("UTC_Hour (0-23; 24 = UTC hour not available) (UTC hour of first transmission of the day)");
-				channelAPanel.add(utcHourLabel, c);	
-				c = menuItem.updateGBC(c, 3, 0, 0.5, GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(5,5,5,5));	
-				JLabel utcMinuteLabel = new JLabel("<html><u>UTC Minute</u></html>");
-				utcMinuteLabel.setToolTipText("UTC_Minute (0-59; 60 = UTC minute not available) (UTC minute of first transmission of the day)");
-				channelAPanel.add(utcMinuteLabel, c);		
-				c = menuItem.updateGBC(c, 4, 0, 0.5, GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(5,5,5,5));			
-				JLabel startslotLabel = new JLabel("<html><u>Startslot</u></html>");
-				startslotLabel.setToolTipText("startslot (0-2249; 4095 = discontinue broadcast) (Only relevant for FATDMA)");
-				channelAPanel.add(startslotLabel, c);
-				c = menuItem.updateGBC(c, 5, 0, 0.5, GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(5,5,5,5));			
-				JLabel blockSizeLabel = new JLabel("<html><u>Block size</u></html>");
-				blockSizeLabel.setToolTipText("block_size (1..5)");
-				channelAPanel.add(blockSizeLabel, c);							
-				c = menuItem.updateGBC(c, 6, 0, 0.5, GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(5,5,5,5));			
-				JLabel incrementLabel = new JLabel("<html><u>Increment</u></html>");
-				incrementLabel.setToolTipText("increment (0..324000), (No. of slots in FATDMA, no. of seconds in RATDMA/CSTDMA)");
-				channelAPanel.add(incrementLabel, c);	
-				c = menuItem.updateGBC(c, 7, 0, 0.5, GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(5,5,5,5));			
-				channelAPanel.add(new JLabel(""), c);	
-
-				for (int i=8; i<channelAComponents.length-1; i++) {
-					if (channelAComponents[i] instanceof JButton) {
-						c = menuItem.updateGBC(c, i%8, (channelAPanel.getComponents().length)/8, 0.5, GridBagConstraints.WEST, GridBagConstraints.NONE, new Insets(5,5,5,5));						
-					} else {
-						c = menuItem.updateGBC(c, i%8, (channelAPanel.getComponents().length)/8, 0.5, GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(5,5,5,5));
-					}
-					channelAPanel.add(channelAComponents[i], c);
-				}
-				
-				if (addRowToChannelA) {
-					for (int cols=0; cols<8; cols++) {						
-						JComponent component = null;
-						if  (cols == 0) {
-							component = new JComboBox();									
-							((JComboBox) component).addItem("FATDMA");
-							((JComboBox) component).addItem("RATDMA");
-							((JComboBox) component).addItem("CSTDMA");
-							((JComboBox) component).setBorder(new EmptyBorder(0, 3, 0, 3));
-							c = menuItem.updateGBC(c, cols, (channelAPanel.getComponents().length)/8, 0.5, GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(5,5,5,5));		
-						} else if (cols > 0 && cols < 7) {
-							component = new JTextField(8);				
-							c = menuItem.updateGBC(c, cols, (channelAPanel.getComponents().length)/8, 0.5, GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(5,5,5,5));
-						} else if (cols == 7) {
-							component = new JButton("Delete row");	
-							((JButton) component).setMargin(new Insets(0, 3, 0, 3));
-							((JButton) component).addActionListener(this);
-							c = menuItem.updateGBC(c, cols, (channelAPanel.getComponents().length)/8, 0.5, GridBagConstraints.WEST, GridBagConstraints.NONE, new Insets(5,5,5,5));
-						}		
-						channelAPanel.add(component, c);						
-					}
-				}				
-				
-				JButton button = new JButton("Add row");
-				button.addActionListener(this);				
-				button.setMargin(new Insets(0, 3, 0, 3));
-				c = menuItem.updateGBC(c, 7, (channelAPanel.getComponents().length)/8, 0.5, GridBagConstraints.WEST, GridBagConstraints.NONE, new Insets(5,5,5,5));			
-				channelAPanel.add(button, c);				
+				channelAPanel = getChannelPanelForAtonStation(channelAComponents, addRowToChannelA);
 				
 				addStationChannelAScrollPane = new JScrollPane(channelAPanel);
 				addStationChannelAScrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
@@ -702,75 +529,7 @@ public class AddStationDialog extends JDialog implements ActionListener, ItemLis
 			
 			if (!((String) addStationChannelBComboBox.getSelectedItem()).equals("NULL")) {
 		 
-				channelBPanel = new JPanel(new GridBagLayout());
-				c = menuItem.updateGBC(c, 0, 0, 0.5, GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(5,5,5,5));			
-				JLabel accessSchemeLabel = new JLabel("<html><u>Access scheme</u></html>");
-				accessSchemeLabel.setToolTipText("Access_scheme (FATDMA, RATDMA, CSTDMA)");
-				channelBPanel.add(accessSchemeLabel, c);
-				c = menuItem.updateGBC(c, 1, 0, 0.5, GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(5,5,5,5));			
-				JLabel messageIDLabel = new JLabel("<html><u>Message ID</u></html>");
-				messageIDLabel.setToolTipText("Message_ID (0..64) (Identifies which message type this transmission relates to)");
-				channelBPanel.add(messageIDLabel, c);
-				c = menuItem.updateGBC(c, 2, 0, 0.5, GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(5,5,5,5));			
-				JLabel utcHourLabel = new JLabel("<html><u>UTC Hour</u></html>");
-				utcHourLabel.setToolTipText("UTC_Hour (0-23; 24 = UTC hour not available) (UTC hour of first transmission of the day)");
-				channelBPanel.add(utcHourLabel, c);	
-				c = menuItem.updateGBC(c, 3, 0, 0.5, GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(5,5,5,5));	
-				JLabel utcMinuteLabel = new JLabel("<html><u>UTC Minute</u></html>");
-				utcMinuteLabel.setToolTipText("UTC_Minute (0-59; 60 = UTC minute not available) (UTC minute of first transmission of the day)");
-				channelBPanel.add(utcMinuteLabel, c);		
-				c = menuItem.updateGBC(c, 4, 0, 0.5, GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(5,5,5,5));			
-				JLabel startslotLabel = new JLabel("<html><u>Startslot</u></html>");
-				startslotLabel.setToolTipText("startslot (0-2249; 4095 = discontinue broadcast) (Only relevant for FATDMA)");
-				channelBPanel.add(startslotLabel, c);
-				c = menuItem.updateGBC(c, 5, 0, 0.5, GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(5,5,5,5));			
-				JLabel blockSizeLabel = new JLabel("<html><u>Block size</u></html>");
-				blockSizeLabel.setToolTipText("block_size (1..5)");
-				channelBPanel.add(blockSizeLabel, c);							
-				c = menuItem.updateGBC(c, 6, 0, 0.5, GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(5,5,5,5));			
-				JLabel incrementLabel = new JLabel("<html><u>Increment</u></html>");
-				incrementLabel.setToolTipText("increment (0..324000), (No. of slots in FATDMA, no. of seconds in RATDMA/CSTDMA)");
-				channelBPanel.add(incrementLabel, c);			 
-				c = menuItem.updateGBC(c, 7, 0, 0.5, GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(5,5,5,5));			
-				channelBPanel.add(new JLabel(""), c);					
-
-				for (int i=8; i<channelBComponents.length-1; i++) {
-					if (channelBComponents[i] instanceof JButton) {				
-						c = menuItem.updateGBC(c, i%8, (channelBPanel.getComponents().length)/8, 0.5, GridBagConstraints.WEST, GridBagConstraints.NONE, new Insets(5,5,5,5));
-					} else {
-						c = menuItem.updateGBC(c, i%8, (channelBPanel.getComponents().length)/8, 0.5, GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(5,5,5,5));						
-					}
-					channelBPanel.add(channelBComponents[i], c);
-				}				
-				
-				if (addRowToChannelB) {
-					for (int cols=0; cols<8; cols++) {						
-						JComponent component = null;
-						if  (cols == 0) {
-							component = new JComboBox();									
-							((JComboBox) component).addItem("FATDMA");
-							((JComboBox) component).addItem("RATDMA");
-							((JComboBox) component).addItem("CSTDMA");
-							((JComboBox) component).setBorder(new EmptyBorder(0, 3, 0, 3));
-							c = menuItem.updateGBC(c, cols, (channelBPanel.getComponents().length)/8, 0.5, GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(5,5,5,5));		
-						} else if (cols > 0 && cols < 7) {
-							component = new JTextField(8);				
-							c = menuItem.updateGBC(c, cols, (channelBPanel.getComponents().length)/8, 0.5, GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(5,5,5,5));
-						} else if (cols == 7) {
-							component = new JButton("Delete row");	
-							((JButton) component).setMargin(new Insets(0, 3, 0, 3));
-							((JButton) component).addActionListener(this);
-							c = menuItem.updateGBC(c, cols, (channelBPanel.getComponents().length)/8, 0.5, GridBagConstraints.WEST, GridBagConstraints.NONE, new Insets(5,5,5,5));
-						}		
-						channelBPanel.add(component, c);						
-					}
-				}
-				
-				JButton button = new JButton("Add row");
-				button.addActionListener(this);
-				button.setMargin(new Insets(0, 3, 0, 3));
-				c = menuItem.updateGBC(c, 7, (channelBPanel.getComponents().length)/8, 0.5, GridBagConstraints.WEST, GridBagConstraints.NONE, new Insets(5,5,5,5));			
-				channelBPanel.add(button, c);				
+				channelBPanel = getChannelPanelForAtonStation(channelBComponents, addRowToChannelB);			
 							
 				addStationChannelBScrollPane = new JScrollPane(channelBPanel);
 				addStationChannelBScrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
@@ -798,9 +557,147 @@ public class AddStationDialog extends JDialog implements ActionListener, ItemLis
 			addStationChannelBScrollPane.getViewport().setViewPosition(new Point(0, 10000));
 		}
 		
-		menuItem.ignoreListeners = false;		
-				
+		menuItem.ignoreListeners = false;
 	}	
+	
+	private JPanel getChannelPanelForBaseStationOrRepeater(Component[] previousChannelComponents, boolean addRowToChannel) {
+	
+		JPanel channelPanel = new JPanel(new GridBagLayout());
+		GridBagConstraints c = new GridBagConstraints();			
+		c = menuItem.updateGBC(c, 0, 0, 0.5, GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(5,5,5,5));			
+		JLabel startSlotLabel = new JLabel("<html><u>Startslot</u></html>");
+		startSlotLabel.setToolTipText("FATDMA_startslot (0..2249)");
+		channelPanel.add(startSlotLabel, c);			
+		c = menuItem.updateGBC(c, 1, 0, 0.5, GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(5,5,5,5));			
+		JLabel blockSizeLabel = new JLabel("<html><u>Block size</u></html>");
+		blockSizeLabel.setToolTipText("FATDMA_block_size (1..5)");				
+		channelPanel.add(blockSizeLabel, c);	
+		c = menuItem.updateGBC(c, 2, 0, 0.5, GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(5,5,5,5));			
+		JLabel incrementLabel = new JLabel("<html><u>Increment</u></html>");
+		incrementLabel.setToolTipText("FATDMA_increment (0..1125)");		
+		channelPanel.add(incrementLabel, c);	
+		c = menuItem.updateGBC(c, 3, 0, 0.5, GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(5,5,5,5));			
+		JLabel ownershipLabel = new JLabel("<html><u>Ownership</u></html>");
+		ownershipLabel.setToolTipText("FATDMA_ownership (L: use by local station, R: use by remote station)");
+		channelPanel.add(ownershipLabel, c);
+		c = menuItem.updateGBC(c, 4, 0, 0.5, GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(5,5,5,5));			
+		channelPanel.add(new JLabel(""), c);	
+				
+		for (int i=5; i<previousChannelComponents.length-1; i++) {
+			if (previousChannelComponents[i] instanceof JButton) {
+				c = menuItem.updateGBC(c, i%5, (channelPanel.getComponents().length)/5, 0.5, GridBagConstraints.WEST, GridBagConstraints.NONE, new Insets(5,5,5,5));
+			} else {
+				c = menuItem.updateGBC(c, i%5, (channelPanel.getComponents().length)/5, 0.5, GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(5,5,5,5));						
+			}
+			channelPanel.add(previousChannelComponents[i], c);
+		}
+				
+		if (addRowToChannel) {
+			for (int cols=0; cols<5; cols++) {						
+				JComponent component = null;						
+				if (cols < 3) {
+					component = new JTextField(8);				
+					c = menuItem.updateGBC(c, cols, (channelPanel.getComponents().length)/5, 0.5, GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(5,5,5,5));	
+				} else if (cols == 3) {
+					component = new JComboBox();									
+					((JComboBox) component).addItem("L");
+					((JComboBox) component).addItem("R");
+					((JComboBox) component).setBorder(new EmptyBorder(0, 3, 0, 3));
+					c = menuItem.updateGBC(c, cols, (channelPanel.getComponents().length)/5, 0.5, GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(5,5,5,5));					
+				} else if (cols == 4) {
+					component = new JButton("Delete row");	
+					((JButton) component).setMargin(new Insets(0, 3, 0, 3));
+					((JButton) component).addActionListener(this);
+					c = menuItem.updateGBC(c, cols, (channelPanel.getComponents().length)/5, 0.5, GridBagConstraints.WEST, GridBagConstraints.NONE, new Insets(5,5,5,5));
+				}		
+				channelPanel.add(component, c);						
+			}
+		}
+				
+		JButton button = new JButton("Add row");
+		button.addActionListener(this);				
+		button.setMargin(new Insets(0, 3, 0, 3));
+		c = menuItem.updateGBC(c, 4, (channelPanel.getComponents().length)/5, 0.5, GridBagConstraints.WEST, GridBagConstraints.NONE, new Insets(5,5,5,5));			
+		channelPanel.add(button, c);	
+		
+		return channelPanel;
+	}
+	
+	private JPanel getChannelPanelForAtonStation(Component[] previousChannelComponents, boolean addRowToChannel) {
+	
+		JPanel channelPanel = new JPanel(new GridBagLayout());
+		GridBagConstraints c = new GridBagConstraints();		
+		c = menuItem.updateGBC(c, 0, 0, 0.5, GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(5,5,5,5));			
+		JLabel accessSchemeLabel = new JLabel("<html><u>Access Scheme</u></html>");
+		accessSchemeLabel.setToolTipText("Access_scheme (FATDMA, RATDMA, CSTDMA)");
+		channelPanel.add(accessSchemeLabel, c);
+		c = menuItem.updateGBC(c, 1, 0, 0.5, GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(5,5,5,5));			
+		JLabel messageIDLabel = new JLabel("<html><u>Message ID</u></html>");
+		messageIDLabel.setToolTipText("Message_ID (0..64) (Identifies which message type this transmission relates to)");
+		channelPanel.add(messageIDLabel, c);
+		c = menuItem.updateGBC(c, 2, 0, 0.5, GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(5,5,5,5));			
+		JLabel utcHourLabel = new JLabel("<html><u>UTC Hour</u></html>");
+		utcHourLabel.setToolTipText("UTC_Hour (0-23; 24 = UTC hour not available) (UTC hour of first transmission of the day)");
+		channelPanel.add(utcHourLabel, c);	
+		c = menuItem.updateGBC(c, 3, 0, 0.5, GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(5,5,5,5));	
+		JLabel utcMinuteLabel = new JLabel("<html><u>UTC Minute</u></html>");
+		utcMinuteLabel.setToolTipText("UTC_Minute (0-59; 60 = UTC minute not available) (UTC minute of first transmission of the day)");
+		channelPanel.add(utcMinuteLabel, c);		
+		c = menuItem.updateGBC(c, 4, 0, 0.5, GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(5,5,5,5));			
+		JLabel startslotLabel = new JLabel("<html><u>Startslot</u></html>");
+		startslotLabel.setToolTipText("startslot (0-2249; 4095 = discontinue broadcast) (Only relevant for FATDMA)");
+		channelPanel.add(startslotLabel, c);
+		c = menuItem.updateGBC(c, 5, 0, 0.5, GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(5,5,5,5));			
+		JLabel blockSizeLabel = new JLabel("<html><u>Block size</u></html>");
+		blockSizeLabel.setToolTipText("block_size (1..5)");
+		channelPanel.add(blockSizeLabel, c);							
+		c = menuItem.updateGBC(c, 6, 0, 0.5, GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(5,5,5,5));			
+		JLabel incrementLabel = new JLabel("<html><u>Increment</u></html>");
+		incrementLabel.setToolTipText("increment (0..324000), (No. of slots in FATDMA, no. of seconds in RATDMA/CSTDMA)");
+		channelPanel.add(incrementLabel, c);	
+		c = menuItem.updateGBC(c, 7, 0, 0.5, GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(5,5,5,5));			
+		channelPanel.add(new JLabel(""), c);	
+
+		for (int i=8; i<previousChannelComponents.length-1; i++) {
+			if (previousChannelComponents[i] instanceof JButton) {
+				c = menuItem.updateGBC(c, i%8, (channelPanel.getComponents().length)/8, 0.5, GridBagConstraints.WEST, GridBagConstraints.NONE, new Insets(5,5,5,5));						
+			} else {
+				c = menuItem.updateGBC(c, i%8, (channelPanel.getComponents().length)/8, 0.5, GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(5,5,5,5));
+			}
+			channelPanel.add(previousChannelComponents[i], c);
+		}
+				
+		if (addRowToChannel) {
+			for (int cols=0; cols<8; cols++) {						
+				JComponent component = null;
+				if  (cols == 0) {
+					component = new JComboBox();									
+					((JComboBox) component).addItem("FATDMA");
+					((JComboBox) component).addItem("RATDMA");
+					((JComboBox) component).addItem("CSTDMA");
+					((JComboBox) component).setBorder(new EmptyBorder(0, 3, 0, 3));
+					c = menuItem.updateGBC(c, cols, (channelPanel.getComponents().length)/8, 0.5, GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(5,5,5,5));		
+				} else if (cols > 0 && cols < 7) {
+					component = new JTextField(8);				
+					c = menuItem.updateGBC(c, cols, (channelPanel.getComponents().length)/8, 0.5, GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(5,5,5,5));
+				} else if (cols == 7) {
+					component = new JButton("Delete row");	
+					((JButton) component).setMargin(new Insets(0, 3, 0, 3));
+					((JButton) component).addActionListener(this);
+					c = menuItem.updateGBC(c, cols, (channelPanel.getComponents().length)/8, 0.5, GridBagConstraints.WEST, GridBagConstraints.NONE, new Insets(5,5,5,5));
+				}		
+				channelPanel.add(component, c);						
+			}
+		}				
+				
+		JButton button = new JButton("Add row");
+		button.addActionListener(this);				
+		button.setMargin(new Insets(0, 3, 0, 3));
+		c = menuItem.updateGBC(c, 7, (channelPanel.getComponents().length)/8, 0.5, GridBagConstraints.WEST, GridBagConstraints.NONE, new Insets(5,5,5,5));			
+		channelPanel.add(button, c);		
+
+		return channelPanel;
+	}
 	
 	private void deleteRow(String channel, int deleteRowButtonIndex) {
 			
@@ -828,6 +725,50 @@ public class AddStationDialog extends JDialog implements ActionListener, ItemLis
 		menuItem.ignoreListeners = false;
 	}			
 		
+	private List<FATDMAReservation> getFATDMAScheme(Component[] components) throws NumberFormatException, IllegalArgumentException {
+		List<FATDMAReservation> fatdmaScheme = new ArrayList<FATDMAReservation>();
+		int i = 5;
+		while (i+4 < components.length-1) {
+			JTextField startslotTextField = (JTextField) components[i];
+			JTextField blockSizeTextField = (JTextField) components[i+1];
+			JTextField incrementTextField = (JTextField) components[i+2];
+			JComboBox ownershipComboBox = (JComboBox) components[i+3];
+			if (!startslotTextField.getText().isEmpty() || !blockSizeTextField.getText().isEmpty() || !incrementTextField.getText().isEmpty()) {
+				FATDMAReservation fatdmaReservation = new FATDMAReservation(new Integer(startslotTextField.getText()),
+					new Integer(blockSizeTextField.getText()), new Integer(incrementTextField.getText()), (String) ownershipComboBox.getSelectedItem());
+				fatdmaScheme.add(fatdmaReservation);
+			}						
+			// i+4 is delete button
+			i = i+5;  // go to next row
+		}
+		return fatdmaScheme;
+	}
+
+	private List<AtonMessageBroadcastRate> getAtonMessageBroadcastList(Component[] components) throws NumberFormatException, IllegalArgumentException {
+		List<AtonMessageBroadcastRate> atonMessageBroadcastList = new ArrayList<AtonMessageBroadcastRate>();
+		int i = 8;
+		while (i+7 < components.length-1) {
+			JComboBox accessSchemeComboBox = (JComboBox) components[i];
+			JTextField messageIDTextField = (JTextField) components[i+1];
+			JTextField utcHourTextField = (JTextField) components[i+2];
+			JTextField utcMinuteTextField = (JTextField) components[i+3];
+			JTextField startslotTextField = (JTextField) components[i+4];
+			JTextField blockSizeTextField = (JTextField) components[i+5];
+			JTextField incrementTextField = (JTextField) components[i+6];			
+			
+			if (!messageIDTextField.getText().isEmpty() || !utcHourTextField.getText().isEmpty() || !utcMinuteTextField.getText().isEmpty() ||
+					!startslotTextField.getText().isEmpty() || !blockSizeTextField.getText().isEmpty() || !incrementTextField.getText().isEmpty()) {			
+				AtonMessageBroadcastRate atonMessageBroadcastRate = new AtonMessageBroadcastRate((String) accessSchemeComboBox.getSelectedItem(),				
+					new Integer(messageIDTextField.getText()), new Integer(utcHourTextField.getText()), new Integer(utcMinuteTextField.getText()),
+					new Integer(startslotTextField.getText()), new Integer(blockSizeTextField.getText()), new Integer(incrementTextField.getText()));					
+				atonMessageBroadcastList.add(atonMessageBroadcastRate);
+			}						
+			// i+7 is delete button
+			i = i+8;  // go to next row
+		}
+		return atonMessageBroadcastList;
+	}
+	
     private boolean addStation() {
         
         if (menuItem.getData() == null) {
@@ -930,7 +871,78 @@ public class AddStationDialog extends JDialog implements ActionListener, ItemLis
             JOptionPane.showMessageDialog(this, "Gain is not a valid number.");
             return false;
         }
-        
+		
+		FATDMAChannel fatdmaChannelA = null;
+		FATDMAChannel fatdmaChannelB = null;		
+		
+		if (addStationTypeComboBox.getSelectedIndex() == 0 || addStationTypeComboBox.getSelectedIndex() == 1) {  // base station or repeater
+		
+			if (!((String) addStationChannelAComboBox.getSelectedItem()).equals("NULL")) { 
+				Component[] channelAComponents = channelAPanel.getComponents();				
+				if (channelAComponents.length > 6) {				
+					try {
+						List<FATDMAReservation> fatdmaScheme = getFATDMAScheme(channelAComponents);
+						if (!fatdmaScheme.isEmpty()) {
+							fatdmaChannelA = new AISBaseAndReceiverStationFATDMAChannel((String) addStationChannelAComboBox.getSelectedItem(), fatdmaScheme);
+						}
+					} catch (NumberFormatException e) {
+						JOptionPane.showMessageDialog(this, "All FATDMA values of channel A are not valid integers.");
+						return false;
+					} catch (IllegalArgumentException e) {
+						JOptionPane.showMessageDialog(this, "The following error occurred when validating FATDMA values of channel A: " + e.getMessage());              
+						return false;							
+					}						
+				}
+				Component[] channelBComponents = channelBPanel.getComponents();				
+				if (channelBComponents.length > 6) {				
+					try {
+						List<FATDMAReservation> fatdmaScheme = getFATDMAScheme(channelBComponents);
+						if (!fatdmaScheme.isEmpty()) {
+							fatdmaChannelB = new AISBaseAndReceiverStationFATDMAChannel((String) addStationChannelBComboBox.getSelectedItem(), fatdmaScheme);
+						}			
+					} catch (NumberFormatException e) {
+						JOptionPane.showMessageDialog(this, "All FATDMA values of channel B are not valid integers.");
+						return false;
+					} catch (IllegalArgumentException e) {
+						JOptionPane.showMessageDialog(this, "The following error occurred when validating FATDMA values of channel B: " + e.getMessage());              
+						return false;							
+					}
+				}				
+			}
+		
+		} else if (addStationTypeComboBox.getSelectedIndex() == 3) {  // aton station
+			Component[] channelAComponents = channelAPanel.getComponents();				
+			if (channelAComponents.length > 9) {				
+				try {
+					List<AtonMessageBroadcastRate> atonMessageBroadcastList = getAtonMessageBroadcastList(channelAComponents);
+					if (!atonMessageBroadcastList.isEmpty()) {
+						fatdmaChannelA = new AISAtonStationFATDMAChannel((String) addStationChannelAComboBox.getSelectedItem(), atonMessageBroadcastList);					
+					}
+				} catch (NumberFormatException e) {
+					JOptionPane.showMessageDialog(this, "All FATDMA values of channel A are not valid integers.");
+					return false;
+				} catch (IllegalArgumentException e) {
+					JOptionPane.showMessageDialog(this, "The following error occurred when validating FATDMA values of channel A: " + e.getMessage());              
+					return false;							
+				}					
+			}
+			Component[] channelBComponents = channelBPanel.getComponents();				
+			if (channelBComponents.length > 9) {				
+				try {
+					List<AtonMessageBroadcastRate> atonMessageBroadcastList = getAtonMessageBroadcastList(channelBComponents);
+					if (!atonMessageBroadcastList.isEmpty()) {
+						fatdmaChannelB = new AISAtonStationFATDMAChannel((String) addStationChannelBComboBox.getSelectedItem(), atonMessageBroadcastList);
+					}
+				} catch (NumberFormatException e) {
+					JOptionPane.showMessageDialog(this, "All FATDMA values of channel B are not valid integers.");
+					return false;
+				} catch (IllegalArgumentException e) {
+					JOptionPane.showMessageDialog(this, "The following error occurred when validating FATDMA values of channel B: " + e.getMessage());              
+					return false;							
+				}												
+			}				
+		}
+		
         AISFixedStationData stationData = new AISFixedStationData();
 
         try {                 
@@ -1000,6 +1012,8 @@ public class AddStationDialog extends JDialog implements ActionListener, ItemLis
                     addAntennaTypeComboBox.getSelectedIndex() == 2) {
                 stationData.setAntenna(antenna);
             }
+			stationData.setFATDMAChannelA(fatdmaChannelA);
+			stationData.setFATDMAChannelB(fatdmaChannelB);
             if (addAdditionalInformationJTextArea.getText().trim().isEmpty()) {
                 stationData.setDescription(null);
             } else {
