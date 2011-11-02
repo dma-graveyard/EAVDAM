@@ -1,6 +1,8 @@
 package dk.frv.eavdam.utils;
 
 import dk.frv.eavdam.data.AISBaseAndReceiverStationFATDMAChannel;
+import dk.frv.eavdam.data.AISFixedStationData;
+import dk.frv.eavdam.data.ActiveStation;
 import dk.frv.eavdam.data.EAVDAMData;
 import dk.frv.eavdam.data.EAVDAMUser;
 import dk.frv.eavdam.data.FATDMAReservation;
@@ -69,9 +71,19 @@ public class DBHandler {
 	            EAVDAMUser user = d.retrieveDefaultUser();  
 	            System.out.println("Retrieved default user: "+user.getOrganizationName());
 	            dat = d.retrieveAllEAVDAMData(user);
+	             
+	            //Test prints
+//	            for(ActiveStation a : dat.getActiveStations()){
+//	            	
+//	            	for(AISFixedStationData f : a.getStations()){
+//	            		System.out.println("Station "+(f.getStatus().getStatusID() == DerbyDBInterface.STATUS_PLANNED ? "Planned" : "Operative"));
+//	            		if(f.getFATDMAChannelA() != null)
+//	            			System.out.println("A "+((AISBaseAndReceiverStationFATDMAChannel)f.getFATDMAChannelA()).getFATDMAScheme().size());
+//	            		if(f.getFATDMAChannelB() != null)
+//	            			System.out.println("B "+((AISBaseAndReceiverStationFATDMAChannel)f.getFATDMAChannelB()).getFATDMAScheme().size());
+//	            	}
+//	            }
 	                    
-	            
-//	            System.out.println(((AISBaseAndReceiverStationFATDMAChannel)dat.getActiveStations().get(0).getStations().get(0).getFATDMAChannelA()).getFATDMAScheme().size());        
 	                
 	
 	    	} catch (Exception e) {
@@ -91,7 +103,7 @@ public class DBHandler {
         //d.createDatabase(null);        
         
         
-//        System.out.println("Saving data for user "+data.getUser().getOrganizationName()+" ("+data.getActiveStations().get(0).getStations().get(0).getStationName()+")");
+        
         d.insertEAVDAMData(data);
 
 //        if(!updatedXML){

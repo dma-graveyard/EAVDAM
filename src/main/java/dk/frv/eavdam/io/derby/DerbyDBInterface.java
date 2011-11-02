@@ -1999,6 +1999,8 @@ import dk.frv.eavdam.data.Simulation;
 	    private List<AISFixedStationData> retrieveAISStation(int stationID, int statusID, int userID) throws Exception{
 	    	ArrayList<AISFixedStationData> data = new ArrayList<AISFixedStationData>();
 	    	
+	    	System.out.println("Retrieving planned station linked to station "+stationID);
+	    	
 	    	String sql = "select " +
 	    			"FIXEDSTATION.id, " +  //1.
 	    			"FIXEDSTATION.name, " +  //2.
@@ -2046,7 +2048,7 @@ import dk.frv.eavdam.data.Simulation;
 	    	PreparedStatement ps = conn.prepareStatement(sql+whereClause);
 	    	
 	    	ResultSet rs = ps.executeQuery();
-	    	//TODO Add FATDMA and COVERAGE objects! 
+
 	    	while(rs.next()){
 	    		AISFixedStationData ais = new AISFixedStationData();
 	    		ais.setStationDBID(rs.getInt(1));
@@ -2082,13 +2084,13 @@ import dk.frv.eavdam.data.Simulation;
 	    			ais.setStationType(null);
 	    		}
 	    		
-	    		//TODO Get this data also...
 	    		ais.setTransmissionCoverage(this.retrieveCoverageArea(stationID,COVERAGE_TRANSMIT));
 	    		ais.setReceiveCoverage(this.retrieveCoverageArea(stationID, COVERAGE_RECEIVE));
 	    		ais.setInterferenceCoverage(this.retrieveCoverageArea(stationID, COVERAGE_INTERFERENCE));
 	    		
+	    		ais.setFATDMAChannelA(this.retrieveFATDMAAllocations(ais.getStationDBID(), FATDMA_CHANNEL_A));
+	    		ais.setFATDMAChannelB(this.retrieveFATDMAAllocations(ais.getStationDBID(), FATDMA_CHANNEL_B));
 	    		
-	    		ais.setFatdmaAllocation(null);
 	    		ais.setAnything(null);
 	    		
 	    		data.add(ais);
