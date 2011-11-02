@@ -224,12 +224,9 @@ import dk.frv.eavdam.data.Simulation;
 	        	
 	        	
 	        	if(data.getActiveStations() != null && data.getActiveStations().size() > 0){
-	        		
 	        		for(ActiveStation a : data.getActiveStations()){
-	        			
 	        			this.insertActiveStations(a, orgID);
 	        		}
-	        		
 	        		
 	        		data.setActiveStations(this.retrieveActiveStations(orgID));
 	        	}
@@ -538,6 +535,7 @@ import dk.frv.eavdam.data.Simulation;
 			   
 			   
 		   }else{
+			   System.out.println("Making status changes...");
 			   
 			   int stationID = -1;
 
@@ -607,7 +605,7 @@ import dk.frv.eavdam.data.Simulation;
 	    		}
 	    	}
 	    	
-	    	
+	    	System.out.println("Inserting new AIS Station...");
 	    	
 	    	int stationType;
 	    	//Get the station type.
@@ -676,11 +674,14 @@ import dk.frv.eavdam.data.Simulation;
 	    	
 	    	//Insert FATDMA Allocations
 	    	if(as.getFATDMAChannelA() != null){
+	    		as.getFATDMAChannelA().setDBID(-1);
+	    		
 //	    		System.out.println("FATDMA ALLOCATIONS FOUND!");
 	    		this.insertFATDMAAllocations(as.getFATDMAChannelA(), stationID, FATDMA_CHANNEL_A);
 	    	}
 
 	    	if(as.getFATDMAChannelB() != null){
+	    		as.getFATDMAChannelB().setDBID(-1);
 //	    		System.out.println("FATDMA ALLOCATIONS FOUND!");
 	    		this.insertFATDMAAllocations(as.getFATDMAChannelB(), stationID, FATDMA_CHANNEL_B);
 	    	}
@@ -739,7 +740,7 @@ import dk.frv.eavdam.data.Simulation;
 
 	    		try{
 	    			//Insert the channel
-	    			
+	    			boolean insertNew = false;
 	    			if(f.getDBID() <= 0){
 	    				PreparedStatement fp = conn.prepareStatement("select max(id) from FATDMACHANNEL");
 	    				ResultSet rs = fp.executeQuery();
@@ -759,7 +760,11 @@ import dk.frv.eavdam.data.Simulation;
 	    				
 	    				rs.close();
 	    				fp.close();
+	    				
+	    				insertNew = true;
 	    			}
+	    			
+	    			System.out.println("Inserted new channel "+f.getDBID());
 	    			
 	    			if(f instanceof AISAtonStationFATDMAChannel){
 	    				AISAtonStationFATDMAChannel aton = (AISAtonStationFATDMAChannel)f;
@@ -775,7 +780,7 @@ import dk.frv.eavdam.data.Simulation;
 	    				rs.close();
 	    				p.close();
 	    				for(AtonMessageBroadcastRate r : aton.getAtonMessageBroadcastList()){
-	    					if(r.getDbID() == null || r.getDbID().intValue() <= 0){
+	    					if((r.getDbID() == null || r.getDbID().intValue() <= 0) || insertNew){
 		    		    		maxID += 1;
 		    			    	r.setDbID(new Integer(maxID));
 		    			    	this.insertAtonMessageBroadcastRate(r, f.getDBID());
@@ -798,7 +803,7 @@ import dk.frv.eavdam.data.Simulation;
 	    				p.close();
 	    				
 	    				for(FATDMAReservation r : base.getFATDMAScheme()){
-	    					if(r.getDbID() == null || r.getDbID().intValue() <= 0){
+	    					if(r.getDbID() == null || r.getDbID().intValue() <= 0 || insertNew){
 			    				maxID += 1;
 		    			    	r.setDbID(new Integer(maxID));
 		    			    	this.insertFATDMAReservation(r, f.getDBID());
@@ -985,7 +990,7 @@ import dk.frv.eavdam.data.Simulation;
 		    		channel.setDBID(tempChannels.getDBID());
 		    		channel.setFatdmaScheme(bases);
 		    			
-		    		System.out.print("... Found "+bases.size()+" BASE allocations ("+channel.getFATDMAScheme().get(0).toString()+")...\n");
+		    		System.out.print("... Found "+bases.size()+" BASE allocations (Channel: "+channel.getDBID()+" | "+channel.getFATDMAScheme().get(0).toString()+")...\n");
 		    		
 		    		
 		    		return channel;
@@ -1354,6 +1359,7 @@ import dk.frv.eavdam.data.Simulation;
 
 	    private void updateFATDMAChannel(FATDMAChannel f, int stationDBID, int channelType) throws Exception{
 
+	    	System.out.println("Updating FATDMA Allocations");
 	    	
 	    		if(f.getDBID() <= 0){
 	    			this.insertFATDMAAllocations(f, stationDBID, channelType);
@@ -1521,6 +1527,8 @@ import dk.frv.eavdam.data.Simulation;
 	    	List<EAVDAMUser> users = this.retrieveAllEAVDAMUsers();
 	    	for(EAVDAMUser u : users){
 	    		if(u.getUserDBID() == defaultUser.getUserDBID()){
+	    			System.out.println("Retrieving data for default user "+u.getOrganizationName());
+	    			
 	    			data.setUser(u);
 	    			
 	    			//Gets both active, proposed (to this user) and planned stations...
