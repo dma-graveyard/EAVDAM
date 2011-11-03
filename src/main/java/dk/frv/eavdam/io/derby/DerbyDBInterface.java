@@ -1589,6 +1589,8 @@ import dk.frv.eavdam.data.Simulation;
 	     * @return
 	     */
 	    public EAVDAMData retrieveAllEAVDAMData(EAVDAMUser defaultUser) throws Exception{
+	    	
+	    	
 	    	EAVDAMData data = new EAVDAMData();
 	    	
 	    	System.out.println("Retrieving all EAVDAMData");
@@ -1599,7 +1601,11 @@ import dk.frv.eavdam.data.Simulation;
 	    	////Includes Address and Person 
 	    	
 	    	List<EAVDAMUser> users = this.retrieveAllEAVDAMUsers();
+
+	    	if(users != null && users.size() > 0 && defaultUser != null)
 	    	for(EAVDAMUser u : users){
+	    		if(u == null) continue;
+
 	    		if(u.getUserDBID() == defaultUser.getUserDBID()){
 	    			System.out.println("Retrieving data for default user "+u.getOrganizationName());
 	    			

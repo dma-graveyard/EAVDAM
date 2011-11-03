@@ -69,9 +69,12 @@ public class DBHandler {
 	    	try {
 	    		DerbyDBInterface d = new DerbyDBInterface();
 	            EAVDAMUser user = d.retrieveDefaultUser();  
-	            System.out.println("Retrieved default user: "+user.getOrganizationName());
-	            dat = d.retrieveAllEAVDAMData(user);
-	             
+	            if(user != null){
+	            	System.out.println("Retrieved default user: "+user.getOrganizationName());
+	            
+	            }
+	            
+	        	dat = d.retrieveAllEAVDAMData(user);
 	            //Test prints
 //	            for(ActiveStation a : dat.getActiveStations()){
 //	            	
@@ -120,12 +123,12 @@ public class DBHandler {
 //        }
     }
     
-    public static void saveUserData(EAVDAMUser user/*, boolean defaultUser*/){
+    public static void saveUserData(EAVDAMUser user, boolean defaultUser){
     	DerbyDBInterface d = new DerbyDBInterface();
         //d.createDatabase(null);
     	try{
-    		int id = d.insertEAVDAMUser(user, false);
-//    		System.out.println("Added user under id "+id+".");
+    		int id = d.insertEAVDAMUser(user, defaultUser);
+    		System.out.println("Added user under id "+id+" (default: "+defaultUser+")");
     	}catch(Exception e){
     		e.printStackTrace();
     	}
