@@ -1220,30 +1220,34 @@ import dk.frv.eavdam.data.Simulation;
 	    	ps = conn.prepareStatement("select id from FATDMACHANNEL where station = ?");
 	    	ps.setInt(1, stationID);
 	    	ResultSet rs = ps.executeQuery();
-	    	if(rs.next()){
+	    	while(rs.next()){
 	    		int channelID = rs.getInt(1);
 	    		
-	    		System.out.println("Found "+channelID+" id for channel (station: "+stationID+")");
+//	    		System.out.println("Found "+channelID+" id for channel (station: "+stationID+")");
 	    		
 		    	PreparedStatement p = conn.prepareStatement("delete from FATDMAATON where channel = ?");
 		    	p.setInt(1, channelID);
 		    	int n = p.executeUpdate();
 		    	
-		    	System.out.println(n+" broadcasts deleted...");
+//		    	System.out.println(n+" broadcasts deleted...");
 		    	
 		    	p = conn.prepareStatement("delete from FATDMABASE where channel = ?");
 		    	p.setInt(1, channelID);
 		    	n = p.executeUpdate();
 	    		
-		    	System.out.println(n+" base broadcasts deleted. Deleting channels for station "+stationID);
-		    	
-		    	p = conn.prepareStatement("delete from FATDMACHANNEL where station = ?");
-		    	p.setInt(1, stationID);
-		    	p.executeUpdate();
-		    	
+//		    	System.out.println(n+" base broadcasts deleted. Deleting channels for station "+stationID);
+//		    	
+//		    	p = conn.prepareStatement("select id, channel from FATDMABASE");
+//		    	ResultSet r = p.executeQuery();
+//		    	while(r.next()){
+//		    		System.out.println(r.getInt(1)+" | "+r.getInt(2));
+//		    	}
 		    	
 	    	}
-	    	
+
+	    	ps = conn.prepareStatement("delete from FATDMACHANNEL where station = ?");
+	    	ps.setInt(1, stationID);
+	    	ps.executeUpdate();
 
 	    	ps = conn.prepareStatement("delete from STATUS where station = ?");
 	    	ps.setInt(1, stationID);

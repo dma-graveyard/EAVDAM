@@ -134,7 +134,7 @@ public class XMLHandler {
         		EAVDAMData d = XMLImporter.readXML(new File(importFolder+"/"+file));
 				
         		System.out.println("USER: "+d.getUser().getOrganizationName());
-//				db.deleteUser(d.getUser());
+				db.deleteUser(d.getUser());
 				System.out.println("Delete complete...");
         		db.insertEAVDAMData(d);
 	            
@@ -144,7 +144,7 @@ public class XMLHandler {
         } catch (MalformedURLException ex) {
             System.out.println(ex.getMessage());
         } catch (JAXBException ex) {
-            //System.out.println(ex.getMessage());
+            System.out.println(ex.getMessage());
         } catch (Exception e){
         	e.printStackTrace();
         }
