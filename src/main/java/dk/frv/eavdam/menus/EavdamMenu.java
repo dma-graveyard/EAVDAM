@@ -3,8 +3,11 @@ package dk.frv.eavdam.menus;
 import com.bbn.openmap.LayerHandler;
 import com.bbn.openmap.gui.AbstractOpenMapMenu;
 import com.bbn.openmap.gui.OpenMapFrame;
+import dk.frv.eavdam.data.EAVDAMData;
+import dk.frv.eavdam.data.EAVDAMUser;
 import dk.frv.eavdam.io.EmailSender;
 import dk.frv.eavdam.layers.StationLayer;
+import dk.frv.eavdam.utils.DBHandler;
 import javax.swing.JSeparator;
 import javax.swing.event.MenuEvent;
 import javax.swing.event.MenuListener;
@@ -47,6 +50,15 @@ public class EavdamMenu extends AbstractOpenMapMenu implements MenuListener {
         add(optionsMenuItem);
         // add(new JSeparator());
 		addMenuListener(this);
+		
+		// if user is not defined, open the edit user information dialog
+        EAVDAMData data = DBHandler.getData();                                         
+        if (data != null) {
+            EAVDAMUser user = data.getUser();
+			if (user == null || user.getOrganizationName() == null || user.getOrganizationName().isEmpty()) {
+				userInformationMenuItem.doClick();
+			}
+		}
     }
 		
 	public void rebuildShowOnMapMenu() {

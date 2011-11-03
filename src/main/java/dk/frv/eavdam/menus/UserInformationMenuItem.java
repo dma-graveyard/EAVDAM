@@ -351,8 +351,11 @@ class UserInformationActionListener implements ActionListener, DocumentListener 
 
             JPanel buttonPanel = new JPanel();
             buttonPanel.add(saveButton);
-            saveButton.setEnabled(false);
-            buttonPanel.add(cancelButton);                    
+            saveButton.setEnabled(false);                                        
+			if (data != null && user != null) {
+				buttonPanel.add(cancelButton); 
+			}
+                              
             c.gridx = 0;
             c.gridy = 3;
             c.gridwidth = 2;
