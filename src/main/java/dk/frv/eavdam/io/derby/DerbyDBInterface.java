@@ -1720,6 +1720,7 @@ import dk.frv.eavdam.data.Simulation;
 	    		u.setCountryID(res.getString(3));
 	    		u.setPhone(res.getString(4));
 	    		u.setFax(res.getString(5));
+	    		if(u == null || res.getString(6) == null) 
 	    		u.setWww((res.getString(6) != null || res.getString(6).length() > 0 ? new URL((res.getString(6).startsWith("http://") ? res.getString(6) : "http://"+res.getString(6))) : null));
 	    		u.setDescription(res.getString(7));
 	    		
