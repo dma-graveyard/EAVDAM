@@ -134,7 +134,9 @@ public class XMLHandler {
         		EAVDAMData d = XMLImporter.readXML(new File(importFolder+"/"+file));
 				
         		System.out.println("USER: "+d.getUser().getOrganizationName());
-				db.insertEAVDAMData(d);
+//				db.deleteUser(d.getUser());
+				System.out.println("Delete complete...");
+        		db.insertEAVDAMData(d);
 	            
         	}
         	

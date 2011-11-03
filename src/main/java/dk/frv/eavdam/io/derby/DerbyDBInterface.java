@@ -1027,7 +1027,7 @@ import dk.frv.eavdam.data.Simulation;
 	     * @param allocations The deleted allocations.
 	     * @throws Exception SQLException
 	     */
-	    public void deletedFATDMAAllocations(int stationID, List<FATDMAChannel> allocations) throws Exception{
+	    public void deleteFATDMAAllocations(int stationID, List<FATDMAChannel> allocations) throws Exception{
 	    	if(allocations == null || allocations.size() <= 0) return;
 	    	
 	    	for(FATDMAChannel f : allocations){
@@ -1165,6 +1165,37 @@ import dk.frv.eavdam.data.Simulation;
 	    	
 	    }
 	    
+	    public void deleteUser(EAVDAMUser user) throws Exception{
+	    	System.out.println("Deleting user "+user.getOrganizationName());
+	    	
+	    	PreparedStatement ps = null;
+	    	
+	    	ps = conn.prepareStatement("select ORGANIZATION.id from ORGANIZATION, ADDRESS where (ORGANIZATION.visitingaddress = ADDRESS.id OR ORGANIZATION.postaladdress = ADDRESS.id) AND (organizationname = ? OR addressline1 = ?)");
+	    	ps.setString(1, user.getOrganizationName());
+	    	ps.setString(2, user.getPostalAddress().getAddressline1());
+	    	ResultSet rs = ps.executeQuery();
+	    	int id = -1;
+	    	if(rs.next()){
+	    		id = rs.getInt(1);
+	    	}
+	    	
+	    	if(id < 0) return;
+	    	
+	    	
+	    	List<AISFixedStationData> stations = this.retrieveAISStations(-1, id);
+	    	for(AISFixedStationData s : stations){
+	    		this.deleteStation(s.getStationDBID());
+	    	}
+	    	
+	    	ps = conn.prepareStatement("delete from ORGANIZATION where id = ?");
+	    	ps.setInt(1, id);
+	    	int n = ps.executeUpdate();
+	    	if(n <= 0){
+	    		System.err.println("Delete organization "+user.getOrganizationName()+" ("+id+") FAILED!");
+	    	}
+	    	
+	    }
+	    
 	    /**
 	     * Deletes the give station from the database.
 	     * 
@@ -1186,13 +1217,33 @@ import dk.frv.eavdam.data.Simulation;
 	    	ps.executeUpdate();
 
 
-	    	ps = conn.prepareStatement("delete from FATDMAATON where station = ?");
+	    	ps = conn.prepareStatement("select id from FATDMACHANNEL where station = ?");
 	    	ps.setInt(1, stationID);
-	    	ps.executeUpdate();
+	    	ResultSet rs = ps.executeQuery();
+	    	if(rs.next()){
+	    		int channelID = rs.getInt(1);
+	    		
+	    		System.out.println("Found "+channelID+" id for channel (station: "+stationID+")");
+	    		
+		    	PreparedStatement p = conn.prepareStatement("delete from FATDMAATON where channel = ?");
+		    	p.setInt(1, channelID);
+		    	int n = p.executeUpdate();
+		    	
+		    	System.out.println(n+" broadcasts deleted...");
+		    	
+		    	p = conn.prepareStatement("delete from FATDMABASE where channel = ?");
+		    	p.setInt(1, channelID);
+		    	n = p.executeUpdate();
+	    		
+		    	System.out.println(n+" base broadcasts deleted. Deleting channels for station "+stationID);
+		    	
+		    	p = conn.prepareStatement("delete from FATDMACHANNEL where station = ?");
+		    	p.setInt(1, stationID);
+		    	p.executeUpdate();
+		    	
+		    	
+	    	}
 	    	
-	    	ps = conn.prepareStatement("delete from FATDMABASE where station = ?");
-	    	ps.setInt(1, stationID);
-	    	ps.executeUpdate();
 
 	    	ps = conn.prepareStatement("delete from STATUS where station = ?");
 	    	ps.setInt(1, stationID);
@@ -2575,7 +2626,8 @@ import dk.frv.eavdam.data.Simulation;
 
 				//Then create the tables.
 				try {
-					s.execute("CREATE TABLE ADDRESS" + "(ID INT PRIMARY KEY,"
+					s.execute("CREATE TABLE ADDRESS" 
+							+ "(ID INT PRIMARY KEY,"
 							+ "ADDRESSLINE1 VARCHAR(200),"
 							+ "ADDRESSLINE2 VARCHAR(200),"
 							+ "ZIPCODE VARCHAR(10)," + "CITY VARCHAR(50),"
@@ -2850,8 +2902,8 @@ import dk.frv.eavdam.data.Simulation;
 	    		s.execute("INSERT INTO PERSON VALUES(0,'Unknown','Unknown','','','',0,0)");
 	    		s.execute("INSERT INTO ORGANIZATION VALUES(0,'Unknown','NO','','','','',0,0,0,0,0)");
 	    		
-	    		System.out.println("Inserting default user to the database for demonstration purposis. Default user name: DaMSA");
-	    		s.execute("INSERT INTO ORGANIZATION VALUES(1,'DaMSA','DK','+45 3268 9677','+45 3257 4341','http://WWW.FRV.DK','Danish Maritime Safety Administration',0,0,0,0,1)");
+//	    		System.out.println("Inserting default user to the database for demonstration purposis. Default user name: DaMSA");
+//	    		s.execute("INSERT INTO ORGANIZATION VALUES(1,'DaMSA','DK','+45 3268 9677','+45 3257 4341','http://WWW.FRV.DK','Danish Maritime Safety Administration',0,0,0,0,1)");
 	    		conn.commit();
 	    		
 	    	 	 //test
