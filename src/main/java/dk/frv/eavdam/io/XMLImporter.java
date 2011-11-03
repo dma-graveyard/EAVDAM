@@ -3,6 +3,7 @@ package dk.frv.eavdam.io;
 import java.io.File;
 import java.net.MalformedURLException;
 import java.sql.Date;
+import java.util.ArrayList;
 import java.util.List;
 
 import javax.xml.bind.JAXBContext;
@@ -13,21 +14,30 @@ import javax.xml.datatype.XMLGregorianCalendar;
 
 import org.w3c.dom.Element;
 
+import dk.frv.eavdam.data.AISAtonStationFATDMAChannel;
+import dk.frv.eavdam.data.AISBaseAndReceiverStationFATDMAChannel;
 import dk.frv.eavdam.data.AISFixedStationCoverage;
 import dk.frv.eavdam.data.AISFixedStationStatus;
 import dk.frv.eavdam.data.AISFixedStationType;
 import dk.frv.eavdam.data.AntennaType;
+import dk.frv.eavdam.data.AtonMessageBroadcastRate;
 import dk.frv.eavdam.data.EAVDAMData;
+import dk.frv.eavdam.data.FATDMAReservation;
 import dk.frv.eavdam.io.derby.DerbyDBInterface;
+import dk.frv.eavdam.io.jaxb.AccessScheme;
 import dk.frv.eavdam.io.jaxb.Address;
 import dk.frv.eavdam.io.jaxb.AisFixedStationCoverage;
 import dk.frv.eavdam.io.jaxb.AisFixedStationCoverageType;
 import dk.frv.eavdam.io.jaxb.AisFixedStationData;
 import dk.frv.eavdam.io.jaxb.Antenna;
+import dk.frv.eavdam.io.jaxb.ChannelBroadcast;
+import dk.frv.eavdam.io.jaxb.ChannelType;
 import dk.frv.eavdam.io.jaxb.CoveragePoint;
 import dk.frv.eavdam.io.jaxb.EavdamData;
 import dk.frv.eavdam.io.jaxb.EavdamUser;
+import dk.frv.eavdam.io.jaxb.FatdmaChannel;
 import dk.frv.eavdam.io.jaxb.FatdmaSlotAllocation;
+import dk.frv.eavdam.io.jaxb.Ownership;
 import dk.frv.eavdam.io.jaxb.Person;
 import dk.frv.eavdam.io.jaxb.Status;
 
@@ -114,7 +124,8 @@ public class XMLImporter {
 			data.setDescription(xData.getDescription());
 			
 			data.setAntenna(convert(xData.getAntenna()));
-			data.setFatdmaAllocation(convert(xData.getFatdmaAllocation()));
+			data.setFATDMAChannelA(convert(xData.getFatdmaAllocation(), DerbyDBInterface.FATDMA_CHANNEL_A));
+			data.setFATDMAChannelB(convert(xData.getFatdmaAllocation(), DerbyDBInterface.FATDMA_CHANNEL_B));
 			
 			data.setInterferenceCoverage(convert(xData.getCoverage(), DerbyDBInterface.COVERAGE_INTERFERENCE));
 			data.setTransmissionCoverage(convert(xData.getCoverage(), DerbyDBInterface.COVERAGE_TRANSMIT));
@@ -214,11 +225,74 @@ public class XMLImporter {
 	}
 
 	// TODO
-	private static dk.frv.eavdam.data.FATDMASlotAllocation convert(
-			FatdmaSlotAllocation xData) {
+	private static dk.frv.eavdam.data.FATDMAChannel convert(FatdmaSlotAllocation xData, int channelType) {
 		if (xData != null) {
+			FatdmaChannel channel = null;
+			if(channelType == DerbyDBInterface.FATDMA_CHANNEL_A){
+				channel = xData.getFatdmaChannelA();
+			}else{
+				channel = xData.getFatdmaChannelB();
+			}
+					
+			if(channel != null){
+				if(channel.getChannelType().equals(ChannelType.ATON)){ //ATON channel
+					AISAtonStationFATDMAChannel c = new AISAtonStationFATDMAChannel();
+					c.setChannelName(channel.getChannelName());
+					c.setDBID(-1);
+					if(channel.getBroadcast() != null){
+						for(ChannelBroadcast b : channel.getBroadcast()){
+							AtonMessageBroadcastRate r = new AtonMessageBroadcastRate();
+							
+							if(b.getAccessScheme().equals(AccessScheme.CSTDMA)) r.setAccessScheme(AtonMessageBroadcastRate.CSTDMA_ACCESS_SCHEME);
+							else if(b.getAccessScheme().equals(AccessScheme.FATDMA)) r.setAccessScheme(AtonMessageBroadcastRate.FATDMA_ACCESS_SCHEME);
+							else if(b.getAccessScheme().equals(AccessScheme.RATDMA)) r.setAccessScheme(AtonMessageBroadcastRate.RATDMA_ACCESS_SCHEME);
+							
+							r.setBlockSize(b.getBlockSize());
+							r.setIncrement(b.getIncrement());
+							r.setMessageID(b.getMessageID());
+							r.setStartslot(b.getStartSlot());
+							r.setUTCHour(b.getUtcHour());
+							r.setUTCMinute(b.getUtcMinute());
+							r.setDbID(-1);
+							
+							if(c.getAtonMessageBroadcastList() == null) c.setAtonMessageBroadcastList(new ArrayList<AtonMessageBroadcastRate>());
+							c.getAtonMessageBroadcastList().add(r);
+							
+						}
+					}
+					
+					return c;
+				}else{
+					AISBaseAndReceiverStationFATDMAChannel c = new AISBaseAndReceiverStationFATDMAChannel();
+					
+					c.setChannelName(channel.getChannelName());
+					c.setDBID(-1);
+					if(channel.getBroadcast() != null){
+						for(ChannelBroadcast b : channel.getBroadcast()){
+							FATDMAReservation r = new FATDMAReservation();
+							
+							if(b.getOwnership().equals(Ownership.L)) r.setOwnership(FATDMAReservation.STATION_OWNERSHIP_LOCAL);
+							else if(b.getOwnership().equals(Ownership.R)) r.setOwnership(FATDMAReservation.STATION_OWNERSHIP_REMOTE);
+							
+							r.setBlockSize(b.getBlockSize());
+							r.setIncrement(b.getIncrement());
+							r.setStartslot(b.getStartSlot());
+							
+							r.setDbID(-1);
+							
+							if(c.getFATDMAScheme() == null) c.setFatdmaScheme(new ArrayList<FATDMAReservation>());
+							c.getFATDMAScheme().add(r);
+						}
+					}
 
+					return c;
+				}
+				
+				
+			}
 		}
+		
+		
 		return null;
 	}
 

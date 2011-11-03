@@ -225,7 +225,12 @@
 	</xs:complexType>
 	<xs:complexType name="fatdmaSlotAllocation">
 		<xs:sequence>
-			<xs:element name="fatdmaAllocationID" type="ns:fatdmaAllocation" minOccurs="0" maxOccurs="unbounded">
+			<xs:element name="fatdmaChannelA" type="ns:fatdmaChannel" minOccurs="0" maxOccurs="1">
+				<xs:annotation>
+					<xs:documentation>List of allocated FATDMA Slots</xs:documentation>
+				</xs:annotation>
+			</xs:element>
+			<xs:element name="fatdmaChannelB" type="ns:fatdmaChannel" minOccurs="0" maxOccurs="1">
 				<xs:annotation>
 					<xs:documentation>List of allocated FATDMA Slots</xs:documentation>
 				</xs:annotation>
@@ -325,6 +330,118 @@
 			<xs:element name="lon" type="ns:lon"/>
 		</xs:sequence>
 	</xs:complexType>
+	<xs:complexType name="fatdmaChannel">
+		<xs:annotation>
+			<xs:documentation>FATDMA Channel information.</xs:documentation>
+		</xs:annotation>
+		<xs:sequence>
+			<xs:element name="channelType" type="ns:channelType" minOccurs="1" maxOccurs="1" />
+			<xs:element name="channelName" type="ns:channelName" minOccurs="1" maxOccurs="1" />
+			<xs:element name="broadcast" type="ns:channelBroadcast" minOccurs="0" maxOccurs="unbounded" />
+		</xs:sequence>
+	</xs:complexType>
+	<xs:simpleType name="channelType">
+		<xs:restriction base="xs:string">
+			<xs:enumeration value="ATON">
+				<xs:annotation>
+					<xs:documentation>Channel is of type ATON.</xs:documentation>
+				</xs:annotation>
+			</xs:enumeration>
+			<xs:enumeration value="BASE">
+				<xs:annotation>
+					<xs:documentation>Is of type BASE.</xs:documentation>
+				</xs:annotation>
+			</xs:enumeration>
+		</xs:restriction>
+	</xs:simpleType>
+		<xs:simpleType name="channelName">
+		<xs:restriction base="xs:string"></xs:restriction>
+	</xs:simpleType>
+	<xs:complexType name="channelBroadcast">
+		<xs:annotation>
+			<xs:documentation>FATDMA Channel broadcast information.</xs:documentation>
+		</xs:annotation>
+		<xs:sequence>
+			<xs:element name="accessScheme" type="ns:accessScheme" minOccurs="0" maxOccurs="1" />
+			<xs:element name="messageID" type="ns:messageID" minOccurs="0" maxOccurs="1" />
+			<xs:element name="utcHour" type="ns:utcHour" minOccurs="0" maxOccurs="1" />
+			<xs:element name="utcMinute" type="ns:utcMinute" minOccurs="0" maxOccurs="1" />
+			<xs:element name="startSlot" type="ns:startSlot" minOccurs="1" maxOccurs="1" />
+			<xs:element name="blockSize" type="ns:blockSize" minOccurs="1" maxOccurs="1" />
+			<xs:element name="increment" type="ns:increment" minOccurs="1" maxOccurs="1" />
+			<xs:element name="ownership" type="ns:ownership" minOccurs="0" maxOccurs="1" />
+		</xs:sequence>
+	</xs:complexType>	
+	<xs:simpleType name="accessScheme">
+		<xs:restriction base="xs:string">
+			<xs:enumeration value="FATDMA">
+				<xs:annotation>
+					<xs:documentation>FATDMA Access Scheme</xs:documentation>
+				</xs:annotation>
+			</xs:enumeration>
+			<xs:enumeration value="RATDMA">
+				<xs:annotation>
+					<xs:documentation>RATDMA Access Scheme</xs:documentation>
+				</xs:annotation>
+			</xs:enumeration>
+			<xs:enumeration value="CSTDMA">
+				<xs:annotation>
+					<xs:documentation>CSTDMA Access Scheme</xs:documentation>
+				</xs:annotation>
+			</xs:enumeration>
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="messageID">
+			<xs:restriction base="xs:int">
+			<xs:minInclusive value="0"/>
+			<xs:maxInclusive value="64"/>
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="utcHour">
+	<xs:restriction base="xs:int">
+			<xs:minInclusive value="0"/>
+			<xs:maxInclusive value="24"/>
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:simpleType name="utcMinute">
+		<xs:restriction base="xs:int">
+			<xs:minInclusive value="0"/>
+			<xs:maxInclusive value="60"/>
+		</xs:restriction>
+	</xs:simpleType>	
+	<xs:simpleType name="startSlot">
+		<xs:restriction base="xs:int">
+			<xs:minInclusive value="0"/>
+			<xs:maxInclusive value="4095"/>
+		</xs:restriction>
+	</xs:simpleType>		
+	<xs:simpleType name="blockSize">
+		<xs:restriction base="xs:int">
+			<xs:minInclusive value="1"/>
+			<xs:maxInclusive value="5"/>
+		</xs:restriction>
+	</xs:simpleType>	
+	<xs:simpleType name="increment">
+		<xs:restriction base="xs:int">
+			<xs:minInclusive value="0"/>
+			<xs:maxInclusive value="324000"/>
+		</xs:restriction>
+	</xs:simpleType>		
+	<xs:simpleType name="ownership">
+		<xs:restriction base="xs:string">
+			<xs:enumeration value="L">
+				<xs:annotation>
+					<xs:documentation>L: use by local station</xs:documentation>
+				</xs:annotation>
+			</xs:enumeration>
+			<xs:enumeration value="R">
+				<xs:annotation>
+					<xs:documentation>R: use by remote station.</xs:documentation>
+				</xs:annotation>
+			</xs:enumeration>
+		</xs:restriction>
+	</xs:simpleType>
+	
 	<xs:simpleType name="aisFixedStationCoverageType">
 		<xs:restriction base="xs:string">
 			<xs:enumeration value="TRANSMISSION">

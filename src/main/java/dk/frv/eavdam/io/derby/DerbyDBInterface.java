@@ -738,7 +738,18 @@ import dk.frv.eavdam.data.Simulation;
 	    	
 	    	
 
+	    	
+
 	    		try{
+	    	    	//Check if the old channel exists...
+	    			PreparedStatement eps = conn.prepareStatement("select id from FATDMACHANNEL where station = ? AND type = ?");
+	    			eps.setInt(1, stationID);
+	    			eps.setInt(2, channelType);
+	    			ResultSet ers = eps.executeQuery();
+	    			if(ers.next()){
+	    				f.setDBID(ers.getInt(1));
+	    			}
+	    			
 	    			//Insert the channel
 	    			boolean insertNew = false;
 	    			if(f.getDBID() <= 0){
@@ -762,9 +773,9 @@ import dk.frv.eavdam.data.Simulation;
 	    				fp.close();
 	    				
 	    				insertNew = true;
+	    				
+		    			System.out.println("Inserted new channel "+f.getDBID());
 	    			}
-	    			
-	    			System.out.println("Inserted new channel "+f.getDBID());
 	    			
 	    			if(f instanceof AISAtonStationFATDMAChannel){
 	    				AISAtonStationFATDMAChannel aton = (AISAtonStationFATDMAChannel)f;
@@ -822,7 +833,11 @@ import dk.frv.eavdam.data.Simulation;
 	    }
 	    
 	    private int insertAtonMessageBroadcastRate(AtonMessageBroadcastRate r, int channelID) throws Exception{
-    		if(r.getDbID() == null || r.getDbID() <= 0){
+    		//Delete the old ones
+	    	PreparedStatement delete = conn.prepareStatement("delete from FATDMAATON where channel = "+channelID);
+	    	delete.executeUpdate();
+	    	
+	    	if(r.getDbID() == null || r.getDbID() <= 0){
 				PreparedStatement p = conn.prepareStatement("select max(id) from FATDMAATON");
 				ResultSet rs = p.executeQuery();
 				int maxID = 0;
@@ -855,7 +870,11 @@ import dk.frv.eavdam.data.Simulation;
 	    }
 	    
 	    private int insertFATDMAReservation(FATDMAReservation r, int channelID) throws Exception{
-    		if(r.getDbID() == null || r.getDbID() <= 0){
+    		//Delete the old ones
+	    	PreparedStatement delete = conn.prepareStatement("delete from FATDMABASE where channel = "+channelID);
+	    	delete.executeUpdate();
+	    	
+	    	if(r.getDbID() == null || r.getDbID() <= 0){
 				PreparedStatement p = conn.prepareStatement("select max(id) from FATDMABASE");
 				ResultSet rs = p.executeQuery();
 				int maxID = 0;
@@ -1375,7 +1394,7 @@ import dk.frv.eavdam.data.Simulation;
 		    			AISAtonStationFATDMAChannel aton = (AISAtonStationFATDMAChannel)f;
 		    			
 		    			for(AtonMessageBroadcastRate r : aton.getAtonMessageBroadcastList()){
-		    				if(r.getDbID() != null && r.getDbID().intValue() > 0){
+		    				if(r.getDbID() != null && r.getDbID().intValue() > 0 && false){
 		    					//Update
 		    					this.updateAtonMessageBroadcastRate(r);
 		    				}else{
@@ -1386,7 +1405,7 @@ import dk.frv.eavdam.data.Simulation;
 		    			AISBaseAndReceiverStationFATDMAChannel base = (AISBaseAndReceiverStationFATDMAChannel)f;
 		    			
 		    			for(FATDMAReservation r : base.getFATDMAScheme()){
-		    				if(r.getDbID() != null && r.getDbID().intValue() > 0){
+		    				if(r.getDbID() != null && r.getDbID().intValue() > 0 && false){
 		    					//Update
 		    					this.updateFATDMAReservation(r);
 		    				}else{
