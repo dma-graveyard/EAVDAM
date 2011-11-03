@@ -910,7 +910,7 @@ public class StationLayer extends OMGraphicHandlerLayer implements MapMouseListe
 					}   
 				}
 			}			
-            if (eavdamMenu.getShowOnMapMenu().getOtherUsersStationsMenuItems() != null) {
+            if (eavdamMenu.getShowOnMapMenu().getOtherUsersStationsMenuItems() != null && eavdamMenu.getShowOnMapMenu().getShowAllOtherUsersStationsMenuItem() != null) {			
 				if (eavdamMenu.getShowOnMapMenu().getShowAllOtherUsersStationsMenuItem().isSelected()) {
 					for (OtherUserStations ous : data.getOtherUsersStations()) {
 						EAVDAMUser user = ous.getUser();
