@@ -115,9 +115,9 @@ class ShapeLayersActionListener implements ActionListener {
 			JScrollPane scrollPane = new JScrollPane(shapeLayersPane);
 			scrollPane.setBorder(BorderFactory.createTitledBorder(""));
 			scrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
-			scrollPane.setMinimumSize(new Dimension(400, 600));
-			scrollPane.setPreferredSize(new Dimension(400, 600));
-			scrollPane.setMaximumSize(new Dimension(400, 600));        
+			scrollPane.setMinimumSize(new Dimension(400, 400));
+			scrollPane.setPreferredSize(new Dimension(400, 400));
+			scrollPane.setMaximumSize(new Dimension(400, 400));        
 			
 			c.gridy = 2;
             c.insets = new Insets(5, 5, 5, 5);					
@@ -151,7 +151,7 @@ class ShapeLayersActionListener implements ActionListener {
 			dialog.getContentPane().add(panel);
 
             int frameWidth = 440;
-            int frameHeight = 760;
+            int frameHeight = 580;
             Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
             dialog.setBounds((int) screenSize.getWidth()/2 - frameWidth/2,
                 (int) screenSize.getHeight()/2 - frameHeight/2, frameWidth, frameHeight);
