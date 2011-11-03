@@ -441,12 +441,15 @@ class UserInformationActionListener implements ActionListener, DocumentListener 
      */        
     private boolean saveUser() {
 
+		boolean addingNew = false;
+	
         if (data == null) {
             data = new EAVDAMData();
         }
 
         EAVDAMUser user = data.getUser();
         if (user == null) {
+			addingNew = true;
             user = new EAVDAMUser();
         }
         
@@ -559,8 +562,10 @@ class UserInformationActionListener implements ActionListener, DocumentListener 
         }
         
         data.setUser(user);                                
+		
+		
         
-        DBHandler.saveUserData(user);              
+        DBHandler.saveUserData(user, addingNew);              
         
         return true;
     
