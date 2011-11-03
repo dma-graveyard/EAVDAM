@@ -120,11 +120,11 @@ public class DBHandler {
 //        }
     }
     
-    public static void saveUserData(EAVDAMUser user){
+    public static void saveUserData(EAVDAMUser user, boolean defaultUser){
     	DerbyDBInterface d = new DerbyDBInterface();
         //d.createDatabase(null);
     	try{
-    		int id = d.insertEAVDAMUser(user, false);
+    		int id = d.insertEAVDAMUser(user, defaultUser);
 //    		System.out.println("Added user under id "+id+".");
     	}catch(Exception e){
     		e.printStackTrace();
