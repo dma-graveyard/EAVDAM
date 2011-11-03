@@ -8,6 +8,7 @@ import dk.frv.eavdam.io.XMLImporter;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.net.MalformedURLException;
+import java.sql.Timestamp;
 import java.util.Calendar;
 import java.util.GregorianCalendar;
 import javax.xml.bind.JAXBException;
@@ -40,6 +41,38 @@ public class XMLHandler {
         } else {
             return exportDataFolder+"/" + datafile;
         }        
+    }
+    
+    /**
+     * Compares the two xml-files. 
+     * 
+     * @param compareXMLFile
+     * @param compareToXMLFile
+     * @return true if the first xml-file (compareXMLFile) is older (is before) than the second file (compareToXMLFile). If there are no timestamps, last modified values are compared.
+     */
+    public static boolean isOlderXML(String compareXMLFile, String compareToXMLFile){
+    	File f1 = new File(compareXMLFile);
+		File f2 = new File(compareXMLFile);
+    	
+		try{
+    		
+    		
+    		Timestamp t1 = XMLImporter.getXMLTimestamp(f1);
+    		Timestamp t2 = XMLImporter.getXMLTimestamp(f2);
+    		
+    		return t1.before(t2);
+    	}catch(Exception e){
+    		e.printStackTrace();
+    		
+    	 
+    	}
+    	
+		if(f1.lastModified() < f2.lastModified()){
+			System.err.println("There were no timestamps in xml-files. Last modified times of the files are compared instead!");
+			return true;
+		}
+		
+    	return false;
     }
     
     public static String getNewDataFileName(String organisationName) {

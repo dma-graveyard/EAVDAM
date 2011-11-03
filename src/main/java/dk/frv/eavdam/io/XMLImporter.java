@@ -307,4 +307,23 @@ public class XMLImporter {
 			throw new RuntimeException("Invalid file");
 		}
 	}
+	
+	public static java.sql.Timestamp getXMLTimestamp(File xml) throws JAXBException, MalformedURLException {
+		JAXBContext jc = JAXBContext.newInstance("dk.frv.eavdam.io.jaxb");
+		Unmarshaller unmarshaller = jc.createUnmarshaller();
+		JAXBElement o = (JAXBElement) unmarshaller.unmarshal(xml);
+		if (o != null && o.getValue() instanceof EavdamData) {
+			XMLGregorianCalendar ts = ((EavdamData) o.getValue()).getTimestamp();
+			
+			if(ts != null){
+				long s_dt = ts.toGregorianCalendar().getTime().getTime();
+				return new java.sql.Timestamp(s_dt);
+			}
+			
+			return null;
+		} else {
+			throw new RuntimeException("Invalid file");
+		}
+	}
+
 }
