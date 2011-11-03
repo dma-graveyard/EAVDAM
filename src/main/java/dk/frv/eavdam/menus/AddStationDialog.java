@@ -44,6 +44,9 @@ public class AddStationDialog extends JDialog implements ActionListener, ItemLis
 
     public static final long serialVersionUID = 1L;
 
+	public static int WINDOW_WIDTH = 880;
+	public static int WINDOW_HEIGHT = 780;		
+	
 	private StationInformationMenuItem menuItem;
 	
     private JTextField addStationNameTextField;
@@ -235,9 +238,14 @@ public class AddStationDialog extends JDialog implements ActionListener, ItemLis
 		c = menuItem.updateGBC(c, 0, 3, 0.5, GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(5,5,5,5));             
 		c.gridwidth = 2; 
 		panel.add(buttonPanel, c);
+		
+		JScrollPane scrollPane = new JScrollPane(panel);
+        scrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
+        scrollPane.setPreferredSize(new Dimension(WINDOW_WIDTH, WINDOW_HEIGHT));
+        scrollPane.setMaximumSize(new Dimension(WINDOW_WIDTH, WINDOW_HEIGHT));
 
-		getContentPane().add(panel);
-
+        getContentPane().add(scrollPane);
+		
 		addStationChannelAComboBox.setSelectedIndex(1);
 		addStationChannelBComboBox.setSelectedIndex(2);		
 	}
