@@ -10,19 +10,28 @@ import java.io.FileOutputStream;
 import java.io.IOException;
  
 public class FTPHandler {
-    
-    public static void sendDataToFTP(FTP ftp, String filename) throws IOException {
-    	System.out.println("Sending "+filename+" to FTP server "+ftp.getServer());
-        if (ftp == null || ftp.getServer() == null || ftp.getUsername() == null || ftp.getPassword() == null) {
+
+	public static FTPClient connect(FTP ftp) throws IOException {
+		if (ftp == null || ftp.getServer() == null || ftp.getUsername() == null || ftp.getPassword() == null) {
             throw new IOException("FTP object or its contents is null");
-        }
-        
+        }	
+    	System.out.println("Logging into ftp server " + ftp.getServer());
         FTPClient ftpClient = new FTPClient();
         ftpClient.connect(ftp.getServer());
         ftpClient.login(ftp.getUsername(), ftp.getPassword());
         if (ftp.getDirectory() != null) {
             ftpClient.changeWorkingDirectory(ftp.getDirectory());
-        }
+        }	
+		return ftpClient;
+	}
+    
+    public static void sendDataToFTP(FTPClient ftpClient, String filename) throws IOException {
+
+		if (ftpClient == null || !ftpClient.isConnected()) {
+			throw new IOException("FTP Client not connected");
+		}
+
+		System.out.println("Sending " + filename + " to FTP server");
 
         // deletes old files that our organisation has sent
         int i = 0;
@@ -43,35 +52,33 @@ public class FTPHandler {
         } else {
             ftpClient.storeFile(filename, fis);            
         }
-        ftpClient.logout();
 
         try {
             if (fis != null) {
                 fis.close();
             }    
-            ftpClient.disconnect();
         } catch (IOException e) {}    
     }
- 
-	public static void importDataFromFTP(FTP ftp, String importDirectory, String ownFileName) throws IOException {
 	
-        if (ftp == null || ftp.getServer() == null || ftp.getUsername() == null || ftp.getPassword() == null) {
-            throw new IOException("FTP object or its contents is null");
-        }
-        
+	public static void disconnect(FTPClient ftpClient) {
+        try {  
+			ftpClient.logout();		
+            ftpClient.disconnect();
+        } catch (IOException e) {}    
+	}
+ 
+	public static void importDataFromFTP(FTPClient ftpClient, String importDirectory, String ownFileName) throws IOException {
+ 
+		if (ftpClient == null || !ftpClient.isConnected()) {
+			throw new IOException("FTP Client not connected");
+		}
+ 
         if (importDirectory == null) {
             throw new IOException("importDirectory is null");
-        }		
+        }
 
         if (ownFileName == null) {
             throw new IOException("ownFileName is null");
-        }		
-		
-        FTPClient ftpClient = new FTPClient();
-        ftpClient.connect(ftp.getServer());
-        ftpClient.login(ftp.getUsername(), ftp.getPassword());
-        if (ftp.getDirectory() != null) {
-            ftpClient.changeWorkingDirectory(ftp.getDirectory());
         }
 		
 		FTPFile[] files = ftpClient.listFiles();
@@ -86,13 +93,6 @@ public class FTPHandler {
 				fos.close();
 			}
 		}
-
-		ftpClient.logout();
-		
-        try {
-            ftpClient.disconnect();
-        } catch (IOException e) {}
-    
     } 
  
 }

@@ -54,11 +54,18 @@ public class UserInformationMenuItem extends JMenuItem {
 
     public static final long serialVersionUID = 3L;
 
+	private UserInformationActionListener userInformationActionListener;
+	
     public UserInformationMenuItem(EavdamMenu eavdamMenu) {        
         super("Edit User Information");                
-        addActionListener(new UserInformationActionListener(eavdamMenu));
+		this.userInformationActionListener = new UserInformationActionListener(eavdamMenu);
+        addActionListener(userInformationActionListener);
     }
 
+	public void setData(EAVDAMData data) {
+		userInformationActionListener.setData(data);
+	}	
+	
 }
  
 class UserInformationActionListener implements ActionListener, DocumentListener {
@@ -95,7 +102,11 @@ class UserInformationActionListener implements ActionListener, DocumentListener 
         super();
         this.eavdamMenu = eavdamMenu;
     }
-                   
+	
+	public void setData(EAVDAMData data) {
+		this.data = data;
+	}	
+                   		   
     public void actionPerformed(ActionEvent e) {
         
         if (e.getSource() instanceof UserInformationMenuItem) {

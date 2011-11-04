@@ -106,10 +106,22 @@ public class EavdamMenu extends AbstractOpenMapMenu implements MenuListener {
 	public ShowOnMapMenu getShowOnMapMenu() {
 		return showOnMapMenu;
 	}
+	
+	public void setShowOnMapMenu(ShowOnMapMenu showOnMapMenu) {
+		this.showOnMapMenu = showOnMapMenu;
+	}
 
 	public ShapeLayersMenu getShapeLayersMenu() {
 		return shapeLayersMenu;
 	}
+	
+	public StationInformationMenu getStationInformationMenu() {
+		return stationInformationMenu;
+	}
+	
+	public UserInformationMenuItem getUserInformationMenuItem() {
+		return userInformationMenuItem;
+	}	
 	
 	@Override
 	public void findAndInit(Object obj) {

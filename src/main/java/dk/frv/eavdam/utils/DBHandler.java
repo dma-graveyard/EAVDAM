@@ -21,6 +21,7 @@ import dk.frv.eavdam.io.derby.DerbyDBInterface;
 import java.util.ArrayList;
 import java.util.GregorianCalendar;
 import java.util.List;
+import org.apache.commons.net.ftp.FTPClient;
 
 public class DBHandler {
         
@@ -46,7 +47,9 @@ public class DBHandler {
 				if (ftps != null && !ftps.isEmpty()) {
 					for (FTP ftp : ftps) {
 						try {
-							FTPHandler.importDataFromFTP(ftp, XMLHandler.importDataFolder, ownFileName);                                       
+							FTPClient ftpClient = FTPHandler.connect(ftp);
+							FTPHandler.importDataFromFTP(ftpClient, XMLHandler.importDataFolder, ownFileName);                                       
+							FTPHandler.disconnect(ftpClient);
 						} catch (IOException ex) {
 							System.out.println(ex.getMessage());
 							ex.printStackTrace();

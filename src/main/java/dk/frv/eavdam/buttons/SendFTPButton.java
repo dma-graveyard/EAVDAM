@@ -3,11 +3,15 @@ package dk.frv.eavdam.buttons;
 import com.bbn.openmap.gui.OMToolComponent;
 import com.bbn.openmap.gui.OpenMapFrame;
 import com.bbn.openmap.gui.Tool;
+import dk.frv.eavdam.data.EAVDAMData;
 import dk.frv.eavdam.data.FTP;
 import dk.frv.eavdam.data.Options;
 import dk.frv.eavdam.io.FTPHandler;
 import dk.frv.eavdam.io.derby.DerbyDBInterface;
+import dk.frv.eavdam.menus.EavdamMenu;
+import dk.frv.eavdam.menus.ShowOnMapMenu;
 import dk.frv.eavdam.menus.OptionsMenuItem;
+import dk.frv.eavdam.layers.StationLayer;
 import dk.frv.eavdam.utils.XMLHandler;
 import java.awt.Color;
 import java.awt.Container;
@@ -25,6 +29,7 @@ import javax.swing.JButton;
 import javax.swing.JDialog;
 import javax.swing.JOptionPane;
 import javax.swing.JToolBar;
+import org.apache.commons.net.ftp.FTPClient;
 
 public class SendFTPButton extends OMToolComponent implements ActionListener, Tool {
 
@@ -32,6 +37,9 @@ public class SendFTPButton extends OMToolComponent implements ActionListener, To
 	protected JButton sendFTPButton = null;
 	protected JToolBar jToolBar;
     private OpenMapFrame openMapFrame;
+	
+	private StationLayer stationLayer;
+	private EavdamMenu eavdamMenu;
  
 	public SendFTPButton() {
 		super();
@@ -45,25 +53,32 @@ public class SendFTPButton extends OMToolComponent implements ActionListener, To
 
         sendFTPButton.setBorder(BorderFactory.createEmptyBorder());
 		sendFTPButton.addActionListener(this);
-		sendFTPButton.setToolTipText("Send the data file to ftp recipients");
+		sendFTPButton.setToolTipText("Exchange data with ftp servers");
 		add(sendFTPButton);
 		
 	}
 	
-	 public void actionPerformed(ActionEvent e) {
+	public void actionPerformed(ActionEvent e) {
 	    
-		 XMLHandler.exportData();
+		XMLHandler.exportData();
 		 
-	     int response = JOptionPane.showConfirmDialog(openMapFrame, "This will send the latest data file to all defined ftp directories. Are you sure you want to do this?", "Confirm action", JOptionPane.YES_NO_OPTION);
-         if (response == JOptionPane.YES_OPTION) {
+	    int response = JOptionPane.showConfirmDialog(openMapFrame, "This will send your latest data file to all defined ftp directories and download\n" +
+		    "new data files of other users from them. Are you sure you want to do this?", "Confirm action", JOptionPane.YES_NO_OPTION);
+        if (response == JOptionPane.YES_OPTION) {
             Options options = OptionsMenuItem.loadOptions();
+			String ownFileName = XMLHandler.getLatestDataFileName();
+			if (ownFileName != null && ownFileName.indexOf("/") != -1) {
+				ownFileName = ownFileName.substring(ownFileName.lastIndexOf("/")+1);
+			}				
             List<FTP> ftps = options.getFTPs();
             if (ftps != null && !ftps.isEmpty()) {
                 boolean errors = false;
                 for (FTP ftp : ftps) {
                     try {
-
-                        FTPHandler.sendDataToFTP(ftp, XMLHandler.getLatestDataFileName());                                       
+                        FTPClient ftpClient = FTPHandler.connect(ftp);
+						FTPHandler.sendDataToFTP(ftpClient, XMLHandler.getLatestDataFileName());                                       
+						FTPHandler.importDataFromFTP(ftpClient, XMLHandler.importDataFolder, ownFileName);
+						FTPHandler.disconnect(ftpClient);
                     } catch (IOException ex) {
                         System.out.println(ex.getMessage());
                         ex.printStackTrace();
@@ -71,21 +86,40 @@ public class SendFTPButton extends OMToolComponent implements ActionListener, To
                     }
                 }
                 if (!errors) {
-                    JOptionPane.showMessageDialog(openMapFrame, "Data was sent succesfully."); 
+                    JOptionPane.showMessageDialog(openMapFrame, "Data exhanged succesfully."); 
                 } else {                       
-                    JOptionPane.showMessageDialog(openMapFrame, "Some errors occurred when sending the data", "Error", JOptionPane.ERROR_MESSAGE); 
+                    JOptionPane.showMessageDialog(openMapFrame, "Some errors occurred when exchanging data.", "Error", JOptionPane.ERROR_MESSAGE); 
                 }
             } else {
                 JOptionPane.showMessageDialog(openMapFrame, "No FTP sites defined.", "Error", JOptionPane.ERROR_MESSAGE);         
             } 
-         } else if (response == JOptionPane.NO_OPTION) { 
+        } else if (response == JOptionPane.NO_OPTION) { 
             // ignore        
-         }
-     }
+        }
+		 
+		EAVDAMData data = XMLHandler.importData();
+		if (stationLayer != null) {
+			stationLayer.updateStations();
+		}
+		if (eavdamMenu != null) {
+			eavdamMenu.setShowOnMapMenu(new ShowOnMapMenu(eavdamMenu));
+			if (eavdamMenu.getStationInformationMenu() != null && eavdamMenu.getStationInformationMenu().getStationInformationMenuItem() != null) {
+				eavdamMenu.getStationInformationMenu().getStationInformationMenuItem().setData(data);
+			}
+			if (eavdamMenu.getUserInformationMenuItem() != null) {
+				eavdamMenu.getUserInformationMenuItem().setData(data);
+			}
+		}
+	}
 
+	@Override
 	 public void findAndInit(Object obj) {
 		if (obj instanceof OpenMapFrame) {
 			this.openMapFrame = (OpenMapFrame) obj;
+		} else if (obj instanceof StationLayer) {
+		    this.stationLayer = (StationLayer) obj;
+		} else if (obj instanceof EavdamMenu) {
+			this.eavdamMenu = eavdamMenu;
 		}
 	}	    
 
