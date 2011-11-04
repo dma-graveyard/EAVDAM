@@ -52,8 +52,8 @@ public class FATDMAGridLayer extends OMGraphicHandlerLayer {
 			float masterCellSizeInDegreesLatitude = (float) masterCellSizeInNauticalMiles / 60;  	
 			float singleCellHeightInDegrees = masterCellSizeInDegreesLatitude / noOfSingleCellsAlongOneSideOfMasterCell;
 
-			//for (float lat = (float) upperLeft.getY(); lat> (float) lowerRight.getY(); lat = lat-singleCellHeightInDegrees) {  // covers northern Europe
-			for (float lat = 73; lat > 28; lat = lat-singleCellHeightInDegrees) {  // covers northern Europe			
+			//for (float lat = (float) upperLeft.getY(); lat> (float) lowerRight.getY(); lat = lat-singleCellHeightInDegrees) {
+			for (float lat = 73; lat > 28; lat = lat-singleCellHeightInDegrees) {  // covers Europe			
 				try {
 					int masterCellRowNo = (int) (Math.abs(lat + (float) 0.5*singleCellHeightInDegrees) / masterCellSizeInDegreesLatitude);
 					double masterCellMeanLatitude = (masterCellRowNo + 0.5) * masterCellSizeInDegreesLatitude;
@@ -70,7 +70,7 @@ public class FATDMAGridLayer extends OMGraphicHandlerLayer {
 							omText.setBaseline(OMText.BASELINE_MIDDLE);
 							graphics.add(omText);
 						}
-						/*
+					/*
 					} else {
 						for (float lon = (float) lowerRight.getX(); lon < (float) upperLeft.getX(); lon = lon + singleCellWidthInDegrees) {
 							OMRect omRect = new OMRect(lat, lon, lat + singleCellHeightInDegrees, lon+singleCellWidthInDegrees, OMGraphic.LINETYPE_RHUMB);
