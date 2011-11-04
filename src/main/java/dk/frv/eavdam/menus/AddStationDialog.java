@@ -582,7 +582,7 @@ public class AddStationDialog extends JDialog implements ActionListener, ItemLis
 		channelPanel.add(blockSizeLabel, c);	
 		c = menuItem.updateGBC(c, 2, 0, 0.5, GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(5,5,5,5));			
 		JLabel incrementLabel = new JLabel("<html><u>Increment</u></html>");
-		incrementLabel.setToolTipText("FATDMA_increment (0..1125)");		
+		incrementLabel.setToolTipText("FATDMA_increment (0..1125, recommended values 0,2,3,5,6,9,10,15,18,25,30,45,50,75,90,125,225,250,375,450,750,1125)");
 		channelPanel.add(incrementLabel, c);	
 		c = menuItem.updateGBC(c, 3, 0, 0.5, GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(5,5,5,5));			
 		JLabel ownershipLabel = new JLabel("<html><u>Ownership</u></html>");
@@ -608,8 +608,8 @@ public class AddStationDialog extends JDialog implements ActionListener, ItemLis
 					c = menuItem.updateGBC(c, cols, (channelPanel.getComponents().length)/5, 0.5, GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(5,5,5,5));	
 				} else if (cols == 3) {
 					component = new JComboBox();									
-					((JComboBox) component).addItem("L");
-					((JComboBox) component).addItem("R");
+					((JComboBox) component).addItem("Local");
+					((JComboBox) component).addItem("Remote");
 					((JComboBox) component).setBorder(new EmptyBorder(0, 3, 0, 3));
 					c = menuItem.updateGBC(c, cols, (channelPanel.getComponents().length)/5, 0.5, GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(5,5,5,5));					
 				} else if (cols == 4) {
@@ -741,9 +741,15 @@ public class AddStationDialog extends JDialog implements ActionListener, ItemLis
 			JTextField blockSizeTextField = (JTextField) components[i+1];
 			JTextField incrementTextField = (JTextField) components[i+2];
 			JComboBox ownershipComboBox = (JComboBox) components[i+3];
+			String ownership = null;
+			if (ownershipComboBox.getSelectedIndex() == 0) {
+				ownership = "L";
+			} else if (ownershipComboBox.getSelectedIndex() == 1) {
+				ownership = "R";
+			}
 			if (!startslotTextField.getText().isEmpty() || !blockSizeTextField.getText().isEmpty() || !incrementTextField.getText().isEmpty()) {
 				FATDMAReservation fatdmaReservation = new FATDMAReservation(new Integer(startslotTextField.getText()),
-					new Integer(blockSizeTextField.getText()), new Integer(incrementTextField.getText()), (String) ownershipComboBox.getSelectedItem());
+					new Integer(blockSizeTextField.getText()), new Integer(incrementTextField.getText()), ownership);
 				fatdmaScheme.add(fatdmaReservation);
 			}						
 			// i+4 is delete button
@@ -951,135 +957,188 @@ public class AddStationDialog extends JDialog implements ActionListener, ItemLis
 			}				
 		}
 		
-        AISFixedStationData stationData = new AISFixedStationData();
-
-        try {                 
-            stationData.setStationName(addStationNameTextField.getText().trim());
-            if (addStationTypeComboBox.getSelectedIndex() == 0) {
-                stationData.setStationType(AISFixedStationType.BASESTATION);
-            } else if (addStationTypeComboBox.getSelectedIndex() == 1) {
-                stationData.setStationType(AISFixedStationType.REPEATER); 
-            } else if (addStationTypeComboBox.getSelectedIndex() == 2) {
-                stationData.setStationType(AISFixedStationType.RECEIVER); 
-            } else if (addStationTypeComboBox.getSelectedIndex() == 3) {
-                stationData.setStationType(AISFixedStationType.ATON); 
-            }  
-            stationData.setLat(new Double(addLatitudeTextField.getText().replace(",", ".").trim()).doubleValue());                                
-            stationData.setLon(new Double(addLongitudeTextField.getText().replace(",", ".").trim()).doubleValue());  
-            if (addMMSINumberTextField.getText().trim().isEmpty()) {
-                stationData.setMmsi(null);
-            } else {
-                stationData.setMmsi(addMMSINumberTextField.getText().trim());
-            }
-            if (addTransmissionPowerTextField.getText().trim().isEmpty()) {
-                stationData.setTransmissionPower(null);
-            } else {
-                stationData.setTransmissionPower(new Double(addTransmissionPowerTextField.getText().replace(",", ".").trim()));               
-            }
-            Antenna antenna = stationData.getAntenna();
-            if (addAntennaTypeComboBox.getSelectedIndex() == 0) {
-                stationData.setAntenna(null);
-            } else if (addAntennaTypeComboBox.getSelectedIndex() == 1) {
-                if (antenna == null) {
-                    antenna = new Antenna();
-                }
-                antenna.setAntennaType(AntennaType.OMNIDIRECTIONAL);                    
-            } else if (addAntennaTypeComboBox.getSelectedIndex() == 2) {
-                if (antenna == null) {
-                    antenna = new Antenna();
-                }
-                antenna.setAntennaType(AntennaType.DIRECTIONAL);
-            }
-            if (addAntennaTypeComboBox.getSelectedIndex() == 1 ||
-                    addAntennaTypeComboBox.getSelectedIndex() == 2) {
-                if (!addAntennaHeightTextField.getText().trim().isEmpty()) {
-                    antenna.setAntennaHeight(new Double(addAntennaHeightTextField.getText().replace(",", ".").trim()).doubleValue());
-                }
-                if (!addTerrainHeightTextField.getText().trim().isEmpty()) {
-                    antenna.setTerrainHeight(new Double(addTerrainHeightTextField.getText().replace(",", ".").trim()).doubleValue());
-                }
-            }
-            if (addAntennaTypeComboBox.getSelectedIndex() == 2) {
-                if (addHeadingTextField.getText().trim().isEmpty()) {                        
-                    antenna.setHeading(null);
-                } else {
-                    antenna.setHeading(new Integer(addHeadingTextField.getText().trim()));
-                }
-                if (addFieldOfViewAngleTextField.getText().trim().isEmpty()) { 
-                    antenna.setFieldOfViewAngle(null);
-                } else {
-                    antenna.setFieldOfViewAngle(new Integer(addFieldOfViewAngleTextField.getText().trim()));
-                }
-                if (addGainTextField.getText().trim().isEmpty()) {             
-                    antenna.setGain(null);
-                } else {
-                    antenna.setGain(new Double(addGainTextField.getText().replace(",", ".").trim()));
-                }
-            }
-            if (addAntennaTypeComboBox.getSelectedIndex() == 1 ||
-                    addAntennaTypeComboBox.getSelectedIndex() == 2) {
-                stationData.setAntenna(antenna);
-            }
-			stationData.setFATDMAChannelA(fatdmaChannelA);
-			stationData.setFATDMAChannelB(fatdmaChannelB);
-            if (addAdditionalInformationJTextArea.getText().trim().isEmpty()) {
-                stationData.setDescription(null);
-            } else {
-                stationData.setDescription(addAdditionalInformationJTextArea.getText().trim());
-            }
-        } catch (IllegalArgumentException e) {
-            JOptionPane.showMessageDialog(this, e.getMessage());              
-            return false;
-        }            
-
-        if (((String) menuItem.getSelectDatasetComboBox().getSelectedItem()).startsWith(StationInformationMenuItem.OWN_ACTIVE_STATIONS_LABEL)) {            
-
-			if (addStationStatusComboBox.getSelectedIndex() == 0) {  // operative
-				AISFixedStationStatus status = new AISFixedStationStatus();
-				status.setStatusID(DerbyDBInterface.STATUS_ACTIVE);
-				stationData.setStatus(status);
-			} else if (addStationStatusComboBox.getSelectedIndex() == 1) {  // planned
-				AISFixedStationStatus status = new AISFixedStationStatus();
-				status.setStatusID(DerbyDBInterface.STATUS_PLANNED);				
-				stationData.setStatus(status);
+		int nonRecommendedValueForIncrementForChannelA = 0;
+		int nonRecommendedValueForIncrementForChannelB = 0;
+		if (fatdmaChannelA instanceof AISBaseAndReceiverStationFATDMAChannel) {
+			List<FATDMAReservation> fatdmaScheme = ((AISBaseAndReceiverStationFATDMAChannel) fatdmaChannelA).getFATDMAScheme();
+			for (FATDMAReservation fatdmaReservation : fatdmaScheme) {
+				int i = fatdmaReservation.getIncrement().intValue();
+				if (i != 0 && i != 2 && i != 3 && i != 5 && i != 6 && i != 9 && i != 10 && i != 15 && i != 18 && i != 25 && i != 30 && i != 45
+						&& i != 50 && i != 75 && i != 90 && i != 125 && i != 225 && i != 250 && i != 375 && i != 450 && i != 750 && i != 1125) {
+					nonRecommendedValueForIncrementForChannelA = i;
+					break;
+				}
 			}
+		}
+		if (fatdmaChannelB instanceof AISBaseAndReceiverStationFATDMAChannel) {
+			List<FATDMAReservation> fatdmaScheme = ((AISBaseAndReceiverStationFATDMAChannel) fatdmaChannelB).getFATDMAScheme();
+			for (FATDMAReservation fatdmaReservation : fatdmaScheme) {
+				int i = fatdmaReservation.getIncrement().intValue();
+				if (i != 0 && i != 2 && i != 3 && i != 5 && i != 6 && i != 9 && i != 10 && i != 15 && i != 18 && i != 25 && i != 30 && i != 45
+						&& i != 50 && i != 75 && i != 90 && i != 125 && i != 225 && i != 250 && i != 375 && i != 450 && i != 750 && i != 1125) {
+					nonRecommendedValueForIncrementForChannelB = i;
+					break;
+				}
+			}
+		}		
 		
-            ActiveStation activeStation = new ActiveStation();
-            List<AISFixedStationData> stations = new ArrayList<AISFixedStationData>();
-            stations.add(stationData);            
-            activeStation.setStations(stations);
-						
-            List<ActiveStation> activeStations = null;
-            if (menuItem.getData() == null || menuItem.getData().getActiveStations() == null) {
-                activeStations = new ArrayList<ActiveStation>();
-            } else {
-                activeStations = menuItem.getData().getActiveStations();
-            }
-            activeStations.add(activeStation);                
-            menuItem.getData().setActiveStations(activeStations);  
-  
-        } else if (((String) menuItem.getSelectDatasetComboBox().getSelectedItem()).startsWith(StationInformationMenuItem.SIMULATION_LABEL)) {
+		boolean doContinue = true;
+		if (nonRecommendedValueForIncrementForChannelA != 0 || nonRecommendedValueForIncrementForChannelB != 0) {
+			String msg = "FATDMA reservations for channel ";
+			if (nonRecommendedValueForIncrementForChannelA != 0) {
+				msg += "A contains a reservation with increment " + nonRecommendedValueForIncrementForChannelA;
+			}
+			if (nonRecommendedValueForIncrementForChannelA != 0 && nonRecommendedValueForIncrementForChannelB != 0) {
+				msg += " and\nFATDMA reservations for channel ";
+			}
+			if (nonRecommendedValueForIncrementForChannelB != 0) {
+				msg += "B contains a reservation with increment " + nonRecommendedValueForIncrementForChannelB;
+			}
+			msg += ".\n";
+			msg += "According to ITU and IALA recommendations, the following values are recommended\n" +
+				"to ensure symmetric reservations accross the frame: 0, 2, 3, 5, 6, 9, 10, 15, 18,\n" +
+				"25, 30, 45, 50, 75, 90, 125, 225, 250, 375, 450, 750, 1125. Are you sure you wish to\n" +
+				"save this reservation?";				
+			int response = JOptionPane.showConfirmDialog(this, msg, "Confirm action", JOptionPane.YES_NO_OPTION);
+			if (response == JOptionPane.NO_OPTION) {
+				doContinue = false;
+			}
+		}
+		
+		if (doContinue) {
+			AISFixedStationData stationData = new AISFixedStationData();
 
-            AISFixedStationStatus status = new AISFixedStationStatus();
-            status.setStatusID(DerbyDBInterface.STATUS_SIMULATED);
-            stationData.setStatus(status);
+			try {                 
+				stationData.setStationName(addStationNameTextField.getText().trim());
+				if (addStationTypeComboBox.getSelectedIndex() == 0) {
+					stationData.setStationType(AISFixedStationType.BASESTATION);
+				} else if (addStationTypeComboBox.getSelectedIndex() == 1) {
+					stationData.setStationType(AISFixedStationType.REPEATER); 
+				} else if (addStationTypeComboBox.getSelectedIndex() == 2) {
+					stationData.setStationType(AISFixedStationType.RECEIVER); 
+				} else if (addStationTypeComboBox.getSelectedIndex() == 3) {
+					stationData.setStationType(AISFixedStationType.ATON); 
+				}  
+				stationData.setLat(new Double(addLatitudeTextField.getText().replace(",", ".").trim()).doubleValue());                                
+				stationData.setLon(new Double(addLongitudeTextField.getText().replace(",", ".").trim()).doubleValue());  
+				if (addMMSINumberTextField.getText().trim().isEmpty()) {
+					stationData.setMmsi(null);
+				} else {
+					stationData.setMmsi(addMMSINumberTextField.getText().trim());
+				}
+				if (addTransmissionPowerTextField.getText().trim().isEmpty()) {
+					stationData.setTransmissionPower(null);
+				} else {
+					stationData.setTransmissionPower(new Double(addTransmissionPowerTextField.getText().replace(",", ".").trim()));               
+				}
+				Antenna antenna = stationData.getAntenna();
+				if (addAntennaTypeComboBox.getSelectedIndex() == 0) {
+					stationData.setAntenna(null);
+				} else if (addAntennaTypeComboBox.getSelectedIndex() == 1) {
+					if (antenna == null) {
+						antenna = new Antenna();
+					}
+					antenna.setAntennaType(AntennaType.OMNIDIRECTIONAL);                    
+				} else if (addAntennaTypeComboBox.getSelectedIndex() == 2) {
+					if (antenna == null) {
+						antenna = new Antenna();
+					}
+					antenna.setAntennaType(AntennaType.DIRECTIONAL);
+				}
+				if (addAntennaTypeComboBox.getSelectedIndex() == 1 ||
+						addAntennaTypeComboBox.getSelectedIndex() == 2) {
+					if (!addAntennaHeightTextField.getText().trim().isEmpty()) {
+						antenna.setAntennaHeight(new Double(addAntennaHeightTextField.getText().replace(",", ".").trim()).doubleValue());
+					}
+					if (!addTerrainHeightTextField.getText().trim().isEmpty()) {
+						antenna.setTerrainHeight(new Double(addTerrainHeightTextField.getText().replace(",", ".").trim()).doubleValue());
+					}
+				}
+				if (addAntennaTypeComboBox.getSelectedIndex() == 2) {
+					if (addHeadingTextField.getText().trim().isEmpty()) {                        
+						antenna.setHeading(null);
+					} else {
+						antenna.setHeading(new Integer(addHeadingTextField.getText().trim()));
+					}
+					if (addFieldOfViewAngleTextField.getText().trim().isEmpty()) { 
+						antenna.setFieldOfViewAngle(null);
+					} else {
+						antenna.setFieldOfViewAngle(new Integer(addFieldOfViewAngleTextField.getText().trim()));
+					}
+					if (addGainTextField.getText().trim().isEmpty()) {             
+						antenna.setGain(null);
+					} else {
+						antenna.setGain(new Double(addGainTextField.getText().replace(",", ".").trim()));
+					}
+				}
+				if (addAntennaTypeComboBox.getSelectedIndex() == 1 ||
+						addAntennaTypeComboBox.getSelectedIndex() == 2) {
+					stationData.setAntenna(antenna);
+				}
+				stationData.setFATDMAChannelA(fatdmaChannelA);
+				stationData.setFATDMAChannelB(fatdmaChannelB);
+				if (addAdditionalInformationJTextArea.getText().trim().isEmpty()) {
+					stationData.setDescription(null);
+				} else {
+					stationData.setDescription(addAdditionalInformationJTextArea.getText().trim());
+				}
+			} catch (IllegalArgumentException e) {
+				JOptionPane.showMessageDialog(this, e.getMessage());              
+				return false;
+			}            
 
-			if (menuItem.getData() != null && menuItem.getData().getSimulatedStations() != null) {                
-                for (Simulation s : menuItem.getData().getSimulatedStations()) {
-                    if (((String) menuItem.getSelectDatasetComboBox().getSelectedItem()).endsWith(s.getName())) {
-                        List<AISFixedStationData> stations = s.getStations();
-                        if (stations == null) {
-                            stations = new ArrayList<AISFixedStationData>();
-                        }
-                        stations.add(stationData);
-                    }
-                }
-            }
-        }
+			if (((String) menuItem.getSelectDatasetComboBox().getSelectedItem()).startsWith(StationInformationMenuItem.OWN_ACTIVE_STATIONS_LABEL)) {            
 
-        DBHandler.saveData(menuItem.getData());
+				if (addStationStatusComboBox.getSelectedIndex() == 0) {  // operative
+					AISFixedStationStatus status = new AISFixedStationStatus();
+					status.setStatusID(DerbyDBInterface.STATUS_ACTIVE);
+					stationData.setStatus(status);
+				} else if (addStationStatusComboBox.getSelectedIndex() == 1) {  // planned
+					AISFixedStationStatus status = new AISFixedStationStatus();
+					status.setStatusID(DerbyDBInterface.STATUS_PLANNED);				
+					stationData.setStatus(status);
+				}
+			
+				ActiveStation activeStation = new ActiveStation();
+				List<AISFixedStationData> stations = new ArrayList<AISFixedStationData>();
+				stations.add(stationData);            
+				activeStation.setStations(stations);
+							
+				List<ActiveStation> activeStations = null;
+				if (menuItem.getData() == null || menuItem.getData().getActiveStations() == null) {
+					activeStations = new ArrayList<ActiveStation>();
+				} else {
+					activeStations = menuItem.getData().getActiveStations();
+				}
+				activeStations.add(activeStation);                
+				menuItem.getData().setActiveStations(activeStations);  
+	  
+			} else if (((String) menuItem.getSelectDatasetComboBox().getSelectedItem()).startsWith(StationInformationMenuItem.SIMULATION_LABEL)) {
 
-        return true;
+				AISFixedStationStatus status = new AISFixedStationStatus();
+				status.setStatusID(DerbyDBInterface.STATUS_SIMULATED);
+				stationData.setStatus(status);
+
+				if (menuItem.getData() != null && menuItem.getData().getSimulatedStations() != null) {                
+					for (Simulation s : menuItem.getData().getSimulatedStations()) {
+						if (((String) menuItem.getSelectDatasetComboBox().getSelectedItem()).endsWith(s.getName())) {
+							List<AISFixedStationData> stations = s.getStations();
+							if (stations == null) {
+								stations = new ArrayList<AISFixedStationData>();
+							}
+							stations.add(stationData);
+						}
+					}
+				}
+			}
+
+			DBHandler.saveData(menuItem.getData());
+
+			return true;
+			
+		} else {
+			return false;
+		}
     }
 	
 }
