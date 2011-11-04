@@ -42,8 +42,8 @@ public class FATDMAGridLayer extends OMGraphicHandlerLayer {
 			
 		} else {
 		
-			Point2D upperLeft = projection.getUpperLeft();
-			Point2D lowerRight = projection.getLowerRight();
+			//Point2D upperLeft = projection.getUpperLeft();
+			//Point2D lowerRight = projection.getLowerRight();
 			
 			int singleCellSizeInNauticalMiles = 30;
 			int noOfSingleCellsAlongOneSideOfMasterCell = 6;
@@ -52,14 +52,16 @@ public class FATDMAGridLayer extends OMGraphicHandlerLayer {
 			float masterCellSizeInDegreesLatitude = (float) masterCellSizeInNauticalMiles / 60;  	
 			float singleCellHeightInDegrees = masterCellSizeInDegreesLatitude / noOfSingleCellsAlongOneSideOfMasterCell;
 
-			for (float lat = (float) upperLeft.getY(); lat> (float) lowerRight.getY(); lat = lat-singleCellHeightInDegrees) {  // covers northern Europe
+			//for (float lat = (float) upperLeft.getY(); lat> (float) lowerRight.getY(); lat = lat-singleCellHeightInDegrees) {  // covers northern Europe
+			for (float lat = 73; lat > 28; lat = lat-singleCellHeightInDegrees) {  // covers northern Europe			
 				try {
 					int masterCellRowNo = (int) (Math.abs(lat + (float) 0.5*singleCellHeightInDegrees) / masterCellSizeInDegreesLatitude);
 					double masterCellMeanLatitude = (masterCellRowNo + 0.5) * masterCellSizeInDegreesLatitude;
 					int noOfMasterCellsAroundMasterCellRow = (int) (noOfMasterCellsAroundEquator * Math.cos(2*Math.PI*masterCellMeanLatitude/360.0));
 					float singleCellWidthInDegrees = (float) 360/(noOfSingleCellsAlongOneSideOfMasterCell*noOfMasterCellsAroundMasterCellRow);	
-					if (upperLeft.getX() < lowerRight.getX()) {
-						for (float lon = (float) upperLeft.getX(); lon < (float) lowerRight.getX(); lon = lon + singleCellWidthInDegrees) {
+					//if (upperLeft.getX() < lowerRight.getX()) {
+						//for (float lon = (float) upperLeft.getX(); lon < (float) lowerRight.getX(); lon = lon + singleCellWidthInDegrees) {
+						for (float lon = -25; lon < 43; lon = lon + singleCellWidthInDegrees) {						
 							OMRect omRect = new OMRect(lat, lon, lat + singleCellHeightInDegrees, lon+singleCellWidthInDegrees, OMGraphic.LINETYPE_RHUMB);
 							graphics.add(omRect);					
 							int cellno = getCellNo(lat + (float) 0.5*singleCellHeightInDegrees, lon + (float) 0.5*singleCellWidthInDegrees,
@@ -68,6 +70,7 @@ public class FATDMAGridLayer extends OMGraphicHandlerLayer {
 							omText.setBaseline(OMText.BASELINE_MIDDLE);
 							graphics.add(omText);
 						}
+						/*
 					} else {
 						for (float lon = (float) lowerRight.getX(); lon < (float) upperLeft.getX(); lon = lon + singleCellWidthInDegrees) {
 							OMRect omRect = new OMRect(lat, lon, lat + singleCellHeightInDegrees, lon+singleCellWidthInDegrees, OMGraphic.LINETYPE_RHUMB);
@@ -79,6 +82,7 @@ public class FATDMAGridLayer extends OMGraphicHandlerLayer {
 							graphics.add(omText);
 						}					
 					}
+					*/
 				} catch (Exception ex) {}				
 			}
 		}
