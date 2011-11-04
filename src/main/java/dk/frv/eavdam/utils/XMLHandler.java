@@ -50,15 +50,13 @@ public class XMLHandler {
      * @param compareToXMLFile
      * @return true if the first xml-file (compareXMLFile) is older (is before) than the second file (compareToXMLFile). If there are no timestamps, last modified values are compared.
      */
-    public static boolean isOlderXML(String compareXMLFile, String compareToXMLFile){
-    	File f1 = new File(compareXMLFile);
-		File f2 = new File(compareXMLFile);
-    	
+    public static boolean isOlderXML(File compareXMLFile, File compareToXMLFile){
+
 		try{
     		
     		
-    		Timestamp t1 = XMLImporter.getXMLTimestamp(f1);
-    		Timestamp t2 = XMLImporter.getXMLTimestamp(f2);
+    		Timestamp t1 = XMLImporter.getXMLTimestamp(compareXMLFile);
+    		Timestamp t2 = XMLImporter.getXMLTimestamp(compareToXMLFile);
     		
     		return t1.before(t2);
     	}catch(Exception e){
@@ -67,7 +65,7 @@ public class XMLHandler {
     	 
     	}
     	
-		if(f1.lastModified() < f2.lastModified()){
+		if(compareXMLFile.lastModified() < compareToXMLFile.lastModified()){
 			System.err.println("There were no timestamps in xml-files. Last modified times of the files are compared instead!");
 			return true;
 		}

@@ -2,6 +2,7 @@
 package dk.frv.eavdam.io;
 
 import dk.frv.eavdam.data.FTP;
+import dk.frv.eavdam.utils.XMLHandler;
 import org.apache.commons.net.ftp.FTPClient;
 import org.apache.commons.net.ftp.FTPFile;
 import java.io.File;
@@ -84,13 +85,24 @@ public class FTPHandler {
 		FTPFile[] files = ftpClient.listFiles();
         for (FTPFile file : files) {		
 			if (!file.isDirectory() && !file.getName().equals(ownFileName) && (file.getName().substring(file.getName().length()-3).equalsIgnoreCase("xml"))) {
-				File importedFile = new File(importDirectory + File.separator + file.getName());
-				if (importedFile.exists()) {
-					importedFile.delete();
-				}
-				FileOutputStream fos = new FileOutputStream(importedFile);
+				File tempFile = new File(importDirectory + File.separator + "temp_file_for_testing_timestamp.xml");
+				FileOutputStream fos = new FileOutputStream(tempFile);
 				ftpClient.retrieveFile(file.getName(), fos);
 				fos.close();
+				File importedFile = new File(importDirectory + File.separator + file.getName());
+				if (importedFile.exists()) {
+					if (XMLHandler.isOlderXML(importedFile, tempFile)) {
+						importedFile.delete();
+						fos = new FileOutputStream(importedFile);
+						ftpClient.retrieveFile(file.getName(), fos);
+						fos.close();
+					}
+				} else {
+					fos = new FileOutputStream(importedFile);
+					ftpClient.retrieveFile(file.getName(), fos);
+					fos.close();
+				}
+				tempFile.delete();
 			}
 		}
     } 
