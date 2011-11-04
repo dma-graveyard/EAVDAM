@@ -2911,8 +2911,8 @@ import dk.frv.eavdam.data.Simulation;
 	    		
 	    		//Insert "unknown" values.
 	    		s.execute("INSERT INTO ANTENNATYPE VALUES(0, 'No antenna')");
-	    		s.execute("INSERT INTO ADDRESS VALUES(0,'Unknown','Unknown',null,null,null)");
-	    		s.execute("INSERT INTO PERSON VALUES(0,'Unknown','Unknown','','','',0,0)");
+	    		s.execute("INSERT INTO ADDRESS VALUES(0,'','',null,null,null)");
+	    		s.execute("INSERT INTO PERSON VALUES(0,'Unknown','','','','',0,0)");
 	    		s.execute("INSERT INTO ORGANIZATION VALUES(0,'Unknown','NO','','','','',0,0,0,0,0)");
 	    		
 //	    		System.out.println("Inserting default user to the database for demonstration purposis. Default user name: DaMSA");

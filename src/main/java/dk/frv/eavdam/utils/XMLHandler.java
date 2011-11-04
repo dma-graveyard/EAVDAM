@@ -160,6 +160,8 @@ public class XMLHandler {
     	try {
         	File importFolder = new File(importDataFolder);
         	String[] files = importFolder.list();
+        	if(files == null) return null;
+        	
         	for(String file : files){
         		System.out.println("Importing file: "+file);
         		EAVDAMData d = XMLImporter.readXML(new File(importFolder+"/"+file));
