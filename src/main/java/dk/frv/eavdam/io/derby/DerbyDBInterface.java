@@ -1179,7 +1179,7 @@ import dk.frv.eavdam.data.Simulation;
 	    		id = rs.getInt(1);
 	    	}
 	    	
-	    	if(id < 0) return;
+	    	if(id <= 0) return;
 	    	
 	    	
 	    	List<AISFixedStationData> stations = this.retrieveAISStations(-1, id);
