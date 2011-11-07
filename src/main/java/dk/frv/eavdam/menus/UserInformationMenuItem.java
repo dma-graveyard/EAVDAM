@@ -525,7 +525,11 @@ class UserInformationActionListener implements ActionListener, DocumentListener 
                     !pointOfContactEmailTextField.getText().trim().isEmpty())) {
                 JOptionPane.showMessageDialog(dialog, "Point of contact's name must ge given.");                  
                 return false;
-            }         
+            }    
+            if (pointOfContactEmailTextField.getText().trim().isEmpty() && !pointOfContactNameTextField.getText().trim().isEmpty()) {
+                JOptionPane.showMessageDialog(dialog, "Point of contact's email must ge given.");                  
+                return false;
+            }    			
             if (pointOfContactNameTextField.getText().trim().isEmpty()) {
                 user.setContact(null);
             } else {
@@ -549,6 +553,10 @@ class UserInformationActionListener implements ActionListener, DocumentListener 
                 JOptionPane.showMessageDialog(dialog, "Point of technical contact's name must ge given.");                  
                 return false;
             } 
+            if (pointOfTechnicalContactEmailTextField.getText().trim().isEmpty() && !pointOfTechnicalContactNameTextField.getText().trim().isEmpty()) {
+                JOptionPane.showMessageDialog(dialog, "Point of technical contact's email must ge given.");                  
+                return false;
+            } 			
             if (pointOfTechnicalContactNameTextField.getText().trim().isEmpty()) {
                 user.setTechnicalContact(null);
             } else {
