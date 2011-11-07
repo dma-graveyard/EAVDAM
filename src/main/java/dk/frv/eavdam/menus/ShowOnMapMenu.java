@@ -127,6 +127,7 @@ public class ShowOnMapMenu extends JMenu implements ActionListener {
                 for (OtherUserStations ous : otherUsersStations) {
                     EAVDAMUser user = ous.getUser();
                     JCheckBoxMenuItem otherUsersStationsMenuItem = new JCheckBoxMenuItem("Show " + StationInformationMenuItem.STATIONS_OF_ORGANIZATION_LABEL.toLowerCase() + " " + user.getOrganizationName(), false);
+					System.out.println("added Show " + StationInformationMenuItem.STATIONS_OF_ORGANIZATION_LABEL.toLowerCase());
                     otherUsersStationsMenuItem.addActionListener(this);
                     otherUsersStationsMenuItems.add(otherUsersStationsMenuItem);
                 }

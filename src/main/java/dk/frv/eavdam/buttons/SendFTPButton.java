@@ -12,6 +12,7 @@ import dk.frv.eavdam.menus.EavdamMenu;
 import dk.frv.eavdam.menus.ShowOnMapMenu;
 import dk.frv.eavdam.menus.OptionsMenuItem;
 import dk.frv.eavdam.layers.StationLayer;
+import dk.frv.eavdam.utils.DBHandler;
 import dk.frv.eavdam.utils.XMLHandler;
 import java.awt.Color;
 import java.awt.Container;
@@ -98,9 +99,6 @@ public class SendFTPButton extends OMToolComponent implements ActionListener, To
         }
 		 
 		EAVDAMData data = XMLHandler.importData();
-		if (stationLayer != null) {
-			stationLayer.updateStations();
-		}
 		if (eavdamMenu != null) {
 			eavdamMenu.setShowOnMapMenu(new ShowOnMapMenu(eavdamMenu));
 			if (eavdamMenu.getStationInformationMenu() != null && eavdamMenu.getStationInformationMenu().getStationInformationMenuItem() != null) {
@@ -110,6 +108,9 @@ public class SendFTPButton extends OMToolComponent implements ActionListener, To
 				eavdamMenu.getUserInformationMenuItem().setData(data);
 			}
 		}
+		if (stationLayer != null) {
+			stationLayer.updateStations();
+		}		
 	}
 
 	@Override
@@ -119,7 +120,7 @@ public class SendFTPButton extends OMToolComponent implements ActionListener, To
 		} else if (obj instanceof StationLayer) {
 		    this.stationLayer = (StationLayer) obj;
 		} else if (obj instanceof EavdamMenu) {
-			this.eavdamMenu = eavdamMenu;
+			this.eavdamMenu = (EavdamMenu) obj;
 		}
 	}	    
 

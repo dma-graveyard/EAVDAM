@@ -41,27 +41,40 @@ public class FATDMAGridLayer extends OMGraphicHandlerLayer {
 			JOptionPane.showMessageDialog(openMapFrame, "Scale too small for displaying FATDMA grid layer! Please, zoom in!");			
 			
 		} else {
-		
-			//Point2D upperLeft = projection.getUpperLeft();
-			//Point2D lowerRight = projection.getLowerRight();
-			
+					
 			int singleCellSizeInNauticalMiles = 30;
 			int noOfSingleCellsAlongOneSideOfMasterCell = 6;
 			int masterCellSizeInNauticalMiles = singleCellSizeInNauticalMiles * noOfSingleCellsAlongOneSideOfMasterCell;		
 			int noOfMasterCellsAroundEquator = (int) (360.0d * 60.0d / masterCellSizeInNauticalMiles);
 			float masterCellSizeInDegreesLatitude = (float) masterCellSizeInNauticalMiles / 60;  	
 			float singleCellHeightInDegrees = masterCellSizeInDegreesLatitude / noOfSingleCellsAlongOneSideOfMasterCell;
-
-			//for (float lat = (float) upperLeft.getY(); lat> (float) lowerRight.getY(); lat = lat-singleCellHeightInDegrees) {
-			for (float lat = 73; lat > 28; lat = lat-singleCellHeightInDegrees) {  // covers Europe			
+			
+			Point2D upperLeft = projection.getUpperLeft();
+			Point2D lowerRight = projection.getLowerRight();
+						
+			// covers Europe, but starting point of the grid probably not correct !!
+			/*
+			float startLat = 73;
+			float endLat = 28;
+			float startLon = -23;
+			float endLon = 42;
+			*/
+						
+			float startLat = (float) Math.floor(upperLeft.getY());
+			float endLat = (float) Math.floor(lowerRight.getY());
+			float startLon = (float) Math.floor(upperLeft.getX());
+			float endLon = (float) Math.floor(lowerRight.getX());
+		
+			System.out.println(startLat + "; " + endLat + ";" + startLon + ";" + endLon);
+		
+			for (float lat = startLat; lat > endLat; lat = lat-singleCellHeightInDegrees) { 		
 				try {
 					int masterCellRowNo = (int) (Math.abs(lat + (float) 0.5*singleCellHeightInDegrees) / masterCellSizeInDegreesLatitude);
 					double masterCellMeanLatitude = (masterCellRowNo + 0.5) * masterCellSizeInDegreesLatitude;
 					int noOfMasterCellsAroundMasterCellRow = (int) (noOfMasterCellsAroundEquator * Math.cos(2*Math.PI*masterCellMeanLatitude/360.0));
 					float singleCellWidthInDegrees = (float) 360/(noOfSingleCellsAlongOneSideOfMasterCell*noOfMasterCellsAroundMasterCellRow);	
-					//if (upperLeft.getX() < lowerRight.getX()) {
-						//for (float lon = (float) upperLeft.getX(); lon < (float) lowerRight.getX(); lon = lon + singleCellWidthInDegrees) {
-						for (float lon = -25; lon < 43; lon = lon + singleCellWidthInDegrees) {						
+					if (startLon < endLon) {
+						for (float lon = startLon; lon < endLon; lon = lon + singleCellWidthInDegrees) {
 							OMRect omRect = new OMRect(lat, lon, lat + singleCellHeightInDegrees, lon+singleCellWidthInDegrees, OMGraphic.LINETYPE_RHUMB);
 							graphics.add(omRect);					
 							int cellno = getCellNo(lat + (float) 0.5*singleCellHeightInDegrees, lon + (float) 0.5*singleCellWidthInDegrees,
@@ -70,19 +83,29 @@ public class FATDMAGridLayer extends OMGraphicHandlerLayer {
 							omText.setBaseline(OMText.BASELINE_MIDDLE);
 							graphics.add(omText);
 						}
-					/*
 					} else {
-						for (float lon = (float) lowerRight.getX(); lon < (float) upperLeft.getX(); lon = lon + singleCellWidthInDegrees) {
-							OMRect omRect = new OMRect(lat, lon, lat + singleCellHeightInDegrees, lon+singleCellWidthInDegrees, OMGraphic.LINETYPE_RHUMB);
+						float lon = startLon;
+						while (true) {
+							if (lon < 0 && lon >= endLon) {
+								break;
+							}
+							if (lon > 180) {
+								lon = lon - 360;
+							}					
+							float lon2 = lon+singleCellWidthInDegrees;
+							if (lon2 > 180) {
+								lon2 = lon2 - 360;
+							}
+							OMRect omRect = new OMRect(lat, lon, lat + singleCellHeightInDegrees, lon2, OMGraphic.LINETYPE_RHUMB);
 							graphics.add(omRect);					
 							int cellno = getCellNo(lat + (float) 0.5*singleCellHeightInDegrees, lon + (float) 0.5*singleCellWidthInDegrees,
 								singleCellSizeInNauticalMiles, noOfSingleCellsAlongOneSideOfMasterCell, masterCellRowNo, singleCellWidthInDegrees);					
 							OMText omText = new OMText(lat + (float) 0.5*singleCellHeightInDegrees, lon + (float) 0.5*singleCellWidthInDegrees, String.valueOf(cellno), OMText.JUSTIFY_CENTER);
 							omText.setBaseline(OMText.BASELINE_MIDDLE);
-							graphics.add(omText);
-						}					
+							graphics.add(omText);	
+							lon = lon + singleCellWidthInDegrees;
+						}
 					}
-					*/
 				} catch (Exception ex) {}				
 			}
 		}
