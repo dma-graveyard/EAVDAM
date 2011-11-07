@@ -1739,12 +1739,12 @@ import dk.frv.eavdam.data.Simulation;
 	    	ps.close();
 	    	
 	    	//Get the address(es)	    	
-	    	if(postalAddressId >= 0){
+	    	if(postalAddressId > 0){
 	    		u.setPostalAddress(this.retrieveAddress(postalAddressId));
 	    	}
 	    	
 	    	if(postalAddressId != visitingAddressId){
-	    		if(visitingAddressId >= 0)
+	    		if(visitingAddressId > 0)
 	    			u.setVisitingAddress(this.retrieveAddress(visitingAddressId));
 
 	    	}else{
@@ -1753,12 +1753,12 @@ import dk.frv.eavdam.data.Simulation;
 	    	
 	    	
 	    	//Get the person information.
-	    	if(technicalPersonId >= 0){
+	    	if(technicalPersonId > 0){
 	    		u.setTechnicalContact(this.retrievePerson(technicalPersonId));
 	    	}
 	    	
 	    	if(technicalPersonId != contactPersonId){
-	    		if(contactPersonId >= 0)
+	    		if(contactPersonId > 0)
 	    			u.setContact(this.retrievePerson(contactPersonId));
 	    	}else{
 	    		u.setContact(u.getTechnicalContact());
