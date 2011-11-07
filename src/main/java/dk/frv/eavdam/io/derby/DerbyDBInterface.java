@@ -943,7 +943,7 @@ import dk.frv.eavdam.data.Simulation;
 		    	aton.setAccessScheme(r.getString(6));
 		    	aton.setUTCHour(new Integer(r.getInt(7)));
 		    	aton.setUTCMinute(new Integer(r.getInt(8)));
-		    	aton.setUsage(rs.getString(9));
+		    	aton.setUsage(r.getString(9));
 		    	
 		    	rates.add(aton);
 		    }
