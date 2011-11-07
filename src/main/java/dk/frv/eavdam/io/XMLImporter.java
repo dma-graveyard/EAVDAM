@@ -253,6 +253,7 @@ public class XMLImporter {
 							r.setStartslot(b.getStartSlot());
 							r.setUTCHour(b.getUtcHour());
 							r.setUTCMinute(b.getUtcMinute());
+							r.setUsage(b.getUsage());
 							r.setDbID(-1);
 							
 							if(c.getAtonMessageBroadcastList() == null) c.setAtonMessageBroadcastList(new ArrayList<AtonMessageBroadcastRate>());
@@ -277,6 +278,7 @@ public class XMLImporter {
 							r.setBlockSize(b.getBlockSize());
 							r.setIncrement(b.getIncrement());
 							r.setStartslot(b.getStartSlot());
+							r.setUsage(b.getUsage());
 							
 							r.setDbID(-1);
 							

@@ -320,6 +320,7 @@ public class XMLExporter {
 					b.setStartSlot(r.getStartslot());
 					b.setUtcHour(r.getUTCHour());
 					b.setUtcMinute(r.getUTCMinute());
+					b.setUsage(r.getUsage());
 					
 					channel.getBroadcast().add(b);
 				}
@@ -339,6 +340,7 @@ public class XMLExporter {
 					b.setBlockSize(r.getBlockSize());
 					b.setIncrement(r.getIncrement());
 					b.setStartSlot(r.getStartslot());
+					b.setUsage(r.getUsage());
 					
 					if(r.getOwnership().equals(FATDMAReservation.STATION_OWNERSHIP_LOCAL))
 						b.setOwnership(Ownership.L);

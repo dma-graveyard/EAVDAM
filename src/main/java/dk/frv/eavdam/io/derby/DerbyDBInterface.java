@@ -143,36 +143,6 @@ import dk.frv.eavdam.data.Simulation;
 	            	createdDB = true;
 	            }
 
-	            if(!createdDB){
-		            try{
-			            PreparedStatement ps = conn.prepareStatement("insert into COVERAGEPOINTS values (1,1,1,1,1)");
-			            ps.executeUpdate();
-			            	
-
-			            ps = conn.prepareStatement("delete from COVERAGEPOINTS where station = 1 AND orderline = 1 AND lat = 1 AND lon = 1 AND coveragetype = 1");
-			            ps.executeUpdate();
-			            ps.close();
-			            	
-			            	
-			            }catch(SQLException e){
-							System.out.println("Coveragepoints table out-of-date. Creating the table again.");
-			            	try {
-			            		Statement s = conn.createStatement();
-			            		s.executeUpdate("DROP TABLE COVERAGEPOINTS");
-			            		
-								s.execute("CREATE TABLE COVERAGEPOINTS"
-										+ "(STATION INT,"
-										+ "LAT DECIMAL (7,4),"
-										+ "LON DECIMAL (7,4),"
-										+ "ORDERLINE INT,"
-										+ "COVERAGETYPE INT,"
-		//								+ "CONSTRAINT pk_cp PRIMARY KEY (STATION, LAT, LON),"
-										+ "CONSTRAINT fk_s_cp FOREIGN KEY (STATION) references FIXEDSTATION(ID))");
-							} catch (Exception e2) {
-								
-							}
-		            	}
-	            }
 	            
 	            
 	    	}	
@@ -736,10 +706,6 @@ import dk.frv.eavdam.data.Simulation;
 	    	
 	    	if(this.conn == null) this.conn = getDBConnection(null,false);
 	    	
-	    	
-
-	    	
-
 	    		try{
 	    	    	//Check if the old channel exists...
 	    			PreparedStatement eps = conn.prepareStatement("select id from FATDMACHANNEL where station = ? AND type = ?");
@@ -779,6 +745,10 @@ import dk.frv.eavdam.data.Simulation;
 	    			
 	    			if(f instanceof AISAtonStationFATDMAChannel){
 	    				AISAtonStationFATDMAChannel aton = (AISAtonStationFATDMAChannel)f;
+
+	    	    		//Delete the old ones
+	    		    	PreparedStatement delete = conn.prepareStatement("delete from FATDMAATON where channel = "+f.getDBID());
+	    		    	delete.executeUpdate();
 	    				
 	    				
 	    				PreparedStatement p = conn.prepareStatement("select max(id) from FATDMAATON");
@@ -787,12 +757,12 @@ import dk.frv.eavdam.data.Simulation;
 	    				if(rs.next()){
 	    					maxID = rs.getInt(1);
 	    				}
-	    				
+
 	    				rs.close();
 	    				p.close();
 	    				for(AtonMessageBroadcastRate r : aton.getAtonMessageBroadcastList()){
 	    					if((r.getDbID() == null || r.getDbID().intValue() <= 0) || insertNew){
-		    		    		maxID += 1;
+		    		    		maxID = maxID + 1;
 		    			    	r.setDbID(new Integer(maxID));
 		    			    	this.insertAtonMessageBroadcastRate(r, f.getDBID());
 	    					}else{
@@ -802,6 +772,10 @@ import dk.frv.eavdam.data.Simulation;
 	    				}
 	    			}else{
 	    				AISBaseAndReceiverStationFATDMAChannel base = (AISBaseAndReceiverStationFATDMAChannel)f;
+
+	    	    		//Delete the old ones
+	    		    	PreparedStatement delete = conn.prepareStatement("delete from FATDMABASE where channel = "+f.getDBID());
+	    		    	delete.executeUpdate();
 	    				
 	    				PreparedStatement p = conn.prepareStatement("select max(id) from FATDMABASE");
 	    				ResultSet rs = p.executeQuery();
@@ -815,7 +789,7 @@ import dk.frv.eavdam.data.Simulation;
 	    				
 	    				for(FATDMAReservation r : base.getFATDMAScheme()){
 	    					if(r.getDbID() == null || r.getDbID().intValue() <= 0 || insertNew){
-			    				maxID += 1;
+			    				maxID = maxID + 1;
 		    			    	r.setDbID(new Integer(maxID));
 		    			    	this.insertFATDMAReservation(r, f.getDBID());
 	    					}else{
@@ -833,9 +807,7 @@ import dk.frv.eavdam.data.Simulation;
 	    }
 	    
 	    private int insertAtonMessageBroadcastRate(AtonMessageBroadcastRate r, int channelID) throws Exception{
-    		//Delete the old ones
-	    	PreparedStatement delete = conn.prepareStatement("delete from FATDMAATON where channel = "+channelID);
-	    	delete.executeUpdate();
+
 	    	
 	    	if(r.getDbID() == null || r.getDbID() <= 0){
 				PreparedStatement p = conn.prepareStatement("select max(id) from FATDMAATON");
@@ -849,7 +821,7 @@ import dk.frv.eavdam.data.Simulation;
     		}
 	    	
 	    	
-	    	PreparedStatement psc = conn.prepareStatement("insert into FATDMAATON values (?,?,?,?,?,?,?,?,?)");
+	    	PreparedStatement psc = conn.prepareStatement("insert into FATDMAATON values (?,?,?,?,?,?,?,?,?,?)");
 	    	
     		psc.setInt(1, r.getDbID());
 	    	psc.setInt(2, channelID);
@@ -860,6 +832,7 @@ import dk.frv.eavdam.data.Simulation;
 	    	psc.setInt(7, r.getStartslot());
 	    	psc.setInt(8, r.getBlockSize());
 	    	psc.setInt(9, r.getIncrement());
+	    	psc.setString(10, r.getUsage());
 	    	
 	    	
 	    	psc.executeUpdate();
@@ -870,10 +843,7 @@ import dk.frv.eavdam.data.Simulation;
 	    }
 	    
 	    private int insertFATDMAReservation(FATDMAReservation r, int channelID) throws Exception{
-    		//Delete the old ones
-	    	PreparedStatement delete = conn.prepareStatement("delete from FATDMABASE where channel = "+channelID);
-	    	delete.executeUpdate();
-	    	
+
 	    	if(r.getDbID() == null || r.getDbID() <= 0){
 				PreparedStatement p = conn.prepareStatement("select max(id) from FATDMABASE");
 				ResultSet rs = p.executeQuery();
@@ -885,7 +855,7 @@ import dk.frv.eavdam.data.Simulation;
 				r.setDbID(new Integer(maxID + 1));
     		}
 	    	
-	    	PreparedStatement psc = conn.prepareStatement("insert into FATDMABASE values (?,?,?,?,?,?)");
+	    	PreparedStatement psc = conn.prepareStatement("insert into FATDMABASE values (?,?,?,?,?,?,?)");
     		
 	    	psc.setInt(1, r.getDbID());
 	    	psc.setInt(2, channelID);
@@ -893,6 +863,7 @@ import dk.frv.eavdam.data.Simulation;
 	    	psc.setInt(4, r.getBlockSize());
 	    	psc.setInt(5, r.getIncrement());
 	    	psc.setString(6, r.getOwnership());
+	    	psc.setString(7, r.getUsage());
 	    	psc.executeUpdate();
 	    	
 	    	psc.close();
@@ -955,7 +926,7 @@ import dk.frv.eavdam.data.Simulation;
 	    	
 	    	
 	    	//Get ATON
-    		PreparedStatement ps = conn.prepareStatement("select id, blocksize,increment,messageid,startslot,accessscheme,utchour,utcminute from FATDMAATON where channel = ?");
+    		PreparedStatement ps = conn.prepareStatement("select id, blocksize,increment,messageid,startslot,accessscheme,utchour,utcminute,usage from FATDMAATON where channel = ?");
 	    	ps.setInt(1, tempChannels.getDBID());
 		    	
 	    	ResultSet r = ps.executeQuery();
@@ -972,10 +943,12 @@ import dk.frv.eavdam.data.Simulation;
 		    	aton.setAccessScheme(r.getString(6));
 		    	aton.setUTCHour(new Integer(r.getInt(7)));
 		    	aton.setUTCMinute(new Integer(r.getInt(8)));
-		    		
+		    	aton.setUsage(rs.getString(9));
+		    	
 		    	rates.add(aton);
 		    }
 		    
+   
 		    ps.close();
 
 		    if(rates.size() > 0){ //The channel was an Aton channel
@@ -988,7 +961,7 @@ import dk.frv.eavdam.data.Simulation;
 			    return channel;	
 			    
 		    }else //GET BASE STATION FATDMA
-		    	ps = conn.prepareStatement("select id, blocksize,increment,startslot,ownership from FATDMABASE where channel = ?");
+		    	ps = conn.prepareStatement("select id, blocksize,increment,startslot,ownership,usage from FATDMABASE where channel = ?");
 			    ps.setInt(1, tempChannels.getDBID());
 			    	
 			    r = ps.executeQuery();
@@ -1000,7 +973,8 @@ import dk.frv.eavdam.data.Simulation;
 			    	res.setIncrement(new Integer(r.getInt(3)));
 			    	res.setStartslot(new Integer(r.getInt(4)));
 			    	res.setOwnership(r.getString(5));
-			    		
+			    	res.setUsage(r.getString(6));
+			    	
 			    	bases.add(res);
 			    }
 		    		
@@ -1453,6 +1427,11 @@ import dk.frv.eavdam.data.Simulation;
 		    					//Update
 		    					this.updateAtonMessageBroadcastRate(r);
 		    				}else{
+			    	    		//Delete the old ones
+			    		    	PreparedStatement delete = conn.prepareStatement("delete from FATDMAATON where channel = "+f.getDBID());
+			    		    	delete.executeUpdate();
+			    				
+		    					
 		    					this.insertAtonMessageBroadcastRate(r, f.getDBID());
 		    				}
 		    			}
@@ -1464,6 +1443,11 @@ import dk.frv.eavdam.data.Simulation;
 		    					//Update
 		    					this.updateFATDMAReservation(r);
 		    				}else{
+			    	    		//Delete the old ones
+			    		    	PreparedStatement delete = conn.prepareStatement("delete from FATDMABASE where channel = "+f.getDBID());
+			    		    	delete.executeUpdate();
+			    				
+		    					
 		    					//Insert
 		    					this.insertFATDMAReservation(r, f.getDBID());
 		    				}
@@ -1483,7 +1467,8 @@ import dk.frv.eavdam.data.Simulation;
 					+ "UTCMINUTE = ?,"
 					+ "STARTSLOT = ?,"
 					+ "BLOCKSIZE = ?,"
-					+ "INCREMENT = ?"
+					+ "INCREMENT = ?,"
+					+ "USAGE = ?"
 	    			+ " where id = ?";
 	    	PreparedStatement ps = conn.prepareStatement(sql);
 	    	ps.setInt(1, r.getMessageID());
@@ -1493,7 +1478,8 @@ import dk.frv.eavdam.data.Simulation;
 	    	ps.setInt(5, r.getStartslot());
 	    	ps.setInt(6, r.getBlockSize());
 	    	ps.setInt(7, r.getIncrement());
-	    	ps.setInt(8, r.getDbID());
+	    	ps.setString(8, r.getUsage());
+	    	ps.setInt(9, r.getDbID());
 	    	ps.executeUpdate();
 	    }
 	    
@@ -1502,14 +1488,16 @@ import dk.frv.eavdam.data.Simulation;
 					+ "STARTSLOT = ?,"
 					+ "BLOCKSIZE = ?,"
 					+ "INCREMENT = ?,"
-					+ "OWNERSHIP = ?"
+					+ "OWNERSHIP = ?,"
+					+ "USAGE = ?"
 	    			+ " where id = ?";
 	    	PreparedStatement ps = conn.prepareStatement(sql);
 	    	ps.setInt(1, r.getStartslot());
 	    	ps.setInt(2, r.getBlockSize());
 	    	ps.setInt(3, r.getIncrement());
 	    	ps.setString(4, r.getOwnership());
-	    	ps.setInt(5, r.getDbID());
+	    	ps.setString(5, r.getUsage());
+	    	ps.setInt(6, r.getDbID());
 	    	ps.executeUpdate();
 	    }
 	    
@@ -2817,6 +2805,7 @@ import dk.frv.eavdam.data.Simulation;
 							+ "STARTSLOT INT,"
 							+ "BLOCKSIZE INT,"
 							+ "INCREMENT INT,"
+							+ "USAGE VARCHAR(40),"
 							+ "CONSTRAINT pk_fatdma_a PRIMARY KEY (ID), "
 							+ "CONSTRAINT fk_a_fatdma FOREIGN KEY (CHANNEL) references FATDMACHANNEL(ID))");
 				} catch (Exception e) {
@@ -2834,6 +2823,7 @@ import dk.frv.eavdam.data.Simulation;
 							+ "BLOCKSIZE INT,"
 							+ "INCREMENT INT,"
 							+ "OWNERSHIP VARCHAR(1),"
+							+ "USAGE VARCHAR(40),"
 							+ "CONSTRAINT pk_fatdma_b PRIMARY KEY (ID), "
 							+ "CONSTRAINT fk_b_fatdmab FOREIGN KEY (CHANNEL) references FATDMACHANNEL(ID))");
 				} catch (Exception e) {
