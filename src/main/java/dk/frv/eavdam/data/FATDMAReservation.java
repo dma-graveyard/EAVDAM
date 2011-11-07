@@ -9,16 +9,18 @@ public class FATDMAReservation {
     private Integer blockSize = null;  // 1..5
     private Integer increment = null;  // 0..1125
     private String ownership = null;  // L: use by local station, R: use by remote station
+	private String usage = null;
 
     private Integer dbID = null;
     
     public FATDMAReservation() {}
     
-    public FATDMAReservation(Integer startslot, Integer blockSize, Integer increment, String ownership) {
+    public FATDMAReservation(Integer startslot, Integer blockSize, Integer increment, String ownership, String usage) {
         setStartslot(startslot);
         setBlockSize(blockSize);
         setIncrement(increment);
         setOwnership(ownership);
+		setUsage(usage);
     }
    
     public Integer getStartslot() {
@@ -65,6 +67,14 @@ public class FATDMAReservation {
         this.ownership = ownership;
     }
 	
+	public String getUsage() {
+		return usage;
+	}
+	
+	public void setUsage(String usage) {
+		this.usage = usage;
+	}
+	
 	public boolean equals(Object aThat) {
 	
 		if (this == aThat) {
@@ -92,6 +102,10 @@ public class FATDMAReservation {
 		if (!that.getOwnership().equals(ownership)) {
 			return false;
 		}
+		
+		if (!that.getUsage().equals(usage)) {
+			return false;
+		}
     
 		return true;
 	}	
@@ -105,7 +119,7 @@ public class FATDMAReservation {
 	}
 	
 	public String toString(){
-		return "id: "+this.dbID+", owner: "+this.ownership+", increment: "+this.increment+", block size: "+this.blockSize+", start slot: "+this.startslot;
+		return "id: "+this.dbID+", owner: "+this.ownership+", increment: "+this.increment+", block size: "+this.blockSize+", start slot: "+this.startslot+", usage:"+this.usage;
 	}
 
 }

@@ -13,12 +13,13 @@ public class AtonMessageBroadcastRate {
     private Integer startslot = null;  // 0-2249; 4095 = discontinue broadcast (Only relevant for FATDMA)
     private Integer blockSize = null;  // 1..5
     private Integer increment = null;  // 0..324000
+	private String usage = null;
 	
     private Integer dbID = null;
     
     public AtonMessageBroadcastRate() {}
     
-    public AtonMessageBroadcastRate(String accessScheme, Integer messageID, Integer utcHour, Integer utcMinute, Integer startslot, Integer blockSize, Integer increment) {
+    public AtonMessageBroadcastRate(String accessScheme, Integer messageID, Integer utcHour, Integer utcMinute, Integer startslot, Integer blockSize, Integer increment, String usage) {
         setAccessScheme(accessScheme);
         setMessageID(messageID);
         setUTCHour(utcHour);
@@ -26,6 +27,7 @@ public class AtonMessageBroadcastRate {
         setStartslot(startslot);
         setBlockSize(blockSize);
         setIncrement(increment);
+		setUsage(usage);
 	}
 
     public String getAccessScheme() {
@@ -113,7 +115,14 @@ public class AtonMessageBroadcastRate {
 	public void setDbID(Integer dbID) {
 		this.dbID = dbID;
 	}
-
+	
+	public String getUsage() {
+		return usage;
+	}
+	
+	public void setUsage(String usage) {
+		this.usage = usage;
+	}	
 
 	public boolean equals(Object aThat) {
 	
@@ -154,7 +163,11 @@ public class AtonMessageBroadcastRate {
 		if (!that.getIncrement().equals(increment)) {
 			return false;
 		}
-    
+	
+		if (!that.getUsage().equals(usage)) {
+			return false;
+		}
+        
 		return true;
 	}		
 

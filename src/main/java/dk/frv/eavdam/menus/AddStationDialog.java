@@ -868,7 +868,7 @@ public class AddStationDialog extends JDialog implements ActionListener, ItemLis
 			}
 			if (!startslotTextField.getText().isEmpty() && !blockSizeTextField.getText().isEmpty() && !incrementTextField.getText().isEmpty()) {
 				FATDMAReservation fatdmaReservation = new FATDMAReservation(new Integer(startslotTextField.getText()),
-					new Integer(blockSizeTextField.getText()), new Integer(incrementTextField.getText()), ownership);
+					new Integer(blockSizeTextField.getText()), new Integer(incrementTextField.getText()), ownership, null);
 				fatdmaScheme.add(fatdmaReservation);
 			}						
 			// i+4 is clear button
@@ -898,7 +898,7 @@ public class AddStationDialog extends JDialog implements ActionListener, ItemLis
 					!startslotTextField.getText().isEmpty() && !blockSizeTextField.getText().isEmpty() && !incrementTextField.getText().isEmpty()) {			
 				AtonMessageBroadcastRate atonMessageBroadcastRate = new AtonMessageBroadcastRate((String) accessSchemeComboBox.getSelectedItem(),				
 					new Integer(messageIDTextField.getText()), new Integer(utcHourTextField.getText()), new Integer(utcMinuteTextField.getText()),
-					new Integer(startslotTextField.getText()), new Integer(blockSizeTextField.getText()), new Integer(incrementTextField.getText()));					
+					new Integer(startslotTextField.getText()), new Integer(blockSizeTextField.getText()), new Integer(incrementTextField.getText()), null);					
 				atonMessageBroadcastList.add(atonMessageBroadcastRate);
 			}						
 			// i+7 is delete button
