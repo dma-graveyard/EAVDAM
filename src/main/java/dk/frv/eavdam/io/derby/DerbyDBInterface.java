@@ -849,7 +849,7 @@ import dk.frv.eavdam.data.Simulation;
     		}
 	    	
 	    	
-	    	PreparedStatement psc = conn.prepareStatement("insert into FATDMAATON values (?,?,?,?,?,?,?,?)");
+	    	PreparedStatement psc = conn.prepareStatement("insert into FATDMAATON values (?,?,?,?,?,?,?,?,?)");
 	    	
     		psc.setInt(1, r.getDbID());
 	    	psc.setInt(2, channelID);
@@ -964,14 +964,14 @@ import dk.frv.eavdam.data.Simulation;
 		    while(r.next()){
 		    		
 		    	AtonMessageBroadcastRate aton = new AtonMessageBroadcastRate();
-		    	aton.setDbID(new Integer(rs.getInt(1)));
-		    	aton.setBlockSize(new Integer(rs.getInt(2)));
-		    	aton.setIncrement(new Integer(rs.getInt(3)));
-		    	aton.setMessageID(new Integer(rs.getInt(4)));
-		    	aton.setStartslot(new Integer(rs.getInt(5)));
-		    	aton.setAccessScheme(rs.getString(6));
-		    	aton.setUTCHour(new Integer(rs.getInt(7)));
-		    	aton.setUTCMinute(new Integer(rs.getInt(8)));
+		    	aton.setDbID(new Integer(r.getInt(1)));
+		    	aton.setBlockSize(new Integer(r.getInt(2)));
+		    	aton.setIncrement(new Integer(r.getInt(3)));
+		    	aton.setMessageID(new Integer(r.getInt(4)));
+		    	aton.setStartslot(new Integer(r.getInt(5)));
+		    	aton.setAccessScheme(r.getString(6));
+		    	aton.setUTCHour(new Integer(r.getInt(7)));
+		    	aton.setUTCMinute(new Integer(r.getInt(8)));
 		    		
 		    	rates.add(aton);
 		    }
