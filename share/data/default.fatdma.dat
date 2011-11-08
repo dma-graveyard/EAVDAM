@@ -3,9 +3,14 @@
 ## This file contains the default FATDMA allocations in a tab separated form. ##
 ## Lines starting with hash (#) are considered comments.                      ##
 ##                                                                            ##
+## DO NOT CHANGE THE ORDER OF THE COLUMNS OR ADD ANY TABS!                    ##
+##                                                                            ##
+## If Reservation block size has "or", the first is used for semaphore and    ##
+## the second for non-semaphore node.                                         ##
 ################################################################################
 
-
+#     |                 CHANNEL A                    |               CHANNEL B                      |
+# Cell|Starting Slot|Reservation Block Size|Increment|Starting Slot|Reservation Block Size|Increment|Usage|Base station report starting slot
 1-I	0	1	250 or 750	125 or 375	1	250 or 750	Base Station report*	0	   
 	312	1	0 or 1125	877	1	0 or 1125	Data Link Management + general purpose *		   
 	602	0, 1, 2 or 3	0 or 1125	12	0, 1, 2 or 3	0 or 1125	General purpose *		   
