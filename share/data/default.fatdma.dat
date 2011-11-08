@@ -1,0 +1,226 @@
+################################################################################
+##                                                                            ##
+## This file contains the default FATDMA allocations in a tab separated form. ##
+## Lines starting with hash (#) are considered comments.                      ##
+##                                                                            ##
+################################################################################
+
+
+1-I	0	1	250 or 750	125 or 375	1	250 or 750	Base Station report*	0	   
+	312	1	0 or 1125	877	1	0 or 1125	Data Link Management + general purpose *		   
+	602	0, 1, 2 or 3	0 or 1125	12	0, 1, 2 or 3	0 or 1125	General purpose *		   
+1-II	125 	1	250 or 750	0 or 500	1	250 or 750	Base Station report*	125	   
+	877	1	0 or 1125	312	1	0 or 1125	Data Link Management + general purpose *		   
+	12	0, 1, 2 or 3	0 or 1125	602	0, 1, 2 or 3	0 or 1125	General purpose *		   
+2-I	1	1	250 or 750	126 or 376	1	250 or 750	Base Station report*	1	   
+	313	1	0 or 1125	878	1	0 or 1125	Data Link Management + general purpose *		   
+	612	0, 1, 2 or 3	0 or 1125	27	0, 1, 2 or 3	0 or 1125	General purpose *		   
+2-II	126	1	250 or 750	1 or 501	1	250 or 750	Base Station report*	126	   
+	878	1	0 or 1125	313	1	0 or 1125	Data Link Management + general purpose *		   
+	27	0, 1, 2 or 3	0 or 1125	612	0, 1, 2 or 3	0 or 1125	General purpose *		   
+3-I	10	1	250 or 750	135 or 385	1	250 or 750	Base Station report*	10	   
+	314	1	0 or 1125	879	1	0 or 1125	Data Link Management + general purpose *		   
+	619	0, 1, 2 or 3	0 or 1125	37	0, 1, 2 or 3	0 or 1125	General purpose *		   
+3-II	135	1	250 or 750	10 or 510	1	250 or 750	Base Station report*	135	   
+	879	1	0 or 1125	314	1	0 or 1125	Data Link  Management + general purpose *		   
+	37	0, 1, 2 or 3	0 or 1125	619	0, 1, 2 or 3	0 or 1125	General purpose *		   
+4-I	11	1	250 or 750	136 or 386	1	250 or 750	Base Station report*	11	   
+	627	1	0 or 1125	52	1	0 or 1125	Data Link  Management + general purpose *		   
+	327	0, 1, 2 or 3	0 or 1125	902	0, 1, 2 or 3	0 or 1125	General purpose *		   
+4-II	136	1	250 or 750	11 or 511	1	250 or 750	Base Station report*	136	   
+	52	1	0 or 1125	627	1	0 or 1125	Data Link  Management + general purpose *		   
+	902	0, 1, 2 or 3	0 or 1125	327	0, 1, 2 or 3	0 or 1125	General purpose *		   
+5-I	19	1	250 or 750	144 or 394	1	250 or 750	Base Station report*	19	   
+	628	1	0 or 1125	53	1	0 or 1125	Data Link  Management + general purpose *		   
+	337	0, 1, 2 or 3	0 or 1125	912	0, 1, 2 or 3	0 or 1125	General purpose *		   
+5-II	144	1	250 or 750	19 or 519	1	250 or 750	Base Station report*	144	   
+	53	1	0 or 1125	628	1	0 or 1125	Data Link  Management + general purpose *		   
+	912	0, 1, 2 or 3	0 or 1125	337	0, 1, 2 or 3	0 or 1125	General purpose *		   
+6-I	20	1	250 or 750	145 or 395	1	250 or 750	Base Station report*	20	   
+	629	1	0 or 1125	54	1	0 or 1125	Data Link  Management + general purpose *		   
+	352	0, 1, 2 or 3	0 or 1125	887	0, 1, 2 or 3	0 or 1125	General purpose *		   
+6-II	145	1	250 or 750	20 or 520	1	250 or 750	Base Station report*	145	   
+	54	1	0 or 1125	629	1	0 or 1125	Data Link  Management + general purpose *		   
+	887	0, 1, 2 or 3	0 or 1125	352	0, 1, 2 or 3	0 or 1125	General purpose *		   
+7-I	21	1	250 or 750	146 or 396	1	250 or 750	Base Station report*	21	   
+	362	1	0 or 1125	927	1	0 or 1125	Data Link  Management + general purpose *		   
+	637	0, 1, 2 or 3	0 or 1125	62	0, 1, 2 or 3	0 or 1125	General purpose *		   
+7-II	146	1	250 or 750	21 or 521	1	250 or 750	Base Station report*	146	   
+	927	1	0 or 1125	362	1	0 or 1125	Data Link  Management + general purpose *		   
+	62	0, 1, 2 or 3	0 or 1125	637	0, 1, 2 or 3	0 or 1125	General purpose *		   
+8-I	25	1	250 or 750	150 or 400	1	250 or 750	Base Station report*	25	   
+	363	1	0 or 1125	928	1	0 or 1125	Data Link  Management + general purpose *		   
+	652	0, 1, 2 or 3	0 or 1125	77	0, 1, 2 or 3	0 or 1125	General purpose *		   
+8-II	150	1	250 or 750	25 or 525	1	250 or 750	Base Station report*	150	   
+	928	1	0 or 1125	363	1	0 or 1125	Data Link  Management + general purpose *		   
+	77	0, 1, 2 or 3	0 or 1125	652	0, 1, 2 or 3	0 or 1125	General purpose *		 
+9-I	26	1	250 or 750	151 or 401	1	250 or 750	Base Station report*	26	   
+	364	1	0 or 1125	929	1	0 or 1125	Data Link  Management + general purpose *		   
+	662	0, 1, 2 or 3	0 or 1125	87	0, 1, 2 or 3	0 or 1125	General purpose *		   
+9-II	151	1	250 or 750	26 or 526	1	250 or 750	Base Station report*	151	   
+	929	1	0 or 1125	364	1	0 or 1125	Data Link  Management + general purpose *		   
+	87	0, 1, 2 or 3	0 or 1125	662	0, 1, 2 or 3	0 or 1125	General purpose *		   
+10-I	35	1	250 or 750	160 or 410	1	250 or 750	Base Station report*	35	   
+	677	1	0 or 1125	102	1	0 or 1125	Data Link  Management + general purpose *		   
+	369	0, 1, 2 or 3	0 or 1125	937	0, 1, 2 or 3	0 or 1125	General purpose *		   
+10-II	160	1	250 or 750	35 or 535	1	250 or 750	Base Station report*	160	   
+	102	1	0 or 1125	677	1	0 or 1125	Data Link  Management + general purpose *		   
+	937	0, 1, 2 or 3	0 or 1125	369	0, 1, 2 or 3	0 or 1125	General purpose *		   
+11-I	36	1	250 or 750	161 or 411	1	250 or 750	Base Station report*	36	   
+	678	1	0 or 1125	103	1	0 or 1125	Data Link  Management + general purpose *		   
+	377	0, 1, 2 or 3	0 or 1125	952	0, 1, 2 or 3	0 or 1125	General purpose *		   
+11-II	161	1	250 or 750	36 or 536	1	250 or 750	Base Station report*	161	   
+	103	1	0 or 1125	678	1	0 or 1125	Data Link  Management + general purpose *		   
+	952	0, 1, 2 or 3	0 or 1125	377	0, 1, 2 or 3	0 or 1125	General purpose *		   
+12-I	44	1	250 or 750	169 or 419	1	250 or 750	Base Station report*	44	   
+	679	1	0 or 1125	104	1	0 or 1125	Data Link  Management + general purpose *		   
+	387	0, 1, 2 or 3	0 or 1125	962	0, 1, 2 or 3	0 or 1125	General purpose *		   
+12-II	169	1	250 or 750	44 or 544	1	250 or 750	Base Station report*	169	   
+	104	1	0 or 1125	679	1	0 or 1125	Data Link  Management + general purpose *		   
+	962	0, 1, 2 or 3	0 or 1125	387	0, 1, 2 or 3	0 or 1125	General purpose *		   
+13-I	45	1	250 or 750	170  or 420	1	250 or 750	Base Station report*	45	   
+	402	1	0 or 1125	977	1	0 or 1125	Data Link  Management + general purpose *		   
+	687	0, 1, 2 or 3	0 or 1125	112	0, 1, 2 or 3	0 or 1125	General purpose *		   
+13-II	170	1	250 or 750	45 or 545	1	250 or 750	Base Station report*	170	   
+	977	1	0 or 1125	402	1	0 or 1125	Data Link  Management + general purpose *		   
+	112	0, 1, 2 or 3	0 or 1125	687	0, 1, 2 or 3	0 or 1125	General purpose *		   
+14-I	46	1	250 or 750	171 or 421	1	250 or 750	Base Station report*	46	   
+	403	1	0 or 1125	978	1	0 or 1125	Data Link  Management + general purpose *		   
+	702	0, 1, 2 or 3	0 or 1125	119	0, 1, 2 or 3	0 or 1125	General purpose *		   
+14-II	171	1	250 or 750	46 or 546	1	250 or 750	Base Station report*	171	   
+	978	1	0 or 1125	403	1	0 or 1125	Data Link  Management + general purpose *		   
+	119	0, 1, 2 or 3	0 or 1125	702	0, 1, 2 or 3	0 or 1125	General purpose *		   
+15-I	50	1	250 or 750	175 or 425	1	250 or 750	Base Station report*	50	   
+	404	1	0 or 1125	979	1	0 or 1125	Data Link  Management + general purpose *		   
+	712	0, 1, 2 or 3	0 or 1125	127	0, 1, 2 or 3	0 or 1125	General purpose *		   
+15-II	175	1	250 or 750	50 or 550	1	250 or 750	Base Station report*	175	   
+	979	1	0 or 1125	404	1	0 or 1125	Data Link  Management + general purpose *		   
+	127	0, 1, 2 or 3	0 or 1125	712	0, 1, 2 or 3	0 or 1125	General purpose *		   
+16-I	51	1	250 or 750	176 or 426	1	250 or 750	Base Station report*	51	   
+	727	1	0 or 1125	137	1	0 or 1125	Data Link  Management + general purpose *		   
+	412	0, 1, 2 or 3	0 or 1125	987	0, 1, 2 or 3	0 or 1125	General purpose *		   
+16-II	176	1	250 or 750	51 or 551	1	250 or 750	Base Station report*	176	   
+	137	1	0 or 1125	727	1	0 or 1125	Data Link  Management + general purpose *		   
+	987	0, 1, 2 or 3	0 or 1125	412	0, 1, 2 or 3	0 or 1125	General purpose *		 
+17-I	60	1	250 or 750	185 or 435	1	250 or 750	Base Station report*	60	   
+	728	1	0 or 1125	138	1	0 or 1125	Data Link  Management + general purpose *		   
+	427	0, 1, 2 or 3	0 or 1125	994	0, 1, 2 or 3	0 or 1125	General purpose *		   
+17-II	185	1	250 or 750	60 or 560	1	250 or 750	Base Station report*	185	   
+	138	1	0 or 1125	728	1	0 or 1125	Data Link  Management + general purpose *		   
+	994	0, 1, 2 or 3	0 or 1125	427	0, 1, 2 or 3	0 or 1125	General purpose *		   
+18-I	61	1	250 or 750	186 or 436	1	250 or 750	Base Station report*	61	   
+	729	1	0 or 1125	139	1	0 or 1125	Data Link  Management + general purpose *		   
+	452	0, 1, 2 or 3	0 or 1125	1002	0, 1, 2 or 3	0 or 1125	General purpose *		   
+18-II	186	1	250 or 750	61 or 561	1	250 or 750	Base Station report*	186	   
+	139	1	0 or 1125	729	1	0 or 1125	Data Link  Management + general purpose *		   
+	1002	0, 1, 2 or 3	0 or 1125	452	0, 1, 2 or 3	0 or 1125	General purpose *		   
+19-I	69	1	250 or 750	194 or 444	1	250 or 750	Base Station report*	69	   
+	462	1	0 or 1125	1012	1	0 or 1125	Data Link  Management + general purpose *		   
+	737	0, 1, 2 or 3	0 or 1125	152	0, 1, 2 or 3	0 or 1125	General purpose *		   
+19-II	194	1	250 or 750	69 or 569	1	250 or 750	Base Station report*	194	   
+	1012	1	0 or 1125	462	1	0 or 1125	Data Link  Management + general purpose *		   
+	152	0, 1, 2 or 3	0 or 1125	737	0, 1, 2 or 3	0 or 1125	General purpose *		   
+20-I	70	1	250 or 750	195 or 445	1	250 or 750	Base Station report*	70	   
+	463	1	0 or 1125	1013	1	0 or 1125	Data Link  Management + general purpose *		   
+	744	0, 1, 2 or 3	0 or 1125	162	0, 1, 2 or 3	0 or 1125	General purpose *		   
+20-II	195	1	250 or 750	70 or 570	1	250 or 750	Base Station report*	195	   
+	1013	1	0 or 1125	463	1	0 or 1125	Data Link  Management + general purpose *		   
+	162	0, 1, 2 or 3	0 or 1125	744	0, 1, 2 or 3	0 or 1125	General purpose *		   
+21-I	71	1	250 or 750	196 or 446	1	250 or 750	Base Station report*	71	   
+	464	1	0 or 1125	1014	1	0 or 1125	Data Link  Management + general purpose *		   
+	752	0, 1, 2 or 3	0 or 1125	177	0, 1, 2 or 3	0 or 1125	General purpose *		   
+21-II	196	1	250 or 750	71 or 571	1	250 or 750	Base Station report*	196	   
+	1014	1	0 or 1125	464	1	0 or 1125	Data Link  Management + general purpose *		   
+	177	0, 1, 2 or 3	0 or 1125	752	0, 1, 2 or 3	0 or 1125	General purpose *		   
+22-I	75	1	250 or 750	200 or 450	1	250 or 750	Base Station report*	75	   
+	762	1	0 or 1125	187	1	0 or 1125	Data Link  Management + general purpose *		   
+	437	0, 1, 2 or 3	0 or 1125	1027	0, 1, 2 or 3	0 or 1125	General purpose *		   
+22-II	200	1	250 or 750	75 or 575	1	250 or 750	Base Station report*	200	   
+	187	1	0 or 1125	762	1	0 or 1125	Data Link  Management + general purpose *		   
+	1027	0, 1, 2 or 3	0 or 1125	437	0, 1, 2 or 3	0 or 1125	General purpose *		   
+23-I	76	1	250 or 750	201 or 451	1	250 or 750	Base Station report*	76	   
+	763	1	0 or 1125	188	1	0 or 1125	Data Link  Management + general purpose *		   
+	477	0, 1, 2 or 3	0 or 1125	1037	0, 1, 2 or 3	0 or 1125	General purpose *		   
+23-II	201	1	250 or 750	76 or 576	1	250 or 750	Base Station report*	201	   
+	188	1	0 or 1125	763	1	0 or 1125	Data Link  Management + general purpose *		   
+	1037	0, 1, 2 or 3	0 or 1125	477	0, 1, 2 or 3	0 or 1125	General purpose *		   
+24-I	85	1	250 or 750	210 or 460	1	250 or 750	Base Station report*	85	   
+	764	1	0 or 1125	189	1	0 or 1125	Data Link  Management + general purpose *		   
+	487	0, 1, 2 or 3	0 or 1125	1052	0, 1, 2 or 3	0 or 1125	General purpose *		   
+24-II	210	1	250 or 750	85 or 585	1	250 or 750	Base Station report*	210	   
+	189	1	0 or 1125	764	1	0 or 1125	Data Link  Management + general purpose *		   
+	1052	0, 1, 2 or 3	0 or 1125	487	0, 1, 2 or 3	0 or 1125	General purpose *		 
+25-I	86	1	250 or 750	211 or 461	1	250 or 750	Base Station report*	86	   
+	494	1	0 or 1125	1062	1	0 or 1125	Data Link  Management + general purpose *		   
+	777	0, 1, 2 or 3	0 or 1125	202	0, 1, 2 or 3	0 or 1125	General purpose *		   
+25-II	211	1	250 or 750	86 or 586	1	250 or 750	Base Station report*	211	   
+	1062	1	0 or 1125	494	1	0 or 1125	Data Link  Management + general purpose *		   
+	202	0, 1, 2 or 3	0 or 1125	777	0, 1, 2 or 3	0 or 1125	General purpose *		   
+26-I	94	1	250 or 750	219 or 469	1	250 or 750	Base Station report*	94	   
+	495	1	0 or 1125	1063	1	0 or 1125	Data Link  Management + general purpose *		   
+	787	0, 1, 2 or 3	0 or 1125	212	0, 1, 2 or 3	0 or 1125	General purpose *		   
+26-II	219	1	250 or 750	94 or 594	1	250 or 750	Base Station report*	219	   
+	1063	1	0 or 1125	495	1	0 or 1125	Data Link  Management + general purpose *		   
+	212	0, 1, 2 or 3	0 or 1125	787	0, 1, 2 or 3	0 or 1125	General purpose *		   
+27-I	95	1	250 or 750	220 or 470	1	250 or 750	Base Station report*	95	   
+	496	1	0 or 1125	1064	1	0 or 1125	Data Link  Management + general purpose *		   
+	802	0, 1, 2 or 3	0 or 1125	227	0, 1, 2 or 3	0 or 1125	General purpose *		   
+27-II	220	1	250 or 750	95 or 595	1	250 or 750	Base Station report*	220	   
+	1064	1	0 or 1125	496	1	0 or 1125	Data Link  Management + general purpose *		   
+	227	0, 1, 2 or 3	0 or 1125	802	0, 1, 2 or 3	0 or 1125	General purpose *		   
+28-I	96	1	250 or 750	221 or 471	1	250 or 750	Base Station report*	96	   
+	812	1	0 or 1125	237	1	0 or 1125	Data Link  Management + general purpose *		   
+	502	0, 1, 2 or 3	0 or 1125	1102	0, 1, 2 or 3	0 or 1125	General purpose *		   
+28-II	221	1	250 or 750	96 or 596	1	250 or 750	Base Station report*	221	   
+	237	1	0 or 1125	812	1	0 or 1125	Data Link  Management + general purpose *		   
+	1102	0, 1, 2 or 3	0 or 1125	502	0, 1, 2 or 3	0 or 1125	General purpose *		   
+29-I	100	1	250 or 750	225 or 475	1	250 or 750	Base Station report*	100	   
+	813	1	0 or 1125	238	1	0 or 1125	Data Link  Management + general purpose *		   
+	512	0, 1, 2 or 3	0 or 1125	1087	0, 1, 2 or 3	0 or 1125	General purpose *		   
+29-II	225	1	250 or 750	100 or 600	1	250 or 750	Base Station report*	225	   
+	238	1	0 or 1125	813	1	0 or 1125	Data Link  Management + general purpose *		   
+	1087	0, 1, 2 or 3	0 or 1125	512	0, 1, 2 or 3	0 or 1125	General purpose *		   
+30-I	101	1	250 or 750	226 or 476	1	250 or 750	Base Station report*	101	   
+	814	1	0 or 1125	239	1	0 or 1125	Data Link  Management + general purpose *		   
+	527	0, 1, 2 or 3	0 or 1125	1077	0, 1, 2 or 3	0 or 1125	General purpose *		   
+30-II	226	1	250 or 750	101 or 601	1	250 or 750	Base Station report*	226	   
+	239	1	0 or 1125	814	1	0 or 1125	Data Link  Management + general purpose *		   
+	1077	0, 1, 2 or 3	0 or 1125	527	0, 1, 2 or 3	0 or 1125	General purpose *		   
+31-I	110	1	250 or 750	235 or 485	1	250 or 750	Base Station report*	110	   
+	537	1	0 or 1125	1113	1	0 or 1125	Data Link  Management + general purpose *		   
+	827	0, 1, 2 or 3	0 or 1125	244	0, 1, 2 or 3	0 or 1125	General purpose *		   
+31-II	235	1	250 or 750	110 or 610	1	250 or 750	Base Station report*	235	   
+	1113	1	0 or 1125	537	1	0 or 1125	Data Link  Management + general purpose *		   
+	244	0, 1, 2 or 3	0 or 1125	827	0, 1, 2 or 3	0 or 1125	General purpose *		   
+32-I	111	1	250 or 750	236 or 486	1	250 or 750	Base Station report*	111	   
+	538	1	0 or 1125	1114	1	0 or 1125	Data Link  Management + general purpose *		   
+	837	0, 1, 2 or 3	0 or 1125	252	0, 1, 2 or 3	0 or 1125	General purpose *		   
+32-II	236	1	250 or 750	111 or 611	1	250 or 750	Base Station report*	236	   
+	1114	1	0 or 1125	538	1	0 or 1125	Data Link  Management + general purpose *		   
+	252	0, 1, 2 or 3	0 or 1125	837	0, 1, 2 or 3	0 or 1125	General purpose *		 
+33-I	18	1	250 or 750	143 or 393	1	250 or 750	Base Station report*	18	   
+	552	1	0 or 1125	1112	1	0 or 1125	Data Link  Management + general purpose *		   
+	2	0, 1, 2 or 3	0 or 1125	852	0, 1, 2 or 3	0 or 1125	General purpose *		   
+33-II	143	1	250 or 750	18 or 518	1	250 or 750	Base Station report*	143	   
+	1112	1 or 2	0 or 1125	552	1 or 2	0 or 1125	Data Link  Management + general purpose *		   
+	852	0, 1, 2 or 3	0 or 1125	2	0, 1, 2 or 3	0 or 1125	General purpose *		   
+34-I	43	1	250 or 750	168 or 418	1	250 or 750	Base Station report*	43	   
+	562	1	0 or 1125	553	1	0 or 1125	Data Link  Management + general purpose *		   
+	262	0, 1, 2 or 3	0 or 1125	862	0, 1, 2 or 3	0 or 1125	General purpose *		   
+34-II	168	1	250 or 750	43 or 543	1	250 or 750	Base Station report*	168	   
+	553	1	0 or 1125	562	1	0 or 1125	Data Link  Management + general purpose *		   
+	862	0, 1, 2 or 3	0 or 1125	262	0, 1, 2 or 3	0 or 1125	General purpose *		   
+35-I	68	1	250 or 750	193 or 443	1	250 or 750	Base Station report*	68	   
+	577	1	0 or 1125	1118	1	0 or 1125	Data Link  Management + general purpose *		   
+	277	0, 1, 2 or 3	0 or 1125	869	0, 1, 2 or 3	0 or 1125	General purpose *		   
+35-II	193	1	250 or 750	68 or 568	1	250 or 750	Base Station report*	193	   
+	1118	1	0 or 1125	577	1	0 or 1125	Data Link  Management + general purpose *		   
+	869	0, 1, 2 or 3	0 or 1125	277	0, 1, 2 or 3	0 or 1125	General purpose *		   
+36-I	93	1	250 or 750	218 or 468	1	250 or 750	Base Station report*	93	   
+	587	1	0 or 1125	993	1	0 or 1125	Data Link  Management + general purpose *		   
+	302	0, 1, 2 or 3	0 or 1125	1119	0, 1, 2 or 3	0 or 1125	General purpose *		   
+36-II	218	1	250 or 750	93 or 593	1	250 or 750	Base Station report*	218	   
+	993	1	0 or 1125	587	1	0 or 1125	Data Link  Management + general purpose *		   
+	1119	0, 1, 2 or 3	0 or 1125	302	0, 1, 2 or 3	0 or 1125	General purpose *		 
+
+
