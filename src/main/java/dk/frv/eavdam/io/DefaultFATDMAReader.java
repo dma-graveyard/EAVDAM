@@ -16,6 +16,7 @@ public class DefaultFATDMAReader {
 	public static String defaultPath = "share/data/";
 	public static String defaultFile = "default.fatdma.dat";
 	
+	private static Map<String,List<FATDMACell>> cacheValues = null;
 	
 	/**
 	 * Reads the default FATDMA values to a HashMap from a file. HashMap contains the two default values.
@@ -25,6 +26,8 @@ public class DefaultFATDMAReader {
 	 * @return HashMap that contains the default values for each attribute.
 	 */
 	public static Map<String,List<FATDMACell>> readDefaultValues(String dir, String filename){
+		if(cacheValues != null) return cacheValues;
+		
 		Map<String, List<FATDMACell>> values = new HashMap<String, List<FATDMACell>>();
 		
 		if(dir == null) dir = defaultPath;
@@ -197,7 +200,7 @@ public class DefaultFATDMAReader {
 			e.printStackTrace();
 		}
 		
-		
+		cacheValues = values;
 		
 		return values;
 	}
