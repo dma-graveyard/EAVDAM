@@ -4,6 +4,7 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Scanner;
 
 import dk.frv.eavdam.data.FATDMACell;
@@ -23,8 +24,8 @@ public class DefaultFATDMAReader {
 	 * @param filename Name of the file. If null, defaultFile will be used.
 	 * @return HashMap that contains the default values for each attribute.
 	 */
-	public static HashMap<String,List<FATDMACell>> readDefaultValues(String dir, String filename){
-		HashMap<String, List<FATDMACell>> values = new HashMap<String, List<FATDMACell>>();
+	public static Map<String,List<FATDMACell>> readDefaultValues(String dir, String filename){
+		Map<String, List<FATDMACell>> values = new HashMap<String, List<FATDMACell>>();
 		
 		if(dir == null) dir = defaultPath;
 		if(filename == null || filename.length() == 0) filename = defaultFile;
@@ -203,7 +204,7 @@ public class DefaultFATDMAReader {
 	
 	
 	public static void main(String args[]){
-		HashMap<String,List<FATDMACell>> cells = DefaultFATDMAReader.readDefaultValues(null, null);
+		Map<String,List<FATDMACell>> cells = DefaultFATDMAReader.readDefaultValues(null, null);
 		for(String c : cells.keySet()){
 			
 			for(FATDMACell cell : cells.get(c)){
