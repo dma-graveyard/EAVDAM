@@ -16,16 +16,19 @@ import dk.frv.eavdam.data.FATDMADefaultChannel;
 import dk.frv.eavdam.data.FATDMANode;
 import dk.frv.eavdam.data.FATDMAReservation;
 import dk.frv.eavdam.data.Simulation;
+import dk.frv.eavdam.data.TimeslotReservation;
 import dk.frv.eavdam.io.DefaultFATDMAReader;
 import dk.frv.eavdam.io.derby.DerbyDBInterface;
 import dk.frv.eavdam.layers.FATDMAGridLayer;
 import dk.frv.eavdam.utils.DBHandler;
+import dk.frv.eavdam.utils.ImageHandler;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
+import java.awt.Image;
 import java.awt.Insets;
 import java.awt.Point;
 import java.awt.Toolkit;
@@ -39,6 +42,7 @@ import java.util.Map;
 import javax.swing.BorderFactory;
 import javax.swing.BoxLayout;
 import javax.swing.ButtonGroup;
+import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
@@ -100,6 +104,8 @@ public class AddStationDialog extends JDialog implements ActionListener, ItemLis
 	private JComboBox additionalTimeslotsForChBComboBox;
 	private JTextField chATimeslotsReservedTextField;
 	private JTextField chBTimeslotsReservedTextField;	
+	private JLabel chATimeslotsReservedLabel;
+	private JLabel chBTimeslotsReservedLabel;
 	private JButton okDefaultFATDMASchemeButton;
 	private JButton cancelDefaultFATDMASchemeButton;
 	
@@ -153,6 +159,7 @@ public class AddStationDialog extends JDialog implements ActionListener, ItemLis
 			"21-I", "21-II", "22-I", "22-II", "23-I", "23-II", "24-I", "24-II", "25-I", "25-II", "26-I", "26-II",
 			"27-I", "27-II", "28-I", "28-II", "29-I", "29-II", "30-I", "30-II", "31-I", "31-II", "32-I", "32-II",
 			"33-I", "33-II", "34-I", "34-II", "35-I", "35-II", "36-I", "36-II"});
+		selectIALADefaultFATDMASchemeComboBox.addItemListener(this);
 		semaphoreModeRadioButton = new JRadioButton("Semaphore mode");
 		semaphoreModeRadioButton.addItemListener(this);
 		nonSemaphoreModeRadioButton = new JRadioButton("Non-semaphore mode");	
@@ -183,6 +190,8 @@ public class AddStationDialog extends JDialog implements ActionListener, ItemLis
 		chATimeslotsReservedTextField.setEditable(false);
 		chBTimeslotsReservedTextField = menuItem.getTextField(4);
 		chBTimeslotsReservedTextField.setEditable(false);
+		chATimeslotsReservedLabel = new JLabel();
+		chBTimeslotsReservedLabel = new JLabel();
 	    okDefaultFATDMASchemeButton = menuItem.getButton("Ok", 100);
 		okDefaultFATDMASchemeButton.addActionListener(this);
 	    cancelDefaultFATDMASchemeButton = menuItem.getButton("Cancel", 100);
@@ -414,7 +423,8 @@ public class AddStationDialog extends JDialog implements ActionListener, ItemLis
 				oldAddStationChannelBIndex = -1;				
 			}
 		
-		} else if ((semaphoreModeRadioButton != null && e.getItemSelectable() == semaphoreModeRadioButton) ||
+		} else if ((selectIALADefaultFATDMASchemeComboBox != null && e.getItemSelectable() == selectIALADefaultFATDMASchemeComboBox) ||
+				(semaphoreModeRadioButton != null && e.getItemSelectable() == semaphoreModeRadioButton) ||
 				(nonSemaphoreModeRadioButton != null && e.getItemSelectable() == nonSemaphoreModeRadioButton) ||
 				(fatdmaReservationOnChACheckBox != null && e.getItemSelectable() == fatdmaReservationOnChACheckBox) ||		
 				(fatdmaReservationOnChBCheckBox != null && e.getItemSelectable() == fatdmaReservationOnChBCheckBox) ||
@@ -424,7 +434,7 @@ public class AddStationDialog extends JDialog implements ActionListener, ItemLis
 				(additionalBlocksForChBComboBox != null && e.getItemSelectable() == additionalBlocksForChBComboBox) ||	
 				(additionalTimeslotsForChAComboBox != null && e.getItemSelectable() == additionalTimeslotsForChAComboBox) ||
 				(additionalTimeslotsForChBComboBox != null && e.getItemSelectable() == additionalTimeslotsForChBComboBox)) {	
-			updateTimeslotsReservedTextFields();
+			updateTimeslotsReserved();
 		}
 		
 	}
@@ -550,6 +560,25 @@ public class AddStationDialog extends JDialog implements ActionListener, ItemLis
 			c = menuItem.updateGBC(c, 1, 9, 0, GridBagConstraints.LINE_START, GridBagConstraints.NONE, new Insets(0,0,0,0));
 			panel.add(temp6, c);
 
+			JPanel temp7 = new JPanel(new GridBagLayout());
+			c = menuItem.updateGBC(c, 0, 0, 0, GridBagConstraints.LINE_START, GridBagConstraints.NONE, new Insets(5,5,5,5));			
+			temp7.add(new JLabel("CH A:   "), c);			
+			c = menuItem.updateGBC(c, 1, 0, 0, GridBagConstraints.LINE_START, GridBagConstraints.NONE, new Insets(5,5,5,5));
+			temp7.add(chATimeslotsReservedLabel, c);
+			c = menuItem.updateGBC(c, 0, 10, 0, GridBagConstraints.LINE_START, GridBagConstraints.NONE, new Insets(0,0,0,0));
+			c.gridwidth = 2;			
+			panel.add(temp7, c);			
+			
+			JPanel temp8 = new JPanel(new GridBagLayout());
+			c = menuItem.updateGBC(c, 0, 0, 0, GridBagConstraints.LINE_START, GridBagConstraints.NONE, new Insets(5,5,5,5));			
+			c.gridwidth = 1;
+			temp8.add(new JLabel("CH B:   "), c);			
+			c = menuItem.updateGBC(c, 1, 0, 0, GridBagConstraints.LINE_START, GridBagConstraints.NONE, new Insets(5,5,5,5));
+			temp8.add(chBTimeslotsReservedLabel, c);
+			c = menuItem.updateGBC(c, 0, 11, 0, GridBagConstraints.LINE_START, GridBagConstraints.NONE, new Insets(0,0,0,0));
+			c.gridwidth = 2;
+			panel.add(temp8, c);			
+			
 			JPanel buttonPanel = new JPanel(new GridBagLayout());            
 			c = menuItem.updateGBC(c, 0, 0, 0.5, GridBagConstraints.LINE_START, GridBagConstraints.NONE, new Insets(5,5,5,5)); 
 			c.gridwidth = 1;     
@@ -557,21 +586,21 @@ public class AddStationDialog extends JDialog implements ActionListener, ItemLis
 			c = menuItem.updateGBC(c, 1, 0, 0.5, GridBagConstraints.LINE_START, GridBagConstraints.NONE, new Insets(5,5,5,5)); 
 			buttonPanel.add(cancelDefaultFATDMASchemeButton, c);
 			
-			c = menuItem.updateGBC(c, 0, 10, 0.5, GridBagConstraints.LINE_START, GridBagConstraints.NONE, new Insets(5,5,5,5));
+			c = menuItem.updateGBC(c, 0, 12, 0.5, GridBagConstraints.LINE_START, GridBagConstraints.NONE, new Insets(5,5,5,5));
 			c.gridwidth = 2;
 			panel.add(buttonPanel, c);		
 			
 			JScrollPane scrollPane = new JScrollPane(panel);
 			scrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
-			scrollPane.setPreferredSize(new Dimension(540, 440));
-			scrollPane.setMaximumSize(new Dimension(540, 440));
+			scrollPane.setPreferredSize(new Dimension(540, 480));
+			scrollPane.setMaximumSize(new Dimension(540, 480));
 
 			chooseDefaultFATDMASchemeDialog.getContentPane().add(scrollPane);			
 			
-			updateTimeslotsReservedTextFields();
+			updateTimeslotsReserved();
 			
      		Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
-            chooseDefaultFATDMASchemeDialog.setBounds((int) screenSize.getWidth()/2 - 540/2, (int) screenSize.getHeight()/2 - 440/2, 540, 440);
+            chooseDefaultFATDMASchemeDialog.setBounds((int) screenSize.getWidth()/2 - 540/2, (int) screenSize.getHeight()/2 - 480/2, 540, 480);
             chooseDefaultFATDMASchemeDialog.setVisible(true);
 			
 		} else if (okDefaultFATDMASchemeButton != null && e.getSource() == okDefaultFATDMASchemeButton) {
@@ -900,8 +929,11 @@ public class AddStationDialog extends JDialog implements ActionListener, ItemLis
 		}
 	}
 	
-	private void updateTimeslotsReservedTextFields() {
+	private void updateTimeslotsReserved() {
 	
+		List<TimeslotReservation> timeslotReservationsForChannelA = new ArrayList<TimeslotReservation>();
+		List<TimeslotReservation> timeslotReservationsForChannelB = new ArrayList<TimeslotReservation>();
+		
 		int timeslotsReservedForChannelA = 0;
 		int timeslotsReservedForChannelB = 0;		
 	
@@ -922,7 +954,8 @@ public class AddStationDialog extends JDialog implements ActionListener, ItemLis
 			int startslot = channelAFATDMANode.getStartingSlot().intValue();
 			int blockSize = channelAFATDMANode.getBlockSize().intValue();
 			int increment = channelAFATDMANode.getIncrement().intValue();
-			timeslotsReservedForChannelA = increaseTimeslotsReserved(startslot, blockSize, increment, timeslotsReservedForChannelA);		
+			timeslotsReservedForChannelA = increaseTimeslotsReserved(startslot, blockSize, increment, timeslotsReservedForChannelA);			
+			timeslotReservationsForChannelA.add(new TimeslotReservation(startslot, blockSize, increment));
 			
 			FATDMADefaultChannel baseStationChannelB = baseStationFATDMACell.getChannelB();
 			FATDMANode channelBFATDMANode = null;
@@ -934,7 +967,8 @@ public class AddStationDialog extends JDialog implements ActionListener, ItemLis
 			startslot = channelBFATDMANode.getStartingSlot().intValue();
 			blockSize = channelBFATDMANode.getBlockSize().intValue();
 			increment = channelBFATDMANode.getIncrement().intValue();
-			timeslotsReservedForChannelB = increaseTimeslotsReserved(startslot, blockSize, increment, timeslotsReservedForChannelB);
+			timeslotsReservedForChannelB = increaseTimeslotsReserved(startslot, blockSize, increment, timeslotsReservedForChannelB);			
+			timeslotReservationsForChannelB.add(new TimeslotReservation(startslot, blockSize, increment));
 				
 			FATDMACell datalinkManagementFATDMACell = fatdmaCells.get(1);			
 			
@@ -947,7 +981,8 @@ public class AddStationDialog extends JDialog implements ActionListener, ItemLis
 				} else {
 					increment = datalinkManagementChannelA.getNonSemaphoreNode().getIncrement().intValue();
 				}
-				timeslotsReservedForChannelA = increaseTimeslotsReserved(startslot, blockSize, increment, timeslotsReservedForChannelA);
+				timeslotsReservedForChannelA = increaseTimeslotsReserved(startslot, blockSize, increment, timeslotsReservedForChannelA);				
+				timeslotReservationsForChannelA.add(new TimeslotReservation(startslot, blockSize, increment));				
 			}								
 			FATDMADefaultChannel datalinkManagementChannelB = datalinkManagementFATDMACell.getChannelB();								
 			if (fatdmaReservationOnChBCheckBox.isSelected()) {
@@ -958,7 +993,8 @@ public class AddStationDialog extends JDialog implements ActionListener, ItemLis
 				} else {
 					increment = datalinkManagementChannelB.getNonSemaphoreNode().getIncrement().intValue();
 				}
-				timeslotsReservedForChannelB = increaseTimeslotsReserved(startslot, blockSize, increment, timeslotsReservedForChannelB);
+				timeslotsReservedForChannelB = increaseTimeslotsReserved(startslot, blockSize, increment, timeslotsReservedForChannelB);				
+				timeslotReservationsForChannelB.add(new TimeslotReservation(startslot, blockSize, increment));				
 			}					
 
 			FATDMACell generalPurposeFATDMACell = fatdmaCells.get(2);
@@ -972,7 +1008,8 @@ public class AddStationDialog extends JDialog implements ActionListener, ItemLis
 				} else if (Integer.parseInt((String) additionalBlocksForChAComboBox.getSelectedItem()) == 2) {
 					increment = generalPurposeChannelA.getNonSemaphoreNode().getIncrement().intValue();
 				}
-				timeslotsReservedForChannelA = increaseTimeslotsReserved(startslot, blockSize, increment, timeslotsReservedForChannelA);				
+				timeslotsReservedForChannelA = increaseTimeslotsReserved(startslot, blockSize, increment, timeslotsReservedForChannelA);	
+				timeslotReservationsForChannelA.add(new TimeslotReservation(startslot, blockSize, increment));				
 			}
 			
 			FATDMADefaultChannel generalPurposeChannelB = generalPurposeFATDMACell.getChannelB();			
@@ -984,13 +1021,23 @@ public class AddStationDialog extends JDialog implements ActionListener, ItemLis
 				} else if (Integer.parseInt((String) additionalBlocksForChBComboBox.getSelectedItem()) == 2) {
 					increment = generalPurposeChannelB.getNonSemaphoreNode().getIncrement().intValue();
 				}
-				timeslotsReservedForChannelB = increaseTimeslotsReserved(startslot, blockSize, increment, timeslotsReservedForChannelB);				
+				timeslotsReservedForChannelB = increaseTimeslotsReserved(startslot, blockSize, increment, timeslotsReservedForChannelB);					
+				timeslotReservationsForChannelB.add(new TimeslotReservation(startslot, blockSize, increment));							
 			}
 
-		}			
+		}
 		
 		chATimeslotsReservedTextField.setText(String.valueOf(timeslotsReservedForChannelA));
 		chBTimeslotsReservedTextField.setText(String.valueOf(timeslotsReservedForChannelB));
+		
+		Image timeslotImageForChannelA = ImageHandler.getTimeslotImage("CH A", timeslotReservationsForChannelA);
+		if (timeslotImageForChannelA != null) {
+			chATimeslotsReservedLabel.setIcon(new ImageIcon(timeslotImageForChannelA));
+		}
+		Image timeslotImageForChannelB = ImageHandler.getTimeslotImage("CH B", timeslotReservationsForChannelB);
+		if (timeslotImageForChannelB != null) {
+			chBTimeslotsReservedLabel.setIcon(new ImageIcon(timeslotImageForChannelB));
+		}		
 	}
 	
 	private int increaseTimeslotsReserved(int startslot, int blockSize, int increment, int timeslotsReserved) {
