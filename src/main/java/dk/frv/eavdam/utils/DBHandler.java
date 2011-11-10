@@ -109,9 +109,8 @@ public class DBHandler {
         //d.createDatabase(null);        
         
         
-        try {
-			d.insertEAVDAMData(data);
-		} catch (Exception e) {}
+		d.insertEAVDAMData(data);
+
 
 //        if(!updatedXML){
 //			System.out.println("Writing the xml to file...");
