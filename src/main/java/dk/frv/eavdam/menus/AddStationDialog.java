@@ -154,21 +154,31 @@ public class AddStationDialog extends JDialog implements ActionListener, ItemLis
 			"27-I", "27-II", "28-I", "28-II", "29-I", "29-II", "30-I", "30-II", "31-I", "31-II", "32-I", "32-II",
 			"33-I", "33-II", "34-I", "34-II", "35-I", "35-II", "36-I", "36-II"});
 		semaphoreModeRadioButton = new JRadioButton("Semaphore mode");
+		semaphoreModeRadioButton.addItemListener(this);
 		nonSemaphoreModeRadioButton = new JRadioButton("Non-semaphore mode");	
 		nonSemaphoreModeRadioButton.setSelected(true);
+		nonSemaphoreModeRadioButton.addItemListener(this);
 		ButtonGroup group = new ButtonGroup();
 		group.add(semaphoreModeRadioButton);
 		group.add(nonSemaphoreModeRadioButton);
 		fatdmaReservationOnChACheckBox = new JCheckBox("FATDMA reservation on CH A");
 		fatdmaReservationOnChACheckBox.setSelected(true);
+		fatdmaReservationOnChACheckBox.addItemListener(this);
 		fatdmaReservationOnChBCheckBox = new JCheckBox("FATDMA reservation on CH B");
 		fatdmaReservationOnChBCheckBox.setSelected(true);
+		fatdmaReservationOnChBCheckBox.addItemListener(this);
 		oneAdditionalTimeslotOnChACheckBox = new JCheckBox("One additional timeslot on CH A");
+		oneAdditionalTimeslotOnChACheckBox.addItemListener(this);
 		oneAdditionalTimeslotOnChBCheckBox = new JCheckBox("One additional timeslot on CH B");
+		oneAdditionalTimeslotOnChBCheckBox.addItemListener(this);
 		additionalBlocksForChAComboBox = menuItem.getComboBox(new String[] {"0", "1", "2"});
+		additionalBlocksForChAComboBox.addItemListener(this);
 		additionalBlocksForChBComboBox = menuItem.getComboBox(new String[] {"0", "1", "2"});
+		additionalBlocksForChBComboBox.addItemListener(this);
 		additionalTimeslotsForChAComboBox = menuItem.getComboBox(new String[] {"1", "2", "3"});
+		additionalTimeslotsForChAComboBox.addItemListener(this);
 		additionalTimeslotsForChBComboBox = menuItem.getComboBox(new String[] {"1", "2", "3"});
+		additionalTimeslotsForChBComboBox.addItemListener(this);
 		chATimeslotsReservedTextField = menuItem.getTextField(4);
 		chATimeslotsReservedTextField.setEditable(false);
 		chBTimeslotsReservedTextField = menuItem.getTextField(4);
@@ -177,7 +187,7 @@ public class AddStationDialog extends JDialog implements ActionListener, ItemLis
 		okDefaultFATDMASchemeButton.addActionListener(this);
 	    cancelDefaultFATDMASchemeButton = menuItem.getButton("Cancel", 100);
 		cancelDefaultFATDMASchemeButton.addActionListener(this);		
-		
+				
 		addAdditionalInformationJTextArea = menuItem.getTextArea("");
 		
 		doAddStationButton = menuItem.getButton("Add station", 140);  
@@ -403,6 +413,18 @@ public class AddStationDialog extends JDialog implements ActionListener, ItemLis
 				}
 				oldAddStationChannelBIndex = -1;				
 			}
+		
+		} else if ((semaphoreModeRadioButton != null && e.getItemSelectable() == semaphoreModeRadioButton) ||
+				(nonSemaphoreModeRadioButton != null && e.getItemSelectable() == nonSemaphoreModeRadioButton) ||
+				(fatdmaReservationOnChACheckBox != null && e.getItemSelectable() == fatdmaReservationOnChACheckBox) ||		
+				(fatdmaReservationOnChBCheckBox != null && e.getItemSelectable() == fatdmaReservationOnChBCheckBox) ||
+				(oneAdditionalTimeslotOnChACheckBox != null && e.getItemSelectable() == oneAdditionalTimeslotOnChACheckBox) ||
+				(oneAdditionalTimeslotOnChBCheckBox != null && e.getItemSelectable() == oneAdditionalTimeslotOnChBCheckBox) ||
+				(additionalBlocksForChAComboBox != null && e.getItemSelectable() == additionalBlocksForChAComboBox) ||						
+				(additionalBlocksForChBComboBox != null && e.getItemSelectable() == additionalBlocksForChBComboBox) ||	
+				(additionalTimeslotsForChAComboBox != null && e.getItemSelectable() == additionalTimeslotsForChAComboBox) ||
+				(additionalTimeslotsForChBComboBox != null && e.getItemSelectable() == additionalTimeslotsForChBComboBox)) {	
+			updateTimeslotsReservedTextFields();
 		}
 		
 	}
@@ -546,6 +568,8 @@ public class AddStationDialog extends JDialog implements ActionListener, ItemLis
 
 			chooseDefaultFATDMASchemeDialog.getContentPane().add(scrollPane);			
 			
+			updateTimeslotsReservedTextFields();
+			
      		Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
             chooseDefaultFATDMASchemeDialog.setBounds((int) screenSize.getWidth()/2 - 540/2, (int) screenSize.getHeight()/2 - 440/2, 540, 440);
             chooseDefaultFATDMASchemeDialog.setVisible(true);
@@ -640,9 +664,195 @@ public class AddStationDialog extends JDialog implements ActionListener, ItemLis
 					initialChannelBComponents.add(component4);
 				}
 				 			
-				// XXX: continue
-				FATDMACell datalinkManagementFATDMACell = fatdmaCells.get(1);
+				FATDMACell datalinkManagementFATDMACell = fatdmaCells.get(1);				
+				FATDMADefaultChannel datalinkManagementChannelA = datalinkManagementFATDMACell.getChannelA();
+				FATDMADefaultChannel datalinkManagementChannelB = datalinkManagementFATDMACell.getChannelB();
+				if (addStationTypeComboBox.getSelectedIndex() == 0 || addStationTypeComboBox.getSelectedIndex() == 1) {  // base station or repeater	
+					if (fatdmaReservationOnChACheckBox.isSelected()) {
+						initialChannelAComponents.add(new JTextField(datalinkManagementChannelA.getSemaphoreNode().getStartingSlot().toString(), 8));
+						initialChannelAComponents.add(new JTextField(datalinkManagementChannelA.getSemaphoreNode().getBlockSize().toString(), 8));
+						if (!oneAdditionalTimeslotOnChACheckBox.isSelected()) {
+							initialChannelAComponents.add(new JTextField(datalinkManagementChannelA.getSemaphoreNode().getIncrement().toString(), 8));
+					 	} else {
+							initialChannelAComponents.add(new JTextField(datalinkManagementChannelA.getNonSemaphoreNode().getIncrement().toString(), 8));
+						}
+						Component component = new JComboBox();									
+						((JComboBox) component).addItem("Local");
+						((JComboBox) component).addItem("Remote");
+						((JComboBox) component).setBorder(new EmptyBorder(0, 3, 0, 3));
+						((JComboBox) component).setSelectedItem("Local");						
+						initialChannelAComponents.add(component);
+						initialChannelAComponents.add(new JTextField(datalinkManagementChannelA.getSemaphoreNode().getUsage(), 8));
+						Component component2 = new JButton("Clear");	
+						((JButton) component2).setMargin(new Insets(0, 3, 0, 3));
+						((JButton) component2).addActionListener(this);
+						initialChannelAComponents.add(component2);
+					}
+					if (fatdmaReservationOnChBCheckBox.isSelected()) {					
+						initialChannelBComponents.add(new JTextField(datalinkManagementChannelB.getSemaphoreNode().getStartingSlot().toString(), 8));
+						initialChannelBComponents.add(new JTextField(datalinkManagementChannelB.getSemaphoreNode().getBlockSize().toString(), 8));
+						if (!oneAdditionalTimeslotOnChBCheckBox.isSelected()) {
+							initialChannelBComponents.add(new JTextField(datalinkManagementChannelB.getSemaphoreNode().getIncrement().toString(), 8));
+					 	} else {
+							initialChannelBComponents.add(new JTextField(datalinkManagementChannelB.getNonSemaphoreNode().getIncrement().toString(), 8));
+						}
+						Component component3 = new JComboBox();									
+						((JComboBox) component3).addItem("Local");
+						((JComboBox) component3).addItem("Remote");
+						((JComboBox) component3).setBorder(new EmptyBorder(0, 3, 0, 3));
+						((JComboBox) component3).setSelectedItem("Local");					
+						initialChannelBComponents.add(component3);
+						initialChannelBComponents.add(new JTextField(datalinkManagementChannelB.getNonSemaphoreNode().getUsage(), 8));
+						Component component4 = new JButton("Clear");	
+						((JButton) component4).setMargin(new Insets(0, 3, 0, 3));
+						((JButton) component4).addActionListener(this);
+						initialChannelBComponents.add(component4);
+					}
+				} else if (addStationTypeComboBox.getSelectedIndex() == 3) {  // aton station
+					if (fatdmaReservationOnChACheckBox.isSelected()) {
+						Component component = new JComboBox();									
+						((JComboBox) component).addItem("FATDMA");
+						((JComboBox) component).addItem("RATDMA");
+						((JComboBox) component).addItem("CSTDMA");
+						((JComboBox) component).setBorder(new EmptyBorder(0, 3, 0, 3));
+						((JComboBox) component).setSelectedItem("FATDMA");	
+						initialChannelAComponents.add(component);		
+						initialChannelAComponents.add(new JTextField("", 8));			
+						initialChannelAComponents.add(new JTextField("", 8));			
+						initialChannelAComponents.add(new JTextField("", 8));
+						initialChannelAComponents.add(new JTextField(datalinkManagementChannelA.getSemaphoreNode().getStartingSlot().toString(), 8));
+						initialChannelAComponents.add(new JTextField(datalinkManagementChannelA.getSemaphoreNode().getBlockSize().toString(), 8));
+						if (!oneAdditionalTimeslotOnChACheckBox.isSelected()) {
+							initialChannelAComponents.add(new JTextField(datalinkManagementChannelA.getSemaphoreNode().getIncrement().toString(), 8));
+					 	} else {
+							initialChannelAComponents.add(new JTextField(datalinkManagementChannelA.getNonSemaphoreNode().getIncrement().toString(), 8));
+						}						
+						initialChannelAComponents.add(new JTextField(datalinkManagementChannelA.getSemaphoreNode().getUsage(), 8));
+						Component component2 = new JButton("Clear");	
+						((JButton) component2).setMargin(new Insets(0, 3, 0, 3));
+						((JButton) component2).addActionListener(this);
+						initialChannelAComponents.add(component2);
+					}
+					if (fatdmaReservationOnChBCheckBox.isSelected()) {		
+						Component component3 = new JComboBox();									
+						((JComboBox) component3).addItem("FATDMA");
+						((JComboBox) component3).addItem("RATDMA");
+						((JComboBox) component3).addItem("CSTDMA");
+						((JComboBox) component3).setBorder(new EmptyBorder(0, 3, 0, 3));
+						((JComboBox) component3).setSelectedItem("FATDMA");	
+						initialChannelBComponents.add(component3);		
+						initialChannelBComponents.add(new JTextField("", 8));			
+						initialChannelBComponents.add(new JTextField("", 8));
+						initialChannelBComponents.add(new JTextField("", 8));					
+						initialChannelBComponents.add(new JTextField(datalinkManagementChannelB.getSemaphoreNode().getStartingSlot().toString(), 8));
+						initialChannelBComponents.add(new JTextField(datalinkManagementChannelB.getSemaphoreNode().getBlockSize().toString(), 8));
+						if (!oneAdditionalTimeslotOnChBCheckBox.isSelected()) {
+							initialChannelBComponents.add(new JTextField(datalinkManagementChannelB.getSemaphoreNode().getIncrement().toString(), 8));
+					 	} else {
+							initialChannelBComponents.add(new JTextField(datalinkManagementChannelB.getNonSemaphoreNode().getIncrement().toString(), 8));
+						}						
+						initialChannelBComponents.add(new JTextField(datalinkManagementChannelB.getNonSemaphoreNode().getUsage(), 8));
+						Component component4 = new JButton("Clear");	
+						((JButton) component4).setMargin(new Insets(0, 3, 0, 3));
+						((JButton) component4).addActionListener(this);
+						initialChannelBComponents.add(component4);
+					}
+				}
+
 				FATDMACell generalPurposeFATDMACell = fatdmaCells.get(2);
+				FATDMADefaultChannel generalPurposeChannelA = generalPurposeFATDMACell.getChannelA();
+				FATDMADefaultChannel generalPurposeChannelB = generalPurposeFATDMACell.getChannelB();
+				if (addStationTypeComboBox.getSelectedIndex() == 0 || addStationTypeComboBox.getSelectedIndex() == 1) {  // base station or repeater
+					if (Integer.parseInt((String) additionalBlocksForChAComboBox.getSelectedItem()) > 0) {
+						initialChannelAComponents.add(new JTextField(generalPurposeChannelA.getSemaphoreNode().getStartingSlot().toString(), 8));
+						initialChannelAComponents.add(new JTextField((String) additionalTimeslotsForChAComboBox.getSelectedItem(), 8));
+						if (Integer.parseInt((String) additionalBlocksForChAComboBox.getSelectedItem()) == 1) {
+							initialChannelAComponents.add(new JTextField(generalPurposeChannelA.getSemaphoreNode().getIncrement().toString(), 8));
+					 	} else if (Integer.parseInt((String) additionalBlocksForChAComboBox.getSelectedItem()) == 2) {
+							initialChannelAComponents.add(new JTextField(generalPurposeChannelA.getNonSemaphoreNode().getIncrement().toString(), 8));
+						}
+						Component component = new JComboBox();									
+						((JComboBox) component).addItem("Local");
+						((JComboBox) component).addItem("Remote");
+						((JComboBox) component).setBorder(new EmptyBorder(0, 3, 0, 3));
+						((JComboBox) component).setSelectedItem("Local");						
+						initialChannelAComponents.add(component);
+						initialChannelAComponents.add(new JTextField(generalPurposeChannelA.getSemaphoreNode().getUsage(), 8));
+						Component component2 = new JButton("Clear");	
+						((JButton) component2).setMargin(new Insets(0, 3, 0, 3));
+						((JButton) component2).addActionListener(this);
+						initialChannelAComponents.add(component2);
+					}
+					if (Integer.parseInt((String) additionalBlocksForChBComboBox.getSelectedItem()) > 0) {
+						initialChannelBComponents.add(new JTextField(generalPurposeChannelB.getSemaphoreNode().getStartingSlot().toString(), 8));
+						initialChannelBComponents.add(new JTextField((String) additionalTimeslotsForChBComboBox.getSelectedItem(), 8));
+						if (Integer.parseInt((String) additionalBlocksForChBComboBox.getSelectedItem()) == 1) {
+							initialChannelBComponents.add(new JTextField(generalPurposeChannelB.getSemaphoreNode().getIncrement().toString(), 8));
+					 	} else if (Integer.parseInt((String) additionalBlocksForChBComboBox.getSelectedItem()) == 2) {
+							initialChannelBComponents.add(new JTextField(generalPurposeChannelB.getNonSemaphoreNode().getIncrement().toString(), 8));
+						}
+						Component component3 = new JComboBox();									
+						((JComboBox) component3).addItem("Local");
+						((JComboBox) component3).addItem("Remote");
+						((JComboBox) component3).setBorder(new EmptyBorder(0, 3, 0, 3));
+						((JComboBox) component3).setSelectedItem("Local");					
+						initialChannelBComponents.add(component3);
+						initialChannelBComponents.add(new JTextField(generalPurposeChannelB.getNonSemaphoreNode().getUsage(), 8));
+						Component component4 = new JButton("Clear");	
+						((JButton) component4).setMargin(new Insets(0, 3, 0, 3));
+						((JButton) component4).addActionListener(this);
+						initialChannelBComponents.add(component4);
+					}
+				} else if (addStationTypeComboBox.getSelectedIndex() == 3) {  // aton station
+					if (Integer.parseInt((String) additionalBlocksForChAComboBox.getSelectedItem()) > 0) {
+						Component component = new JComboBox();	
+						((JComboBox) component).addItem("FATDMA");
+						((JComboBox) component).addItem("RATDMA");
+						((JComboBox) component).addItem("CSTDMA");
+						((JComboBox) component).setBorder(new EmptyBorder(0, 3, 0, 3));
+						((JComboBox) component).setSelectedItem("FATDMA");	
+						initialChannelAComponents.add(component);		
+						initialChannelAComponents.add(new JTextField("", 8));			
+						initialChannelAComponents.add(new JTextField("", 8));			
+						initialChannelAComponents.add(new JTextField("", 8));
+						initialChannelAComponents.add(new JTextField(generalPurposeChannelA.getSemaphoreNode().getStartingSlot().toString(), 8));
+						initialChannelAComponents.add(new JTextField((String) additionalTimeslotsForChAComboBox.getSelectedItem(), 8));
+						if (Integer.parseInt((String) additionalBlocksForChAComboBox.getSelectedItem()) == 1) {
+							initialChannelAComponents.add(new JTextField(generalPurposeChannelA.getSemaphoreNode().getIncrement().toString(), 8));
+					 	} else if (Integer.parseInt((String) additionalBlocksForChAComboBox.getSelectedItem()) == 2) {
+							initialChannelAComponents.add(new JTextField(generalPurposeChannelA.getNonSemaphoreNode().getIncrement().toString(), 8));
+						}
+						initialChannelAComponents.add(new JTextField(generalPurposeChannelA.getSemaphoreNode().getUsage(), 8));
+						Component component2 = new JButton("Clear");	
+						((JButton) component2).setMargin(new Insets(0, 3, 0, 3));
+						((JButton) component2).addActionListener(this);
+						initialChannelAComponents.add(component2);
+					}
+					if (Integer.parseInt((String) additionalBlocksForChBComboBox.getSelectedItem()) > 0) {					
+						Component component3 = new JComboBox();									
+						((JComboBox) component3).addItem("FATDMA");
+						((JComboBox) component3).addItem("RATDMA");
+						((JComboBox) component3).addItem("CSTDMA");
+						((JComboBox) component3).setBorder(new EmptyBorder(0, 3, 0, 3));
+						((JComboBox) component3).setSelectedItem("FATDMA");	
+						initialChannelBComponents.add(component3);		
+						initialChannelBComponents.add(new JTextField("", 8));			
+						initialChannelBComponents.add(new JTextField("", 8));
+						initialChannelBComponents.add(new JTextField("", 8));	
+						initialChannelBComponents.add(new JTextField(generalPurposeChannelB.getSemaphoreNode().getStartingSlot().toString(), 8));
+						initialChannelBComponents.add(new JTextField((String) additionalTimeslotsForChBComboBox.getSelectedItem(), 8));
+						if (Integer.parseInt((String) additionalBlocksForChBComboBox.getSelectedItem()) == 1) {
+							initialChannelBComponents.add(new JTextField(generalPurposeChannelB.getSemaphoreNode().getIncrement().toString(), 8));
+					 	} else if (Integer.parseInt((String) additionalBlocksForChBComboBox.getSelectedItem()) == 2) {
+							initialChannelBComponents.add(new JTextField(generalPurposeChannelB.getNonSemaphoreNode().getIncrement().toString(), 8));
+						}
+						initialChannelBComponents.add(new JTextField(generalPurposeChannelB.getNonSemaphoreNode().getUsage(), 8));
+						Component component4 = new JButton("Clear");	
+						((JButton) component4).setMargin(new Insets(0, 3, 0, 3));
+						((JButton) component4).addActionListener(this);
+						initialChannelBComponents.add(component4);
+					}
+				}
 			}
 			
 			updateAddStationChannelComboBoxesAndScrollPanes(initialChannelAComponents, initialChannelBComponents, true, true, true, true, false, false);			
@@ -651,7 +861,7 @@ public class AddStationDialog extends JDialog implements ActionListener, ItemLis
 		
 		} else if (cancelDefaultFATDMASchemeButton != null && e.getSource() == cancelDefaultFATDMASchemeButton) {
 			chooseDefaultFATDMASchemeDialog.dispose();
-			
+
 		} else {
 				
 			if (channelAPanel != null) {
@@ -677,7 +887,7 @@ public class AddStationDialog extends JDialog implements ActionListener, ItemLis
 					if (e.getSource() instanceof JButton && e.getSource() == components[i]) {
 						JButton button = (JButton) e.getSource();
 						if (button.getText().equals("Add row")) {
-							updateAddStationChannelComboBoxesAndScrollPanes(null, null, false, false, false, false, false, true);	
+							updateAddStationChannelComboBoxesAndScrollPanes(null, null, false, false, false, false, false, true);
 						} else if (button.getText().equals("Clear")) {
 							//int response = JOptionPane.showConfirmDialog(this, "Are you sure you want to delete the row?", "Confirm action", JOptionPane.YES_NO_OPTION);
 							//if (response == JOptionPane.YES_OPTION) {							
@@ -690,6 +900,116 @@ public class AddStationDialog extends JDialog implements ActionListener, ItemLis
 		}
 	}
 	
+	private void updateTimeslotsReservedTextFields() {
+	
+		int timeslotsReservedForChannelA = 0;
+		int timeslotsReservedForChannelB = 0;		
+	
+		Map<String,List<FATDMACell>> fatdmaCellsMap = DefaultFATDMAReader.readDefaultValues(null, null);
+		List<FATDMACell> fatdmaCells = fatdmaCellsMap.get((String) selectIALADefaultFATDMASchemeComboBox.getSelectedItem());			
+
+		if (fatdmaCells.size() == 3) {			
+		
+			FATDMACell baseStationFATDMACell = fatdmaCells.get(0);
+
+			FATDMADefaultChannel baseStationChannelA = baseStationFATDMACell.getChannelA();
+			FATDMANode channelAFATDMANode = null;
+			if (semaphoreModeRadioButton.isSelected()) {
+				channelAFATDMANode = baseStationChannelA.getSemaphoreNode();
+			} else {
+				channelAFATDMANode = baseStationChannelA.getNonSemaphoreNode(); 
+			}
+			int startslot = channelAFATDMANode.getStartingSlot().intValue();
+			int blockSize = channelAFATDMANode.getBlockSize().intValue();
+			int increment = channelAFATDMANode.getIncrement().intValue();
+			timeslotsReservedForChannelA = increaseTimeslotsReserved(startslot, blockSize, increment, timeslotsReservedForChannelA);		
+			
+			FATDMADefaultChannel baseStationChannelB = baseStationFATDMACell.getChannelB();
+			FATDMANode channelBFATDMANode = null;
+			if (semaphoreModeRadioButton.isSelected()) {
+				channelBFATDMANode = baseStationChannelB.getSemaphoreNode();
+			} else {
+				channelBFATDMANode = baseStationChannelB.getNonSemaphoreNode(); 
+			}
+			startslot = channelBFATDMANode.getStartingSlot().intValue();
+			blockSize = channelBFATDMANode.getBlockSize().intValue();
+			increment = channelBFATDMANode.getIncrement().intValue();
+			timeslotsReservedForChannelB = increaseTimeslotsReserved(startslot, blockSize, increment, timeslotsReservedForChannelB);
+				
+			FATDMACell datalinkManagementFATDMACell = fatdmaCells.get(1);			
+			
+			FATDMADefaultChannel datalinkManagementChannelA = datalinkManagementFATDMACell.getChannelA();
+			if (fatdmaReservationOnChACheckBox.isSelected()) {
+				startslot = datalinkManagementChannelA.getSemaphoreNode().getStartingSlot().intValue();
+				blockSize = datalinkManagementChannelA.getSemaphoreNode().getBlockSize().intValue();
+				if (!oneAdditionalTimeslotOnChACheckBox.isSelected()) {
+					increment = datalinkManagementChannelA.getSemaphoreNode().getIncrement().intValue();
+				} else {
+					increment = datalinkManagementChannelA.getNonSemaphoreNode().getIncrement().intValue();
+				}
+				timeslotsReservedForChannelA = increaseTimeslotsReserved(startslot, blockSize, increment, timeslotsReservedForChannelA);
+			}								
+			FATDMADefaultChannel datalinkManagementChannelB = datalinkManagementFATDMACell.getChannelB();								
+			if (fatdmaReservationOnChBCheckBox.isSelected()) {
+				startslot = datalinkManagementChannelB.getSemaphoreNode().getStartingSlot().intValue();
+				blockSize = datalinkManagementChannelB.getSemaphoreNode().getBlockSize().intValue();
+				if (!oneAdditionalTimeslotOnChBCheckBox.isSelected()) {
+					increment = datalinkManagementChannelB.getSemaphoreNode().getIncrement().intValue();
+				} else {
+					increment = datalinkManagementChannelB.getNonSemaphoreNode().getIncrement().intValue();
+				}
+				timeslotsReservedForChannelB = increaseTimeslotsReserved(startslot, blockSize, increment, timeslotsReservedForChannelB);
+			}					
+
+			FATDMACell generalPurposeFATDMACell = fatdmaCells.get(2);
+			
+			FATDMADefaultChannel generalPurposeChannelA = generalPurposeFATDMACell.getChannelA();
+			if (Integer.parseInt((String) additionalBlocksForChAComboBox.getSelectedItem()) > 0) {
+				startslot = generalPurposeChannelA.getSemaphoreNode().getStartingSlot().intValue();
+				blockSize = Integer.parseInt((String) additionalTimeslotsForChAComboBox.getSelectedItem());
+				if (Integer.parseInt((String) additionalBlocksForChAComboBox.getSelectedItem()) == 1) {
+					increment = generalPurposeChannelA.getSemaphoreNode().getIncrement().intValue();
+				} else if (Integer.parseInt((String) additionalBlocksForChAComboBox.getSelectedItem()) == 2) {
+					increment = generalPurposeChannelA.getNonSemaphoreNode().getIncrement().intValue();
+				}
+				timeslotsReservedForChannelA = increaseTimeslotsReserved(startslot, blockSize, increment, timeslotsReservedForChannelA);				
+			}
+			
+			FATDMADefaultChannel generalPurposeChannelB = generalPurposeFATDMACell.getChannelB();			
+			if (Integer.parseInt((String) additionalBlocksForChBComboBox.getSelectedItem()) > 0) {
+				startslot = generalPurposeChannelB.getSemaphoreNode().getStartingSlot().intValue();
+				blockSize = Integer.parseInt((String) additionalTimeslotsForChBComboBox.getSelectedItem());
+				if (Integer.parseInt((String) additionalBlocksForChBComboBox.getSelectedItem()) == 1) {
+					increment = generalPurposeChannelB.getSemaphoreNode().getIncrement().intValue();
+				} else if (Integer.parseInt((String) additionalBlocksForChBComboBox.getSelectedItem()) == 2) {
+					increment = generalPurposeChannelB.getNonSemaphoreNode().getIncrement().intValue();
+				}
+				timeslotsReservedForChannelB = increaseTimeslotsReserved(startslot, blockSize, increment, timeslotsReservedForChannelB);				
+			}
+
+		}			
+		
+		chATimeslotsReservedTextField.setText(String.valueOf(timeslotsReservedForChannelA));
+		chBTimeslotsReservedTextField.setText(String.valueOf(timeslotsReservedForChannelB));
+	}
+	
+	private int increaseTimeslotsReserved(int startslot, int blockSize, int increment, int timeslotsReserved) {
+		if (increment == 0) {
+			for (int i=0; i<blockSize; i++) {
+				timeslotsReserved++;
+			}	
+		} else if (increment > 0) {					
+			int i = 0;
+			while (i*increment <= 2249) {							
+				for (int j=0; j<blockSize; j++) {
+					timeslotsReserved++;
+				}
+				i++;
+			}		
+		}
+		return timeslotsReserved;
+	}	
+
     private void updateAntennaTypeComboBox() {
         if (addAntennaTypeComboBox.getSelectedIndex() == 0) {  // no antenna         
             addAntennaHeightTextField.setText("");
@@ -990,7 +1310,10 @@ public class AddStationDialog extends JDialog implements ActionListener, ItemLis
 				
 		int addNoOfRows = 0;
 		if (init) {
-			addNoOfRows += 3;
+			addNoOfRows = 3-(channelPanel.getComponents().length/6);
+			if (addNoOfRows < 0) {
+				addNoOfRows = 0;
+			}
 		}
 		if (addRowToChannel) {
 			addNoOfRows++;
@@ -1102,8 +1425,11 @@ public class AddStationDialog extends JDialog implements ActionListener, ItemLis
 		}
 		
 		int addNoOfRows = 0;
-		if (init) {
-			addNoOfRows += 3;
+		if (init) {		
+			addNoOfRows = 3-(channelPanel.getComponents().length/9);
+			if (addNoOfRows < 0) {
+				addNoOfRows = 0;
+			}
 		}
 		if (addRowToChannel) {
 			addNoOfRows++;
@@ -1238,6 +1564,7 @@ public class AddStationDialog extends JDialog implements ActionListener, ItemLis
 				FATDMAReservation fatdmaReservation = new FATDMAReservation(new Integer(startslotTextField.getText()),
 					new Integer(blockSizeTextField.getText()), new Integer(incrementTextField.getText()), ownership, usageTextField.getText());
 				fatdmaScheme.add(fatdmaReservation);
+				System.out.println("adding fatdmareservation: " + fatdmaReservation.toString());
 			}						
 			// i+5 is clear button
 			i = i+6;  // go to next row
@@ -1457,6 +1784,9 @@ public class AddStationDialog extends JDialog implements ActionListener, ItemLis
 		int nonRecommendedValueForIncrementForChannelA = 0;
 		int nonRecommendedValueForIncrementForChannelB = 0;
 		if (fatdmaChannelA instanceof AISBaseAndReceiverStationFATDMAChannel) {
+		
+									System.out.println("adding fatma reservation rows for ch a: " + ((AISBaseAndReceiverStationFATDMAChannel) fatdmaChannelA).getFATDMAScheme().size());
+				
 			List<FATDMAReservation> fatdmaScheme = ((AISBaseAndReceiverStationFATDMAChannel) fatdmaChannelA).getFATDMAScheme();
 			for (FATDMAReservation fatdmaReservation : fatdmaScheme) {
 				int i = fatdmaReservation.getIncrement().intValue();
@@ -1572,7 +1902,7 @@ public class AddStationDialog extends JDialog implements ActionListener, ItemLis
 						addAntennaTypeComboBox.getSelectedIndex() == 2) {
 					stationData.setAntenna(antenna);
 				}
-				stationData.setFATDMAChannelA(fatdmaChannelA);
+				stationData.setFATDMAChannelA(fatdmaChannelA);				
 				stationData.setFATDMAChannelB(fatdmaChannelB);
 				if (addAdditionalInformationJTextArea.getText().trim().isEmpty()) {
 					stationData.setDescription(null);

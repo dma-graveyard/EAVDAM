@@ -361,13 +361,19 @@ public class AISFixedStationData {
 							int incrementInt = increment.intValue();
 							if (reservedBlocks == null) {
 								reservedBlocks = new ArrayList<Integer>();
-							}							
-							int i = 0;
-							while (i*incrementInt <= 2249) {							
-								for (int j=0; j<blockSizeInt; j++) {
-									reservedBlocks.add(new Integer(startslotInt+j+(i*incrementInt)));
+							}
+							if (incrementInt == 0) {
+								for (int i=0; i<blockSizeInt; i++) {
+									reservedBlocks.add(new Integer(startslotInt+i));
+								}								
+							} else if (incrementInt > 0) {
+								int i = 0;
+								while (i*incrementInt <= 2249) {							
+									for (int j=0; j<blockSizeInt; j++) {
+										reservedBlocks.add(new Integer(startslotInt+j+(i*incrementInt)));
+									}
+									i++;
 								}
-								i++;
 							}
 						}
 					}
@@ -387,12 +393,18 @@ public class AISFixedStationData {
 							if (reservedBlocks == null) {
 								reservedBlocks = new ArrayList<Integer>();
 							}							
-							int i = 0;
-							while (i*incrementInt <= 2249) {							
-								for (int j=0; j<blockSizeInt; j++) {
-									reservedBlocks.add(new Integer(startslotInt+j+(i*incrementInt)));
+							if (incrementInt == 0) {
+								for (int i=0; i<blockSizeInt; i++) {
+									reservedBlocks.add(new Integer(startslotInt+i));
+								}								
+							} else if (incrementInt > 0) {
+								int i = 0;
+								while (i*incrementInt <= 2249) {							
+									for (int j=0; j<blockSizeInt; j++) {
+										reservedBlocks.add(new Integer(startslotInt+j+(i*incrementInt)));
+									}
+									i++;
 								}
-								i++;
 							}
 						}
 					}
