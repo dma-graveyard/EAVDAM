@@ -1,6 +1,7 @@
 package dk.frv.eavdam.data;
 
 import java.io.StringWriter;
+import java.util.ArrayList;
 import java.util.List;
 
 import javax.xml.transform.OutputKeys;
@@ -340,4 +341,159 @@ public class AISFixedStationData {
 	public void setInterferenceCoverage(AISFixedStationCoverage interferenceCoverage) {
 		this.interferenceCoverage = interferenceCoverage;
 	}
+	
+	public List<Integer> getReservedBlocksForChannelA() {
+		
+		List<Integer> reservedBlocks = null;
+		
+		if (fatdmaChannelA != null) {
+			if (fatdmaChannelA instanceof AISBaseAndReceiverStationFATDMAChannel) {
+				AISBaseAndReceiverStationFATDMAChannel chA = (AISBaseAndReceiverStationFATDMAChannel) fatdmaChannelA;
+				List<FATDMAReservation> fatdmaScheme = chA.getFATDMAScheme();
+				if (fatdmaScheme != null) {
+					for (FATDMAReservation fatdmaReservation : fatdmaScheme) {
+						Integer startslot = fatdmaReservation.getStartslot();
+				        Integer blockSize = fatdmaReservation.getBlockSize();
+				        Integer increment = fatdmaReservation.getIncrement();
+						if (startslot != null && blockSize != null && increment != null) {
+							int startslotInt = startslot.intValue();
+							int blockSizeInt = blockSize.intValue();
+							int incrementInt = increment.intValue();
+							if (reservedBlocks == null) {
+								reservedBlocks = new ArrayList<Integer>();
+							}							
+							int i = 0;
+							while (i*incrementInt <= 2249) {							
+								for (int j=0; j<blockSizeInt; j++) {
+									reservedBlocks.add(new Integer(startslotInt+j+(i*incrementInt)));
+								}
+								i++;
+							}
+						}
+					}
+				}
+			} else if (fatdmaChannelA instanceof AISAtonStationFATDMAChannel) {
+				AISAtonStationFATDMAChannel chA = (AISAtonStationFATDMAChannel) fatdmaChannelA;
+				List<AtonMessageBroadcastRate> atonMessageBroadcastList = chA.getAtonMessageBroadcastList();
+				if (atonMessageBroadcastList != null) {
+					for (AtonMessageBroadcastRate atonMessageBroadcastRate : atonMessageBroadcastList) {
+						Integer startslot = atonMessageBroadcastRate.getStartslot();
+				        Integer blockSize = atonMessageBroadcastRate.getBlockSize();
+				        Integer increment = atonMessageBroadcastRate.getIncrement();
+						if (startslot != null && blockSize != null && increment != null) {
+							int startslotInt = startslot.intValue();
+							int blockSizeInt = blockSize.intValue();
+							int incrementInt = increment.intValue();
+							if (reservedBlocks == null) {
+								reservedBlocks = new ArrayList<Integer>();
+							}							
+							int i = 0;
+							while (i*incrementInt <= 2249) {							
+								for (int j=0; j<blockSizeInt; j++) {
+									reservedBlocks.add(new Integer(startslotInt+j+(i*incrementInt)));
+								}
+								i++;
+							}
+						}
+					}
+				}
+			}				
+		}
+
+		return reservedBlocks;
+	}
+	
+	public List<Integer> getReservedBlocksForChannelB() {
+		
+		List<Integer> reservedBlocks = null;
+		
+		if (fatdmaChannelB != null) {
+			if (fatdmaChannelB instanceof AISBaseAndReceiverStationFATDMAChannel) {
+				AISBaseAndReceiverStationFATDMAChannel chB = (AISBaseAndReceiverStationFATDMAChannel) fatdmaChannelB;
+				List<FATDMAReservation> fatdmaScheme = chB.getFATDMAScheme();
+				if (fatdmaScheme != null) {
+					for (FATDMAReservation fatdmaReservation : fatdmaScheme) {
+						Integer startslot = fatdmaReservation.getStartslot();
+				        Integer blockSize = fatdmaReservation.getBlockSize();
+				        Integer increment = fatdmaReservation.getIncrement();
+						if (startslot != null && blockSize != null && increment != null) {
+							int startslotInt = startslot.intValue();
+							int blockSizeInt = blockSize.intValue();
+							int incrementInt = increment.intValue();
+							if (reservedBlocks == null) {
+								reservedBlocks = new ArrayList<Integer>();
+							}							
+							int i = 0;
+							while (i*incrementInt <= 2249) {							
+								for (int j=0; j<blockSizeInt; j++) {
+									reservedBlocks.add(new Integer(startslotInt+j+(i*incrementInt)));
+								}
+								i++;
+							}
+						}
+					}
+				}
+			} else if (fatdmaChannelB instanceof AISAtonStationFATDMAChannel) {
+				AISAtonStationFATDMAChannel chB = (AISAtonStationFATDMAChannel) fatdmaChannelB;
+				List<AtonMessageBroadcastRate> atonMessageBroadcastList = chB.getAtonMessageBroadcastList();
+				if (atonMessageBroadcastList != null) {
+					for (AtonMessageBroadcastRate atonMessageBroadcastRate : atonMessageBroadcastList) {
+						Integer startslot = atonMessageBroadcastRate.getStartslot();
+				        Integer blockSize = atonMessageBroadcastRate.getBlockSize();
+				        Integer increment = atonMessageBroadcastRate.getIncrement();
+						if (startslot != null && blockSize != null && increment != null) {
+							int startslotInt = startslot.intValue();
+							int blockSizeInt = blockSize.intValue();
+							int incrementInt = increment.intValue();
+							if (reservedBlocks == null) {
+								reservedBlocks = new ArrayList<Integer>();
+							}							
+							int i = 0;
+							while (i*incrementInt <= 2249) {							
+								for (int j=0; j<blockSizeInt; j++) {
+									reservedBlocks.add(new Integer(startslotInt+j+(i*incrementInt)));
+								}
+								i++;
+							}
+						}
+					}
+				}
+			}				
+		}
+
+		return reservedBlocks;
+	}
+	
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

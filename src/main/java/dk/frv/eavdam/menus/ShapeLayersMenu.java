@@ -65,10 +65,12 @@ public class ShapeLayersMenu extends JMenuItem {
 			String strLine;
 			while ((strLine = br.readLine()) != null) {
 				File temp = new File(strLine);
-				shapeFilePathNames.add(strLine);
-				JCheckBox shapeLayersCheckBox = new JCheckBox(temp.getName());
-				shapeLayersCheckBox.setSelected(false);
-				shapeLayersCheckBoxes.add(shapeLayersCheckBox);
+				if (temp.exists()) {
+					shapeFilePathNames.add(strLine);
+					JCheckBox shapeLayersCheckBox = new JCheckBox(temp.getName());
+					shapeLayersCheckBox.setSelected(false);
+					shapeLayersCheckBoxes.add(shapeLayersCheckBox);
+				}
 			}
 			in.close();
 		} catch (Exception e) {}

@@ -59,7 +59,7 @@ public class FATDMANode {
 		else if(this.blockSize == 7) return "1 or 2";
 		else return this.blockSize+"";
 	}
-	
+
 	public String toString(){
 		String ut = (semaphore ? "" : "Non-")+"Semaphore node: "+startingSlot+" | "+this.getReservationBlockSizeString()+" | "+increment+" | "+usage;
 		

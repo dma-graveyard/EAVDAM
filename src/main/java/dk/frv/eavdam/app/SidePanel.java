@@ -149,30 +149,32 @@ public class SidePanel extends JPanel implements MapPanelChild, ActionListener {
         infoPane = new JEditorPane("text/html",
             "<p><strong>Click a station to view data:<strong></p>" +
             "<table cellspacing=1 cellpadding=1><tr><td>Name:</td><td>...</td></tr>" +
-            "<tr><td>Type:</td><td>...</td></tr>" +
-            "<tr><td>Latitude:</td><td>...</td></tr>" +
-            "<tr><td>Longitude:</td><td>...</td></tr>" +
-            "<tr><td>MMSI:</td><td>...</td></tr>" +
-            "<tr><td>Power:</td><td>...</td></tr>" +
-            "<tr><td>Antenna type:</td><td>...</td></tr>" +
-            "<tr><td>Antenna height:</td><td>...</td></tr>" +
-            "<tr><td>Terrain height:</td><td>...</td></tr>" +
-            "<tr><td>Heading:</td><td>...</td></tr>" +
-            "<tr><td>Angle:</td><td>...</td></tr>" +            
-            "<tr><td>Gain:</td><td>...</td></tr></table>");
+            "<tr><td valign=\"top\">Type:</td><td>...</td></tr>" +
+            "<tr><td valign=\"top\">Latitude:</td><td>...</td></tr>" +
+            "<tr><td valign=\"top\">Longitude:</td><td>...</td></tr>" +
+            "<tr><td valign=\"top\">MMSI:</td><td>...</td></tr>" +
+            "<tr><td valign=\"top\">Power:</td><td>...</td></tr>" +
+            "<tr><td valign=\"top\">Antenna type:</td><td>...</td></tr>" +
+            "<tr><td valign=\"top\">Antenna height:</td><td>...</td></tr>" +
+            "<tr><td valign=\"top\">Terrain height:</td><td>...</td></tr>" +
+            "<tr><td valign=\"top\">Heading:</td><td>...</td></tr>" +
+            "<tr><td valign=\"top\">Angle:</td><td>...</td></tr>" +            
+            "<tr><td valign=\"top\">Gain:</td><td>...</td></tr>" +
+            "<tr><td valign=\"top\">Reserved blocks for Ch A:</td><td>...</td></tr>" +
+			"<tr><td valign=\"top\">Reserved blocks for Ch B:</td><td>...</td></tr></table>");
         infoPane.setBackground(new Color(238, 238, 238));
         //infoPane.setBorder(new CompoundBorder
         //    (BorderFactory.createLineBorder(new Color(122, 138, 153), 1),
         //    BorderFactory.createEmptyBorder(0,10,0,10)));
         infoPane.setBorder(BorderFactory.createEmptyBorder(0,0,0,0));
-        infoPane.setPreferredSize(new Dimension(230, 350));
-        infoPane.setMaximumSize(new Dimension(230, 350));
+        infoPane.setPreferredSize(new Dimension(230, 500));
+        infoPane.setMaximumSize(new Dimension(230, 500));
         infoPane.setEditable(false);
         JScrollPane infoScrollPane = new JScrollPane(infoPane);
         infoScrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
         infoScrollPane.setBorder(BorderFactory.createEmptyBorder(0,10,0,10));
-        infoScrollPane.setPreferredSize(new Dimension(230, 350));
-        infoScrollPane.setMaximumSize(new Dimension(230, 350));
+        infoScrollPane.setPreferredSize(new Dimension(230, 500));
+        infoScrollPane.setMaximumSize(new Dimension(230, 500));
         add(infoScrollPane);
         //add(infoPane);        
         
@@ -234,13 +236,13 @@ public class SidePanel extends JPanel implements MapPanelChild, ActionListener {
 	    AISFixedStationData stationData = omBaseStation.getStationData();
 	    
 	    String infoText = "<p><strong>Click a station to view data:</strong></p>" +
-            "<table cellspacing=1 cellpadding=1><tr><td>Name:</td><td>";
+            "<table cellspacing=1 cellpadding=1><tr><td valign=\"top\">Name:</td><td valign=\"top\">";
         if (stationData.getStationName() != null) {
             infoText += stationData.getStationName();
         } else {
             infoText += "...";
         }
-        infoText += "</td></tr><tr><td>Type:</td><td>";
+        infoText += "</td></tr><tr><td valign=\"top\">Type:</td><td valign=\"top\">";
         if (stationData.getStationType() != null) {
             if (stationData.getStationType() == AISFixedStationType.BASESTATION) {
                 infoText += "AIS Base Station";
@@ -254,21 +256,21 @@ public class SidePanel extends JPanel implements MapPanelChild, ActionListener {
         } else {
             infoText += "...";
         }
-        infoText += "</td></tr><tr><td>Latitude:</td><td>" + stationData.getLat() +
-            "</td></tr><tr><td>Longitude:</td><td>" + stationData.getLon() + "</td></tr>" +
+        infoText += "</td></tr><tr><td valign=\"top\">Latitude:</td><td valign=\"top\">" + stationData.getLat() +
+            "</td></tr><tr><td valign=\"top\">Longitude:</td><td valign=\"top\">" + stationData.getLon() + "</td></tr>" +
             "<tr><td>MMSI:</td><td>";
         if (stationData.getMmsi() != null) {    
             infoText += stationData.getMmsi();
         } else {
             infoText += "...";
         }
-        infoText += "</td></tr><tr><td>Power:</td><td>";
+        infoText += "</td></tr><tr><td valign=\"top\">Power:</td><td valign=\"top\">";
         if (stationData.getTransmissionPower() != null) {
             infoText += stationData.getTransmissionPower().toString();
         } else {
             infoText += "...";
         }
-        infoText +="</td></tr><tr><td>Antenna type:</td><td>";
+        infoText +="</td></tr><tr><td valign=\"top\">Antenna type:</td><td valign=\"top\">";
         if (stationData.getAntenna() != null) {
             Antenna antenna = stationData.getAntenna();            
             if (antenna.getAntennaType() != null) {
@@ -281,37 +283,64 @@ public class SidePanel extends JPanel implements MapPanelChild, ActionListener {
             } else {
                 infoText += "...";
             }
-            infoText += "</td></tr><tr><td>Antenna height:</td><td>" +
+            infoText += "</td></tr><tr><td valign=\"top\">Antenna height:</td><td valign=\"top\">" +
                 antenna.getAntennaHeight() + "</td></tr>" +
-                "<tr><td>Terrain height:</td><td>" + antenna.getTerrainHeight() +
-                "</td></tr><tr><td>Heading:</td><td>";
+                "<tr><td>Terrain height:</td><td valign=\"top\">" + antenna.getTerrainHeight() +
+                "</td></tr><tr><td valign=\"top\">Heading:</td><td valign=\"top\">";
             if (antenna.getHeading() != null) {                
                 infoText += antenna.getHeading().toString();
             } else {
                 infoText += "...";
             }
-            infoText += "</td></tr><tr><td>Angle:</td><td>";
+            infoText += "</td></tr><tr><td valign=\"top\">Angle:</td><td valign=\"top\">";
             if (antenna.getFieldOfViewAngle() != null) {                
                 infoText += antenna.getFieldOfViewAngle().toString();
             } else {
                 infoText += "...";
             }  
-            infoText += "</td></tr><tr><td>Gain:</td><td>";
+            infoText += "</td></tr><tr><td valign=\"top\">Gain:</td><td valign=\"top\">";
             if (antenna.getGain() != null) {                
                 infoText += antenna.getGain().toString();
             } else {
                 infoText += "...";
             }
-            infoText += "</td></tr></table>";         
+            infoText += "</td></tr>";         
         } else {
             infoText += "...</td></tr>" +
-            "<tr><td>Antenna height:</td><td>...</td></tr>" +
-            "<tr><td>Terrain height:</td><td>...</td></tr>" +
-            "<tr><td>Heading:</td><td>...</td></tr>" +
-            "<tr><td>Angle:</td><td>...</td></tr>" +            
-            "<tr><td>Gain:</td><td>...</td></tr></table>";
+            "<tr><td valign=\"top\">Antenna height:</td><td valign=\"top\">...</td></tr>" +
+            "<tr><td valign=\"top\">Terrain height:</td><td valign=\"top\">...</td></tr>" +
+            "<tr><td valign=\"top\">Heading:</td><td>...</td valign=\"top\"></tr>" +
+            "<tr><td valign=\"top\">Angle:</td><td>...</td valign=\"top\"></tr>" +            
+            "<tr><td valign=\"top\">Gain:</td><td>...</td valign=\"top\"></tr>";
         }
-                    
+		if (stationData.getReservedBlocksForChannelA() != null && !stationData.getReservedBlocksForChannelA().isEmpty()) {
+			String temp = "";
+			for (int i=0; i<stationData.getReservedBlocksForChannelA().size(); i++) {
+				Integer reservedBlock = stationData.getReservedBlocksForChannelA().get(i);
+				if (i > 0) {
+					temp += ", ";
+				}
+				temp += reservedBlock.toString();
+			}
+			infoText += "<tr><td valign=\"top\">Reserved blocks for Ch A:</td><td valign=\"top\">" + temp + "</td></tr>";
+		} else {			 
+			 infoText += "<tr><td valign=\"top\">Reserved blocks for Ch A:</td><td valign=\"top\">...</td></tr>";
+		}
+		if (stationData.getReservedBlocksForChannelB() != null && !stationData.getReservedBlocksForChannelB().isEmpty()) {
+			String temp = "";
+			for (int i=0; i<stationData.getReservedBlocksForChannelB().size(); i++) {
+				Integer reservedBlock = stationData.getReservedBlocksForChannelB().get(i);
+				if (i > 0) {
+					temp += ", ";
+				}
+				temp += reservedBlock.toString();
+			}
+			infoText += "<tr><td valign=\"top\">Reserved blocks for Ch B:</td><td valign=\"top\">" + temp + "</td></tr>";
+		} else {			 
+			 infoText += "<tr><td valign=\"top\">Reserved blocks for Ch B:</td><td valign=\"top\">...</td></tr>";
+		}			
+		infoText += "</table>";					
+					
         infoPane.setText(infoText);
 	}
 	

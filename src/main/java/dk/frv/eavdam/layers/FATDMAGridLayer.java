@@ -7,6 +7,7 @@ import com.bbn.openmap.layer.OMGraphicHandlerLayer;
 import com.bbn.openmap.proj.Projection;
 import com.bbn.openmap.omGraphics.OMGraphic;
 import com.bbn.openmap.omGraphics.OMGraphicList;
+import com.bbn.openmap.omGraphics.OMLine;
 import com.bbn.openmap.omGraphics.OMRect;
 import com.bbn.openmap.omGraphics.OMText;
 import java.awt.geom.Point2D;
@@ -31,80 +32,111 @@ public class FATDMAGridLayer extends OMGraphicHandlerLayer {
 	public synchronized OMGraphicList prepare() {		
 	
 		graphics.clear();
-	
+		
 		Projection projection = getProjection();
 		
-		float scale = projection.getScale();
+		double scale = projection.getScale();
 		
 		if (scale > 15000000) {
 		
 			JOptionPane.showMessageDialog(openMapFrame, "Scale too small for displaying FATDMA grid layer! Please, zoom in!");			
 			
 		} else {
-					
+			
+			/*	
+			Point2D upperLeft = projection.getUpperLeft();
+			Point2D lowerRight = projection.getLowerRight();		
+						
+			double latTopPos = Math.floor(upperLeft.getY());
+			double lonLeftPos = Math.floor(upperLeft.getX());
+			double latBottomPos = Math.floor(lowerRight.getY());
+			double lonRightPos = Math.floor(lowerRight.getX());
+
+			// if looking at an area (in the Pacific Ocean), where the dateline crosses through
+			// the area of interest (LONleft > LONright) the drawing method needs to be called twice
+			
+			if (lonLeftPos > lonRightPos) {
+				addGridToGraphics(latTopPos, lonLeftPos, latBottomPos, 180);
+				addGridToGraphics(latTopPos, -180, latBottomPos, lonRightPos);				
+			} else {
+				addGridToGraphics(latTopPos, lonLeftPos, latBottomPos, lonRightPos);
+			}
+			*/
+				
+			Point2D upperLeft = projection.getUpperLeft();
+			Point2D lowerRight = projection.getLowerRight();
+			
 			int singleCellSizeInNauticalMiles = 30;
 			int noOfSingleCellsAlongOneSideOfMasterCell = 6;
 			int masterCellSizeInNauticalMiles = singleCellSizeInNauticalMiles * noOfSingleCellsAlongOneSideOfMasterCell;		
 			int noOfMasterCellsAroundEquator = (int) (360.0d * 60.0d / masterCellSizeInNauticalMiles);
-			float masterCellSizeInDegreesLatitude = (float) masterCellSizeInNauticalMiles / 60;  	
-			float singleCellHeightInDegrees = masterCellSizeInDegreesLatitude / noOfSingleCellsAlongOneSideOfMasterCell;
+			double masterCellSizeInDegreesLatitude = masterCellSizeInNauticalMiles / 60;  	
+			double singleCellHeightInDegrees = masterCellSizeInDegreesLatitude / noOfSingleCellsAlongOneSideOfMasterCell;
+		
+			int startLat = ((int) (upperLeft.getY()/3)*3) + 6;
+			if (startLat > 90) {
+				startLat = 90;
+			}
+			int endLat = ((int) (lowerRight.getY()/3)*3) - 6;
+			if (endLat < -90) {
+				endLat = -90;
+			}
+			double startLon = upperLeft.getX() - 6;
+			if (startLon < -180) {
+				startLon = -180;
+			}
+			double endLon = lowerRight.getX() + 6;
+			if (endLon > 180) {
+				endLon = 180;
+			}
 			
-			Point2D upperLeft = projection.getUpperLeft();
-			Point2D lowerRight = projection.getLowerRight();
-						
-			// covers Europe, but starting point of the grid probably not correct !!
-			/*
-			float startLat = 73;
-			float endLat = 28;
-			float startLon = -23;
-			float endLon = 42;
-			*/
-						
-			float startLat = (float) Math.floor(upperLeft.getY());
-			float endLat = (float) Math.floor(lowerRight.getY());
-			float startLon = (float) Math.floor(upperLeft.getX());
-			float endLon = (float) Math.floor(lowerRight.getX());
-		
-			System.out.println(startLat + "; " + endLat + ";" + startLon + ";" + endLon);
-		
-			for (float lat = startLat; lat > endLat; lat = lat-singleCellHeightInDegrees) { 		
+			for (double lat = endLat; lat <= startLat; lat = lat+singleCellHeightInDegrees) { 		
 				try {
-					int masterCellRowNo = (int) (Math.abs(lat + (float) 0.5*singleCellHeightInDegrees) / masterCellSizeInDegreesLatitude);
-					double masterCellMeanLatitude = (masterCellRowNo + 0.5) * masterCellSizeInDegreesLatitude;
+					int masterCellRowNo = (int) (Math.abs(lat + 0.5*singleCellHeightInDegrees) / masterCellSizeInDegreesLatitude);
+					double masterCellMeanLatitude = (masterCellRowNo + 0.5) * masterCellSizeInDegreesLatitude;					
 					int noOfMasterCellsAroundMasterCellRow = (int) (noOfMasterCellsAroundEquator * Math.cos(2*Math.PI*masterCellMeanLatitude/360.0));
-					float singleCellWidthInDegrees = (float) 360/(noOfSingleCellsAlongOneSideOfMasterCell*noOfMasterCellsAroundMasterCellRow);	
-					if (startLon < endLon) {
-						for (float lon = startLon; lon < endLon; lon = lon + singleCellWidthInDegrees) {
-							OMRect omRect = new OMRect(lat, lon, lat + singleCellHeightInDegrees, lon+singleCellWidthInDegrees, OMGraphic.LINETYPE_RHUMB);
-							graphics.add(omRect);					
-							int cellno = getCellNo(lat + (float) 0.5*singleCellHeightInDegrees, lon + (float) 0.5*singleCellWidthInDegrees,
-								singleCellSizeInNauticalMiles, noOfSingleCellsAlongOneSideOfMasterCell, masterCellRowNo, singleCellWidthInDegrees);					
-							OMText omText = new OMText(lat + (float) 0.5*singleCellHeightInDegrees, lon + (float) 0.5*singleCellWidthInDegrees, String.valueOf(cellno), OMText.JUSTIFY_CENTER);
-							omText.setBaseline(OMText.BASELINE_MIDDLE);
-							graphics.add(omText);
-						}
-					} else {
-						float lon = startLon;
-						while (true) {
-							if (lon < 0 && lon >= endLon) {
-								break;
+					double singleCellWidthInDegrees = (double) 360/(noOfSingleCellsAlongOneSideOfMasterCell*noOfMasterCellsAroundMasterCellRow);	
+					if (startLon < endLon) {					
+						for (int n = -noOfMasterCellsAroundEquator*3; n <noOfMasterCellsAroundEquator*3; n++) {
+							double lon = n*singleCellWidthInDegrees;
+							if ((lon > startLon) && (lon < endLon)) {  
+								OMRect omRect = new OMRect(lat, lon, lat + singleCellHeightInDegrees, lon+singleCellWidthInDegrees, OMGraphic.LINETYPE_RHUMB);
+								graphics.add(omRect);					
+								int cellno = getCellNo(lat + 0.5*singleCellHeightInDegrees, lon + 0.5*singleCellWidthInDegrees,
+									singleCellSizeInNauticalMiles, noOfSingleCellsAlongOneSideOfMasterCell, masterCellRowNo, singleCellWidthInDegrees);					
+								OMText omText = new OMText(lat + 0.5*singleCellHeightInDegrees, lon +0.5*singleCellWidthInDegrees, String.valueOf(cellno), OMText.JUSTIFY_CENTER);
+								omText.setBaseline(OMText.BASELINE_MIDDLE);
+								graphics.add(omText);
 							}
-							if (lon > 180) {
-								lon = lon - 360;
-							}					
-							float lon2 = lon+singleCellWidthInDegrees;
-							if (lon2 > 180) {
-								lon2 = lon2 - 360;
-							}
-							OMRect omRect = new OMRect(lat, lon, lat + singleCellHeightInDegrees, lon2, OMGraphic.LINETYPE_RHUMB);
-							graphics.add(omRect);					
-							int cellno = getCellNo(lat + (float) 0.5*singleCellHeightInDegrees, lon + (float) 0.5*singleCellWidthInDegrees,
-								singleCellSizeInNauticalMiles, noOfSingleCellsAlongOneSideOfMasterCell, masterCellRowNo, singleCellWidthInDegrees);					
-							OMText omText = new OMText(lat + (float) 0.5*singleCellHeightInDegrees, lon + (float) 0.5*singleCellWidthInDegrees, String.valueOf(cellno), OMText.JUSTIFY_CENTER);
-							omText.setBaseline(OMText.BASELINE_MIDDLE);
-							graphics.add(omText);	
-							lon = lon + singleCellWidthInDegrees;
 						}
+					} else {				
+						for (int n = -noOfMasterCellsAroundEquator*3; n <noOfMasterCellsAroundEquator*3; n++) {							
+							double lon = n*singleCellWidthInDegrees;
+							if ((lon > startLon) && (lon <= 180)) {  
+								OMRect omRect = new OMRect(lat, lon, lat + singleCellHeightInDegrees, lon+singleCellWidthInDegrees, OMGraphic.LINETYPE_RHUMB);
+								graphics.add(omRect);					
+								int cellno = getCellNo(lat + 0.5*singleCellHeightInDegrees, lon + 0.5*singleCellWidthInDegrees,
+									singleCellSizeInNauticalMiles, noOfSingleCellsAlongOneSideOfMasterCell, masterCellRowNo, singleCellWidthInDegrees);					
+								OMText omText = new OMText(lat + 0.5*singleCellHeightInDegrees, lon + 0.5*singleCellWidthInDegrees, String.valueOf(cellno), OMText.JUSTIFY_CENTER);
+								omText.setBaseline(OMText.BASELINE_MIDDLE);
+								graphics.add(omText);
+							}
+						}
+						for (int n = -noOfMasterCellsAroundEquator*3; n <noOfMasterCellsAroundEquator*3; n++) {
+							double lon = n*singleCellWidthInDegrees;
+							if (Math.round(lon) == -180) {
+								lon = -180;
+							}
+							if ((lon >= -180) && (lon < endLon)) {
+								OMRect omRect = new OMRect(lat, lon, lat + singleCellHeightInDegrees, lon+singleCellWidthInDegrees, OMGraphic.LINETYPE_RHUMB);
+								graphics.add(omRect);		
+								int cellno = getCellNo(lat + 0.5*singleCellHeightInDegrees, lon + 0.5*singleCellWidthInDegrees,
+									singleCellSizeInNauticalMiles, noOfSingleCellsAlongOneSideOfMasterCell, masterCellRowNo, singleCellWidthInDegrees);					
+								OMText omText = new OMText(lat + 0.5*singleCellHeightInDegrees, lon + 0.5*singleCellWidthInDegrees, String.valueOf(cellno), OMText.JUSTIFY_CENTER);
+								omText.setBaseline(OMText.BASELINE_MIDDLE);
+								graphics.add(omText);
+							}
+						}						
 					}
 				} catch (Exception ex) {}				
 			}
@@ -116,7 +148,84 @@ public class FATDMAGridLayer extends OMGraphicHandlerLayer {
 		return graphics;
 	}
 	
-    public int getCellNo(float lat, float lon, int singleCellSizeInNauticalMiles, int noOfSingleCellsAlongOneSideOfMasterCell, int masterCellRowNo, float singleCellWidthInDegrees) {
+	private void addGridToGraphics(double latTopPos, double lonLeftPos, double latBottomPos, double lonRightPos) {
+	
+		// make sure to draw the grid a little larger than the area in view
+		int latStart = ((int) (latBottomPos/3)*3) - 6;
+		int latStop = ((int) (latTopPos/3)*3) + 6;
+		double lonStart = lonLeftPos - 6;
+		double lonStop = lonRightPos + 6;
+		
+		//... using the calculations from above 
+		int singleCellSizeInNauticalMiles = 30;
+		int noOfSingleCellsAlongOneSideOfMasterCell = 6;
+		int masterCellSizeInNauticalMiles = singleCellSizeInNauticalMiles * noOfSingleCellsAlongOneSideOfMasterCell;
+		int noOfMasterCellsAroundEquator = 360 * 60 / masterCellSizeInNauticalMiles;
+		double masterCellSizeInDegreesLatitude = (double) masterCellSizeInNauticalMiles / 60;
+
+		for (double latBottom=latStart; latBottom <= latStop; latBottom +=0.5) {  //i.e. run through the longitude interval in view in increments of one layer of cells.
+		
+			double lat = latBottom + 0.25;
+			
+			// draw the bottom line of the layer of cells at (latbottom, LONstart) to (latbottom,LONstop).
+			OMLine omLine = new OMLine(latBottom, lonStart, latBottom, lonStop, OMLine.LINETYPE_RHUMB);
+			graphics.add(omLine);
+			
+			//... using the algorithm from above at this particular latitude
+			//Note: abs(x) denotes the absolute value of x; int(x) denotes truncated integer value of x 
+			int masterCellRowNo = (int) (Math.abs(lat) / masterCellSizeInDegreesLatitude); 
+			double masterCellMeanLatitude = (masterCellRowNo+0.5) * masterCellSizeInDegreesLatitude;
+
+			//Note: cos(x) denotes cosine of x in radians
+			int noOfMasterCellsAroundMasterCellRow = (int) (noOfMasterCellsAroundEquator * Math.cos(2 * Math.PI * masterCellMeanLatitude / 360 ));
+
+			double singleCellWidthInDegrees = 360 / (noOfSingleCellsAlongOneSideOfMasterCell * noOfMasterCellsAroundMasterCellRow); 
+
+			for (int n = -noOfMasterCellsAroundEquator*3; n <noOfMasterCellsAroundEquator*3; n++) {
+
+				if ((n*singleCellWidthInDegrees > lonStart) && (n*singleCellWidthInDegrees < lonStop)) {  // we are now inside the drawing area)
+
+					// draw the line separating two neighbouring cells of the same layer
+					
+					OMLine omLine2 = new OMLine(latBottom, n*singleCellWidthInDegrees, latBottom+0.5, n*singleCellWidthInDegrees, OMLine.LINETYPE_RHUMB);
+					graphics.add(omLine2);
+	
+					//Now calculate the cell number
+					Double lon = n*singleCellWidthInDegrees+singleCellWidthInDegrees*0.5;
+
+					int rowNumberInsideMasterCell = (int) (Math.abs(lat) * 60 / singleCellSizeInNauticalMiles) - noOfSingleCellsAlongOneSideOfMasterCell * masterCellRowNo;
+
+					// Note: first Southern Hemisphere is assumed, then compensate if Northern Hemisphere
+					if (lat > 0) {
+						rowNumberInsideMasterCell = noOfSingleCellsAlongOneSideOfMasterCell - rowNumberInsideMasterCell - 1;
+					}
+			
+					int columnNumberInsideMasterCell = (int) (Math.abs(lon) / singleCellWidthInDegrees);
+			
+					while (columnNumberInsideMasterCell > (noOfSingleCellsAlongOneSideOfMasterCell - 1 )) {
+						columnNumberInsideMasterCell = columnNumberInsideMasterCell - noOfSingleCellsAlongOneSideOfMasterCell;
+					}
+
+					// Note: first positive longitude is assumed, compensate if negative longitude (west of Greenwich)
+					if (lon < 0) {
+						columnNumberInsideMasterCell = (noOfSingleCellsAlongOneSideOfMasterCell - 1) - columnNumberInsideMasterCell;
+					}
+
+					int resultingCellNumber = rowNumberInsideMasterCell * noOfSingleCellsAlongOneSideOfMasterCell + columnNumberInsideMasterCell + 1;
+
+					// now draw the cell number at the centre position of the cell (LAT, LON)
+					OMText omText = new OMText(lat, lon, String.valueOf(resultingCellNumber), OMText.JUSTIFY_CENTER);
+					omText.setBaseline(OMText.BASELINE_MIDDLE);
+					graphics.add(omText);	
+
+				}
+		
+			}
+
+		}
+	}
+	
+    public static int getCellNo(double lat, double lon, int singleCellSizeInNauticalMiles, int noOfSingleCellsAlongOneSideOfMasterCell, int masterCellRowNo, double singleCellWidthInDegrees) {
 
         int rowNumberInsideMasterCell =-1;
         int columnNumberInsideMasterCell =-1;
