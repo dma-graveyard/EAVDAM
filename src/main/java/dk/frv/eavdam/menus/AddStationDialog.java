@@ -1564,7 +1564,6 @@ public class AddStationDialog extends JDialog implements ActionListener, ItemLis
 				FATDMAReservation fatdmaReservation = new FATDMAReservation(new Integer(startslotTextField.getText()),
 					new Integer(blockSizeTextField.getText()), new Integer(incrementTextField.getText()), ownership, usageTextField.getText());
 				fatdmaScheme.add(fatdmaReservation);
-				System.out.println("adding fatdmareservation: " + fatdmaReservation.toString());
 			}						
 			// i+5 is clear button
 			i = i+6;  // go to next row
@@ -1784,9 +1783,6 @@ public class AddStationDialog extends JDialog implements ActionListener, ItemLis
 		int nonRecommendedValueForIncrementForChannelA = 0;
 		int nonRecommendedValueForIncrementForChannelB = 0;
 		if (fatdmaChannelA instanceof AISBaseAndReceiverStationFATDMAChannel) {
-		
-									System.out.println("adding fatma reservation rows for ch a: " + ((AISBaseAndReceiverStationFATDMAChannel) fatdmaChannelA).getFATDMAScheme().size());
-				
 			List<FATDMAReservation> fatdmaScheme = ((AISBaseAndReceiverStationFATDMAChannel) fatdmaChannelA).getFATDMAScheme();
 			for (FATDMAReservation fatdmaReservation : fatdmaScheme) {
 				int i = fatdmaReservation.getIncrement().intValue();
