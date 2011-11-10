@@ -1421,32 +1421,32 @@ import dk.frv.eavdam.data.Simulation;
 		    		
 		    		if(f instanceof AISAtonStationFATDMAChannel){
 		    			AISAtonStationFATDMAChannel aton = (AISAtonStationFATDMAChannel)f;
+
+	    	    		//Delete the old ones
+	    		    	PreparedStatement delete = conn.prepareStatement("delete from FATDMAATON where channel = "+f.getDBID());
+	    		    	delete.executeUpdate();
 		    			
 		    			for(AtonMessageBroadcastRate r : aton.getAtonMessageBroadcastList()){
 		    				if(r.getDbID() != null && r.getDbID().intValue() > 0 && false){
 		    					//Update
 		    					this.updateAtonMessageBroadcastRate(r);
 		    				}else{
-			    	    		//Delete the old ones
-			    		    	PreparedStatement delete = conn.prepareStatement("delete from FATDMAATON where channel = "+f.getDBID());
-			    		    	delete.executeUpdate();
 			    				
-		    					
 		    					this.insertAtonMessageBroadcastRate(r, f.getDBID());
 		    				}
 		    			}
 		    		}else{
 		    			AISBaseAndReceiverStationFATDMAChannel base = (AISBaseAndReceiverStationFATDMAChannel)f;
+
+	    	    		//Delete the old ones
+	    		    	PreparedStatement delete = conn.prepareStatement("delete from FATDMABASE where channel = "+f.getDBID());
+	    		    	delete.executeUpdate();
 		    			
 		    			for(FATDMAReservation r : base.getFATDMAScheme()){
 		    				if(r.getDbID() != null && r.getDbID().intValue() > 0 && false){
 		    					//Update
 		    					this.updateFATDMAReservation(r);
 		    				}else{
-			    	    		//Delete the old ones
-			    		    	PreparedStatement delete = conn.prepareStatement("delete from FATDMABASE where channel = "+f.getDBID());
-			    		    	delete.executeUpdate();
-			    				
 		    					
 		    					//Insert
 		    					this.insertFATDMAReservation(r, f.getDBID());
@@ -2805,7 +2805,7 @@ import dk.frv.eavdam.data.Simulation;
 							+ "STARTSLOT INT,"
 							+ "BLOCKSIZE INT,"
 							+ "INCREMENT INT,"
-							+ "USAGE VARCHAR(40),"
+							+ "USAGE VARCHAR(80),"
 							+ "CONSTRAINT pk_fatdma_a PRIMARY KEY (ID), "
 							+ "CONSTRAINT fk_a_fatdma FOREIGN KEY (CHANNEL) references FATDMACHANNEL(ID))");
 				} catch (Exception e) {
@@ -2823,7 +2823,7 @@ import dk.frv.eavdam.data.Simulation;
 							+ "BLOCKSIZE INT,"
 							+ "INCREMENT INT,"
 							+ "OWNERSHIP VARCHAR(1),"
-							+ "USAGE VARCHAR(40),"
+							+ "USAGE VARCHAR(80),"
 							+ "CONSTRAINT pk_fatdma_b PRIMARY KEY (ID), "
 							+ "CONSTRAINT fk_b_fatdmab FOREIGN KEY (CHANNEL) references FATDMACHANNEL(ID))");
 				} catch (Exception e) {
