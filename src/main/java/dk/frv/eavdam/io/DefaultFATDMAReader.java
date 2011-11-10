@@ -205,7 +205,13 @@ public class DefaultFATDMAReader {
 		return values;
 	}
 	
-	
+	/**
+	 * Used for testing this class.
+	 * 
+	 * Prints the parsed values.
+	 * 
+	 * @param args
+	 */
 	public static void main(String args[]){
 		Map<String,List<FATDMACell>> cells = DefaultFATDMAReader.readDefaultValues(null, null);
 		for(String c : cells.keySet()){
