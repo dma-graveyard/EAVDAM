@@ -143,9 +143,10 @@ import dk.frv.eavdam.data.Simulation;
 	            	createdDB = true;
 	            }
 
-	            
-	            
+	            if(!createdDB) this.checkDatabaseVersion();	            
+
 	    	}	
+            
             
             return this.conn;
 	    }
@@ -2833,8 +2834,8 @@ import dk.frv.eavdam.data.Simulation;
 				
 				try {
 					s.execute("CREATE TABLE SENDTOFTP"
-							+ "(SERVER VARCHAR(75),"
-							+ "DIRECTORY VARCHAR(20),"
+							+ "(SERVER VARCHAR(100),"
+							+ "DIRECTORY VARCHAR(100),"
 							+ "USERNAME VARCHAR(50),"
 							+ "PASSWORD VARCHAR(25))");
 				} catch (Exception e) {
@@ -2942,7 +2943,36 @@ import dk.frv.eavdam.data.Simulation;
 	    	}
 	    }
 	    
-	 
+		private void checkDatabaseVersion(){
+			
+			//Version alpha: update table if the ftp-directory is too short...
+			try{
+				if(this.conn == null) this.conn = this.getDBConnection(null, true);
+				
+				PreparedStatement ps = this.conn.prepareStatement("insert into SENDTOFTP values ('DELETE','TOO LONG DIRECTORY !!!!!!!','none','none')");
+				ps.executeUpdate();
+				
+				ps = this.conn.prepareStatement("delete from SENDTOFTP where server = 'DELETE'");
+				ps.executeUpdate();
+				ps.close();
+			}catch(Exception e){
+				try{
+					System.out.print("Old version of the SENDTOFTP table. Updating it...");
+					PreparedStatement ps = this.conn.prepareStatement("alter table SENDTOFTP alter server set data type varchar(100)");
+					ps.executeUpdate();
+					
+					ps = this.conn.prepareStatement("alter table SENDTOFTP alter directory set data type varchar(100)");
+					ps.executeUpdate();
+					System.out.print(" ...Update complete.\n");
+					
+					ps.close();
+				}catch(Exception e2){
+					e2.printStackTrace();
+				}
+				
+			}
+			
+		}
 
 	    /**
 	     * Retrieves the options for FTP and email xml sending.
