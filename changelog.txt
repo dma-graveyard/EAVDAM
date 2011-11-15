@@ -1,0 +1,4 @@
+============== Alpha Build ====================
+- Changed maximum length of the ftp-directory to 100 characters.
+	- Database alteration for this implemented (no need to create a new database.
+
