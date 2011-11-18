@@ -1158,12 +1158,12 @@ import dk.frv.eavdam.data.Simulation;
 	    	
 	    	if(id <= 0) return;
 	    	
-	    	 
+	    	  
 	    	List<AISFixedStationData> stations = this.retrieveAISStations(-1, id);
 	    	for(AISFixedStationData s : stations){
 	    		this.deleteStation(s.getStationDBID());
 	    	}
-	    	
+	    	 
 	    	ps = conn.prepareStatement("delete from ORGANIZATION where id = ?");
 	    	ps.setInt(1, id);
 	    	int n = ps.executeUpdate();
