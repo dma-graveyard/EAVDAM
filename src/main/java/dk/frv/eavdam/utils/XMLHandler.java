@@ -162,15 +162,25 @@ public class XMLHandler {
         	String[] files = importFolder.list();
         	if(files == null) return null;
         	
+        	EAVDAMUser defaultUser = db.retrieveDefaultUser();
+        	
+        	String du = ""; 
+        	if(defaultUser != null)
+        		defaultUser.getOrganizationName();
+        	
         	for(String file : files){
         		System.out.println("Importing file: "+file);
         		EAVDAMData d = XMLImporter.readXML(new File(importFolder+"/"+file));
 				
         		System.out.println("USER: "+d.getUser().getOrganizationName());
-				db.deleteUser(d.getUser());
-				System.out.println("Delete complete...");
-        		db.insertEAVDAMData(d);
-	            
+        		if(d.getUser().getOrganizationName().equals(du)){
+        			System.out.println("\tUser is the default user. Skipping import on this file...");
+        			continue;
+        		}else{
+        			db.deleteUser(d.getUser());
+        			System.out.println("Delete complete...");
+        			db.insertEAVDAMData(d);
+        		}
         	}
         	
         	return db.retrieveAllEAVDAMData(db.retrieveDefaultUser());
@@ -209,7 +219,7 @@ public class XMLHandler {
                 }
             }
             //currentEAVDAMData = data;
-            XMLExporter.writeXML(exportData, new File(getNewDataFileName(organisationName)));            
+            XMLExporter.writeXML(exportData, new File(getNewDataFileName(organisationName.replaceAll(" ", ""))));            
 //            deleteOldDataFiles();
         } catch (FileNotFoundException ex) {
             System.out.println("FileNotFoundException: " + ex.getMessage());

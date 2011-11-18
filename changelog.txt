@@ -1,4 +1,6 @@
 ============== Alpha Build ====================
-- Changed maximum length of the ftp-directory to 100 characters.
+- Changed maximum length of the ftp-directory to 150 characters.
 	- Database alteration for this implemented (no need to create a new database.
+- Changed name of the exported xml-file from organization name.xml to organizationname.xml.
+- Fixed: Importing data removes the data from the default user.
 

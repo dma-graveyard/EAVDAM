@@ -143,7 +143,7 @@ import dk.frv.eavdam.data.Simulation;
 	            	createdDB = true;
 	            }
 
-	            if(!createdDB) this.checkDatabaseVersion();	            
+	            if(!createdDB) this.updateDatabaseVersion();	            
 
 	    	}	
             
@@ -2835,7 +2835,7 @@ import dk.frv.eavdam.data.Simulation;
 				try {
 					s.execute("CREATE TABLE SENDTOFTP"
 							+ "(SERVER VARCHAR(100),"
-							+ "DIRECTORY VARCHAR(100),"
+							+ "DIRECTORY VARCHAR(150),"
 							+ "USERNAME VARCHAR(50),"
 							+ "PASSWORD VARCHAR(25))");
 				} catch (Exception e) {
@@ -2943,7 +2943,7 @@ import dk.frv.eavdam.data.Simulation;
 	    	}
 	    }
 	    
-		private void checkDatabaseVersion(){
+		private void updateDatabaseVersion(){
 			
 			//Version alpha: update table if the ftp-directory is too short...
 			try{
@@ -2957,8 +2957,8 @@ import dk.frv.eavdam.data.Simulation;
 				ps.close();
 			}catch(Exception e){
 				try{
-					System.out.print("Old version of the SENDTOFTP table. Updating it...");
-					PreparedStatement ps = this.conn.prepareStatement("alter table SENDTOFTP alter server set data type varchar(100)");
+					System.out.print("Old version of the SENDTOFTP table. Updating it to alpha...");
+					PreparedStatement ps = this.conn.prepareStatement("alter table SENDTOFTP alter server set data type varchar(150)");
 					ps.executeUpdate();
 					
 					ps = this.conn.prepareStatement("alter table SENDTOFTP alter directory set data type varchar(100)");
