@@ -18,8 +18,10 @@ public class FTPHandler {
         }	
     	System.out.println("Logging into ftp server " + ftp.getServer());
         FTPClient ftpClient = new FTPClient();
-		ftpClient.setConnectTimeout(7500); //7.5s
-		ftpClient.setDataTimeout(7500); //7.5s
+        
+        //Not sure if these are needed...
+//		ftpClient.setConnectTimeout(7500); //7.5s
+//		ftpClient.setDataTimeout(7500); //7.5s
 		
         ftpClient.connect(ftp.getServer());
         boolean login = ftpClient.login(ftp.getUsername(), ftp.getPassword());
@@ -92,6 +94,9 @@ public class FTPHandler {
             throw new IOException("ownFileName is null");
         }
 		
+        File importDir = new File(importDirectory);
+        if(!importDir.exists()) importDir.mkdirs();
+        
 		FTPFile[] files = ftpClient.listFiles();
         for (FTPFile file : files) {		
 			if (!file.isDirectory() && !file.getName().equals(ownFileName) && (file.getName().substring(file.getName().length()-3).equalsIgnoreCase("xml"))) {

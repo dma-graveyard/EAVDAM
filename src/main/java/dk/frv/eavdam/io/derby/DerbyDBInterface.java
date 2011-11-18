@@ -1141,13 +1141,15 @@ import dk.frv.eavdam.data.Simulation;
 	    }
 	    
 	    public void deleteUser(EAVDAMUser user) throws Exception{
+	    	if(user == null) return;
+	    	
 	    	System.out.println("Deleting user "+user.getOrganizationName());
 	    	
 	    	PreparedStatement ps = null;
 	    	
 	    	ps = conn.prepareStatement("select ORGANIZATION.id from ORGANIZATION, ADDRESS where (ORGANIZATION.visitingaddress = ADDRESS.id OR ORGANIZATION.postaladdress = ADDRESS.id) AND (organizationname = ? OR addressline1 = ?)");
 	    	ps.setString(1, user.getOrganizationName());
-	    	ps.setString(2, user.getPostalAddress().getAddressline1());
+	    	ps.setString(2, user.getPostalAddress() != null ? user.getPostalAddress().getAddressline1() : "NO ADDRESS GIVEN FOR DELETION");
 	    	ResultSet rs = ps.executeQuery();
 	    	int id = -1;
 	    	if(rs.next()){
