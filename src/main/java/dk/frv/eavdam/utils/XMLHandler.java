@@ -166,13 +166,13 @@ public class XMLHandler {
         	
         	String du = ""; 
         	if(defaultUser != null)
-        		defaultUser.getOrganizationName();
+        		du = defaultUser.getOrganizationName();
         	
         	for(String file : files){
         		System.out.println("Importing file: "+file);
         		EAVDAMData d = XMLImporter.readXML(new File(importFolder+"/"+file));
 				
-        		System.out.println("USER: "+d.getUser().getOrganizationName());
+        		System.out.println("USER: "+d.getUser().getOrganizationName()+" (default: "+du+")");
         		if(d.getUser().getOrganizationName().equals(du)){
         			System.out.println("\tUser is the default user. Skipping import on this file...");
         			continue;

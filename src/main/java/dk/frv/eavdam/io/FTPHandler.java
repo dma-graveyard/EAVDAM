@@ -18,14 +18,15 @@ public class FTPHandler {
         }	
     	System.out.println("Logging into ftp server " + ftp.getServer());
         FTPClient ftpClient = new FTPClient();
-		ftpClient.setConnectTimeout(5000); //5s
-		ftpClient.setDataTimeout(5000); //5s
+		ftpClient.setConnectTimeout(7500); //7.5s
+		ftpClient.setDataTimeout(7500); //7.5s
 		
         ftpClient.connect(ftp.getServer());
         boolean login = ftpClient.login(ftp.getUsername(), ftp.getPassword());
         if(!ftpClient.isConnected() || !login){
         	System.out.println("Connection Failed! "+(!login ? "Wrong username/password" : "Connection not available!"));
-        	return null;
+        	throw new IOException("Connection failed! "+(!login ? "Wrong username/password" : "Connection not available!"));
+//        	return null;
         }
         
         if (ftp.getDirectory() != null) {
