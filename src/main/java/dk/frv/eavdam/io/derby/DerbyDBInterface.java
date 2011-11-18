@@ -1140,6 +1140,12 @@ import dk.frv.eavdam.data.Simulation;
 	    	
 	    }
 	    
+	    /**
+	     * Deletes the given user from the database.
+	     * 
+	     * @param user
+	     * @throws Exception
+	     */
 	    public void deleteUser(EAVDAMUser user) throws Exception{
 	    	if(user == null) return;
 	    	
