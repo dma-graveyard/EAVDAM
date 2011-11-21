@@ -1092,8 +1092,8 @@ public class AddStationDialog extends JDialog implements ActionListener, ItemLis
 		if (!addLatitudeTextField.getText().trim().isEmpty() && !addLongitudeTextField.getText().trim().isEmpty()) {
 		
 			try {			
-				float lat = Float.valueOf(addLatitudeTextField.getText());
-				float lon = Float.valueOf(addLongitudeTextField.getText());
+				float lat = Float.valueOf(addLatitudeTextField.getText().replace(",", ".").trim());
+				float lon = Float.valueOf(addLongitudeTextField.getText().replace(",", ".").trim());
 		
 				int singleCellSizeInNauticalMiles = 30;
 				int noOfSingleCellsAlongOneSideOfMasterCell = 6;
