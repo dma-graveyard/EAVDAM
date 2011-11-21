@@ -73,7 +73,7 @@ public class SendFTPButton extends OMToolComponent implements ActionListener, To
 			}				
             List<FTP> ftps = options.getFTPs();
             if (ftps != null && !ftps.isEmpty()) {
-                boolean errors = false;
+                String errors = "";				
                 for (FTP ftp : ftps) {
                     try {
                         FTPClient ftpClient = FTPHandler.connect(ftp);
@@ -83,13 +83,17 @@ public class SendFTPButton extends OMToolComponent implements ActionListener, To
                     } catch (IOException ex) {
                         System.out.println(ex.getMessage());
                         ex.printStackTrace();
-                        errors = true;
-                    }
-                }
-                if (!errors) {
-                    JOptionPane.showMessageDialog(openMapFrame, "Data exhanged succesfully."); 
-                } else {                       
-                    JOptionPane.showMessageDialog(openMapFrame, "Some errors occurred when exchanging data.", "Error", JOptionPane.ERROR_MESSAGE); 
+                        errors += "- " + ex.getMessage() + "\n";
+                    } catch (Exception ex) {
+                        System.out.println(ex.getMessage());
+                        ex.printStackTrace();
+                        errors += "- " + ex.getMessage() + "\n";						
+					}
+				}
+                if (errors.isEmpty()) {
+                    JOptionPane.showMessageDialog(openMapFrame, "Data exhanged succesfully.");
+                } else {
+                    JOptionPane.showMessageDialog(openMapFrame, "The following errors occurred when exchanging data:\n" + errors, "Error", JOptionPane.ERROR_MESSAGE); 
                 }
             } else {
                 JOptionPane.showMessageDialog(openMapFrame, "No FTP sites defined.", "Error", JOptionPane.ERROR_MESSAGE);         

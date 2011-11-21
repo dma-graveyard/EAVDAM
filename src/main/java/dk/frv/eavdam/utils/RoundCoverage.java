@@ -54,6 +54,46 @@ public class RoundCoverage {
 	}
 	
 	/**
+	 * Gets the partial coverage area (for directional antennas) in a polygon form. 
+	 * 
+	 * @param antennaHeight Height of the antenna.
+	 * @param receiverHeight Height of the receiver. Default is 4.0 meters.
+	 * @param centerLat Location of the base station (lat)
+	 * @param centerLon Location of the base station (lon)
+	 * @param heading Heading
+	 * @param fieldOfViewAngle Field of view angle
+	 * @param numberOfPoints Number of points in the polygon. Should be at least 10.
+	 * @return List of points (lat,lon) in the polygon. The first and the last point is the same. The index 0 in the double array has the latitude and the index 1 has the longitude. 
+	 */
+	public static List<double[]> getRoundCoverage(double antennaHeight, double receiverHeight, double centerLat, double centerLon, double heading, double fieldOfViewAngle, int numberOfPoints) {
+		List<double[]> points = new ArrayList<double[]>();
+		
+        double[] stationPoint = new double[2];
+		
+		if(numberOfPoints < 10) numberOfPoints = 10;
+		
+		double partOfCircleAngle = (fieldOfViewAngle/5)/Math.round(numberOfPoints/2);
+		for(double angle = heading+(fieldOfViewAngle/10); angle >= heading-(fieldOfViewAngle/10); angle -= partOfCircleAngle){
+			double[] point = getCoordinates(centerLat, centerLon, 0.01, angle);
+			points.add(point);
+		}		
+		double[] point = getCoordinates(centerLat, centerLon, 0.01, heading-(fieldOfViewAngle/10));
+		points.add(point);
+			
+		double radius = getRoundCoverageRadius(antennaHeight, receiverHeight);		
+		
+		partOfCircleAngle = fieldOfViewAngle/Math.round(numberOfPoints/2);
+		for(double angle = heading-(fieldOfViewAngle/2); angle <= heading+(fieldOfViewAngle/2); angle += partOfCircleAngle){
+			point = getCoordinates(centerLat, centerLon, radius, angle);
+			points.add(point);
+		}
+		point = getCoordinates(centerLat, centerLon, radius, heading+(fieldOfViewAngle/2));
+		points.add(point);
+			
+		return points;
+	}	
+	
+	/**
 	 * Gets the coverage area in a polygon form. 
 	 * 
 	 * @param antennaHeight Height of the antenna.
@@ -90,6 +130,44 @@ public class RoundCoverage {
 		return points;
 	}
 	
+	/**
+	 * Gets the coverage area in a polygon form. 
+	 * 
+	 * @param antennaHeight Height of the antenna.
+	 * @param receiverHeight Height of the receiver. Default is 4.0 meters.
+	 * @param centerLat Location of the base station (lat)
+	 * @param centerLon Location of the base station (lon)
+	 * @param heading Heading
+	 * @param fieldOfViewAngle Field of view angle	 
+	 * @param numberOfPoints Number of points in the polygon. Should be at least 10.
+	 * @return List of points (lat,lon) in the polygon. The first and the last point is the same. The index 0 in the double array has the latitude and the index 1 has the longitude. 
+	 */
+	public static List<double[]> getRoundInterferenceCoverage(double centerLat, double centerLon, double heading, double fieldOfViewAngle, int numberOfPoints){
+		List<double[]> points = new ArrayList<double[]>();
+				
+		if(numberOfPoints < 10) numberOfPoints = 10;
+		
+		double partOfCircleAngle = (fieldOfViewAngle/5)/Math.round(numberOfPoints/2);
+		for(double angle = heading+(fieldOfViewAngle/10); angle >= heading-(fieldOfViewAngle/10); angle -= partOfCircleAngle){
+			double[] point = getCoordinates(centerLat, centerLon, 0.01, angle);
+			points.add(point);
+		}
+		double[] point = getCoordinates(centerLat, centerLon, 0.01, heading-(fieldOfViewAngle/10));
+		points.add(point);	
+		
+		double radius = 120*1.852;	
+		
+		partOfCircleAngle = fieldOfViewAngle/Math.round(numberOfPoints/2);
+		for(double angle = heading-(fieldOfViewAngle/2); angle <= heading+(fieldOfViewAngle/2); angle += partOfCircleAngle){	
+			point = getCoordinates(centerLat, centerLon, radius, angle);
+			points.add(point);
+		}
+		point = getCoordinates(centerLat, centerLon, radius, heading+(fieldOfViewAngle/2));
+		points.add(point);		
+
+		return points;
+	}	
+	
     /**
 	 * Calculates the radius for the circle.
 	 * 
@@ -103,8 +181,6 @@ public class RoundCoverage {
 		return 2.5*(Math.pow(antennaHeight, 0.5) + Math.pow(receiverHeight, 0.5))*1.852;
 		
 	}
-	
-	
 	
     public static double degrees2radians(double d) {
         return d * Math.PI / 180;

@@ -28,6 +28,7 @@ import dk.frv.eavdam.data.AISFixedStationData;
 import dk.frv.eavdam.data.AISFixedStationStatus;
 import dk.frv.eavdam.data.AISFixedStationType;
 import dk.frv.eavdam.data.Antenna;
+import dk.frv.eavdam.data.AntennaType;
 import dk.frv.eavdam.data.EAVDAMData;
 import dk.frv.eavdam.data.EAVDAMUser;
 import dk.frv.eavdam.data.Options;
@@ -184,26 +185,52 @@ public class StationLayer extends OMGraphicHandlerLayer implements MapMouseListe
         
         OMBaseStation base = new OMBaseStation(datasetSource, stationData, bytearr);		
 		Antenna antenna = stationData.getAntenna();
-		if (antenna != null) {			
-			if (stationData.getStationType() != AISFixedStationType.RECEIVER) {		
-				if (stationData.getTransmissionCoverage() != null && stationData.getTransmissionCoverage().getCoveragePoints() != null) {
-					base.setTransmitCoverageArea(stationData.getTransmissionCoverage().getCoveragePoints());
+		if (antenna != null) {
+			if (antenna.getAntennaType() == AntennaType.DIRECTIONAL) {
+				if (stationData.getStationType() != AISFixedStationType.RECEIVER) {
+					if (stationData.getTransmissionCoverage() != null && stationData.getTransmissionCoverage().getCoveragePoints() != null) {
+						base.setTransmitCoverageArea(stationData.getTransmissionCoverage().getCoveragePoints());
+					} else {
+						ArrayList<double[]> points = (ArrayList<double[]>) RoundCoverage.getRoundCoverage(antenna.getAntennaHeight()+antenna.getTerrainHeight(), 4, stationData.getLat(),
+							stationData.getLon(), (double) antenna.getHeading().intValue(), (double) antenna.getFieldOfViewAngle().intValue(), 25);
+						base.setTransmitCoverageArea(points);
+					}
+					if (stationData.getInterferenceCoverage() != null && stationData.getInterferenceCoverage().getCoveragePoints() != null) {
+						base.setInterferenceCoverageArea(stationData.getInterferenceCoverage().getCoveragePoints());
+					} else {
+						ArrayList<double[]> points = (ArrayList<double[]>) RoundCoverage.getRoundInterferenceCoverage(stationData.getLat(), stationData.getLon(),
+							(double) antenna.getHeading().intValue(), (double) antenna.getFieldOfViewAngle().intValue(), 25);
+						base.setInterferenceCoverageArea(points);
+					}
+				}			
+				if (stationData.getReceiveCoverage() != null && stationData.getReceiveCoverage().getCoveragePoints() != null) {
+					base.setReceiveCoverageArea(stationData.getReceiveCoverage().getCoveragePoints());
+				} else {
+					ArrayList<double[]> points = (ArrayList<double[]>) RoundCoverage.getRoundCoverage(antenna.getAntennaHeight()+antenna.getTerrainHeight(), 4, stationData.getLat(), stationData.getLon(),
+						(double) antenna.getHeading().intValue(), (double) antenna.getFieldOfViewAngle().intValue(),25);
+					base.setReceiveCoverageArea(points);
+				}				
+			} else {
+				if (stationData.getStationType() != AISFixedStationType.RECEIVER) {
+					if (stationData.getTransmissionCoverage() != null && stationData.getTransmissionCoverage().getCoveragePoints() != null) {
+						base.setTransmitCoverageArea(stationData.getTransmissionCoverage().getCoveragePoints());
+					} else {
+						ArrayList<double[]> points = (ArrayList<double[]>) RoundCoverage.getRoundCoverage(antenna.getAntennaHeight()+antenna.getTerrainHeight(), 4, stationData.getLat(), stationData.getLon(), 25);
+						base.setTransmitCoverageArea(points);
+					}
+					if (stationData.getInterferenceCoverage() != null && stationData.getInterferenceCoverage().getCoveragePoints() != null) {
+						base.setInterferenceCoverageArea(stationData.getInterferenceCoverage().getCoveragePoints());
+					} else {
+						ArrayList<double[]> points = (ArrayList<double[]>) RoundCoverage.getRoundInterferenceCoverage(stationData.getLat(), stationData.getLon(), 25);
+						base.setInterferenceCoverageArea(points);
+					}
+				}			
+				if (stationData.getReceiveCoverage() != null && stationData.getReceiveCoverage().getCoveragePoints() != null) {
+					base.setReceiveCoverageArea(stationData.getReceiveCoverage().getCoveragePoints());
 				} else {
 					ArrayList<double[]> points = (ArrayList<double[]>) RoundCoverage.getRoundCoverage(antenna.getAntennaHeight()+antenna.getTerrainHeight(), 4, stationData.getLat(), stationData.getLon(), 25);
-					base.setTransmitCoverageArea(points);
+					base.setReceiveCoverageArea(points);
 				}
-				if (stationData.getInterferenceCoverage() != null && stationData.getInterferenceCoverage().getCoveragePoints() != null) {
-					base.setInterferenceCoverageArea(stationData.getInterferenceCoverage().getCoveragePoints());
-				} else {
-					ArrayList<double[]> points = (ArrayList<double[]>) RoundCoverage.getRoundInterferenceCoverage(stationData.getLat(), stationData.getLon(), 25);
-					base.setInterferenceCoverageArea(points);
-				}
-			}
-			if (stationData.getReceiveCoverage() != null && stationData.getReceiveCoverage().getCoveragePoints() != null) {
-				base.setReceiveCoverageArea(stationData.getReceiveCoverage().getCoveragePoints());
-			} else {
-				ArrayList<double[]> points = (ArrayList<double[]>) RoundCoverage.getRoundCoverage(antenna.getAntennaHeight()+antenna.getTerrainHeight(), 4, stationData.getLat(), stationData.getLon(), 25);
-				base.setReceiveCoverageArea(points);
 			}
 						
 		}
@@ -373,47 +400,91 @@ public class StationLayer extends OMGraphicHandlerLayer implements MapMouseListe
 								currentlySelectedOMBaseStation.getDatasetSource() instanceof String) {  // simulation	
 							AISFixedStationData stationData = currentlySelectedOMBaseStation.getStationData();
 							Antenna antenna = stationData.getAntenna();
-							if (currentlySelectedOMBaseStation.getStationData().getStationType() != AISFixedStationType.RECEIVER) {	
-								if (transmitCoverageLayer.isVisible() && antenna != null) {
-									editTransmitCoverageMenuItem = new JMenuItem("Edit transmit coverage");
-									editTransmitCoverageMenuItem.addActionListener(this);								
-									popup.add(editTransmitCoverageMenuItem);							
-									resetTransmitCoverageToCircleMenuItem = new JMenuItem("Reset transmit coverage to circle");
-									resetTransmitCoverageToCircleMenuItem.addActionListener(this);
-									popup.add(resetTransmitCoverageToCircleMenuItem);
-									resetTransmitCoverageToPolygonMenuItem = new JMenuItem("Reset transmit coverage to polygon");
-									resetTransmitCoverageToPolygonMenuItem.addActionListener(this);
-									popup.add(resetTransmitCoverageToPolygonMenuItem);
+							if (antenna != null && antenna.getAntennaType() == AntennaType.DIRECTIONAL) {							
+								if (currentlySelectedOMBaseStation.getStationData().getStationType() != AISFixedStationType.RECEIVER) {	
+									if (transmitCoverageLayer.isVisible() && antenna != null) {
+										editTransmitCoverageMenuItem = new JMenuItem("Edit transmit coverage");
+										editTransmitCoverageMenuItem.addActionListener(this);								
+										popup.add(editTransmitCoverageMenuItem);							
+										//resetTransmitCoverageToCircleMenuItem = new JMenuItem("Reset transmit coverage to circle");
+										//resetTransmitCoverageToCircleMenuItem.addActionListener(this);
+										//popup.add(resetTransmitCoverageToCircleMenuItem);
+										resetTransmitCoverageToPolygonMenuItem = new JMenuItem("Reset transmit coverage to polygon");
+										resetTransmitCoverageToPolygonMenuItem.addActionListener(this);
+										popup.add(resetTransmitCoverageToPolygonMenuItem);
+										last = new JSeparator();
+										popup.add(last);
+									}
+									if (interferenceCoverageLayer.isVisible()) {
+										editInterferenceCoverageMenuItem = new JMenuItem("Edit interference coverage");
+										editInterferenceCoverageMenuItem.addActionListener(this);
+										popup.add(editInterferenceCoverageMenuItem);							
+										//resetInterferenceCoverageToCircleMenuItem = new JMenuItem("Reset interference coverage to circle");
+										//resetInterferenceCoverageToCircleMenuItem.addActionListener(this);
+										//popup.add(resetInterferenceCoverageToCircleMenuItem);
+										resetInterferenceCoverageToPolygonMenuItem = new JMenuItem("Reset interference coverage to polygon");
+										resetInterferenceCoverageToPolygonMenuItem.addActionListener(this);
+										popup.add(resetInterferenceCoverageToPolygonMenuItem);
+										last = new JSeparator();
+										popup.add(last);
+									}						
+								}								
+								if (receiveCoverageLayer.isVisible() && antenna != null) {
+									editReceiveCoverageMenuItem = new JMenuItem("Edit receive coverage");
+									editReceiveCoverageMenuItem.addActionListener(this);
+									popup.add(editReceiveCoverageMenuItem);							
+									//resetReceiveCoverageToCircleMenuItem = new JMenuItem("Reset receive coverage to circle");
+									//resetReceiveCoverageToCircleMenuItem.addActionListener(this);
+									//popup.add(resetReceiveCoverageToCircleMenuItem);
+									resetReceiveCoverageToPolygonMenuItem = new JMenuItem("Reset receive coverage to polygon");
+									resetReceiveCoverageToPolygonMenuItem.addActionListener(this);
+									popup.add(resetReceiveCoverageToPolygonMenuItem);								
 									last = new JSeparator();
 									popup.add(last);
 								}
-								if (interferenceCoverageLayer.isVisible()) {
-									editInterferenceCoverageMenuItem = new JMenuItem("Edit interference coverage");
-									editInterferenceCoverageMenuItem.addActionListener(this);
-									popup.add(editInterferenceCoverageMenuItem);							
-									resetInterferenceCoverageToCircleMenuItem = new JMenuItem("Reset interference coverage to circle");
-									resetInterferenceCoverageToCircleMenuItem.addActionListener(this);
-									popup.add(resetInterferenceCoverageToCircleMenuItem);
-									resetInterferenceCoverageToPolygonMenuItem = new JMenuItem("Reset interference coverage to polygon");
-									resetInterferenceCoverageToPolygonMenuItem.addActionListener(this);
-									popup.add(resetInterferenceCoverageToPolygonMenuItem);
+							} else {
+								if (currentlySelectedOMBaseStation.getStationData().getStationType() != AISFixedStationType.RECEIVER) {	
+									if (transmitCoverageLayer.isVisible() && antenna != null) {
+										editTransmitCoverageMenuItem = new JMenuItem("Edit transmit coverage");
+										editTransmitCoverageMenuItem.addActionListener(this);								
+										popup.add(editTransmitCoverageMenuItem);							
+										resetTransmitCoverageToCircleMenuItem = new JMenuItem("Reset transmit coverage to circle");
+										resetTransmitCoverageToCircleMenuItem.addActionListener(this);
+										popup.add(resetTransmitCoverageToCircleMenuItem);
+										resetTransmitCoverageToPolygonMenuItem = new JMenuItem("Reset transmit coverage to polygon");
+										resetTransmitCoverageToPolygonMenuItem.addActionListener(this);
+										popup.add(resetTransmitCoverageToPolygonMenuItem);
+										last = new JSeparator();
+										popup.add(last);
+									}
+									if (interferenceCoverageLayer.isVisible()) {
+										editInterferenceCoverageMenuItem = new JMenuItem("Edit interference coverage");
+										editInterferenceCoverageMenuItem.addActionListener(this);
+										popup.add(editInterferenceCoverageMenuItem);							
+										resetInterferenceCoverageToCircleMenuItem = new JMenuItem("Reset interference coverage to circle");
+										resetInterferenceCoverageToCircleMenuItem.addActionListener(this);
+										popup.add(resetInterferenceCoverageToCircleMenuItem);
+										resetInterferenceCoverageToPolygonMenuItem = new JMenuItem("Reset interference coverage to polygon");
+										resetInterferenceCoverageToPolygonMenuItem.addActionListener(this);
+										popup.add(resetInterferenceCoverageToPolygonMenuItem);
+										last = new JSeparator();
+										popup.add(last);
+									}						
+								}								
+								if (receiveCoverageLayer.isVisible() && antenna != null) {
+									editReceiveCoverageMenuItem = new JMenuItem("Edit receive coverage");
+									editReceiveCoverageMenuItem.addActionListener(this);
+									popup.add(editReceiveCoverageMenuItem);							
+									resetReceiveCoverageToCircleMenuItem = new JMenuItem("Reset receive coverage to circle");
+									resetReceiveCoverageToCircleMenuItem.addActionListener(this);
+									popup.add(resetReceiveCoverageToCircleMenuItem);
+									resetReceiveCoverageToPolygonMenuItem = new JMenuItem("Reset receive coverage to polygon");
+									resetReceiveCoverageToPolygonMenuItem.addActionListener(this);
+									popup.add(resetReceiveCoverageToPolygonMenuItem);								
 									last = new JSeparator();
 									popup.add(last);
-								}						
-							}								
-							if (receiveCoverageLayer.isVisible() && antenna != null) {
-								editReceiveCoverageMenuItem = new JMenuItem("Edit receive coverage");
-								editReceiveCoverageMenuItem.addActionListener(this);
-								popup.add(editReceiveCoverageMenuItem);							
-								resetReceiveCoverageToCircleMenuItem = new JMenuItem("Reset receive coverage to circle");
-								resetReceiveCoverageToCircleMenuItem.addActionListener(this);
-								popup.add(resetReceiveCoverageToCircleMenuItem);
-								resetReceiveCoverageToPolygonMenuItem = new JMenuItem("Reset receive coverage to polygon");
-								resetReceiveCoverageToPolygonMenuItem.addActionListener(this);
-								popup.add(resetReceiveCoverageToPolygonMenuItem);								
-								last = new JSeparator();
-								popup.add(last);
-							}						
+								}
+							}
 						}
 						popup.remove(last);
                         popup.show(mapBean, e.getX(), e.getY());
@@ -582,7 +653,14 @@ public class StationLayer extends OMGraphicHandlerLayer implements MapMouseListe
 					AISFixedStationData stationData = currentlySelectedOMBaseStation.getStationData();
 					Antenna antenna = stationData.getAntenna();
 					if (antenna != null) {
-						ArrayList<double[]> points = (ArrayList<double[]>) RoundCoverage.getRoundCoverage(antenna.getAntennaHeight()+antenna.getTerrainHeight(), 4, stationData.getLat(), stationData.getLon(), numberOfPoints);
+						ArrayList<double[]> points = null;
+						if (antenna.getAntennaType() == AntennaType.DIRECTIONAL) {
+							points = (ArrayList<double[]>) RoundCoverage.getRoundCoverage(antenna.getAntennaHeight()+antenna.getTerrainHeight(), 4,
+								stationData.getLat(), stationData.getLon(), (double) antenna.getHeading().intValue(), (double) antenna.getFieldOfViewAngle().intValue(), numberOfPoints);								
+						} else {
+							points = (ArrayList<double[]>) RoundCoverage.getRoundCoverage(antenna.getAntennaHeight()+antenna.getTerrainHeight(), 4,
+								stationData.getLat(), stationData.getLon(), numberOfPoints);
+						}
 						if (data == null) {
 							data = DBHandler.getData();                        
 						}					
@@ -648,7 +726,14 @@ public class StationLayer extends OMGraphicHandlerLayer implements MapMouseListe
 					AISFixedStationData stationData = currentlySelectedOMBaseStation.getStationData();
 					Antenna antenna = stationData.getAntenna();
 					if (antenna != null) {
-						ArrayList<double[]> points = (ArrayList<double[]>) RoundCoverage.getRoundCoverage(antenna.getAntennaHeight()+antenna.getTerrainHeight(), 4, stationData.getLat(), stationData.getLon(), numberOfPoints);
+						ArrayList<double[]> points = null;
+						if (antenna.getAntennaType() == AntennaType.DIRECTIONAL) {
+							points = (ArrayList<double[]>) RoundCoverage.getRoundCoverage(antenna.getAntennaHeight()+antenna.getTerrainHeight(), 4,
+								stationData.getLat(), stationData.getLon(), (double) antenna.getHeading().intValue(), (double) antenna.getFieldOfViewAngle().intValue(), numberOfPoints);								
+						} else {
+							points = (ArrayList<double[]>) RoundCoverage.getRoundCoverage(antenna.getAntennaHeight()+antenna.getTerrainHeight(), 4,
+								stationData.getLat(), stationData.getLon(), numberOfPoints);
+						}					
 						if (data == null) {
 							data = DBHandler.getData();                        
 						}					
@@ -709,7 +794,18 @@ public class StationLayer extends OMGraphicHandlerLayer implements MapMouseListe
 				}
 				if (numberOfPoints != -1) {
 					AISFixedStationData stationData = currentlySelectedOMBaseStation.getStationData();
-					ArrayList<double[]> points = (ArrayList<double[]>) RoundCoverage.getRoundInterferenceCoverage(stationData.getLat(), stationData.getLon(), numberOfPoints);
+					Antenna antenna = stationData.getAntenna();
+					ArrayList<double[]> points = null;
+					if (antenna != null) {						
+						if (antenna.getAntennaType() == AntennaType.DIRECTIONAL) {
+							points = (ArrayList<double[]>) RoundCoverage.getRoundInterferenceCoverage(stationData.getLat(), stationData.getLon(),
+								(double) antenna.getHeading().intValue(), (double) antenna.getFieldOfViewAngle().intValue(), numberOfPoints);								
+						} else {
+							points = (ArrayList<double[]>) RoundCoverage.getRoundInterferenceCoverage(stationData.getLat(), stationData.getLon(), numberOfPoints);
+						}					
+					} else {					
+						points = (ArrayList<double[]>) RoundCoverage.getRoundInterferenceCoverage(stationData.getLat(), stationData.getLon(), numberOfPoints);
+					}
 					if (data == null) {
 						data = DBHandler.getData();                        
 					}					
