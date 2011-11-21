@@ -676,6 +676,8 @@ import dk.frv.eavdam.data.Simulation;
 	    	psc.setInt(7, antennaType);
 	    	psc.executeUpdate();
 	    	
+	    	if(antenna.getHeading() != null) System.out.println("Added antenna heading: "+antenna.getHeading());
+	    	
 	    	psc.close();
 	    	
 	    }
@@ -2052,7 +2054,7 @@ import dk.frv.eavdam.data.Simulation;
 		    		}
 		    		antenna.setFieldOfViewAngle(rs.getInt(4));
 		    		antenna.setGain(rs.getDouble(5));
-		    		antenna.setHeading(3);
+		    		antenna.setHeading(rs.getInt(3));
 		    		antenna.setTerrainHeight(rs.getDouble(2));
 		    		ais.setAntenna(antenna);
 		    	}

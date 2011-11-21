@@ -2,5 +2,5 @@
 - Changed maximum length of the ftp-directory to 150 characters.
 	- Database alteration for this implemented (no need to create a new database.
 - Changed name of the exported xml-file from organization name.xml to organizationname.xml.
-- Fixed: Importing data removes the data from the default user.
-
+- Fixed (Major Bug): Importing data removes the data from the default user. Now the default user is checked against each xml-file; if xml is from the default user of this application, xml is not imported.
+- Fixed: Import folder created if it doesn't exist.
