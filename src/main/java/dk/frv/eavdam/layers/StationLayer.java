@@ -371,13 +371,10 @@ public class StationLayer extends OMGraphicHandlerLayer implements MapMouseListe
     		OMList<OMGraphic> allClosest = graphics.findAll(e.getX(), e.getY(), 5.0f);
     		for (OMGraphic omGraphic : allClosest) {
     			if (omGraphic instanceof OMBaseStation) {
-    				System.out.println("Mouse clicked on omGraphic: " + omGraphic);
     				OMBaseStation omBaseStation = (OMBaseStation) omGraphic;
     				sidePanel.showInfo(omBaseStation);
     				return true;
-    			} else {
-					System.out.println("Mouse clicked on omGraphic: " + omGraphic);
-				}
+    			}
     		}
     	} else if (SwingUtilities.isRightMouseButton(e)) {
             OMList<OMGraphic> allClosest = graphics.findAll(e.getX(), e.getY(), 5.0f);

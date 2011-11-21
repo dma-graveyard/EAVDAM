@@ -331,9 +331,21 @@ public class SidePanel extends JPanel implements MapPanelChild, ActionListener {
 				}
 				temp += reservedBlock.toString();
 			}
-			infoText += "<tr><td valign=\"top\">Timeslots reserved on CH A (AIS1):</td><td valign=\"top\">" + temp + "</td></tr>";
+			infoText += "<tr><td valign=\"top\">Timeslots reserved on CH A (";
+			if (stationData.getFATDMAChannelA() != null && stationData.getFATDMAChannelA().getChannelName() != null) {
+				infoText += stationData.getFATDMAChannelA().getChannelName();
+			} else {
+				infoText += "NULL";
+			}
+			infoText += "):</td><td valign=\"top\">" + temp + "</td></tr>";
 		} else {			 
-			 infoText += "<tr><td valign=\"top\">Timeslots reserved on CH A (AIS1):</td><td valign=\"top\">...</td></tr>";
+			 infoText += "<tr><td valign=\"top\">Timeslots reserved on CH A (";
+			if (stationData.getFATDMAChannelA() != null && stationData.getFATDMAChannelA().getChannelName() != null) {
+				infoText += stationData.getFATDMAChannelA().getChannelName();
+			} else {
+				infoText += "NULL";
+			}			 
+			infoText += "):</td><td valign=\"top\">...</td></tr>";
 		}
 		if (stationData.getReservedBlocksForChannelB() != null && !stationData.getReservedBlocksForChannelB().isEmpty()) {
 			String temp = "";
@@ -344,9 +356,21 @@ public class SidePanel extends JPanel implements MapPanelChild, ActionListener {
 				}
 				temp += reservedBlock.toString();
 			}
-			infoText += "<tr><td valign=\"top\">Timeslots reserved on CH B (AIS2):</td><td valign=\"top\">" + temp + "</td></tr>";
+			infoText += "<tr><td valign=\"top\">Timeslots reserved on CH B (";
+			if (stationData.getFATDMAChannelB() != null && stationData.getFATDMAChannelB().getChannelName() != null) {
+				infoText += stationData.getFATDMAChannelB().getChannelName();
+			} else {
+				infoText += "NULL";
+			}						
+			infoText += "):</td><td valign=\"top\">" + temp + "</td></tr>";
 		} else {			 
-			 infoText += "<tr><td valign=\"top\">Timeslots reserved on CH B (AIS2):</td><td valign=\"top\">...</td></tr>";
+			infoText += "<tr><td valign=\"top\">Timeslots reserved on CH B (";
+			if (stationData.getFATDMAChannelB() != null && stationData.getFATDMAChannelB().getChannelName() != null) {
+				infoText += stationData.getFATDMAChannelB().getChannelName();
+			} else {
+				infoText += "NULL";
+			}				 			 
+			infoText += "):</td><td valign=\"top\">...</td></tr>";
 		}			
 		infoText += "</table>";					
 					
