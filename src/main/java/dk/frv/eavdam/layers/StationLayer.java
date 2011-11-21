@@ -118,7 +118,7 @@ public class StationLayer extends OMGraphicHandlerLayer implements MapMouseListe
         return interferenceCoverageLayer;
     }
 	
-    public void addBaseStation(Object datasetSource, AISFixedStationData stationData) {
+    public void addBaseStation(Object datasetSource, EAVDAMUser owner, AISFixedStationData stationData) {
 
 	    byte[] bytearr = null;		
 		
@@ -183,7 +183,7 @@ public class StationLayer extends OMGraphicHandlerLayer implements MapMouseListe
 
 		}
         
-        OMBaseStation base = new OMBaseStation(datasetSource, stationData, bytearr);		
+        OMBaseStation base = new OMBaseStation(datasetSource, stationData, owner, bytearr);		
 		Antenna antenna = stationData.getAntenna();
 		if (antenna != null) {
 			if (antenna.getAntennaType() == AntennaType.DIRECTIONAL) {
@@ -976,11 +976,11 @@ public class StationLayer extends OMGraphicHandlerLayer implements MapMouseListe
                             for (AISFixedStationData stationData : as.getStations()) {
                                 if (stationData.getStatus().getStatusID() == DerbyDBInterface.STATUS_ACTIVE &&
                                         eavdamMenu.getShowOnMapMenu().getOwnOperativeStationsMenuItem().isSelected()) {
-                                    this.addBaseStation(null, stationData);
+                                    this.addBaseStation(null, data.getUser(), stationData);
 								}
                                 if (stationData.getStatus().getStatusID() == DerbyDBInterface.STATUS_PLANNED &&
                                         eavdamMenu.getShowOnMapMenu().getOwnPlannedStationsMenuItem().isSelected()) {
-                                    this.addBaseStation(null, stationData);
+                                    this.addBaseStation(null, data.getUser(), stationData);
                                 }
                             }
                         }
@@ -997,7 +997,7 @@ public class StationLayer extends OMGraphicHandlerLayer implements MapMouseListe
 								if (s.getName().equals(selectedSimulation)) {
 									List<AISFixedStationData> stations = s.getStations();
 									for (AISFixedStationData stationData : stations) {
-										this.addBaseStation(s.getName(), stationData);
+										this.addBaseStation(s.getName(), data.getUser(), stationData);
 									}
 									break;
 								}
@@ -1015,7 +1015,7 @@ public class StationLayer extends OMGraphicHandlerLayer implements MapMouseListe
 							List<AISFixedStationData> stations = as.getStations();
 							for (AISFixedStationData station : stations) {
 								if (station.getStatus().getStatusID() == DerbyDBInterface.STATUS_ACTIVE) {
-									this.addBaseStation(user, station);
+									this.addBaseStation(user, user, station);
 								}
 							}
 						}
@@ -1034,7 +1034,7 @@ public class StationLayer extends OMGraphicHandlerLayer implements MapMouseListe
 											List<AISFixedStationData> stations = as.getStations();
 											for (AISFixedStationData station : stations) {
 												if (station.getStatus().getStatusID() == DerbyDBInterface.STATUS_ACTIVE) {
-													this.addBaseStation(user, station);
+													this.addBaseStation(user, user, station);
 												}
 											}
 										}

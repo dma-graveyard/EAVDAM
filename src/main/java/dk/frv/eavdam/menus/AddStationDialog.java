@@ -231,11 +231,11 @@ public class AddStationDialog extends JDialog implements ActionListener, ItemLis
 		c = menuItem.updateGBC(c, 1, 2, 0.5, GridBagConstraints.LINE_START, GridBagConstraints.NONE, new Insets(5,5,5,5));    
 		p2.add(addStationStatusComboBox, c);     			
 		c = menuItem.updateGBC(c, 0, 3, 0.5, GridBagConstraints.LINE_START, GridBagConstraints.NONE, new Insets(5,5,5,5));                                        
-		p2.add(new JLabel("Latitude (WGS84):"), c);
+		p2.add(new JLabel("Latitude (in decimal degrees):"), c);
 		c = menuItem.updateGBC(c, 1, 3, 0.5, GridBagConstraints.LINE_START, GridBagConstraints.NONE, new Insets(5,5,5,5));                   
 		p2.add(addLatitudeTextField, c);                    
 		c = menuItem.updateGBC(c, 0, 4, 0.5, GridBagConstraints.LINE_START, GridBagConstraints.NONE, new Insets(5,5,5,5));                 
-		p2.add(new JLabel("Longitude (WGS84):"), c);
+		p2.add(new JLabel("Longitude (in decimal degrees):"), c);
 		c = menuItem.updateGBC(c, 1, 4, 0.5, GridBagConstraints.LINE_START, GridBagConstraints.NONE, new Insets(5,5,5,5));                   
 		p2.add(addLongitudeTextField, c);        
 		c = menuItem.updateGBC(c, 0, 5, 0.5, GridBagConstraints.LINE_START, GridBagConstraints.NONE, new Insets(5,5,5,5));                
