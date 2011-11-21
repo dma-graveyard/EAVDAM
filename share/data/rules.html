@@ -1,0 +1,20 @@
+<html>
+<head><title>AIS VHF Datalink Rules</title></head>
+<body>
+<h1>AIS VHF Datalink Rules</h1>
+<h2>Rule 1: Conflicting stations</h2>
+This rule is violated, when two (or more) Fixed AIS Stations intend to Transmit in the same timeslot, AND their transmission areas overlap (- or the interference area of one station overlaps the transmission area of the other).
+<h2>Rule 2: Reservation, but no intended use</h2>
+This rule is violated, when a Base Station reserves timeslots on behalf of others, but not other stations within the Transmission area intend to use those timeslots.
+<h2>Rule 3: Intended FATDMA use, but no reservation</h2>
+This rule is violated, when an AIS AtoN Station indicates the intention to transmit using FATDMA slots, which are not protected.
+<h2>Rule 4: Simultaneous use of several frequencies</h2>
+This rule is violated, when an AIS station indicated the intention to transmit on the same timeslot on more than one frequency, simultaneously.
+<h2>Rule 5: Slots reserved outside IALA A-124 recommended default FATDMA schemes</h2>
+This rule is violated, when an AIS station indicates to use or reserve FATDMA timeslot, which are not allocated for use in that area, by the IALA default FATDMA scheme.
+<h2>Rule 6: Slots reserved outside overall slot pattern for fixed statons (IALA A-124)</h2>
+This rule is violated, when an AIS station indicates to use or reserve FATDMA timeslot, which is outside the maximum recommended scope for fixed AIS stations, by the IALA recommendation A-124.
+<h2>Rule 7: Free Bandwith below 50%</h2>
+This rule is violated, when the amount of free slots for AIS mobiles to select is below 50% of the datalink capacity, in any given area.
+</body>
+</html>

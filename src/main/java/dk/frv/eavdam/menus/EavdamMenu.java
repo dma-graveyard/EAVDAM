@@ -8,6 +8,7 @@ import dk.frv.eavdam.data.EAVDAMUser;
 import dk.frv.eavdam.io.EmailSender;
 import dk.frv.eavdam.layers.StationLayer;
 import dk.frv.eavdam.utils.DBHandler;
+import dk.frv.eavdam.utils.IconChanger;
 import javax.swing.JSeparator;
 import javax.swing.event.MenuEvent;
 import javax.swing.event.MenuListener;
@@ -133,7 +134,8 @@ public class EavdamMenu extends AbstractOpenMapMenu implements MenuListener {
 	@Override
 	public void findAndInit(Object obj) {
 		if (obj instanceof OpenMapFrame) {
-			this.openMapFrame = (OpenMapFrame) obj;
+			this.openMapFrame = (OpenMapFrame) obj;		
+			IconChanger.changeToEAVDAMIcon((OpenMapFrame) obj);
 		} else if (obj instanceof StationLayer) {
 		    this.stationLayer = (StationLayer) obj;
 		} else if (obj instanceof LayerHandler) {
