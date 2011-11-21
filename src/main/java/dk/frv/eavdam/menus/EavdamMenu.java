@@ -31,6 +31,7 @@ public class EavdamMenu extends AbstractOpenMapMenu implements MenuListener {
 	private ShowOnMapMenu showOnMapMenu;
 	private ShapeLayersMenu shapeLayersMenu;
 	private OptionsMenuItem optionsMenuItem;
+	private ListOfRulesMenuItem listOfRulesMenuItem;
 
     public EavdamMenu() {
         super();
@@ -48,6 +49,8 @@ public class EavdamMenu extends AbstractOpenMapMenu implements MenuListener {
 		add(shapeLayersMenu);
 		optionsMenuItem = new OptionsMenuItem(this);
         add(optionsMenuItem);
+		listOfRulesMenuItem = new ListOfRulesMenuItem(this);
+		add(listOfRulesMenuItem);
         // add(new JSeparator());
 		addMenuListener(this);
 		
@@ -87,8 +90,12 @@ public class EavdamMenu extends AbstractOpenMapMenu implements MenuListener {
 		add(shapeLayersMenu);
 		if (optionsMenuItem == null) {
 			optionsMenuItem = new OptionsMenuItem(this);
-		}		
-		add(optionsMenuItem);
+		}	
+		add(optionsMenuItem);		
+		if (listOfRulesMenuItem == null) {
+			listOfRulesMenuItem = new ListOfRulesMenuItem(this);
+		}
+		add(listOfRulesMenuItem);
 	}
 	
     public OpenMapFrame getOpenMapFrame() {
