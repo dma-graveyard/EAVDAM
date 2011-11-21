@@ -6,8 +6,8 @@ import dk.frv.eavdam.data.EAVDAMUser;
 import dk.frv.eavdam.data.Person;
 import dk.frv.eavdam.io.XMLExporter;
 import dk.frv.eavdam.io.XMLImporter;
+import dk.frv.eavdam.utils.CountryHandler;
 import dk.frv.eavdam.utils.DBHandler;
-
 import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.awt.GridBagConstraints;
@@ -27,6 +27,7 @@ import java.io.FileWriter;
 import java.io.InputStreamReader;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.List;
 import javax.swing.AbstractButton;
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
@@ -113,22 +114,27 @@ class UserInformationActionListener implements ActionListener, DocumentListener 
 
             dialog = new JDialog(eavdamMenu.getOpenMapFrame(), "User Information", true);
         
-            organizationNameTextField = new JTextField(16);
+            organizationNameTextField = new JTextField(26);
             organizationNameTextField.getDocument().addDocumentListener(this);
-            postalAddressTextField = new JTextField(16);             
+            postalAddressTextField = new JTextField(26);             
             postalAddressTextField.getDocument().addDocumentListener(this);
-            zipCodeTextField = new JTextField(16);             
+            zipCodeTextField = new JTextField(26);             
             zipCodeTextField.getDocument().addDocumentListener(this);
-            cityTextField = new JTextField(16);
+            cityTextField = new JTextField(26);
             cityTextField.getDocument().addDocumentListener(this);
-            countryComboBox = new JComboBox
-                (new String[] {"Denmark", "Finland", "Norway" , "Sweden"});
+            countryComboBox = new JComboBox();
+			List<String> countries = CountryHandler.getCountries();
+			if (countries != null) {
+				for (String country : countries) {
+					countryComboBox.addItem(country);
+				}
+			}		
             countryComboBox.addActionListener(this);
-            telephoneNumberTextField = new JTextField(16);
+            telephoneNumberTextField = new JTextField(26);
             telephoneNumberTextField.getDocument().addDocumentListener(this);
-            faxNumberTextField = new JTextField(16);
+            faxNumberTextField = new JTextField(26);
             faxNumberTextField.getDocument().addDocumentListener(this);
-            websiteTextField = new JTextField(16);  
+            websiteTextField = new JTextField(26);  
             websiteTextField.getDocument().addDocumentListener(this);
             pointOfContactNameTextField = new JTextField(16);  
             pointOfContactNameTextField.getDocument().addDocumentListener(this);
@@ -156,15 +162,7 @@ class UserInformationActionListener implements ActionListener, DocumentListener 
                     organizationNameTextField.setText(user.getOrganizationName());
                 }
                 if (user.getCountryID() != null) {
-                    if (user.getCountryID().equals("DK")) {
-                        countryComboBox.setSelectedItem("Denmark");
-                    } else if (user.getCountryID().equals("FI")) {
-                        countryComboBox.setSelectedItem("Finland");
-                    } else if (user.getCountryID().equals("NO")) {
-                        countryComboBox.setSelectedItem("Norway");
-                    } else if (user.getCountryID().equals("SV")) {
-                        countryComboBox.setSelectedItem("Sweden");
-                    }
+					countryComboBox.setSelectedItem(CountryHandler.getCountryName(user.getCountryID()));
                 }
                 if (user.getPostalAddress() != null) {
                     Address address = user.getPostalAddress();
@@ -379,7 +377,7 @@ class UserInformationActionListener implements ActionListener, DocumentListener 
 
             dialog.getContentPane().add(panel);
                                                                          
-            int frameWidth = 640;
+            int frameWidth = 800;
             int frameHeight = 480;
             Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
             dialog.setBounds((int) screenSize.getWidth()/2 - frameWidth/2,
@@ -471,15 +469,7 @@ class UserInformationActionListener implements ActionListener, DocumentListener 
         try {
             String oldOrganizationName = user.getOrganizationName();            
             user.setOrganizationName(organizationNameTextField.getText().trim());
-            if (((String) countryComboBox.getSelectedItem()).equals("Denmark")) {
-                user.setCountryID("DK");
-            } else if (((String) countryComboBox.getSelectedItem()).equals("Finland")) {
-                user.setCountryID("FI");
-            } else if (((String) countryComboBox.getSelectedItem()).equals("Norway")) {
-                user.setCountryID("NO");
-            } else if (((String) countryComboBox.getSelectedItem()).equals("Sweden")) {
-                user.setCountryID("SV");
-            }
+			user.setCountryID(CountryHandler.getCountryCode((String) countryComboBox.getSelectedItem()));
             Address address = user.getPostalAddress();
             if (address == null) {
                 address = new Address();
@@ -615,7 +605,10 @@ class UserInformationActionListener implements ActionListener, DocumentListener 
         }
         if (user.getOrganizationName() != null && !user.getOrganizationName().equals(organizationNameTextField.getText())) {
             return true;
-        }        
+        } 
+		if (!user.getCountryID().equals(CountryHandler.getCountryCode((String) countryComboBox.getSelectedItem()))) {
+			return true;
+		}
         
         Address address = user.getPostalAddress();
         if (address == null) {
