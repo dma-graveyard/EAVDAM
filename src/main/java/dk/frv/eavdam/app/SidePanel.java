@@ -162,8 +162,8 @@ public class SidePanel extends JPanel implements MapPanelChild, ActionListener {
             "<tr><td valign=\"top\">Heading:</td><td>...</td></tr>" +
             "<tr><td valign=\"top\">Angle:</td><td>...</td></tr>" +            
             "<tr><td valign=\"top\">Gain:</td><td>...</td></tr>" +
-            "<tr><td valign=\"top\">Reserved blocks for Ch A:</td><td>...</td></tr>" +
-			"<tr><td valign=\"top\">Reserved blocks for Ch B:</td><td>...</td></tr></table>");
+            "<tr><td valign=\"top\">Timeslots reserved on CH A (AIS1):</td><td>...</td></tr>" +
+			"<tr><td valign=\"top\">Timeslots reserved on CH B (AIS2)::</td><td>...</td></tr></table>");
         infoPane.setBackground(new Color(238, 238, 238));
         //infoPane.setBorder(new CompoundBorder
         //    (BorderFactory.createLineBorder(new Color(122, 138, 153), 1),
@@ -331,9 +331,9 @@ public class SidePanel extends JPanel implements MapPanelChild, ActionListener {
 				}
 				temp += reservedBlock.toString();
 			}
-			infoText += "<tr><td valign=\"top\">Reserved blocks for Ch A:</td><td valign=\"top\">" + temp + "</td></tr>";
+			infoText += "<tr><td valign=\"top\">Timeslots reserved on CH A (AIS1):</td><td valign=\"top\">" + temp + "</td></tr>";
 		} else {			 
-			 infoText += "<tr><td valign=\"top\">Reserved blocks for Ch A:</td><td valign=\"top\">...</td></tr>";
+			 infoText += "<tr><td valign=\"top\">Timeslots reserved on CH A (AIS1):</td><td valign=\"top\">...</td></tr>";
 		}
 		if (stationData.getReservedBlocksForChannelB() != null && !stationData.getReservedBlocksForChannelB().isEmpty()) {
 			String temp = "";
@@ -344,9 +344,9 @@ public class SidePanel extends JPanel implements MapPanelChild, ActionListener {
 				}
 				temp += reservedBlock.toString();
 			}
-			infoText += "<tr><td valign=\"top\">Reserved blocks for Ch B:</td><td valign=\"top\">" + temp + "</td></tr>";
+			infoText += "<tr><td valign=\"top\">Timeslots reserved on CH B (AIS2):</td><td valign=\"top\">" + temp + "</td></tr>";
 		} else {			 
-			 infoText += "<tr><td valign=\"top\">Reserved blocks for Ch B:</td><td valign=\"top\">...</td></tr>";
+			 infoText += "<tr><td valign=\"top\">Timeslots reserved on CH B (AIS2):</td><td valign=\"top\">...</td></tr>";
 		}			
 		infoText += "</table>";					
 					
