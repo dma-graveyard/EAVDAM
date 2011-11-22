@@ -4,30 +4,30 @@ import java.util.List;
 
 public class AISSlotMap {
 
-	private AISFrequency frequency;  // AIS1 or AIS2
-	private List<AISTimeslot> timeslots;  // 2250 timeslots preferably in order from 0 to 2249
-
+	private List<AISTimeslot> ais1Timeslots;  // 2250 timeslots for AIS1 preferably in order from 0 to 2249
+	private List<AISTimeslot> ais2Timeslots;  // 2250 timeslots for AIS2 preferably in order from 0 to 2249
+	
 	public AISSlotMap() {}
 	
-	public AISSlotMap(AISFrequency frequency, List<AISTimeslot> timeslots) {
-		this.frequency = frequency;
-		this.timeslots = timeslots;
+	public AISSlotMap(List<AISTimeslot> ais1Timeslots, List<AISTimeslot> ais2Timeslots) {
+		this.ais1Timeslots = ais1Timeslots;
+		this.ais2Timeslots = ais2Timeslots;
 	}
 
-	public AISFrequency getFrequency() {
-		return frequency;
+	public List<AISTimeslot> getAIS1Timeslots() {
+		return ais1Timeslots;
 	}
 
-	public void setFrequency(AISFrequency frequency) {
-		this.frequency = frequency;
+	public void setAIS1Timeslots(List<AISTimeslot> ais1Timeslots) {		
+		this.ais1Timeslots = ais1Timeslots;
 	}
 	
-	public List<AISTimeslot> getTimeslots() {
-		return timeslots;
+	public List<AISTimeslot> getAIS2Timeslots() {
+		return ais2Timeslots;
 	}
 
-	public void setTimeslots(List<AISTimeslot> timeslots) {		
-		this.timeslots = timeslots;
+	public void setAIS2Timeslots(List<AISTimeslot> ais2Timeslots) {		
+		this.ais2Timeslots = ais2Timeslots;
 	}	
 	
 }

@@ -4,19 +4,21 @@ import java.util.List;
 
 public class AISTimeslot {
 
+	private AISFrequency frequency;
 	private int slotNumber;  // 0...2249
-	private boolean free;
+	private Boolean free;
 	private List<AISStation> reservedBy;
 	private List<AISStation> usedBy;
 	private List<AISStation> interferedBy;
-	private boolean possibleConflicts;
+	private Boolean possibleConflicts;
 
 	public AISTimeslot() {}
 
-	public AISTimeslot(int slotNumber, boolean free, List<AISStation> reservedBy, List<AISStation> usedBy, List<AISStation> interferedBy, boolean possibleConflicts) {
+	public AISTimeslot(AISFrequency frequency, int slotNumber, Boolean free, List<AISStation> reservedBy, List<AISStation> usedBy, List<AISStation> interferedBy, Boolean possibleConflicts) {
 		if (slotNumber < 0 || slotNumber > 2249) {
 			throw new IllegalArgumentException("Slot number must be between 0 and 2249.");
 		}
+		this.frequency = frequency;
 		this.slotNumber = slotNumber;
 		this.free = free;
 		this.reservedBy = reservedBy;
@@ -36,11 +38,11 @@ public class AISTimeslot {
 		this.slotNumber = slotNumber;
 	}
 	
-	public boolean isFree() {
+	public Boolean getFree() {
 		return free;
 	}
 
-	public void setFree(boolean free) {
+	public void setFree(Boolean free) {
 		this.free = free;
 	}	
 	
@@ -68,11 +70,11 @@ public class AISTimeslot {
 		this.interferedBy = interferedBy;
 	}	
 	
-	public boolean hasPossibleConflicts() {
+	public Boolean getPossibleConflicts() {
 		return possibleConflicts;
 	}
 
-	public void setPossibleConflicts(boolean possibleConflicts) {
+	public void setPossibleConflicts(Boolean possibleConflicts) {
 		this.possibleConflicts = possibleConflicts;
 	}	
 	
