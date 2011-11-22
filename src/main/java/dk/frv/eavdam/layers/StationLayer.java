@@ -1,12 +1,15 @@
 package dk.frv.eavdam.layers;
 
 import com.bbn.openmap.InformationDelegator;
+import com.bbn.openmap.Layer;
+import com.bbn.openmap.LayerHandler;
 import com.bbn.openmap.MapBean;
 import com.bbn.openmap.event.InfoDisplayEvent;
 import com.bbn.openmap.event.MapMouseEvent;
 import com.bbn.openmap.event.MapMouseListener;
 import com.bbn.openmap.event.NavMouseMode;
 import com.bbn.openmap.event.SelectMouseMode;
+import com.bbn.openmap.gui.LayersMenu;
 import com.bbn.openmap.gui.OpenMapFrame;
 import com.bbn.openmap.layer.OMGraphicHandlerLayer;
 import com.bbn.openmap.omGraphics.OMAction;
@@ -46,11 +49,17 @@ import java.awt.Color;
 import java.awt.event.ActionListener;
 import java.awt.event.ActionEvent;
 import java.awt.event.MouseEvent;
+import java.awt.event.WindowEvent;
+import java.awt.event.WindowListener;
 import java.awt.geom.Point2D;
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.DataInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
+import java.io.FileWriter;
+import java.io.InputStreamReader;
 import java.net.MalformedURLException;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -66,12 +75,14 @@ import javax.swing.JCheckBoxMenuItem;
 import javax.swing.JSeparator;
 import javax.swing.SwingUtilities;
 
-public class StationLayer extends OMGraphicHandlerLayer implements MapMouseListener, ActionListener, DrawingToolRequestor {
+public class StationLayer extends OMGraphicHandlerLayer implements MapMouseListener, ActionListener, WindowListener, DrawingToolRequestor {
 
 	private static final long serialVersionUID = 1L;
 
     private MapBean mapBean;
 	private OpenMapFrame openMapFrame;
+	private LayerHandler layerHandler;
+	private LayersMenu layersMenu;
 	private OMGraphicList graphics = new OMGraphicList();
 	private InformationDelegator infoDelegator;
     private DrawingTool drawingTool;
@@ -103,7 +114,12 @@ public class StationLayer extends OMGraphicHandlerLayer implements MapMouseListe
 	private Map<OMBaseStation, OMGraphic> transmitCoverageAreas = new HashMap<OMBaseStation, OMGraphic>();
 	private Map<OMBaseStation, OMGraphic> receiveCoverageAreas = new HashMap<OMBaseStation, OMGraphic>();
 	private Map<OMBaseStation, OMGraphic> interferenceCoverageAreas = new HashMap<OMBaseStation, OMGraphic>();
-		
+	
+	public static String INITIAL_LAYERS_FILE_NAME = "initialLayers.txt";
+	private Map<String, Boolean> initiallySelectedLayerClassNames;
+	private List<Layer> initiallySelectedLayers;
+	private Map<Layer, Boolean> initiallySelectedLayersVisibilities;
+	
     public StationLayer() {}
 
     public OMAISBaseStationTransmitCoverageLayer getTransmitCoverageLayer() {
@@ -907,12 +923,42 @@ public class StationLayer extends OMGraphicHandlerLayer implements MapMouseListe
 
 	@Override
 	public void findAndInit(Object obj) {
+		if (initiallySelectedLayerClassNames == null) {
+			initiallySelectedLayerClassNames = new HashMap<String, Boolean>();			
+			try {
+				FileInputStream fstream = new FileInputStream(StationLayer.INITIAL_LAYERS_FILE_NAME);
+				DataInputStream in = new DataInputStream(fstream);
+				BufferedReader br = new BufferedReader(new InputStreamReader(in));
+				String strLine;
+				while ((strLine = br.readLine()) != null) {
+					String[] temp = strLine.split(":");
+					if (temp.length == 2) {
+						String layerClassName = temp[0].trim();
+						String visibility = temp[1].trim();
+						initiallySelectedLayerClassNames.put(layerClassName, new Boolean(visibility));
+					}
+				}			
+				in.close();
+			} catch (Exception e) {}
+		}
+		if (initiallySelectedLayerClassNames.containsKey(obj.getClass().getCanonicalName())) {
+			if (initiallySelectedLayers == null) {
+				initiallySelectedLayers = new ArrayList<Layer>();
+			}
+			if (initiallySelectedLayersVisibilities == null) {
+				initiallySelectedLayersVisibilities = new HashMap<Layer, Boolean>();
+			}			
+			Boolean visibility = initiallySelectedLayerClassNames.get(obj.getClass().getCanonicalName());
+			initiallySelectedLayers.add((Layer) obj);
+			initiallySelectedLayersVisibilities.put((Layer) obj, visibility);	
+		}
 	    if (obj instanceof MapBean) {
 			this.mapBean = (MapBean) obj;
 		} else if (obj instanceof InformationDelegator) {
 			this.infoDelegator = (InformationDelegator) obj;
 		} else if (obj instanceof OpenMapFrame) {
 			this.openMapFrame = (OpenMapFrame) obj;
+			((OpenMapFrame) obj).addWindowListener(this);
 		} else if (obj instanceof OMAISBaseStationTransmitCoverageLayer) {
 			this.transmitCoverageLayer = (OMAISBaseStationTransmitCoverageLayer) obj;			
 		} else if (obj instanceof OMAISBaseStationReceiveCoverageLayer) {
@@ -925,12 +971,56 @@ public class StationLayer extends OMGraphicHandlerLayer implements MapMouseListe
 		    this.sidePanel = (SidePanel) obj;
 		} else if (obj instanceof DrawingTool) {
             setDrawingTool((DrawingTool) obj);
-        }
+        } else if (obj instanceof LayerHandler) {
+			this.layerHandler = (LayerHandler) obj;
+		} else if (obj instanceof LayersMenu) {
+			this.layersMenu = (LayersMenu) obj;
+		}
+	}
+	
+	public void	windowActivated(WindowEvent e) {}
+	
+	public void windowClosed(WindowEvent e) {}
+	
+	public void windowClosing(WindowEvent e) {
+		try {
+			new File(StationLayer.INITIAL_LAYERS_FILE_NAME).delete();
+		} catch (Exception ex) {}
+		try {
+			FileWriter fstream = new FileWriter(StationLayer.INITIAL_LAYERS_FILE_NAME);
+			BufferedWriter out = new BufferedWriter(fstream);	
+			Layer[] layers = layerHandler.getLayers();
+			for (Layer layer : layers) {
+				out.write(layer.getClass().getCanonicalName() + ": " + layer.isVisible() + System.getProperty("line.separator"));
+			}
+			out.close();
+		} catch (Exception ex) {}	
+	}
+	
+	public void	windowDeactivated(WindowEvent e) {}
+	
+	public void	windowDeiconified(WindowEvent e) {}
+	
+	public void	windowIconified(WindowEvent e) {}
+	
+	public void	windowOpened(WindowEvent e) {
+		if (initiallySelectedLayers != null) {
+			layersMenu.removeAll();
+			Layer[] inLayers = new Layer[initiallySelectedLayers.size()];
+			int i = 0;
+			for (Layer layer : initiallySelectedLayers) {
+				boolean setting = initiallySelectedLayersVisibilities.get(layer).booleanValue();
+				layerHandler.turnLayerOn(setting, layer);
+				inLayers[i] = layer;
+				i++;
+			}
+			layersMenu.setLayers(inLayers);
+		}
 		if (eavdamMenu != null && transmitCoverageLayer != null && receiveCoverageLayer != null && interferenceCoverageLayer != null && sidePanel != null && !stationsInitiallyUpdated) {
 			eavdamMenu.getShowOnMapMenu().updateCoverageItems(receiveCoverageLayer.isVisible(), transmitCoverageLayer.isVisible(), interferenceCoverageLayer.isVisible());
 			updateStations();
 			stationsInitiallyUpdated = true;
-		}
+		}	
 	}
 
 	private byte[] getImage(String filename) {    
