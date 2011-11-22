@@ -1,0 +1,7 @@
+2011-11-22 Version 1.1
+
+	* "About EAVDAM" menu added
+	* Hide functionality for temporarily hiding individual stations from map
+	* Default coverage for directional antennas
+	* Other organizations' contact information accessible in Edit Station Information screen
+	* Visible layers are saved when application is exited and restored when started again
