@@ -213,6 +213,7 @@ public class AddStationDialog extends JDialog implements ActionListener, ItemLis
 		}						
 					
 		JPanel panel = new JPanel();
+		panel.setBorder(BorderFactory.createEmptyBorder());
 		panel.setLayout(new GridBagLayout());
 						  
 		JPanel p2 = new JPanel(new GridBagLayout());
@@ -314,20 +315,25 @@ public class AddStationDialog extends JDialog implements ActionListener, ItemLis
 		c = menuItem.updateGBC(c, 0, 2, 0.5, GridBagConstraints.FIRST_LINE_START, GridBagConstraints.HORIZONTAL, new Insets(5,5,5,5)); 
 		c.gridwidth = 2; 
 		panel.add(p5, c);
-					
-		JPanel buttonPanel = new JPanel();
-		buttonPanel.add(doAddStationButton);          
-		buttonPanel.add(cancelAddStationButton);
-		c = menuItem.updateGBC(c, 0, 3, 0.5, GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(5,5,5,5));             
-		c.gridwidth = 2; 
-		panel.add(buttonPanel, c);
-		
-		JScrollPane scrollPane = new JScrollPane(panel);
-        scrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
-        scrollPane.setPreferredSize(new Dimension(WINDOW_WIDTH, WINDOW_HEIGHT));
-        scrollPane.setMaximumSize(new Dimension(WINDOW_WIDTH, WINDOW_HEIGHT));
 
-        getContentPane().add(scrollPane);
+		JScrollPane scrollPane = new JScrollPane(panel);
+		scrollPane.setBorder(BorderFactory.createEmptyBorder());
+        scrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
+        scrollPane.setPreferredSize(new Dimension(WINDOW_WIDTH, WINDOW_HEIGHT-35));
+        scrollPane.setMaximumSize(new Dimension(WINDOW_WIDTH, WINDOW_HEIGHT-35));
+		
+		JPanel containerPane = new JPanel();
+		containerPane.setBorder(BorderFactory.createEmptyBorder());
+		containerPane.setLayout(new BorderLayout());		 
+		containerPane.add(scrollPane, BorderLayout.CENTER);
+		
+		JPanel buttonPanel = new JPanel();
+		buttonPanel.setBorder(BorderFactory.createEmptyBorder(15, 0, 0, 0));
+		buttonPanel.add(doAddStationButton);
+		buttonPanel.add(cancelAddStationButton);
+		containerPane.add(buttonPanel, BorderLayout.SOUTH);
+
+        getContentPane().add(containerPane);
 		
 		addStationChannelAComboBox.setSelectedIndex(1);
 		addStationChannelBComboBox.setSelectedIndex(2);		
