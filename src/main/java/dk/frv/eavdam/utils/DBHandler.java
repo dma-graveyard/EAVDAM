@@ -1,6 +1,7 @@
 package dk.frv.eavdam.utils;
 
 import dk.frv.eavdam.data.AISBaseAndReceiverStationFATDMAChannel;
+import dk.frv.eavdam.data.AISDatalinkCheckResult;
 import dk.frv.eavdam.data.AISFixedStationData;
 import dk.frv.eavdam.data.ActiveStation;
 import dk.frv.eavdam.data.EAVDAMData;
@@ -102,23 +103,23 @@ public class DBHandler {
     	}
             
     	
-    	double[] point = {60,24.15};
-    	EAVDAMData inpoint = HealthCheckHandler.getStationsAtPoint(dat, point);
+    	HealthCheckHandler hch = new HealthCheckHandler(dat);
     	
-    	if(inpoint != null){
-    		try{
-    			System.out.println("\tStations found with coverage at (60;24.15)! "+inpoint.getActiveStations().size());
-    			if(inpoint.getActiveStations().size() > 0 && inpoint.getActiveStations().get(0).getStations() != null)
-    				System.out.println("\tDefault User's: "+inpoint.getActiveStations().get(0).getStations().size());
-    			
-    			if(inpoint.getOtherUsersStations() != null && inpoint.getOtherUsersStations().size() > 0)
-    				System.out.println("\tOther users: "+inpoint.getOtherUsersStations().get(0).getStations().size());
-    		}catch(Exception e){
-    			e.printStackTrace();
-    		}
-    	}else{
-    		System.out.println("\tNo stations found with coverage at (60;24.15)");
-    	}
+    	double[] point = {60,24.15};
+    	AISDatalinkCheckResult res = hch.checkAISDatalinkAtPoint(60, 24.15, 1.0);
+    	
+//    	if(res != null){
+//    		try{
+//    			System.out.println("Stations found with coverage at (60;24.15)!");
+//    			if(res.getAreas() != null && res.getAreas().size() > 0)
+//    				System.out.println("\tReservation: "+res.getAreas().get(0).getBandwithUsageLevel()+" Area: "+res.getAreas().get(0).toString());
+//    			
+//    		}catch(Exception e){
+//    			e.printStackTrace();
+//    		}
+//    	}else{
+//    		System.out.println("\tNo stations found with coverage at (60;24.15)");
+//    	}
     	
         return dat;
 

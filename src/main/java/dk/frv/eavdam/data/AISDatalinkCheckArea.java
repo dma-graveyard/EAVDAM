@@ -53,6 +53,18 @@ public class AISDatalinkCheckArea {
 
 	public void setLowerRightLongitude(double lowerRightLongitude) {
 		this.lowerRightLongitude = lowerRightLongitude;
+	}
+
+	public double getBandwithUsageLevel() {
+		return bandwithUsageLevel;
+	}
+
+	public void setBandwithUsageLevel(double bandwithUsageLevel) {
+		this.bandwithUsageLevel = bandwithUsageLevel;
 	}		
+	
+	public String toString(){
+		return "("+topLeftLatitude+";"+topLeftLongitude+") - ("+lowerRightLatitude+";"+lowerRightLongitude+"): "+bandwithUsageLevel;
+	}
 	
 }
