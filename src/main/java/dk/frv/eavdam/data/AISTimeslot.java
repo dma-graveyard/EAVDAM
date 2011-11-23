@@ -78,4 +78,14 @@ public class AISTimeslot {
 		this.possibleConflicts = possibleConflicts;
 	}	
 	
+	
+	public String toString(){
+		String stations = "";
+		if(interferedBy != null){
+			for(AISStation s : interferedBy){
+				stations += s.getStationName()+" | ";
+			}
+		}
+		return "Is free: "+this.free+(!free.booleanValue() ? " | In use by "+usedBy.size()+" stations. Conflicts: "+(interferedBy != null ? interferedBy.size()+", Stations: "+stations : 0+"") : "");
+	}
 }

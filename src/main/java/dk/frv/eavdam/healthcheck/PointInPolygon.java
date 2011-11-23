@@ -39,8 +39,7 @@ public class PointInPolygon {
 			coordinates.add(c);
 		}
 		
-
-		
+	
 		LinearRing shell = new LinearRing(coordinates.toArray(new Coordinate[coordinates.size()]), new PrecisionModel(), 0);
 		Polygon poly = new Polygon(shell, null, new GeometryFactory());
 		

@@ -3,6 +3,7 @@ package dk.frv.eavdam.utils;
 import dk.frv.eavdam.data.AISBaseAndReceiverStationFATDMAChannel;
 import dk.frv.eavdam.data.AISDatalinkCheckResult;
 import dk.frv.eavdam.data.AISFixedStationData;
+import dk.frv.eavdam.data.AISSlotMap;
 import dk.frv.eavdam.data.ActiveStation;
 import dk.frv.eavdam.data.EAVDAMData;
 import dk.frv.eavdam.data.EAVDAMUser;
@@ -106,13 +107,16 @@ public class DBHandler {
 //	    	HealthCheckHandler hch = new HealthCheckHandler(dat);
 //	    	
 //	    	double[] point = {60,24.15};
-//	    	AISDatalinkCheckResult res = hch.checkAISDatalinkAtPoint(60, 24.15, 1.0);
+//	    	AISSlotMap res = hch.slotMapAtPoint(60, 24.15, 1.0);
 //	    	
 //	    	if(res != null){
 //	    		try{
 //	    			System.out.println("Stations found with coverage at (60;24.15)!");
-//	    			if(res.getAreas() != null && res.getAreas().size() > 0)
-//	    				System.out.println("\tReservation: "+res.getAreas().get(0).getBandwithUsageLevel()+" Area: "+res.getAreas().get(0).toString());
+//	    			if(res.getAIS1Timeslots() != null && res.getAIS1Timeslots().size() > 0){
+//	    				System.out.println("\tReservation: "+res.getBandwidthReservation());
+//	    				System.out.println("\t"+res.getAIS1Timeslots().get(101).toString());
+//	    			}
+//	    				
 //	    			
 //	    		}catch(Exception e){
 //	    			e.printStackTrace();

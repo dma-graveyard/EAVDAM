@@ -72,6 +72,8 @@ import dk.frv.eavdam.data.Simulation;
 	    
 	    Connection conn = null;
 	    
+	    private boolean log = false;
+	    
 	    public DerbyDBInterface(String driver, String protocol){
 	    	this.driver = driver;
 	    	this.protocol = protocol;
@@ -334,7 +336,8 @@ import dk.frv.eavdam.data.Simulation;
     			//TODO Call update if necessary!
     			contactID = res.getInt(1);
 
-    			System.out.println("Person found! Updating information...");
+    			if(log)
+    				System.out.println("Person found! Updating information...");
     			this.updatePerson(person);
     			
     			return contactID;
@@ -384,7 +387,8 @@ import dk.frv.eavdam.data.Simulation;
         	int orgID = -1;
         	//Find out if the organization exists in the database.
         	if(!res.next()){
-        		System.out.println("Organization "+user.getOrganizationName()+" does not exist! Inserting new organization...");
+    			if(log)
+    				System.out.println("Organization "+user.getOrganizationName()+" does not exist! Inserting new organization...");
         		
         		//Add the organization.
         		ps = conn.prepareStatement("select max(id) from ORGANIZATION");
@@ -400,7 +404,9 @@ import dk.frv.eavdam.data.Simulation;
         	}else{
         		
         		orgID = res.getInt(1);
-        		System.out.println("Organization found (id: "+orgID+")! Updating its information...");
+        		
+    			if(log)
+    				System.out.println("Organization found (id: "+orgID+")! Updating its information...");
         		
         		user.setUserDBID(orgID);
         		this.updateOrganization(user);
@@ -477,7 +483,8 @@ import dk.frv.eavdam.data.Simulation;
 		   AISFixedStationData active = null;
 		   AISFixedStationData planned = null;
 		   
-		   System.out.println("There are "+station.getStations().size()+" active station...");
+			if(log)
+				System.out.println("There are "+station.getStations().size()+" active station...");
 		   
 		   for(AISFixedStationData d : station.getStations()){
 
@@ -490,8 +497,9 @@ import dk.frv.eavdam.data.Simulation;
 			   if(station.getStations().size() > 0){
 				   AISFixedStationData s = station.getStations().get(0);
 				   
-				   
-				   System.out.println("Updating status...");
+	    			if(log)
+	    				System.out.println("Updating status...");
+	    			
 				   this.updateAISStation(s, organizationID, -1);
 				   
 			   }
@@ -506,7 +514,8 @@ import dk.frv.eavdam.data.Simulation;
 			   
 			   
 		   }else{
-			   System.out.println("Making status changes...");
+   				if(log)
+   					System.out.println("Making status changes...");
 			   
 			   int stationID = -1;
 
@@ -566,7 +575,7 @@ import dk.frv.eavdam.data.Simulation;
 	    		int id = res.getInt(1);
 	    		if(id >= 0){
 	    			
-	    			System.out.println("Station exists. Updating its information! (id: "+as.getStationDBID()+" vs. dbid: "+id+", status: "+as.getStatus().getStatusID()+", owner: "+organizationID+")");
+	    			if(log) System.out.println("Station exists. Updating its information! (id: "+as.getStationDBID()+" vs. dbid: "+id+", status: "+as.getStatus().getStatusID()+", owner: "+organizationID+")");
 	    			as.setStationDBID(id);
 	    			this.updateAISStation(as, organizationID, refstation);
 	    			
@@ -576,7 +585,7 @@ import dk.frv.eavdam.data.Simulation;
 	    		}
 	    	}
 	    	
-	    	System.out.println("Inserting new AIS Station...");
+			if(log) System.out.println("Inserting new AIS Station...");
 	    	
 	    	int stationType;
 	    	//Get the station type.
@@ -676,7 +685,7 @@ import dk.frv.eavdam.data.Simulation;
 	    	psc.setInt(7, antennaType);
 	    	psc.executeUpdate();
 	    	
-	    	if(antenna.getHeading() != null) System.out.println("Added antenna heading: "+antenna.getHeading());
+	    	if(antenna.getHeading() != null) if(log) System.out.println("Added antenna heading: "+antenna.getHeading());
 	    	
 	    	psc.close();
 	    	
@@ -705,7 +714,7 @@ import dk.frv.eavdam.data.Simulation;
 	    public void insertFATDMAAllocations(FATDMAChannel f, int stationID, int channelType) throws Exception{
 	    	if(f == null) return;
 	    	
-	    	System.out.println("Inserting FATDMA Allocations");
+			if(log) System.out.println("Inserting FATDMA Allocations");
 	    	
 	    	if(this.conn == null) this.conn = getDBConnection(null,false);
 	    	
@@ -743,7 +752,7 @@ import dk.frv.eavdam.data.Simulation;
 	    				
 	    				insertNew = true;
 	    				
-		    			System.out.println("Inserted new channel "+f.getDBID());
+	        			if(log) System.out.println("Inserted new channel "+f.getDBID());
 	    			}
 	    			
 	    			if(f instanceof AISAtonStationFATDMAChannel){
@@ -905,7 +914,7 @@ import dk.frv.eavdam.data.Simulation;
 	    }
 	    
 	    private FATDMAChannel retrieveFATDMAAllocations(int stationID, int channelType) throws Exception{
-	    	System.out.print("Retrieving FATDMA Channel "+(channelType == FATDMA_CHANNEL_A ? "A" : "B"));
+			if(log) System.out.print("Retrieving FATDMA Channel "+(channelType == FATDMA_CHANNEL_A ? "A" : "B"));
 	    	
 	    	//GET THE Channel
 	    	PreparedStatement psc = conn.prepareStatement("select id, name from FATDMACHANNEL where station = ? AND type = ?");
@@ -959,7 +968,7 @@ import dk.frv.eavdam.data.Simulation;
 			    channel.setDBID(tempChannels.getDBID());
 			    channel.setAtonMessageBroadcastList(rates);
 			    
-	    		System.out.print("... Found "+rates.size()+" ATON allocations...\n");
+    			if(log) System.out.print("... Found "+rates.size()+" ATON allocations...\n");
 			    
 			    return channel;	
 			    
@@ -986,13 +995,13 @@ import dk.frv.eavdam.data.Simulation;
 		    		channel.setDBID(tempChannels.getDBID());
 		    		channel.setFatdmaScheme(bases);
 		    			
-		    		System.out.print("... Found "+bases.size()+" BASE allocations (Channel: "+channel.getDBID()+" | "+channel.getFATDMAScheme().get(0).toString()+")...\n");
+	    			if(log) System.out.print("... Found "+bases.size()+" BASE allocations (Channel: "+channel.getDBID()+" | "+channel.getFATDMAScheme().get(0).toString()+")...\n");
 		    		
 		    		
 		    		return channel;
 		    	}
 			    	
-		    	System.out.println();
+    			if(log) System.out.println();
 	    	
 		    	return null;
 	    }
@@ -1042,7 +1051,7 @@ import dk.frv.eavdam.data.Simulation;
 	    		PreparedStatement p = conn.prepareStatement("select * from FATDMAATON, FATDMABASE where FATDMAATON.channel = ? OR FATDMABASE.channel = ?");
 	    		ResultSet rs = p.executeQuery();
 	    		if(!rs.next()){
-	    			System.out.println("No FATDMA allocation remaining for channel "+f.getChannelName()+"! Deleting the channel!");
+	    			if(log) System.out.println("No FATDMA allocation remaining for channel "+f.getChannelName()+"! Deleting the channel!");
 	    			
 	    			p = conn.prepareStatement("delete from FATDMACHANNEL where id = ?");
 	    			p.setInt(1, f.getDBID());
@@ -1151,7 +1160,7 @@ import dk.frv.eavdam.data.Simulation;
 	    public void deleteUser(EAVDAMUser user) throws Exception{
 	    	if(user == null) return;
 	    	
-	    	System.out.println("Deleting user "+user.getOrganizationName());
+			if(log) System.out.println("Deleting user "+user.getOrganizationName());
 	    	
 	    	PreparedStatement ps = null;
 	    	
@@ -1349,7 +1358,7 @@ import dk.frv.eavdam.data.Simulation;
 	    		case REPEATER: stationType = STATION_REPEATER; break;
 	    	}
 	    	
-	    	System.out.println("UPDATING: orgID="+orgID+" stationID: "+ais.getStationDBID());
+			if(log) System.out.println("UPDATING: orgID="+orgID+" stationID: "+ais.getStationDBID());
 	    	
 	    	String sql = "update FIXEDSTATION set " +
 	    			"NAME = ?, " + //1.
@@ -1418,7 +1427,7 @@ import dk.frv.eavdam.data.Simulation;
 
 	    private void updateFATDMAChannel(FATDMAChannel f, int stationDBID, int channelType) throws Exception{
 
-	    	System.out.println("Updating FATDMA Allocations");
+			if(log) System.out.println("Updating FATDMA Allocations");
 	    	
 	    		if(f.getDBID() <= 0){
 	    			this.insertFATDMAAllocations(f, stationDBID, channelType);
@@ -1574,7 +1583,7 @@ import dk.frv.eavdam.data.Simulation;
 	    	ps.setInt(5, stationId);
 	    	
 	    	int n = ps.executeUpdate();
-	    	System.out.println("Updated the status: "+status.getStatusID()+" (n:"+n+", id: "+stationId+")");
+			if(log) System.out.println("Updated the status: "+status.getStatusID()+" (n:"+n+", id: "+stationId+")");
 	    	
 	    	ps.close();
 	    	
@@ -1592,7 +1601,7 @@ import dk.frv.eavdam.data.Simulation;
 	    	
 	    	EAVDAMData data = new EAVDAMData();
 	    	
-	    	System.out.println("Retrieving all EAVDAMData");
+			if(log) System.out.println("Retrieving all EAVDAMData");
 	    	
 	    	if(this.conn == null) this.conn = this.getDBConnection(null, false);
 	    	
@@ -1606,7 +1615,7 @@ import dk.frv.eavdam.data.Simulation;
 	    		if(u == null) continue;
 
 	    		if(u.getUserDBID() == defaultUser.getUserDBID()){
-	    			System.out.println("Retrieving data for default user "+u.getOrganizationName());
+	    			if(log) System.out.println("Retrieving data for default user "+u.getOrganizationName());
 	    			
 	    			data.setUser(u);
 	    			
@@ -1620,7 +1629,7 @@ import dk.frv.eavdam.data.Simulation;
 	    			
 	    			
 	    		}else{
-	    			System.out.println("Retrieving data for \"other user\" "+u.getOrganizationName());
+	    			if(log) System.out.println("Retrieving data for \"other user\" "+u.getOrganizationName());
 	    			//Get "other user data"
 	    			OtherUserStations o = new OtherUserStations();
 	    			EAVDAMData others = this.retrieveEAVDAMData(u.getUserDBID(), STATUS_ACTIVE);
@@ -1711,7 +1720,7 @@ import dk.frv.eavdam.data.Simulation;
 	    	while(res.next()){
 	    		++ith;
 	    		if(ith > 1){
-	    			System.out.println("There are more than one user with the id/name "+user+". Returning only the first one...");
+	    			if(log) System.out.println("There are more than one user with the id/name "+user+". Returning only the first one...");
 	    			break;
 	    		}
 	    		u.setUserDBID(res.getInt(1));
@@ -2081,7 +2090,7 @@ import dk.frv.eavdam.data.Simulation;
 	    private List<AISFixedStationData> retrieveAISStation(int stationID, int statusID, int userID) throws Exception{
 	    	ArrayList<AISFixedStationData> data = new ArrayList<AISFixedStationData>();
 	    	
-	    	System.out.println("Retrieving planned station linked to station "+stationID);
+			if(log) System.out.println("Retrieving planned station linked to station "+stationID);
 	    	
 	    	String sql = "select " +
 	    			"FIXEDSTATION.id, " +  //1.
