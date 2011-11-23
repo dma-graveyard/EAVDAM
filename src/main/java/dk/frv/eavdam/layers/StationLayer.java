@@ -142,7 +142,7 @@ public class StationLayer extends OMGraphicHandlerLayer implements MapMouseListe
     }
 	
     public void addBaseStation(Object datasetSource, EAVDAMUser owner, AISFixedStationData stationData) {
-
+	
 	    byte[] bytearr = null;		
 		
 		if (datasetSource == null ||  // own stations
@@ -203,9 +203,14 @@ public class StationLayer extends OMGraphicHandlerLayer implements MapMouseListe
 				}					
 					
 			}
-
 		}
         
+		if (data == null) {
+			data = DBHandler.getData();
+		}
+		
+		boolean needsSaving = false;
+		
         OMBaseStation base = new OMBaseStation(datasetSource, stationData, owner, bytearr);		
 		Antenna antenna = stationData.getAntenna();
 		if (antenna != null) {
@@ -217,6 +222,8 @@ public class StationLayer extends OMGraphicHandlerLayer implements MapMouseListe
 						ArrayList<double[]> points = (ArrayList<double[]>) RoundCoverage.getRoundCoverage(antenna.getAntennaHeight()+antenna.getTerrainHeight(), 4, stationData.getLat(),
 							stationData.getLon(), (double) antenna.getHeading().intValue(), (double) antenna.getFieldOfViewAngle().intValue(), 25);
 						base.setTransmitCoverageArea(points);
+						data = saveCoverage(data, base, points, transmitCoverageLayer);
+						needsSaving = true;
 					}
 					if (stationData.getInterferenceCoverage() != null && stationData.getInterferenceCoverage().getCoveragePoints() != null) {
 						base.setInterferenceCoverageArea(stationData.getInterferenceCoverage().getCoveragePoints());
@@ -224,6 +231,8 @@ public class StationLayer extends OMGraphicHandlerLayer implements MapMouseListe
 						ArrayList<double[]> points = (ArrayList<double[]>) RoundCoverage.getRoundInterferenceCoverage(stationData.getLat(), stationData.getLon(),
 							(double) antenna.getHeading().intValue(), (double) antenna.getFieldOfViewAngle().intValue(), 25);
 						base.setInterferenceCoverageArea(points);
+						data = saveCoverage(data, base, points, interferenceCoverageLayer);
+						needsSaving = true;					
 					}
 				}			
 				if (stationData.getReceiveCoverage() != null && stationData.getReceiveCoverage().getCoveragePoints() != null) {
@@ -232,6 +241,8 @@ public class StationLayer extends OMGraphicHandlerLayer implements MapMouseListe
 					ArrayList<double[]> points = (ArrayList<double[]>) RoundCoverage.getRoundCoverage(antenna.getAntennaHeight()+antenna.getTerrainHeight(), 4, stationData.getLat(), stationData.getLon(),
 						(double) antenna.getHeading().intValue(), (double) antenna.getFieldOfViewAngle().intValue(),25);
 					base.setReceiveCoverageArea(points);
+					data = saveCoverage(data, base, points, receiveCoverageLayer);		
+					needsSaving = true;				
 				}				
 			} else {
 				if (stationData.getStationType() != AISFixedStationType.RECEIVER) {
@@ -240,12 +251,16 @@ public class StationLayer extends OMGraphicHandlerLayer implements MapMouseListe
 					} else {
 						ArrayList<double[]> points = (ArrayList<double[]>) RoundCoverage.getRoundCoverage(antenna.getAntennaHeight()+antenna.getTerrainHeight(), 4, stationData.getLat(), stationData.getLon(), 25);
 						base.setTransmitCoverageArea(points);
+						data = saveCoverage(data, base, points, transmitCoverageLayer);						
+						needsSaving = true;						
 					}
 					if (stationData.getInterferenceCoverage() != null && stationData.getInterferenceCoverage().getCoveragePoints() != null) {
 						base.setInterferenceCoverageArea(stationData.getInterferenceCoverage().getCoveragePoints());
 					} else {
 						ArrayList<double[]> points = (ArrayList<double[]>) RoundCoverage.getRoundInterferenceCoverage(stationData.getLat(), stationData.getLon(), 25);
 						base.setInterferenceCoverageArea(points);
+						data = saveCoverage(data, base, points, interferenceCoverageLayer);						
+						needsSaving = true;						
 					}
 				}			
 				if (stationData.getReceiveCoverage() != null && stationData.getReceiveCoverage().getCoveragePoints() != null) {
@@ -253,11 +268,17 @@ public class StationLayer extends OMGraphicHandlerLayer implements MapMouseListe
 				} else {
 					ArrayList<double[]> points = (ArrayList<double[]>) RoundCoverage.getRoundCoverage(antenna.getAntennaHeight()+antenna.getTerrainHeight(), 4, stationData.getLat(), stationData.getLon(), 25);
 					base.setReceiveCoverageArea(points);
+					data = saveCoverage(data, base, points, receiveCoverageLayer);	
+					needsSaving	= true;					
 				}
 			}
 						
 		}
 
+		if (needsSaving) {
+			DBHandler.saveData(data);
+		}
+		
 		graphics.add(base);
 		graphics.project(getProjection(), true);
 		this.repaint();
@@ -356,7 +377,7 @@ public class StationLayer extends OMGraphicHandlerLayer implements MapMouseListe
 			if (data == null) {
 				data = DBHandler.getData();                        
 			}
-			data = saveCoverage(data, points, currentlyEditingLayer);
+			data = saveCoverage(data, currentlySelectedOMBaseStation, points, currentlyEditingLayer);
 			currentlyEditingLayer = null;
 			DBHandler.saveData(data);    					
 			
@@ -713,7 +734,7 @@ public class StationLayer extends OMGraphicHandlerLayer implements MapMouseListe
 					if (data == null) {
 						data = DBHandler.getData();                        
 					}					
-					data = saveCoverage(data, points, transmitCoverageLayer);
+					data = saveCoverage(data, currentlySelectedOMBaseStation, points, transmitCoverageLayer);
                 }
                       
 				DBHandler.saveData(data);    					
@@ -756,7 +777,7 @@ public class StationLayer extends OMGraphicHandlerLayer implements MapMouseListe
 						if (data == null) {
 							data = DBHandler.getData();                        
 						}					
-						data = saveCoverage(data, points, transmitCoverageLayer);
+						data = saveCoverage(data, currentlySelectedOMBaseStation, points, transmitCoverageLayer);
 					}
 						  
 					DBHandler.saveData(data);    					
@@ -785,7 +806,7 @@ public class StationLayer extends OMGraphicHandlerLayer implements MapMouseListe
 					if (data == null) {
 						data = DBHandler.getData();                        
 					}					
-					data = saveCoverage(data, points, receiveCoverageLayer);
+					data = saveCoverage(data, currentlySelectedOMBaseStation, points, receiveCoverageLayer);
                 }
                       
 				DBHandler.saveData(data);    					
@@ -829,7 +850,7 @@ public class StationLayer extends OMGraphicHandlerLayer implements MapMouseListe
 						if (data == null) {
 							data = DBHandler.getData();                        
 						}					
-						data = saveCoverage(data, points, receiveCoverageLayer);
+						data = saveCoverage(data, currentlySelectedOMBaseStation, points, receiveCoverageLayer);
 					}
 						  
 					DBHandler.saveData(data);    					
@@ -856,7 +877,7 @@ public class StationLayer extends OMGraphicHandlerLayer implements MapMouseListe
 				if (data == null) {
 					data = DBHandler.getData();                        
 				}					
-				data = saveCoverage(data, points, interferenceCoverageLayer);                
+				data = saveCoverage(data, currentlySelectedOMBaseStation, points, interferenceCoverageLayer);                
                       
 				DBHandler.saveData(data);    					
 				updateStations();                
@@ -901,7 +922,7 @@ public class StationLayer extends OMGraphicHandlerLayer implements MapMouseListe
 					if (data == null) {
 						data = DBHandler.getData();                        
 					}					
-					data = saveCoverage(data, points, interferenceCoverageLayer);					
+					data = saveCoverage(data, currentlySelectedOMBaseStation, points, interferenceCoverageLayer);					
 						  
 					DBHandler.saveData(data);    					
 					updateStations();			
@@ -916,8 +937,8 @@ public class StationLayer extends OMGraphicHandlerLayer implements MapMouseListe
         }
     }
 	
-	private EAVDAMData saveCoverage(EAVDAMData data, ArrayList<double[]> points, OMGraphicHandlerLayer activeLayer) {
-		if (currentlySelectedOMBaseStation.getDatasetSource() == null) {
+	private EAVDAMData saveCoverage(EAVDAMData data, OMBaseStation baseStation, ArrayList<double[]> points, OMGraphicHandlerLayer activeLayer) {
+		if (baseStation.getDatasetSource() == null) {
 			List<ActiveStation> activeStations = data.getActiveStations();
 			if (activeStations != null) {
 				for (int i=0; i< activeStations.size(); i++) {
@@ -925,7 +946,7 @@ public class StationLayer extends OMGraphicHandlerLayer implements MapMouseListe
 					if (as.getStations() != null) {
 						for (int j=0; j<as.getStations().size(); j++) {
 							AISFixedStationData stationData = as.getStations().get(j);
-							if (stationData.getStationDBID() == currentlySelectedOMBaseStation.getStationData().getStationDBID()) {
+							if (stationData.getStationDBID() == baseStation.getStationData().getStationDBID()) {
 								if (activeLayer == transmitCoverageLayer) {
 									AISFixedStationCoverage coverage = stationData.getTransmissionCoverage();
 									if (coverage == null) {
@@ -956,15 +977,15 @@ public class StationLayer extends OMGraphicHandlerLayer implements MapMouseListe
 					}
 				}
 			}
-		} else if (currentlySelectedOMBaseStation.getDatasetSource() instanceof String) {  // simulation
-			String selectedSimulation = (String) currentlySelectedOMBaseStation.getDatasetSource();				
+		} else if (baseStation.getDatasetSource() instanceof String) {  // simulation
+			String selectedSimulation = (String) baseStation.getDatasetSource();				
 			List<Simulation> simulatedStations = data.getSimulatedStations();
 			for (Simulation s : data.getSimulatedStations()) {
 				if (selectedSimulation.equals(s.getName())) {
 					List<AISFixedStationData> stations = s.getStations();
 					for (int i=0; i<stations.size(); i++) {
 						AISFixedStationData stationData = stations.get(i);
-						if (stationData.getStationDBID() == currentlySelectedOMBaseStation.getStationData().getStationDBID()) {								
+						if (stationData.getStationDBID() == baseStation.getStationData().getStationDBID()) {								
 							if (activeLayer == transmitCoverageLayer) {
 								AISFixedStationCoverage coverage = stationData.getTransmissionCoverage();
 								if (coverage == null) {
@@ -995,7 +1016,60 @@ public class StationLayer extends OMGraphicHandlerLayer implements MapMouseListe
 					}
 				}	
 			}
-		}	
+		} else if (baseStation.getDatasetSource() instanceof EAVDAMUser) {  // other user's station
+			EAVDAMUser user = (EAVDAMUser) baseStation.getDatasetSource();                
+			List<OtherUserStations> otherUserStations = data.getOtherUsersStations();
+            if (otherUserStations != null && !otherUserStations.isEmpty()) {
+				for (int i=0; i<otherUserStations.size(); i++) {
+					OtherUserStations ous = otherUserStations.get(i);
+                    if (ous.getUser().getOrganizationName().equals(user.getOrganizationName())) {
+						List<ActiveStation> activeStations = ous.getStations();
+						if (activeStations != null) {
+							for (int j=0; j<activeStations.size(); j++) {
+								ActiveStation as = activeStations.get(j);
+								List<AISFixedStationData> stations = as.getStations();
+								if (stations != null) {
+									for (int k=0; k<stations.size(); k++) {
+									AISFixedStationData stationData = stations.get(k);								
+									if (stationData.getStationDBID() == baseStation.getStationData().getStationDBID()) {								
+										if (activeLayer == transmitCoverageLayer) {
+												AISFixedStationCoverage coverage = stationData.getTransmissionCoverage();
+												if (coverage == null) {
+													coverage = new AISFixedStationCoverage();
+												}
+												coverage.setCoveragePoints(points);
+												stationData.setTransmissionCoverage(coverage);
+											} else if (activeLayer == receiveCoverageLayer) {
+												AISFixedStationCoverage coverage = stationData.getReceiveCoverage();
+												if (coverage == null) {
+													coverage = new AISFixedStationCoverage();
+												}
+												coverage.setCoveragePoints(points);
+												stationData.setReceiveCoverage(coverage);
+											} else if (activeLayer == interferenceCoverageLayer) {
+												AISFixedStationCoverage coverage = stationData.getInterferenceCoverage();
+												if (coverage == null) {
+													coverage = new AISFixedStationCoverage();
+												}
+												coverage.setCoveragePoints(points);
+												stationData.setInterferenceCoverage(coverage);															
+											}							
+											stations.set(k, stationData);
+											as.setStations(stations);
+											activeStations.set(j, as);
+											ous.setStations(activeStations);
+											otherUserStations.set(i, ous);
+											data.setOtherUsersStations(otherUserStations);
+											break;																	
+										}
+									}
+								}
+							}
+						}
+					}
+				}	
+			}
+		}
 		
 		return data;	
 	}
