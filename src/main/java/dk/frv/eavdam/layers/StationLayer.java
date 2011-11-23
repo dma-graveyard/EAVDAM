@@ -21,6 +21,7 @@ import com.bbn.openmap.omGraphics.OMList;
 import com.bbn.openmap.omGraphics.OMPoly;
 import com.bbn.openmap.omGraphics.OMRect;
 import com.bbn.openmap.proj.Length;
+import com.bbn.openmap.proj.Projection;
 import com.bbn.openmap.tools.drawing.DrawingTool;
 import com.bbn.openmap.tools.drawing.DrawingToolRequestor;
 import com.bbn.openmap.tools.drawing.OMDrawingTool;
@@ -30,6 +31,7 @@ import dk.frv.eavdam.data.AISFixedStationCoverage;
 import dk.frv.eavdam.data.AISFixedStationData;
 import dk.frv.eavdam.data.AISFixedStationStatus;
 import dk.frv.eavdam.data.AISFixedStationType;
+import dk.frv.eavdam.data.AISSlotMap;
 import dk.frv.eavdam.data.Antenna;
 import dk.frv.eavdam.data.AntennaType;
 import dk.frv.eavdam.data.EAVDAMData;
@@ -44,8 +46,16 @@ import dk.frv.eavdam.menus.OptionsMenuItem;
 import dk.frv.eavdam.menus.StationInformationMenu;
 import dk.frv.eavdam.menus.StationInformationMenuItem;
 import dk.frv.eavdam.utils.DBHandler;
+import dk.frv.eavdam.utils.HealthCheckHandler;
 import dk.frv.eavdam.utils.RoundCoverage;
+import java.awt.BorderLayout;
 import java.awt.Color;
+import java.awt.Dimension;
+import java.awt.Font;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
+import java.awt.Insets;
+import java.awt.Toolkit;
 import java.awt.event.ActionListener;
 import java.awt.event.ActionEvent;
 import java.awt.event.MouseEvent;
@@ -66,19 +76,25 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import javax.xml.bind.JAXBException;
+import javax.swing.BorderFactory;
 import javax.swing.ButtonGroup;
+import javax.swing.JCheckBoxMenuItem;
+import javax.swing.JDialog;
+import javax.swing.JLabel;
 import javax.swing.JMenu;
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
+import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
-import javax.swing.JCheckBoxMenuItem;
+import javax.swing.JProgressBar;
+import javax.swing.JScrollPane;
 import javax.swing.JSeparator;
 import javax.swing.SwingUtilities;
 
 public class StationLayer extends OMGraphicHandlerLayer implements MapMouseListener, ActionListener, WindowListener, DrawingToolRequestor {
 
 	private static final long serialVersionUID = 1L;
-
+	
     private MapBean mapBean;
 	private OpenMapFrame openMapFrame;
 	private LayerHandler layerHandler;
@@ -95,6 +111,7 @@ public class StationLayer extends OMGraphicHandlerLayer implements MapMouseListe
 	private JMenuItem editStationMenuItem;
 	private JMenuItem hideStationMenuItem;
 	private JMenuItem showHiddenStationsMenuItem;
+	private JMenuItem generateSlotMapMenuItem;
 	private JMenuItem editTransmitCoverageMenuItem;
 	private JMenuItem resetTransmitCoverageToCircleMenuItem;
 	private JMenuItem resetTransmitCoverageToPolygonMenuItem;
@@ -105,6 +122,10 @@ public class StationLayer extends OMGraphicHandlerLayer implements MapMouseListe
 	private JMenuItem resetInterferenceCoverageToCircleMenuItem;
 	private JMenuItem resetInterferenceCoverageToPolygonMenuItem;	
 	private OMBaseStation currentlySelectedOMBaseStation;
+	
+	private JDialog slotMapDialog;
+	private JDialog waitDialog;
+	private JProgressBar progressBar;
 	
 	private EAVDAMData data;
 	//private int currentIcons = -1;
@@ -127,6 +148,9 @@ public class StationLayer extends OMGraphicHandlerLayer implements MapMouseListe
 	private List<Layer> initiallySelectedLayers;
 	private Map<Layer, Boolean> initiallySelectedLayersVisibilities;
 	
+	private int currentX = -1;
+	private int currentY = -1;
+	
     public StationLayer() {}
 
     public OMAISBaseStationTransmitCoverageLayer getTransmitCoverageLayer() {
@@ -140,6 +164,18 @@ public class StationLayer extends OMGraphicHandlerLayer implements MapMouseListe
     public OMAISBaseStationInterferenceCoverageLayer getInterferenceCoverageLayer() {
         return interferenceCoverageLayer;
     }
+	
+	public JDialog getWaitDialog() {
+		return waitDialog;
+	}	
+
+	public JDialog getSlotMapDialog() {
+		return slotMapDialog;
+	}
+	
+	public void setSlotMapDialog(JDialog slotMapDialog) {
+		this.slotMapDialog = slotMapDialog;
+	}
 	
     public void addBaseStation(Object datasetSource, EAVDAMUser owner, AISFixedStationData stationData) {
 	
@@ -410,7 +446,11 @@ public class StationLayer extends OMGraphicHandlerLayer implements MapMouseListe
     }		
 	
 	@Override
-	public boolean mouseClicked(MouseEvent e) {			
+	public boolean mouseClicked(MouseEvent e) {
+	
+		currentX = e.getX();
+		currentY = e.getY();
+	
 		if (SwingUtilities.isLeftMouseButton(e)) {
     		OMList<OMGraphic> allClosest = graphics.findAll(e.getX(), e.getY(), 5.0f);
     		for (OMGraphic omGraphic : allClosest) {
@@ -429,7 +469,10 @@ public class StationLayer extends OMGraphicHandlerLayer implements MapMouseListe
 					showHiddenStationsMenuItem = new JMenuItem("Show " + hiddenBaseStations.size() + " hidden stations");
 					showHiddenStationsMenuItem.addActionListener(this);
 					popup.add(showHiddenStationsMenuItem);
-				}		
+				}
+				generateSlotMapMenuItem = new JMenuItem("Generate slotmap");
+				generateSlotMapMenuItem.addActionListener(this);
+				popup.add(generateSlotMapMenuItem);
                 popup.show(mapBean, e.getX(), e.getY());
                 return true;
             } else {
@@ -691,6 +734,38 @@ public class StationLayer extends OMGraphicHandlerLayer implements MapMouseListe
 	        interferenceCoverageLayer.repaint();
 		    interferenceCoverageLayer.validate();	
 			
+		} else if (e.getSource() == generateSlotMapMenuItem) {
+		
+			if (currentX != -1 && currentY != -1) {		
+				
+				Projection projection = mapBean.getProjection();
+				Point2D point = projection.inverse(currentX, currentY);
+				double latitude = point.getY();
+				double longitude = point.getX();
+				
+				if (data == null) {
+					data = DBHandler.getData();                        
+				}					
+				
+				slotMapDialog = null;
+				new GetSlotMapDialogThread(this, data, openMapFrame, latitude, longitude).start();
+
+				waitDialog = new JDialog(openMapFrame, "Please, wait while the slotmap is being created", true);
+
+ 				progressBar = new JProgressBar();
+				progressBar.setIndeterminate(true);
+
+				JPanel panel = new JPanel();
+				panel.setBorder(BorderFactory.createEmptyBorder(40,0,0,0));
+				panel.add(progressBar);
+				waitDialog.getContentPane().add(panel);
+				Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
+				waitDialog.setBounds((int) screenSize.getWidth()/2 - 350/2, (int) screenSize.getHeight()/2 - 150/2, 350, 150);
+				
+				new WaitThread(this).start();
+				waitDialog.setVisible(true);
+			}
+			
 		} else if (e.getSource() == editTransmitCoverageMenuItem) {
 
 			DrawingTool dt = getDrawingTool();
@@ -815,7 +890,6 @@ public class StationLayer extends OMGraphicHandlerLayer implements MapMouseListe
             } else if (response == JOptionPane.NO_OPTION) {                        
                 // do nothing		
 			}
-		
 		
 		} else if (e.getSource() == resetReceiveCoverageToPolygonMenuItem) {
 
@@ -1157,6 +1231,14 @@ public class StationLayer extends OMGraphicHandlerLayer implements MapMouseListe
 	public void	windowIconified(WindowEvent e) {}
 	
 	public void	windowOpened(WindowEvent e) {
+		Toolkit toolkit = Toolkit.getDefaultToolkit();
+		Dimension dimension = toolkit.getScreenSize();
+		if (dimension.width-100 < SlotMapDialog.SLOTMAP_WINDOW_WIDTH) {
+			SlotMapDialog.SLOTMAP_WINDOW_WIDTH = dimension.width-100;
+		}
+		if (dimension.height-100 < SlotMapDialog.SLOTMAP_WINDOW_HEIGHT) {
+			SlotMapDialog.SLOTMAP_WINDOW_HEIGHT = dimension.height-100;
+		}	
 		if (initiallySelectedLayers != null) {
 			layersMenu.removeAll();
 			Layer[] inLayers = new Layer[initiallySelectedLayers.size()];
@@ -1298,3 +1380,55 @@ public class StationLayer extends OMGraphicHandlerLayer implements MapMouseListe
     }
 
 }
+
+
+class GetSlotMapDialogThread extends Thread {
+	
+	StationLayer stationLayer;
+	EAVDAMData data;	
+	OpenMapFrame openMapFrame;
+	double latitude;
+	double longitude;
+	
+	GetSlotMapDialogThread(StationLayer stationLayer, EAVDAMData data, OpenMapFrame openMapFrame, double latitude, double longitude) {
+		this.stationLayer = stationLayer;
+		this.data = data;
+		this.openMapFrame = openMapFrame;
+		this.latitude = latitude;
+		this.longitude = longitude;
+	}
+	
+	public void run() {
+		HealthCheckHandler hch = new HealthCheckHandler(data);
+		AISSlotMap slotmap = hch.slotMapAtPoint(latitude, longitude);
+		stationLayer.setSlotMapDialog(new SlotMapDialog(openMapFrame, latitude, longitude, slotmap));  // TODO: should get the aisslotmap based on latitude and longitude from database
+	}
+
+}
+
+
+class WaitThread extends Thread {
+
+	StationLayer stationLayer;
+	
+	WaitThread(StationLayer stationLayer) {
+		this.stationLayer = stationLayer;
+	}
+	
+	public void run() {	
+		while (stationLayer.getSlotMapDialog() == null) {
+			try {
+				Thread.sleep(1000);							
+			} catch (InterruptedException ex) {}
+		}
+		stationLayer.getWaitDialog().dispose();
+		Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
+		stationLayer.getSlotMapDialog().setBounds((int) screenSize.getWidth()/2 - SlotMapDialog.SLOTMAP_WINDOW_WIDTH/2,
+				(int) screenSize.getHeight()/2 - SlotMapDialog.SLOTMAP_WINDOW_HEIGHT/2,
+				SlotMapDialog.SLOTMAP_WINDOW_WIDTH, SlotMapDialog.SLOTMAP_WINDOW_HEIGHT);
+		stationLayer.getSlotMapDialog().setVisible(true);		
+	}
+
+}
+				
+				

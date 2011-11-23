@@ -1036,11 +1036,11 @@ public class AddStationDialog extends JDialog implements ActionListener, ItemLis
 		chATimeslotsReservedTextField.setText(String.valueOf(timeslotsReservedForChannelA));
 		chBTimeslotsReservedTextField.setText(String.valueOf(timeslotsReservedForChannelB));
 		
-		Image timeslotImageForChannelA = ImageHandler.getTimeslotImage("CH A", timeslotReservationsForChannelA);
+		Image timeslotImageForChannelA = ImageHandler.getTimeslotImage(400, 15, timeslotReservationsForChannelA);
 		if (timeslotImageForChannelA != null) {
 			chATimeslotsReservedLabel.setIcon(new ImageIcon(timeslotImageForChannelA));
 		}
-		Image timeslotImageForChannelB = ImageHandler.getTimeslotImage("CH B", timeslotReservationsForChannelB);
+		Image timeslotImageForChannelB = ImageHandler.getTimeslotImage(400, 15, timeslotReservationsForChannelB);
 		if (timeslotImageForChannelB != null) {
 			chBTimeslotsReservedLabel.setIcon(new ImageIcon(timeslotImageForChannelB));
 		}		
