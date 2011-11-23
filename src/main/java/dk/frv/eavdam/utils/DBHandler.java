@@ -103,11 +103,11 @@ public class DBHandler {
     	}
             
     	
-    	HealthCheckHandler hch = new HealthCheckHandler(dat);
-    	
-    	double[] point = {60,24.15};
-    	AISDatalinkCheckResult res = hch.checkAISDatalinkAtPoint(60, 24.15, 1.0);
-    	
+//    	HealthCheckHandler hch = new HealthCheckHandler(dat);
+//    	
+//    	double[] point = {60,24.15};
+//    	AISDatalinkCheckResult res = hch.checkAISDatalinkAtPoint(60, 24.15, 1.0);
+//    	
 //    	if(res != null){
 //    		try{
 //    			System.out.println("Stations found with coverage at (60;24.15)!");
