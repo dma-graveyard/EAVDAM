@@ -11,5 +11,6 @@
 	<classpathentry kind="lib" path="lib/mail.jar"/>
 	<classpathentry kind="lib" path="lib/derby.jar"/>
 	<classpathentry kind="lib" path="lib/derbytools.jar"/>
+	<classpathentry kind="lib" path="lib/jts-1.12.jar"/>
 	<classpathentry kind="output" path="build/classes"/>
 </classpath>

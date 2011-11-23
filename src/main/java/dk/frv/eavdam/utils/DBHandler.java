@@ -56,6 +56,8 @@ public class DBHandler {
 						}
 					}
 				}	
+				
+				
 	    	} catch (Exception e) {
 	    		e.printStackTrace();
 	//    		System.out.println(e.getMessage());
@@ -99,6 +101,25 @@ public class DBHandler {
 
     	}
             
+    	
+    	double[] point = {60,24.15};
+    	EAVDAMData inpoint = HealthCheckHandler.getStationsAtPoint(dat, point);
+    	
+    	if(inpoint != null){
+    		try{
+    			System.out.println("\tStations found with coverage at (60;24.15)! "+inpoint.getActiveStations().size());
+    			if(inpoint.getActiveStations().size() > 0 && inpoint.getActiveStations().get(0).getStations() != null)
+    				System.out.println("\tDefault User's: "+inpoint.getActiveStations().get(0).getStations().size());
+    			
+    			if(inpoint.getOtherUsersStations() != null && inpoint.getOtherUsersStations().size() > 0)
+    				System.out.println("\tOther users: "+inpoint.getOtherUsersStations().get(0).getStations().size());
+    		}catch(Exception e){
+    			e.printStackTrace();
+    		}
+    	}else{
+    		System.out.println("\tNo stations found with coverage at (60;24.15)");
+    	}
+    	
         return dat;
 
     }
