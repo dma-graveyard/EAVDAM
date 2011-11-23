@@ -8,7 +8,9 @@ import java.util.Map;
 import java.util.Set;
 
 import dk.frv.eavdam.data.AISDatalinkCheckArea;
+import dk.frv.eavdam.data.AISDatalinkCheckIssue;
 import dk.frv.eavdam.data.AISDatalinkCheckResult;
+import dk.frv.eavdam.data.AISDatalinkCheckRule;
 import dk.frv.eavdam.data.AISFixedStationData;
 import dk.frv.eavdam.data.ActiveStation;
 import dk.frv.eavdam.data.EAVDAMData;
@@ -64,6 +66,8 @@ public class HealthCheckHandler {
 		Set<String> reservationsA = new HashSet<String>();
 		Set<String> reservationsB = new HashSet<String>();
 		
+		List<AISDatalinkCheckIssue> issues = new ArrayList<AISDatalinkCheckIssue>();
+		
 		//Check all active stations
 		if(filtered.getActiveStations() != null){
 			for(ActiveStation as : filtered.getActiveStations()){
@@ -71,7 +75,16 @@ public class HealthCheckHandler {
 					for(AISFixedStationData s : as.getStations()){
 						if(s.getFATDMAChannelA() != null){
 							for(Integer a : s.getReservedBlocksForChannelA()){
-								reservationsA.add(a.intValue()+"");
+								if(reservationsA.contains(a.intValue()+"")){
+									AISDatalinkCheckIssue issue = new AISDatalinkCheckIssue();
+									issue.setId(-1);
+//									issue.setRuleViolated(AISDatalinkCheckRule.)
+									
+									
+									
+								}else{
+									reservationsA.add(a.intValue()+"");
+								}
 							}
 						}
 						

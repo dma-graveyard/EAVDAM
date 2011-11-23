@@ -102,25 +102,29 @@ public class DBHandler {
 
     	}
             
-    	
-//    	HealthCheckHandler hch = new HealthCheckHandler(dat);
-//    	
-//    	double[] point = {60,24.15};
-//    	AISDatalinkCheckResult res = hch.checkAISDatalinkAtPoint(60, 24.15, 1.0);
-//    	
-//    	if(res != null){
-//    		try{
-//    			System.out.println("Stations found with coverage at (60;24.15)!");
-//    			if(res.getAreas() != null && res.getAreas().size() > 0)
-//    				System.out.println("\tReservation: "+res.getAreas().get(0).getBandwithUsageLevel()+" Area: "+res.getAreas().get(0).toString());
-//    			
-//    		}catch(Exception e){
-//    			e.printStackTrace();
-//    		}
-//    	}else{
-//    		System.out.println("\tNo stations found with coverage at (60;24.15)");
+//    	try{
+//	    	HealthCheckHandler hch = new HealthCheckHandler(dat);
+//	    	
+//	    	double[] point = {60,24.15};
+//	    	AISDatalinkCheckResult res = hch.checkAISDatalinkAtPoint(60, 24.15, 1.0);
+//	    	
+//	    	if(res != null){
+//	    		try{
+//	    			System.out.println("Stations found with coverage at (60;24.15)!");
+//	    			if(res.getAreas() != null && res.getAreas().size() > 0)
+//	    				System.out.println("\tReservation: "+res.getAreas().get(0).getBandwithUsageLevel()+" Area: "+res.getAreas().get(0).toString());
+//	    			
+//	    		}catch(Exception e){
+//	    			e.printStackTrace();
+//	    		}
+//	    	}else{
+//	    		System.out.println("\tNo stations found with coverage at (60;24.15)");
+//	    	}
+//    	}catch(Exception e){
+//    		e.printStackTrace();
 //    	}
-    	
+
+    		
         return dat;
 
     }

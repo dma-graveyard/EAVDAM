@@ -12,8 +12,6 @@ import com.vividsolutions.jts.geom.PrecisionModel;
 
 public class PointInPolygon {
 
-	List<AISVertex> orderedList = null;
-	
 	int stationDBID = -1;
 	double maxLat = 0;
 	double maxLon = 0;
@@ -83,88 +81,7 @@ public class PointInPolygon {
 	}
 	
 	
-	public Polygon createOrderedPolygon(List<double[]> points, int stationDBID){
-		if(points == null || points.size() < 2) return null;
-		
-		maxLat = Double.MIN_VALUE;
-		maxLon = Double.MIN_VALUE;
-		minLat = Double.MAX_VALUE;
-		minLon = Double.MAX_VALUE;
-		
-		this.stationDBID = stationDBID;
-		
 
-		
-		List<AISVertex> tempList = new ArrayList<AISVertex>();
-		
-
-		//p[0] = lat, p[1] = lon
-		for(int i = 0; i < points.size() - 1; ++i){
-			if(true) break;
-			
-			double[] start = points.get(i);
-			double[] end = points.get(i+1);
-			
-			Coordinate c = new Coordinate(start[0],start[1]);
-			
-			if(start[0] < minLat) minLat = start[0];
-			else if(start[0] > maxLat) maxLat = start[0];
-			
-			if(start[1] < minLon) minLon = start[1];
-			else if(start[1] > maxLon) maxLon = start[1];
-			
-			AISVertex v = new AISVertex();
-			v.setDbID(new Integer(stationDBID));
-			v.setStartLat(start[0]);
-			v.setStartLon(start[1]);
-			v.setEndLat(end[0]);
-			v.setEndLon(end[1]);
-				
-			tempList.add(v);
-		}
-		
-		List<Coordinate> coordinates = new ArrayList<Coordinate>();
-		for(int i = 0; i < points.size(); ++i){
-			double[] start = points.get(i);
-
-			Coordinate c = new Coordinate(start[0],start[1]);
-		
-			coordinates.add(c);
-		}
-
-		
-		
-//		
-//		orderedList = new ArrayList<AISVertex>();
-//		for(AISVertex v : tempList){
-//			if(orderedList.size() == 0) orderedList.add(v);
-//			else{
-//				for(int i = 0; i < orderedList.size(); ++i){
-//					AISVertex ov = orderedList.get(i);
-//					if(ov.getStartLat() > v.getStartLat()){
-//						orderedList.add(i, v);
-//						break;
-//					}else if(ov.getStartLat() == v.getStartLat()){
-//						if(ov.getStartLon() > v.getStartLon()){
-//							orderedList.add(i,v);
-//						}
-//					}
-//					
-//					if(i == orderedList.size() - 1){
-//						orderedList.add(v);
-//						break;
-//					}
-//				}
-//			}
-//		
-//		}
-		
-		
-		
-		return null;
-	}
-
-	
 	public static void main(String[] args){
 		PointInPolygon p = new PointInPolygon();
 		
