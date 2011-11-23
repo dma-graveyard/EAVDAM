@@ -2,8 +2,8 @@ package dk.frv.eavdam.layers;
 
 import com.bbn.openmap.layer.location.ByteRasterLocation;
 import dk.frv.eavdam.data.AISFixedStationData;
+import dk.frv.eavdam.data.EAVDAMUser;
 import java.util.ArrayList;
-
 
 public class OMBaseStation extends ByteRasterLocation {
 
@@ -13,12 +13,14 @@ public class OMBaseStation extends ByteRasterLocation {
 	private ArrayList<double[]> receiveCoverageArea;
 	private ArrayList<double[]> interferenceCoverageArea;
 	private Object datasetSource;
+	private EAVDAMUser owner;
 	private AISFixedStationData stationData;
 
-	public OMBaseStation(Object datasetSource, AISFixedStationData stationData, byte[] bytearr) {	    	    
+	public OMBaseStation(Object datasetSource, AISFixedStationData stationData, EAVDAMUser owner, byte[] bytearr) {	    	    
 		super(stationData.getLat(), stationData.getLon(), stationData.getStationName(), bytearr);		
 		this.datasetSource = datasetSource;
 		this.stationData = stationData;		
+		this.owner = owner;
         this.setShowName(false);
 	}
 	
@@ -61,6 +63,14 @@ public class OMBaseStation extends ByteRasterLocation {
 	public void setInterferenceCoverageArea(ArrayList<double[]> interferenceCoverageArea) {
 		this.interferenceCoverageArea = interferenceCoverageArea;
 	}	
+	
+	public EAVDAMUser getOwner() {
+		return owner;
+	}
+	
+	public void setOwner(EAVDAMUser owner) {
+		this.owner = owner;
+	}
 	
 	/**
 	 * For testing

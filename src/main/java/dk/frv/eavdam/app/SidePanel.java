@@ -5,6 +5,7 @@ import dk.frv.eavdam.data.AISFixedStationData;
 import dk.frv.eavdam.data.AISFixedStationType;
 import dk.frv.eavdam.data.Antenna;
 import dk.frv.eavdam.data.AntennaType;
+import dk.frv.eavdam.data.EAVDAMUser;
 import dk.frv.eavdam.layers.OMBaseStation;
 import java.awt.BorderLayout;
 import java.awt.Color;
@@ -148,7 +149,8 @@ public class SidePanel extends JPanel implements MapPanelChild, ActionListener {
         
         infoPane = new JEditorPane("text/html",
             "<p><strong>Click a station to view data:<strong></p>" +
-            "<table cellspacing=1 cellpadding=1><tr><td>Name:</td><td>...</td></tr>" +
+            "<table cellspacing=1 cellpadding=1><tr><td>Organization:</td><td>...</td></tr>" +
+            "<tr><td valign=\"top\">Name:</td><td>...</td></tr>" +
             "<tr><td valign=\"top\">Type:</td><td>...</td></tr>" +
             "<tr><td valign=\"top\">Latitude:</td><td>...</td></tr>" +
             "<tr><td valign=\"top\">Longitude:</td><td>...</td></tr>" +
@@ -160,8 +162,8 @@ public class SidePanel extends JPanel implements MapPanelChild, ActionListener {
             "<tr><td valign=\"top\">Heading:</td><td>...</td></tr>" +
             "<tr><td valign=\"top\">Angle:</td><td>...</td></tr>" +            
             "<tr><td valign=\"top\">Gain:</td><td>...</td></tr>" +
-            "<tr><td valign=\"top\">Reserved blocks for Ch A:</td><td>...</td></tr>" +
-			"<tr><td valign=\"top\">Reserved blocks for Ch B:</td><td>...</td></tr></table>");
+            "<tr><td valign=\"top\">Timeslots reserved on CH A (AIS1):</td><td>...</td></tr>" +
+			"<tr><td valign=\"top\">Timeslots reserved on CH B (AIS2)::</td><td>...</td></tr></table>");
         infoPane.setBackground(new Color(238, 238, 238));
         //infoPane.setBorder(new CompoundBorder
         //    (BorderFactory.createLineBorder(new Color(122, 138, 153), 1),
@@ -233,11 +235,18 @@ public class SidePanel extends JPanel implements MapPanelChild, ActionListener {
 	public void actionPerformed(ActionEvent e) {}
 	
 	public void showInfo(OMBaseStation omBaseStation) {
+		EAVDAMUser owner = omBaseStation.getOwner();
 	    AISFixedStationData stationData = omBaseStation.getStationData();
 	    
 	    String infoText = "<p><strong>Click a station to view data:</strong></p>" +
-            "<table cellspacing=1 cellpadding=1><tr><td valign=\"top\">Name:</td><td valign=\"top\">";
-        if (stationData.getStationName() != null) {
+            "<table cellspacing=1 cellpadding=1><tr><td valign=\"top\">Organization:</td><td valign=\"top\">";
+        if (owner != null && owner.getOrganizationName() != null) {
+            infoText += owner.getOrganizationName();
+        } else {
+            infoText += "...";
+        }
+        infoText += "</td></tr><tr><td valign=\"top\">Name:</td><td valign=\"top\">";		
+		if (stationData.getStationName() != null) {
             infoText += stationData.getStationName();
         } else {
             infoText += "...";
@@ -322,9 +331,21 @@ public class SidePanel extends JPanel implements MapPanelChild, ActionListener {
 				}
 				temp += reservedBlock.toString();
 			}
-			infoText += "<tr><td valign=\"top\">Reserved blocks for Ch A:</td><td valign=\"top\">" + temp + "</td></tr>";
+			infoText += "<tr><td valign=\"top\">Timeslots reserved on CH A (";
+			if (stationData.getFATDMAChannelA() != null && stationData.getFATDMAChannelA().getChannelName() != null) {
+				infoText += stationData.getFATDMAChannelA().getChannelName();
+			} else {
+				infoText += "NULL";
+			}
+			infoText += "):</td><td valign=\"top\">" + temp + "</td></tr>";
 		} else {			 
-			 infoText += "<tr><td valign=\"top\">Reserved blocks for Ch A:</td><td valign=\"top\">...</td></tr>";
+			 infoText += "<tr><td valign=\"top\">Timeslots reserved on CH A (";
+			if (stationData.getFATDMAChannelA() != null && stationData.getFATDMAChannelA().getChannelName() != null) {
+				infoText += stationData.getFATDMAChannelA().getChannelName();
+			} else {
+				infoText += "NULL";
+			}			 
+			infoText += "):</td><td valign=\"top\">...</td></tr>";
 		}
 		if (stationData.getReservedBlocksForChannelB() != null && !stationData.getReservedBlocksForChannelB().isEmpty()) {
 			String temp = "";
@@ -335,9 +356,21 @@ public class SidePanel extends JPanel implements MapPanelChild, ActionListener {
 				}
 				temp += reservedBlock.toString();
 			}
-			infoText += "<tr><td valign=\"top\">Reserved blocks for Ch B:</td><td valign=\"top\">" + temp + "</td></tr>";
+			infoText += "<tr><td valign=\"top\">Timeslots reserved on CH B (";
+			if (stationData.getFATDMAChannelB() != null && stationData.getFATDMAChannelB().getChannelName() != null) {
+				infoText += stationData.getFATDMAChannelB().getChannelName();
+			} else {
+				infoText += "NULL";
+			}						
+			infoText += "):</td><td valign=\"top\">" + temp + "</td></tr>";
 		} else {			 
-			 infoText += "<tr><td valign=\"top\">Reserved blocks for Ch B:</td><td valign=\"top\">...</td></tr>";
+			infoText += "<tr><td valign=\"top\">Timeslots reserved on CH B (";
+			if (stationData.getFATDMAChannelB() != null && stationData.getFATDMAChannelB().getChannelName() != null) {
+				infoText += stationData.getFATDMAChannelB().getChannelName();
+			} else {
+				infoText += "NULL";
+			}				 			 
+			infoText += "):</td><td valign=\"top\">...</td></tr>";
 		}			
 		infoText += "</table>";					
 					

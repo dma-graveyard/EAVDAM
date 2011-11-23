@@ -1,0 +1,1 @@
+package dk.frv.eavdam.io;import dk.frv.eavdam.data.AISDatalinkCheckResult;public interface AISDatalinkCheckListener {  	/**	 * How many percents is progressed.	 */	public void progressed(double progress);  		/**	 * Finally returns the result.	 */	public void completed(AISDatalinkCheckResult result); }

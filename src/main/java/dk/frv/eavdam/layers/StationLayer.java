@@ -1,12 +1,15 @@
 package dk.frv.eavdam.layers;
 
 import com.bbn.openmap.InformationDelegator;
+import com.bbn.openmap.Layer;
+import com.bbn.openmap.LayerHandler;
 import com.bbn.openmap.MapBean;
 import com.bbn.openmap.event.InfoDisplayEvent;
 import com.bbn.openmap.event.MapMouseEvent;
 import com.bbn.openmap.event.MapMouseListener;
 import com.bbn.openmap.event.NavMouseMode;
 import com.bbn.openmap.event.SelectMouseMode;
+import com.bbn.openmap.gui.LayersMenu;
 import com.bbn.openmap.gui.OpenMapFrame;
 import com.bbn.openmap.layer.OMGraphicHandlerLayer;
 import com.bbn.openmap.omGraphics.OMAction;
@@ -46,11 +49,17 @@ import java.awt.Color;
 import java.awt.event.ActionListener;
 import java.awt.event.ActionEvent;
 import java.awt.event.MouseEvent;
+import java.awt.event.WindowEvent;
+import java.awt.event.WindowListener;
 import java.awt.geom.Point2D;
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.DataInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
+import java.io.FileWriter;
+import java.io.InputStreamReader;
 import java.net.MalformedURLException;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -66,12 +75,14 @@ import javax.swing.JCheckBoxMenuItem;
 import javax.swing.JSeparator;
 import javax.swing.SwingUtilities;
 
-public class StationLayer extends OMGraphicHandlerLayer implements MapMouseListener, ActionListener, DrawingToolRequestor {
+public class StationLayer extends OMGraphicHandlerLayer implements MapMouseListener, ActionListener, WindowListener, DrawingToolRequestor {
 
 	private static final long serialVersionUID = 1L;
 
     private MapBean mapBean;
 	private OpenMapFrame openMapFrame;
+	private LayerHandler layerHandler;
+	private LayersMenu layersMenu;
 	private OMGraphicList graphics = new OMGraphicList();
 	private InformationDelegator infoDelegator;
     private DrawingTool drawingTool;
@@ -82,6 +93,8 @@ public class StationLayer extends OMGraphicHandlerLayer implements MapMouseListe
 	private OMAISBaseStationInterferenceCoverageLayer interferenceCoverageLayer;	
 	private EavdamMenu eavdamMenu;	
 	private JMenuItem editStationMenuItem;
+	private JMenuItem hideStationMenuItem;
+	private JMenuItem showHiddenStationsMenuItem;
 	private JMenuItem editTransmitCoverageMenuItem;
 	private JMenuItem resetTransmitCoverageToCircleMenuItem;
 	private JMenuItem resetTransmitCoverageToPolygonMenuItem;
@@ -103,7 +116,17 @@ public class StationLayer extends OMGraphicHandlerLayer implements MapMouseListe
 	private Map<OMBaseStation, OMGraphic> transmitCoverageAreas = new HashMap<OMBaseStation, OMGraphic>();
 	private Map<OMBaseStation, OMGraphic> receiveCoverageAreas = new HashMap<OMBaseStation, OMGraphic>();
 	private Map<OMBaseStation, OMGraphic> interferenceCoverageAreas = new HashMap<OMBaseStation, OMGraphic>();
-		
+	
+	private List<OMGraphic> hiddenBaseStations;
+	private List<OMGraphic> hiddenTransmitCoverageAreas;
+	private List<OMGraphic> hiddenReceiveCoverageAreas;
+	private List<OMGraphic> hiddenInterferenceCoverageAreas;
+	
+	public static String INITIAL_LAYERS_FILE_NAME = "initialLayers.txt";
+	private Map<String, Boolean> initiallySelectedLayerClassNames;
+	private List<Layer> initiallySelectedLayers;
+	private Map<Layer, Boolean> initiallySelectedLayersVisibilities;
+	
     public StationLayer() {}
 
     public OMAISBaseStationTransmitCoverageLayer getTransmitCoverageLayer() {
@@ -118,7 +141,7 @@ public class StationLayer extends OMGraphicHandlerLayer implements MapMouseListe
         return interferenceCoverageLayer;
     }
 	
-    public void addBaseStation(Object datasetSource, AISFixedStationData stationData) {
+    public void addBaseStation(Object datasetSource, EAVDAMUser owner, AISFixedStationData stationData) {
 
 	    byte[] bytearr = null;		
 		
@@ -183,7 +206,7 @@ public class StationLayer extends OMGraphicHandlerLayer implements MapMouseListe
 
 		}
         
-        OMBaseStation base = new OMBaseStation(datasetSource, stationData, bytearr);		
+        OMBaseStation base = new OMBaseStation(datasetSource, stationData, owner, bytearr);		
 		Antenna antenna = stationData.getAntenna();
 		if (antenna != null) {
 			if (antenna.getAntennaType() == AntennaType.DIRECTIONAL) {
@@ -371,21 +394,23 @@ public class StationLayer extends OMGraphicHandlerLayer implements MapMouseListe
     		OMList<OMGraphic> allClosest = graphics.findAll(e.getX(), e.getY(), 5.0f);
     		for (OMGraphic omGraphic : allClosest) {
     			if (omGraphic instanceof OMBaseStation) {
-    				System.out.println("Mouse clicked on omGraphic: " + omGraphic);
     				OMBaseStation omBaseStation = (OMBaseStation) omGraphic;
     				sidePanel.showInfo(omBaseStation);
     				return true;
-    			} else {
-					System.out.println("Mouse clicked on omGraphic: " + omGraphic);
-				}
+    			}
     		}
     	} else if (SwingUtilities.isRightMouseButton(e)) {
             OMList<OMGraphic> allClosest = graphics.findAll(e.getX(), e.getY(), 5.0f);
             if (allClosest == null || allClosest.isEmpty()) {			  
 	            JPopupMenu popup = new JPopupMenu();			
                 popup.add(eavdamMenu.getShowOnMapMenu());
+				if (hiddenBaseStations != null && !hiddenBaseStations.isEmpty()) {
+					showHiddenStationsMenuItem = new JMenuItem("Show " + hiddenBaseStations.size() + " hidden stations");
+					showHiddenStationsMenuItem.addActionListener(this);
+					popup.add(showHiddenStationsMenuItem);
+				}		
                 popup.show(mapBean, e.getX(), e.getY());
-                return true;            
+                return true;
             } else {
         		for (OMGraphic omGraphic : allClosest) {
         			if (omGraphic instanceof OMBaseStation) {
@@ -394,6 +419,9 @@ public class StationLayer extends OMGraphicHandlerLayer implements MapMouseListe
                         editStationMenuItem = new JMenuItem("Edit station information");
                         editStationMenuItem.addActionListener(this);
                         popup.add(editStationMenuItem);
+						hideStationMenuItem = new JMenuItem("Hide station from map");
+                        hideStationMenuItem.addActionListener(this);
+                        popup.add(hideStationMenuItem);						
 						JSeparator last = new JSeparator();
 						popup.add(last);
 						if (currentlySelectedOMBaseStation.getDatasetSource() == null ||  // own stations
@@ -577,7 +605,71 @@ public class StationLayer extends OMGraphicHandlerLayer implements MapMouseListe
 				new StationInformationMenu(eavdamMenu, StationInformationMenuItem.STATIONS_OF_ORGANIZATION_LABEL + " " +
 					selectedOrganization, currentlySelectedOMBaseStation.getName()).doClick(); 							
             }
+		
+		} else if (e.getSource() == hideStationMenuItem) {
 
+			if (hiddenBaseStations == null) {
+				hiddenBaseStations = new ArrayList<OMGraphic>();
+			}
+			hiddenBaseStations.add(currentlySelectedOMBaseStation);
+			currentlySelectedOMBaseStation.setVisible(false);			
+			if (hiddenTransmitCoverageAreas == null) {
+				hiddenTransmitCoverageAreas = new ArrayList<OMGraphic>();
+			}
+			if (transmitCoverageAreas != null && transmitCoverageAreas.containsKey(currentlySelectedOMBaseStation)) {			
+				hiddenTransmitCoverageAreas.add(transmitCoverageAreas.get(currentlySelectedOMBaseStation));
+				transmitCoverageAreas.get(currentlySelectedOMBaseStation).setVisible(false);
+			}
+			if (hiddenReceiveCoverageAreas == null) {
+				hiddenReceiveCoverageAreas = new ArrayList<OMGraphic>();
+			}
+			if (receiveCoverageAreas != null && receiveCoverageAreas.containsKey(currentlySelectedOMBaseStation)) {				
+				hiddenReceiveCoverageAreas.add(receiveCoverageAreas.get(currentlySelectedOMBaseStation));
+				receiveCoverageAreas.get(currentlySelectedOMBaseStation).setVisible(false);			
+			}
+			if (hiddenInterferenceCoverageAreas == null) {
+				hiddenInterferenceCoverageAreas = new ArrayList<OMGraphic>();
+			}
+			if (interferenceCoverageAreas != null && interferenceCoverageAreas.containsKey(currentlySelectedOMBaseStation)) {				
+				hiddenInterferenceCoverageAreas.add(interferenceCoverageAreas.get(currentlySelectedOMBaseStation));
+				interferenceCoverageAreas.get(currentlySelectedOMBaseStation).setVisible(false);			
+			}
+            this.repaint();
+		    this.validate();
+            transmitCoverageLayer.repaint();
+		    transmitCoverageLayer.validate();
+            receiveCoverageLayer.repaint();
+		    receiveCoverageLayer.validate();
+	        interferenceCoverageLayer.repaint();
+		    interferenceCoverageLayer.validate();				
+
+		} else if (e.getSource() == showHiddenStationsMenuItem) {
+		
+			for (OMGraphic omGraphic : hiddenBaseStations) {
+				omGraphic.setVisible(true);
+			}
+			hiddenBaseStations.clear();
+			for (OMGraphic omGraphic : hiddenTransmitCoverageAreas) {
+				omGraphic.setVisible(true);
+			}
+			hiddenTransmitCoverageAreas.clear();
+			for (OMGraphic omGraphic : hiddenReceiveCoverageAreas) {
+				omGraphic.setVisible(true);
+			}
+			hiddenReceiveCoverageAreas.clear();
+			for (OMGraphic omGraphic : hiddenInterferenceCoverageAreas) {
+				omGraphic.setVisible(true);
+			}
+			hiddenInterferenceCoverageAreas.clear();
+            this.repaint();
+		    this.validate();
+            transmitCoverageLayer.repaint();
+		    transmitCoverageLayer.validate();
+            receiveCoverageLayer.repaint();
+		    receiveCoverageLayer.validate();
+	        interferenceCoverageLayer.repaint();
+		    interferenceCoverageLayer.validate();	
+			
 		} else if (e.getSource() == editTransmitCoverageMenuItem) {
 
 			DrawingTool dt = getDrawingTool();
@@ -910,12 +1002,42 @@ public class StationLayer extends OMGraphicHandlerLayer implements MapMouseListe
 
 	@Override
 	public void findAndInit(Object obj) {
+		if (initiallySelectedLayerClassNames == null) {
+			initiallySelectedLayerClassNames = new HashMap<String, Boolean>();			
+			try {
+				FileInputStream fstream = new FileInputStream(StationLayer.INITIAL_LAYERS_FILE_NAME);
+				DataInputStream in = new DataInputStream(fstream);
+				BufferedReader br = new BufferedReader(new InputStreamReader(in));
+				String strLine;
+				while ((strLine = br.readLine()) != null) {
+					String[] temp = strLine.split(":");
+					if (temp.length == 2) {
+						String layerClassName = temp[0].trim();
+						String visibility = temp[1].trim();
+						initiallySelectedLayerClassNames.put(layerClassName, new Boolean(visibility));
+					}
+				}			
+				in.close();
+			} catch (Exception e) {}
+		}
+		if (initiallySelectedLayerClassNames.containsKey(obj.getClass().getCanonicalName())) {
+			if (initiallySelectedLayers == null) {
+				initiallySelectedLayers = new ArrayList<Layer>();
+			}
+			if (initiallySelectedLayersVisibilities == null) {
+				initiallySelectedLayersVisibilities = new HashMap<Layer, Boolean>();
+			}			
+			Boolean visibility = initiallySelectedLayerClassNames.get(obj.getClass().getCanonicalName());
+			initiallySelectedLayers.add((Layer) obj);
+			initiallySelectedLayersVisibilities.put((Layer) obj, visibility);	
+		}
 	    if (obj instanceof MapBean) {
 			this.mapBean = (MapBean) obj;
 		} else if (obj instanceof InformationDelegator) {
 			this.infoDelegator = (InformationDelegator) obj;
 		} else if (obj instanceof OpenMapFrame) {
 			this.openMapFrame = (OpenMapFrame) obj;
+			((OpenMapFrame) obj).addWindowListener(this);
 		} else if (obj instanceof OMAISBaseStationTransmitCoverageLayer) {
 			this.transmitCoverageLayer = (OMAISBaseStationTransmitCoverageLayer) obj;			
 		} else if (obj instanceof OMAISBaseStationReceiveCoverageLayer) {
@@ -928,12 +1050,56 @@ public class StationLayer extends OMGraphicHandlerLayer implements MapMouseListe
 		    this.sidePanel = (SidePanel) obj;
 		} else if (obj instanceof DrawingTool) {
             setDrawingTool((DrawingTool) obj);
-        }
+        } else if (obj instanceof LayerHandler) {
+			this.layerHandler = (LayerHandler) obj;
+		} else if (obj instanceof LayersMenu) {
+			this.layersMenu = (LayersMenu) obj;
+		}
+	}
+	
+	public void	windowActivated(WindowEvent e) {}
+	
+	public void windowClosed(WindowEvent e) {}
+	
+	public void windowClosing(WindowEvent e) {
+		try {
+			new File(StationLayer.INITIAL_LAYERS_FILE_NAME).delete();
+		} catch (Exception ex) {}
+		try {
+			FileWriter fstream = new FileWriter(StationLayer.INITIAL_LAYERS_FILE_NAME);
+			BufferedWriter out = new BufferedWriter(fstream);	
+			Layer[] layers = layerHandler.getLayers();
+			for (Layer layer : layers) {
+				out.write(layer.getClass().getCanonicalName() + ": " + layer.isVisible() + System.getProperty("line.separator"));
+			}
+			out.close();
+		} catch (Exception ex) {}	
+	}
+	
+	public void	windowDeactivated(WindowEvent e) {}
+	
+	public void	windowDeiconified(WindowEvent e) {}
+	
+	public void	windowIconified(WindowEvent e) {}
+	
+	public void	windowOpened(WindowEvent e) {
+		if (initiallySelectedLayers != null) {
+			layersMenu.removeAll();
+			Layer[] inLayers = new Layer[initiallySelectedLayers.size()];
+			int i = 0;
+			for (Layer layer : initiallySelectedLayers) {
+				boolean setting = initiallySelectedLayersVisibilities.get(layer).booleanValue();
+				layerHandler.turnLayerOn(setting, layer);
+				inLayers[i] = layer;
+				i++;
+			}
+			layersMenu.setLayers(inLayers);
+		}
 		if (eavdamMenu != null && transmitCoverageLayer != null && receiveCoverageLayer != null && interferenceCoverageLayer != null && sidePanel != null && !stationsInitiallyUpdated) {
 			eavdamMenu.getShowOnMapMenu().updateCoverageItems(receiveCoverageLayer.isVisible(), transmitCoverageLayer.isVisible(), interferenceCoverageLayer.isVisible());
 			updateStations();
 			stationsInitiallyUpdated = true;
-		}
+		}	
 	}
 
 	private byte[] getImage(String filename) {    
@@ -976,11 +1142,11 @@ public class StationLayer extends OMGraphicHandlerLayer implements MapMouseListe
                             for (AISFixedStationData stationData : as.getStations()) {
                                 if (stationData.getStatus().getStatusID() == DerbyDBInterface.STATUS_ACTIVE &&
                                         eavdamMenu.getShowOnMapMenu().getOwnOperativeStationsMenuItem().isSelected()) {
-                                    this.addBaseStation(null, stationData);
+                                    this.addBaseStation(null, data.getUser(), stationData);
 								}
                                 if (stationData.getStatus().getStatusID() == DerbyDBInterface.STATUS_PLANNED &&
                                         eavdamMenu.getShowOnMapMenu().getOwnPlannedStationsMenuItem().isSelected()) {
-                                    this.addBaseStation(null, stationData);
+                                    this.addBaseStation(null, data.getUser(), stationData);
                                 }
                             }
                         }
@@ -997,7 +1163,7 @@ public class StationLayer extends OMGraphicHandlerLayer implements MapMouseListe
 								if (s.getName().equals(selectedSimulation)) {
 									List<AISFixedStationData> stations = s.getStations();
 									for (AISFixedStationData stationData : stations) {
-										this.addBaseStation(s.getName(), stationData);
+										this.addBaseStation(s.getName(), data.getUser(), stationData);
 									}
 									break;
 								}
@@ -1015,7 +1181,7 @@ public class StationLayer extends OMGraphicHandlerLayer implements MapMouseListe
 							List<AISFixedStationData> stations = as.getStations();
 							for (AISFixedStationData station : stations) {
 								if (station.getStatus().getStatusID() == DerbyDBInterface.STATUS_ACTIVE) {
-									this.addBaseStation(user, station);
+									this.addBaseStation(user, user, station);
 								}
 							}
 						}
@@ -1034,7 +1200,7 @@ public class StationLayer extends OMGraphicHandlerLayer implements MapMouseListe
 											List<AISFixedStationData> stations = as.getStations();
 											for (AISFixedStationData station : stations) {
 												if (station.getStatus().getStatusID() == DerbyDBInterface.STATUS_ACTIVE) {
-													this.addBaseStation(user, station);
+													this.addBaseStation(user, user, station);
 												}
 											}
 										}

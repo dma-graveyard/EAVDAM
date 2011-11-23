@@ -8,6 +8,7 @@ import dk.frv.eavdam.data.EAVDAMUser;
 import dk.frv.eavdam.io.EmailSender;
 import dk.frv.eavdam.layers.StationLayer;
 import dk.frv.eavdam.utils.DBHandler;
+import dk.frv.eavdam.utils.IconChanger;
 import javax.swing.JSeparator;
 import javax.swing.event.MenuEvent;
 import javax.swing.event.MenuListener;
@@ -31,6 +32,7 @@ public class EavdamMenu extends AbstractOpenMapMenu implements MenuListener {
 	private ShowOnMapMenu showOnMapMenu;
 	private ShapeLayersMenu shapeLayersMenu;
 	private OptionsMenuItem optionsMenuItem;
+	private ListOfRulesMenuItem listOfRulesMenuItem;
 
     public EavdamMenu() {
         super();
@@ -48,6 +50,8 @@ public class EavdamMenu extends AbstractOpenMapMenu implements MenuListener {
 		add(shapeLayersMenu);
 		optionsMenuItem = new OptionsMenuItem(this);
         add(optionsMenuItem);
+		listOfRulesMenuItem = new ListOfRulesMenuItem(this);
+		add(listOfRulesMenuItem);
         // add(new JSeparator());
 		addMenuListener(this);
 		
@@ -87,8 +91,12 @@ public class EavdamMenu extends AbstractOpenMapMenu implements MenuListener {
 		add(shapeLayersMenu);
 		if (optionsMenuItem == null) {
 			optionsMenuItem = new OptionsMenuItem(this);
-		}		
-		add(optionsMenuItem);
+		}	
+		add(optionsMenuItem);		
+		if (listOfRulesMenuItem == null) {
+			listOfRulesMenuItem = new ListOfRulesMenuItem(this);
+		}
+		add(listOfRulesMenuItem);
 	}
 	
     public OpenMapFrame getOpenMapFrame() {
@@ -126,7 +134,8 @@ public class EavdamMenu extends AbstractOpenMapMenu implements MenuListener {
 	@Override
 	public void findAndInit(Object obj) {
 		if (obj instanceof OpenMapFrame) {
-			this.openMapFrame = (OpenMapFrame) obj;
+			this.openMapFrame = (OpenMapFrame) obj;		
+			IconChanger.changeToEAVDAMIcon((OpenMapFrame) obj);
 		} else if (obj instanceof StationLayer) {
 		    this.stationLayer = (StationLayer) obj;
 		} else if (obj instanceof LayerHandler) {

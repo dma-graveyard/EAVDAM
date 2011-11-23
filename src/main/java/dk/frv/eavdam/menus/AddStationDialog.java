@@ -213,6 +213,7 @@ public class AddStationDialog extends JDialog implements ActionListener, ItemLis
 		}						
 					
 		JPanel panel = new JPanel();
+		panel.setBorder(BorderFactory.createEmptyBorder());
 		panel.setLayout(new GridBagLayout());
 						  
 		JPanel p2 = new JPanel(new GridBagLayout());
@@ -231,11 +232,11 @@ public class AddStationDialog extends JDialog implements ActionListener, ItemLis
 		c = menuItem.updateGBC(c, 1, 2, 0.5, GridBagConstraints.LINE_START, GridBagConstraints.NONE, new Insets(5,5,5,5));    
 		p2.add(addStationStatusComboBox, c);     			
 		c = menuItem.updateGBC(c, 0, 3, 0.5, GridBagConstraints.LINE_START, GridBagConstraints.NONE, new Insets(5,5,5,5));                                        
-		p2.add(new JLabel("Latitude (WGS84):"), c);
+		p2.add(new JLabel("Latitude (in decimal degrees):"), c);
 		c = menuItem.updateGBC(c, 1, 3, 0.5, GridBagConstraints.LINE_START, GridBagConstraints.NONE, new Insets(5,5,5,5));                   
 		p2.add(addLatitudeTextField, c);                    
 		c = menuItem.updateGBC(c, 0, 4, 0.5, GridBagConstraints.LINE_START, GridBagConstraints.NONE, new Insets(5,5,5,5));                 
-		p2.add(new JLabel("Longitude (WGS84):"), c);
+		p2.add(new JLabel("Longitude (in decimal degrees):"), c);
 		c = menuItem.updateGBC(c, 1, 4, 0.5, GridBagConstraints.LINE_START, GridBagConstraints.NONE, new Insets(5,5,5,5));                   
 		p2.add(addLongitudeTextField, c);        
 		c = menuItem.updateGBC(c, 0, 5, 0.5, GridBagConstraints.LINE_START, GridBagConstraints.NONE, new Insets(5,5,5,5));                
@@ -314,20 +315,25 @@ public class AddStationDialog extends JDialog implements ActionListener, ItemLis
 		c = menuItem.updateGBC(c, 0, 2, 0.5, GridBagConstraints.FIRST_LINE_START, GridBagConstraints.HORIZONTAL, new Insets(5,5,5,5)); 
 		c.gridwidth = 2; 
 		panel.add(p5, c);
-					
-		JPanel buttonPanel = new JPanel();
-		buttonPanel.add(doAddStationButton);          
-		buttonPanel.add(cancelAddStationButton);
-		c = menuItem.updateGBC(c, 0, 3, 0.5, GridBagConstraints.CENTER, GridBagConstraints.NONE, new Insets(5,5,5,5));             
-		c.gridwidth = 2; 
-		panel.add(buttonPanel, c);
-		
-		JScrollPane scrollPane = new JScrollPane(panel);
-        scrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
-        scrollPane.setPreferredSize(new Dimension(WINDOW_WIDTH, WINDOW_HEIGHT));
-        scrollPane.setMaximumSize(new Dimension(WINDOW_WIDTH, WINDOW_HEIGHT));
 
-        getContentPane().add(scrollPane);
+		JScrollPane scrollPane = new JScrollPane(panel);
+		scrollPane.setBorder(BorderFactory.createEmptyBorder());
+        scrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
+        scrollPane.setPreferredSize(new Dimension(WINDOW_WIDTH, WINDOW_HEIGHT-35));
+        scrollPane.setMaximumSize(new Dimension(WINDOW_WIDTH, WINDOW_HEIGHT-35));
+		
+		JPanel containerPane = new JPanel();
+		containerPane.setBorder(BorderFactory.createEmptyBorder());
+		containerPane.setLayout(new BorderLayout());		 
+		containerPane.add(scrollPane, BorderLayout.CENTER);
+		
+		JPanel buttonPanel = new JPanel();
+		buttonPanel.setBorder(BorderFactory.createEmptyBorder(15, 0, 0, 0));
+		buttonPanel.add(doAddStationButton);
+		buttonPanel.add(cancelAddStationButton);
+		containerPane.add(buttonPanel, BorderLayout.SOUTH);
+
+        getContentPane().add(containerPane);
 		
 		addStationChannelAComboBox.setSelectedIndex(1);
 		addStationChannelBComboBox.setSelectedIndex(2);		
@@ -1092,8 +1098,8 @@ public class AddStationDialog extends JDialog implements ActionListener, ItemLis
 		if (!addLatitudeTextField.getText().trim().isEmpty() && !addLongitudeTextField.getText().trim().isEmpty()) {
 		
 			try {			
-				float lat = Float.valueOf(addLatitudeTextField.getText());
-				float lon = Float.valueOf(addLongitudeTextField.getText());
+				float lat = Float.valueOf(addLatitudeTextField.getText().replace(",", ".").trim());
+				float lon = Float.valueOf(addLongitudeTextField.getText().replace(",", ".").trim());
 		
 				int singleCellSizeInNauticalMiles = 30;
 				int noOfSingleCellsAlongOneSideOfMasterCell = 6;
