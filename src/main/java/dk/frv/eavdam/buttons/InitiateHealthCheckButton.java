@@ -1,11 +1,18 @@
 package dk.frv.eavdam.buttons;
 
+import com.bbn.openmap.MapBean;
 import com.bbn.openmap.gui.OMToolComponent;
 import com.bbn.openmap.gui.OpenMapFrame;
 import com.bbn.openmap.gui.Tool;
+import com.bbn.openmap.proj.Projection;
+import dk.frv.eavdam.data.AISDatalinkCheckResult;
+import dk.frv.eavdam.data.EAVDAMData;
 import dk.frv.eavdam.data.Options;
+import dk.frv.eavdam.io.AISDatalinkCheckListener;
 import dk.frv.eavdam.io.EmailSender;
 import dk.frv.eavdam.menus.OptionsMenuItem;
+import dk.frv.eavdam.utils.DBHandler;
+import dk.frv.eavdam.utils.HealthCheckHandler;
 import dk.frv.eavdam.utils.LinkLabel;
 import dk.frv.eavdam.utils.XMLHandler;
 import java.awt.Color;
@@ -20,6 +27,7 @@ import java.awt.Insets;
 import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.geom.Point2D;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
@@ -36,19 +44,22 @@ import javax.swing.JEditorPane;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
+import javax.swing.JProgressBar;
 import javax.swing.JScrollPane;
 import javax.swing.JSlider;
 import javax.swing.JToolBar;
 import net.sf.image4j.codec.ico.ICODecoder;
 
-public class InitiateHealthCheckButton extends OMToolComponent implements ActionListener, Tool {
+public class InitiateHealthCheckButton extends OMToolComponent implements ActionListener, Tool, AISDatalinkCheckListener {
 
 	private static final long serialVersionUID = 6706092036947101L;
 	protected JButton initiateHealthCheckButton = null;
 	protected JToolBar jToolBar;
     private OpenMapFrame openMapFrame;
+	private MapBean mapBean;
 	
 	private JDialog dialog;
+	private JDialog waitDialog;
 	
 	private JCheckBox rule1CheckBox;
 	private JCheckBox rule2CheckBox;
@@ -60,6 +71,8 @@ public class InitiateHealthCheckButton extends OMToolComponent implements Action
 	private LinkLabel rulesHelpLabel;
 	
 	private JSlider resolutionSlider;
+	
+	private JProgressBar progressBar;
 	
 	private JButton goButton;
 	private JButton cancelButton;
@@ -93,9 +106,9 @@ public class InitiateHealthCheckButton extends OMToolComponent implements Action
 	 
 		if (e.getSource() == initiateHealthCheckButton) {
 	    
-			int response = JOptionPane.showConfirmDialog(openMapFrame, "This will initiate the AIS VHF datalink health check process,\nwhich may take some time. Are you sure you want to do this?", "Confirm action", JOptionPane.YES_NO_OPTION);
+			//int response = JOptionPane.showConfirmDialog(openMapFrame, "This will initiate the AIS VHF datalink health check process,\nwhich may take some time. Are you sure you want to do this?", "Confirm action", JOptionPane.YES_NO_OPTION);
          
-			if (response == JOptionPane.YES_OPTION) {
+			//if (response == JOptionPane.YES_OPTION) {
          
 				dialog = new JDialog(openMapFrame, "AIS VHF Datalink Health Check", false);  // true for modal dialog
 			
@@ -211,9 +224,9 @@ public class InitiateHealthCheckButton extends OMToolComponent implements Action
 				dialog.setBounds((int) screenSize.getWidth()/2 - 640/2, (int) screenSize.getHeight()/2 - 550/2, 640, 550);
 				dialog.setVisible(true);
 
-			 } else if (response == JOptionPane.NO_OPTION) { 
+			 //} else if (response == JOptionPane.NO_OPTION) { 
 				// ignore        
-			 }
+			 //}
 		
 		} else if (e.getSource() == rulesHelpLabel) {
 		
@@ -249,18 +262,165 @@ public class InitiateHealthCheckButton extends OMToolComponent implements Action
 		
 		} else if (e.getSource() == goButton) {
 		
+			Projection projection = mapBean.getProjection();
+			Point2D topLeft = projection.getUpperLeft();
+			Point2D lowerRight = projection.getLowerRight();
+			
+			double topLeftLatitude = topLeft.getY();
+			double topLeftLongitude = topLeft.getX();
+			double lowerRightLatitude = lowerRight.getY();
+			double lowerRightLongitude = lowerRight.getX();
+			
+			EAVDAMData data = DBHandler.getData();
+			
+			boolean checkRule1 = false;
+			if (rule1CheckBox.isSelected()) {
+				checkRule1 = true;
+			}
+			boolean checkRule2 = false;
+			if (rule2CheckBox.isSelected()) {
+				checkRule2 = true;
+			}
+			boolean checkRule3 = false;
+			if (rule3CheckBox.isSelected()) {
+				checkRule3 = true;
+			}
+			boolean checkRule4 = false;
+			if (rule4CheckBox.isSelected()) {
+				checkRule4 = true;
+			}
+			boolean checkRule5 = false;
+			if (rule5CheckBox.isSelected()) {
+				checkRule5 = true;
+			}
+			boolean checkRule6 = false;
+			if (rule6CheckBox.isSelected()) {
+				checkRule6 = true;
+			}
+			boolean checkRule7 = false;
+			if (rule7CheckBox.isSelected()) {
+				checkRule7 = true;
+			}
+			
+			double resolution = (double) resolutionSlider.getValue() / 10;
+			
+			new InitiateHealthCheckThread(data, this, checkRule1, checkRule2, checkRule3, checkRule4, 
+				checkRule5, checkRule6, checkRule7, topLeftLatitude, topLeftLongitude, lowerRightLatitude, 
+				lowerRightLongitude, resolution).start();
+				
+			waitDialog = new JDialog(openMapFrame, "Please wait...", true);
+
+ 			progressBar = new JProgressBar();
+			progressBar = new JProgressBar(0, 100);
+			progressBar.setValue(0);
+			progressBar.setStringPainted(true);			
+			progressBar.setPreferredSize(new Dimension(330, 20));
+			progressBar.setMaximumSize(new Dimension(330, 20));
+			progressBar.setMinimumSize(new Dimension(330, 20));			
+
+			JPanel panel = new JPanel();							
+			panel.setLayout(new GridBagLayout());
+			GridBagConstraints c = new GridBagConstraints();
+			c.gridx = 0;
+			c.gridy = 0;                   
+			c.anchor = GridBagConstraints.LINE_START;
+			c.insets = new Insets(10,10,10,10);			
+			JLabel titleLabel = new JLabel("<html><body><p>Please wait, while the AIS VHF datalink health check is being executed...<p></body></html>");
+			titleLabel.setPreferredSize(new Dimension(330, 30));
+			titleLabel.setMaximumSize(new Dimension(330, 30));
+			titleLabel.setMinimumSize(new Dimension(330, 30));
+			panel.add(titleLabel, c);
+			c.gridy = 1;
+			c.anchor = GridBagConstraints.CENTER;
+			panel.add(progressBar, c);
+			waitDialog.getContentPane().add(panel);
+			Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
+			waitDialog.setBounds((int) screenSize.getWidth()/2 - 380/2, (int) screenSize.getHeight()/2 - 150/2, 380, 150);
+			waitDialog.setVisible(true);
+			
 		} else if (e.getSource() == cancelButton) {		
 			dialog.dispose();	
 		}
     
 	}
 
+	public void progressed(double progress) {
+		if (progressBar != null) {
+			progressBar.setValue((int) Math.round(100*progress));
+		}
+	}
+	
+	public void completed(AISDatalinkCheckResult result) {	
+
+		// TODO: create issues screen and layers
+		
+		waitDialog.dispose();
+		
+		// TODO: make issues screen and layers visible
+		
+	}
+	
 	public void findAndInit(Object obj) {
 		if (obj instanceof OpenMapFrame) {
 			this.openMapFrame = (OpenMapFrame) obj;
+		} else if (obj instanceof MapBean) {
+			this.mapBean = (MapBean) obj;
 		}
 	}	    
 
 	public void findAndUndo(Object obj) {}
+
+}
+
+
+class InitiateHealthCheckThread extends Thread {
+	
+	EAVDAMData data;
+	AISDatalinkCheckListener listener;
+	boolean checkRule1;
+	boolean checkRule2;
+	boolean checkRule3;
+	boolean checkRule4;
+	boolean checkRule5;
+	boolean checkRule6;
+	boolean checkRule7;
+	double topLeftLatitude;
+	double topLeftLongitude;
+	double lowerRightLatitude;
+	double lowerRightLongitude;
+	double resolution;
+	
+	InitiateHealthCheckThread(EAVDAMData data, AISDatalinkCheckListener listener, boolean checkRule1, boolean checkRule2,
+			boolean checkRule3, boolean checkRule4, boolean checkRule5, boolean checkRule6, boolean checkRule7,
+			double topLeftLatitude, double topLeftLongitude, double lowerRightLatitude, double lowerRightLongitude, double resolution) {
+		this.data = data;
+		this.listener = listener;
+		this.checkRule1 = checkRule1;
+		this.checkRule2 = checkRule2;
+		this.checkRule3 = checkRule3;
+		this.checkRule4 = checkRule4;
+		this.checkRule5 = checkRule5;
+		this.checkRule6 = checkRule6;
+		this.checkRule7 = checkRule7;
+		this.topLeftLatitude = topLeftLatitude;
+		this.topLeftLongitude = topLeftLongitude;
+		this.lowerRightLatitude = lowerRightLatitude;
+		this.lowerRightLongitude = lowerRightLongitude;
+		this.resolution = resolution;
+	}
+	
+	public void run() {
+		HealthCheckHandler hch = new HealthCheckHandler(data);		
+		AISDatalinkCheckResult result = hch.startAISDatalinkCheck(listener, checkRule1, checkRule2, checkRule3, checkRule4,
+			checkRule5, checkRule6, checkRule7, topLeftLatitude, topLeftLongitude, lowerRightLatitude, lowerRightLongitude, resolution);
+		// XXX: for testing
+		for (int i=1; i<=5; i++) {
+			listener.progressed(0.2*i);
+			try {
+				Thread.sleep(1000);							
+			} catch (InterruptedException ex) {}
+		}
+		listener.completed(result);
+	}
 
 }
