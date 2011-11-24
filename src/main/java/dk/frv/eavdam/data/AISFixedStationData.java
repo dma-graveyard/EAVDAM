@@ -371,13 +371,19 @@ public class AISFixedStationData {
 							int incrementInt = increment.intValue();
 							if (reservedBlocks == null) {
 								reservedBlocks = new ArrayList<Integer>();
+
 							}
+							if(ownershipA == null){
+								ownershipA = new HashMap<Integer, String>();
+							}
+							
 							if (incrementInt == 0) {
 								for (int i=0; i<blockSizeInt; i++) {
 									Integer slot = new Integer(startslotInt+i);
 									if (!reservedBlocks.contains(slot)) {
 										reservedBlocks.add(slot);
 									}
+									ownershipA.put(slot, fatdmaReservation.getOwnership());
 								}								
 							} else if (incrementInt > 0) {
 								int i = 0;
@@ -387,6 +393,8 @@ public class AISFixedStationData {
 										if (!reservedBlocks.contains(slot)) {
 											reservedBlocks.add(slot);
 										}
+										
+										ownershipA.put(slot, fatdmaReservation.getOwnership());
 									}
 									i++;
 								}
@@ -457,12 +465,17 @@ public class AISFixedStationData {
 							if (reservedBlocks == null) {
 								reservedBlocks = new ArrayList<Integer>();
 							}	
+							
+							if(ownershipB == null){
+								ownershipB = new HashMap<Integer, String>();
+							}
 							if (incrementInt == 0) {
 								for (int i=0; i<blockSizeInt; i++) {
 									Integer slot = new Integer(startslotInt+i);
 									if (!reservedBlocks.contains(slot)) {
 										reservedBlocks.add(slot);
 									}
+									ownershipB.put(slot, fatdmaReservation.getOwnership());
 								}								
 							} else if (incrementInt > 0) {
 								int i = 0;
@@ -472,6 +485,7 @@ public class AISFixedStationData {
 										if (!reservedBlocks.contains(slot)) {										
 											reservedBlocks.add(slot);
 										}
+										ownershipA.put(slot, fatdmaReservation.getOwnership());
 									}
 									i++;
 								}
@@ -522,7 +536,30 @@ public class AISFixedStationData {
 		return reservedBlocks;
 	}
 	
-
+	/**
+	 * Returns the ownership of the given timeslot in the given channel. Null is return if there is no reservation for the given slot. 
+	 * 
+	 * @param channel Either A or B.
+	 * @param slot Integer of the slot
+	 * @return R = remote, L = local, null = no reservation or the station is an aton station.
+	 */
+	public String getOwnershipInSlot(String channel, Integer slot){
+		if(this.stationType.equals(AISFixedStationType.ATON)) return null;
+		
+		if(channel.equals("A")){
+			if(this.ownershipA == null) this.getReservedBlocksForChannelA();
+			if(this.ownershipA == null) return null;
+			
+			return this.ownershipA.get(slot);
+		}else if(channel.equals("B")){
+			if(this.ownershipB == null) this.getReservedBlocksForChannelB();
+			if(this.ownershipB == null) return null;
+			
+			return this.ownershipB.get(slot);
+		}else{
+			return null;
+		}
+	}
 	
 }
 
