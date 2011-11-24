@@ -1,4 +1,4 @@
-package dk.frv.eavdam.layers;
+package dk.frv.eavdam.menus;
 
 import com.bbn.openmap.gui.OpenMapFrame;
 import dk.frv.eavdam.data.AISSlotMap;
@@ -69,16 +69,15 @@ public class SlotMapDialog extends JDialog implements ActionListener {
 		c.anchor = GridBagConstraints.LINE_START;
 		c.insets = new Insets(5,5,5,5);
 		
-		c.anchor = GridBagConstraints.CENTER;		
+		//c.anchor = GridBagConstraints.CENTER;		
 		c.gridwidth = 9;
 		panel.add(new JLabel("<html><body><h1>Slotmap for latitude " + String.valueOf((double) (Math.round(latitude*1000))/1000) +
 			", longitude " + String.valueOf(((double) Math.round(longitude*1000))/1000) + "</h1></body></html>"), c);
 		c.anchor = GridBagConstraints.LINE_START;
-
+		
 		c.gridy = 1;
 		panel.add(new JLabel("Total bandwith usage: " + (double) Math.round(10000 * slotmap.getBandwidthReservation()) / 100 + " %"), c);
-		c.gridwidth = 1;
-		c.fill = GridBagConstraints.BOTH;
+		c.gridwidth = 1;	
 		
 		c.gridy = 0;
 		JPanel timeslotsChartPanel = new JPanel();
@@ -213,6 +212,7 @@ public class SlotMapDialog extends JDialog implements ActionListener {
 
 		c.gridy = 4;
 		c.gridwidth = 1;
+		c.fill = GridBagConstraints.BOTH;
 		c.insets = new Insets(0,0,0,0);
 		JLabel frequencyLabel = new JLabel(" Frequency:  ");
 		frequencyLabel.setFont(new Font("Arial", Font.BOLD, 14));
@@ -366,7 +366,7 @@ public class SlotMapDialog extends JDialog implements ActionListener {
 				if (timeslot.getSlotNumber() >= start && timeslot.getSlotNumber() <= end) {
 					if (timeslot.getFree() != null) {
 						ais1Free[timeslot.getSlotNumber()-start] = timeslot.getFree().booleanValue();
-					}
+					}		
 					if (timeslot.getReservedBy() != null) {
 						if (timeslot.getReservedBy().size() == 1) {
 							AISStation reservedBy = timeslot.getReservedBy().get(0);
@@ -383,11 +383,11 @@ public class SlotMapDialog extends JDialog implements ActionListener {
 							html += "</body></html>";
 							ais1ReservedBy[timeslot.getSlotNumber()-start] = html;
 						}
-					}
+					}					
 					if (timeslot.getUsedBy() != null) {
 						if (timeslot.getUsedBy().size() == 1) {
 							AISStation usedBy = timeslot.getUsedBy().get(0);
-							ais1UsedBy[timeslot.getSlotNumber()-start] = "  " + usedBy.getOrganizationName() + ": " + usedBy.getStationName() + "  ";
+							ais1UsedBy[timeslot.getSlotNumber()-start] = "  " + usedBy.getOrganizationName() + ": " + usedBy.getStationName() + "  ";						
 						} else if (timeslot.getUsedBy().size() > 1) {
 							String html = "<html><body>";
 							for (int i=0; i<timeslot.getUsedBy().size(); i++) {
@@ -400,11 +400,11 @@ public class SlotMapDialog extends JDialog implements ActionListener {
 							html += "</body></html>";
 							ais1UsedBy[timeslot.getSlotNumber()-start] = html;
 						}
-					}
+					}				
 					if (timeslot.getInterferedBy() != null) {
 						if (timeslot.getInterferedBy().size() == 1) {
 							AISStation interferedBy = timeslot.getInterferedBy().get(0);
-							ais1InterferedBy[timeslot.getSlotNumber()-start] = "  " + interferedBy.getOrganizationName() + ": " + interferedBy.getStationName() + "  ";
+							ais1InterferedBy[timeslot.getSlotNumber()-start] = "  " + interferedBy.getOrganizationName() + ": " + interferedBy.getStationName() + "  ";			
 						} else if (timeslot.getInterferedBy().size() > 1) {
 							String html = "<html><body>";
 							for (int i=0; i<timeslot.getInterferedBy().size(); i++) {

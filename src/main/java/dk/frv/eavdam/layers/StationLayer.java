@@ -43,6 +43,7 @@ import dk.frv.eavdam.io.derby.DerbyDBInterface;
 import dk.frv.eavdam.io.XMLImporter;
 import dk.frv.eavdam.menus.EavdamMenu;
 import dk.frv.eavdam.menus.OptionsMenuItem;
+import dk.frv.eavdam.menus.SlotMapDialog;
 import dk.frv.eavdam.menus.StationInformationMenu;
 import dk.frv.eavdam.menus.StationInformationMenuItem;
 import dk.frv.eavdam.utils.DBHandler;

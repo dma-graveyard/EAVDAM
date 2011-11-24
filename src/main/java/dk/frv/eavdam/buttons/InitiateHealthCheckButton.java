@@ -352,11 +352,17 @@ public class InitiateHealthCheckButton extends OMToolComponent implements Action
 	
 	public void completed(AISDatalinkCheckResult result) {	
 
-		// TODO: create issues screen and layers
+		// TODO: create a new issues screen based on result.getIssues()
+		
+		// TODO: create layers based on issues (red circles) and areas (bandwith areas)
+		
+		// TODO: at least result.getIssues() tallennetaan EAVDAMDataan ja kantaan		
 		
 		waitDialog.dispose();
 		
-		// TODO: make issues screen and layers visible
+		// TODO: make layers visible
+		
+		// TODO: goto issues screen
 		
 	}
 	
@@ -411,6 +417,7 @@ class InitiateHealthCheckThread extends Thread {
 	
 	public void run() {
 		HealthCheckHandler hch = new HealthCheckHandler(data);		
+		// XXX: should not get result here, instead hch should call the listener with the result
 		AISDatalinkCheckResult result = hch.startAISDatalinkCheck(listener, checkRule1, checkRule2, checkRule3, checkRule4,
 			checkRule5, checkRule6, checkRule7, topLeftLatitude, topLeftLongitude, lowerRightLatitude, lowerRightLongitude, resolution);
 		// XXX: for testing

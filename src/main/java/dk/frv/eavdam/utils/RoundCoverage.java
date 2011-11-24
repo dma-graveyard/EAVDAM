@@ -89,6 +89,8 @@ public class RoundCoverage {
 		}
 		point = getCoordinates(centerLat, centerLon, radius, heading+(fieldOfViewAngle/2));
 		points.add(point);
+		
+		points.add(getCoordinates(centerLat, centerLon, 0.01, heading+(fieldOfViewAngle/10)));  // first point
 			
 		return points;
 	}	
@@ -165,6 +167,8 @@ public class RoundCoverage {
 		point = getCoordinates(centerLat, centerLon, radius, heading+(fieldOfViewAngle/2));
 		points.add(point);		
 
+		points.add(getCoordinates(centerLat, centerLon, 0.01, heading+(fieldOfViewAngle/10)));  // first point		
+		
 		return points;
 	}	
 	
