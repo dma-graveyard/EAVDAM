@@ -12,7 +12,8 @@ public class EAVDAMData {
 	private List<ActiveStation> activeStations = new ArrayList<ActiveStation>();
     private List<OtherUserStations> otherUsersStations = new ArrayList<OtherUserStations>();
     private List<Simulation> simulatedStations = new ArrayList<Simulation>();
-    private List<AISFixedStationData> oldStations = new ArrayList<AISFixedStationData>();
+    private List<AISFixedStationData> oldStations = new ArrayList<AISFixedStationData>();	
+	private List<AISDatalinkCheckIssue> aisDatalinkCheckIssues;
     
 	public EAVDAMUser getUser() {
 		return user;
@@ -53,6 +54,14 @@ public class EAVDAMData {
     public void setOldStations(List<AISFixedStationData> oldStations) {
         this.oldStations = oldStations;
     }
+	
+	public List<AISDatalinkCheckIssue> getAISDatalinkCheckIssues() {
+		return aisDatalinkCheckIssues;
+	}
+	
+	public void setAISDatalinkCheckIssues(List<AISDatalinkCheckIssue> aisDatalinkCheckIssues) {
+		this.aisDatalinkCheckIssues = aisDatalinkCheckIssues;
+	}	
     
     // DO NOT REMOVE. NEEDED FOR XML TO SIMPLIFY PARSING
 	public AISFixedStationData[] getStations() {

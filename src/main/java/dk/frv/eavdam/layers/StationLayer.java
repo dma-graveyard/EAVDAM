@@ -1,5 +1,8 @@
 package dk.frv.eavdam.layers;
 
+import ca.ansir.swing.tristate.TriState;
+import ca.ansir.swing.tristate.TriStateTreeHandler;
+import ca.ansir.swing.tristate.TriStateTreeNode;
 import com.bbn.openmap.InformationDelegator;
 import com.bbn.openmap.Layer;
 import com.bbn.openmap.LayerHandler;
@@ -79,6 +82,7 @@ import java.util.Map;
 import javax.xml.bind.JAXBException;
 import javax.swing.BorderFactory;
 import javax.swing.ButtonGroup;
+import javax.swing.JButton;
 import javax.swing.JCheckBoxMenuItem;
 import javax.swing.JDialog;
 import javax.swing.JLabel;
@@ -90,7 +94,10 @@ import javax.swing.JPopupMenu;
 import javax.swing.JProgressBar;
 import javax.swing.JScrollPane;
 import javax.swing.JSeparator;
+import javax.swing.JTree;
 import javax.swing.SwingUtilities;
+import javax.swing.tree.DefaultMutableTreeNode;
+import javax.swing.tree.TreeModel;
 
 public class StationLayer extends OMGraphicHandlerLayer implements MapMouseListener, ActionListener, WindowListener, DrawingToolRequestor {
 
@@ -110,6 +117,7 @@ public class StationLayer extends OMGraphicHandlerLayer implements MapMouseListe
 	private OMAISBaseStationInterferenceCoverageLayer interferenceCoverageLayer;	
 	private EavdamMenu eavdamMenu;	
 	private JMenuItem editStationMenuItem;
+	private JMenuItem showOnMapMenuItem;
 	private JMenuItem hideStationMenuItem;
 	private JMenuItem showHiddenStationsMenuItem;
 	private JMenuItem generateSlotMapMenuItem;
@@ -123,6 +131,11 @@ public class StationLayer extends OMGraphicHandlerLayer implements MapMouseListe
 	private JMenuItem resetInterferenceCoverageToCircleMenuItem;
 	private JMenuItem resetInterferenceCoverageToPolygonMenuItem;	
 	private OMBaseStation currentlySelectedOMBaseStation;
+	
+	private JDialog showOnMapDialog;
+	private JTree tree;
+	private JButton okShowOnMapMenuButton;
+	private JButton cancelShowOnMapMenuButton;
 	
 	private JDialog slotMapDialog;
 	private JDialog waitDialog;
@@ -465,7 +478,10 @@ public class StationLayer extends OMGraphicHandlerLayer implements MapMouseListe
             OMList<OMGraphic> allClosest = graphics.findAll(e.getX(), e.getY(), 5.0f);
             if (allClosest == null || allClosest.isEmpty()) {			  
 	            JPopupMenu popup = new JPopupMenu();			
-                popup.add(eavdamMenu.getShowOnMapMenu());
+                //popup.add(eavdamMenu.getShowOnMapMenu());
+				showOnMapMenuItem = new JMenuItem("Show on map");
+				showOnMapMenuItem.addActionListener(this);
+				popup.add(showOnMapMenuItem);
 				if (hiddenBaseStations != null && !hiddenBaseStations.isEmpty()) {
 					showHiddenStationsMenuItem = new JMenuItem("Show " + hiddenBaseStations.size() + " hidden stations");
 					showHiddenStationsMenuItem.addActionListener(this);
@@ -670,6 +686,44 @@ public class StationLayer extends OMGraphicHandlerLayer implements MapMouseListe
 				new StationInformationMenu(eavdamMenu, StationInformationMenuItem.STATIONS_OF_ORGANIZATION_LABEL + " " +
 					selectedOrganization, currentlySelectedOMBaseStation.getName()).doClick(); 							
             }
+		
+		} else if (e.getSource() == showOnMapMenuItem) {
+		
+			showOnMapDialog = new JDialog(openMapFrame, "Show on Map", false);				
+												
+			tree = createTree();			
+		
+			TriStateTreeHandler handler = new TriStateTreeHandler(tree);
+			tree.setShowsRootHandles(false);
+			JScrollPane scrollPane = new JScrollPane(tree);
+			scrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
+			scrollPane.setPreferredSize(new Dimension(600, 540));
+	
+			JPanel panel = new JPanel();		
+			panel.add(scrollPane);
+			showOnMapDialog.getContentPane().add(panel, BorderLayout.CENTER);
+		
+			okShowOnMapMenuButton = new JButton("Ok");
+			okShowOnMapMenuButton.addActionListener(this);
+			cancelShowOnMapMenuButton = new JButton("Cancel");
+			cancelShowOnMapMenuButton.addActionListener(this);		
+			JPanel buttonPanel = new JPanel();
+			buttonPanel.setBorder(BorderFactory.createEmptyBorder(15, 0, 0, 0));
+			buttonPanel.add(okShowOnMapMenuButton);
+			buttonPanel.add(cancelShowOnMapMenuButton);
+			showOnMapDialog.getContentPane().add(buttonPanel, BorderLayout.SOUTH);
+		
+			Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
+			showOnMapDialog.setBounds((int) screenSize.getWidth()/2 - 640/2, (int) screenSize.getHeight()/2 - 640/2, 640, 640);
+
+			showOnMapDialog.setVisible(true);		
+		
+		} else if (e.getSource() == okShowOnMapMenuButton) {
+			updateStations();
+			showOnMapDialog.dispose();
+			
+		} else if (e.getSource() == cancelShowOnMapMenuButton) {
+			showOnMapDialog.dispose();			
 		
 		} else if (e.getSource() == hideStationMenuItem) {
 
@@ -1163,7 +1217,158 @@ public class StationLayer extends OMGraphicHandlerLayer implements MapMouseListe
 		
 		return data;	
 	}
+	
+	private JTree createTree() {
+			
+		// loads earlier selections
+		Map<String, TriState> currentSelections = getCurrentSelections();
+	
+		if (data == null) {
+			data = DBHandler.getData(); 
+		}
+		
+		List<String> operativeStations = new ArrayList<String>();
+		List<String> plannedStations = new ArrayList<String>();
+		
+		List<ActiveStation> activeStations = data.getActiveStations();
+		if (activeStations != null) {
+			for (ActiveStation as : activeStations) {
+				if (as.getStations() != null) {
+					for (AISFixedStationData stationData : as.getStations()) {
+						if (stationData.getStatus().getStatusID() == DerbyDBInterface.STATUS_ACTIVE) {
+							operativeStations.add(stationData.getStationName());
+						}
+						if (stationData.getStatus().getStatusID() == DerbyDBInterface.STATUS_PLANNED) {
+							plannedStations.add(stationData.getStationName());
+						}
+					}
+				}
+			}
+		}	
+	
+		DefaultMutableTreeNode root = new TriStateTreeNode("All stations");
+		
+		if (!operativeStations.isEmpty()) {
+			TriStateTreeNode node = new TriStateTreeNode("Own operative stations");
+			root.add(node);
+			for (String s : operativeStations) {
+				TriStateTreeNode node2 = new TriStateTreeNode(s);
+				if (currentSelections != null && currentSelections.containsKey("Own operative stations /// " + s)) {
+					node2.setState(currentSelections.get("Own operative stations /// " + s));
+				} else {
+					node2.setState(TriState.SELECTED);
+				}
+				node.add(node2);
+			}		
+		}
+		
+		if (!plannedStations.isEmpty()) {
+			TriStateTreeNode node = new TriStateTreeNode("Own planned stations");
+			root.add(node);
+			for (String s : plannedStations) {
+				TriStateTreeNode node2 = new TriStateTreeNode(s);			
+				if (currentSelections != null && currentSelections.containsKey("Own planned stations /// " + s)) {
+					node2.setState(currentSelections.get("Own planned stations /// " + s));
+				}
+				node.add(node2);
+			}		
+		}			
+		
+		if (data.getSimulatedStations() != null) {
+			for (Simulation s : data.getSimulatedStations()) {
+				TriStateTreeNode node = new TriStateTreeNode("Simulation: " + s.getName());
+				root.add(node);
+				List<AISFixedStationData> stations = s.getStations();
+				for (AISFixedStationData stationData : stations) {
+					TriStateTreeNode node2 = new TriStateTreeNode(stationData.getStationName());
+					if (currentSelections != null && currentSelections.containsKey("Simulation: " + s.getName() + " /// " + stationData.getStationName())) {
+						node2.setState(currentSelections.get("Simulation: " + s.getName() + " /// " + stationData.getStationName()));
+					}
+					node.add(node2);
+				}   
+			}
+		}
+		
+		if (data.getOtherUsersStations() != null) {
+			for (OtherUserStations ous : data.getOtherUsersStations()) {
+				EAVDAMUser user = ous.getUser();
+				TriStateTreeNode node = new TriStateTreeNode("Stations of organization: " + user.getOrganizationName());
+				root.add(node);					
+				List<ActiveStation> otherUsersActiveStations = ous.getStations();
+				for (ActiveStation as : otherUsersActiveStations) {
+					List<AISFixedStationData> stations = as.getStations();
+					for (AISFixedStationData station : stations) {
+						if (station.getStatus().getStatusID() == DerbyDBInterface.STATUS_ACTIVE) {
+							TriStateTreeNode node2 = new TriStateTreeNode(station.getStationName());
+							if (currentSelections != null && currentSelections.containsKey("Stations of organization: " + user.getOrganizationName() + " /// " + station.getStationName())) {
+								node2.setState(currentSelections.get("Stations of organization: " + user.getOrganizationName() + " /// " + station.getStationName()));
+							} else {
+								node2.setState(TriState.SELECTED);
+							}
+							node.add(node2);									
+						}
+					}
+				}	
+			}
+		}
 
+		return new JTree(root);
+		
+	}
+
+	private Map<String, TriState> getCurrentSelections() {
+	
+		Map<String, TriState> currentSelections = new HashMap<String, TriState>();
+		
+		if (tree != null) {		
+			TreeModel model = tree.getModel();
+			if (model != null) {
+				Object root = model.getRoot();
+				for (int i=0; i<model.getChildCount(root); i++) {
+					Object child = model.getChild(root, i);
+					if (child instanceof TriStateTreeNode) {
+						TriStateTreeNode node = (TriStateTreeNode) child;
+						if (node.toString().equals("Own operative stations")) {								
+							for (int j=0; j<model.getChildCount(child); j++) {
+								Object child2 = model.getChild(child, j);
+								if (child2 instanceof TriStateTreeNode) {
+									TriStateTreeNode node2 = (TriStateTreeNode) child2;										
+									currentSelections.put("Own operative stations /// " + node2.toString(), node2.getState());
+								}
+							}							
+						} else if (node.toString().equals("Own planned stations")) {
+							for (int j=0; j<model.getChildCount(child); j++) {
+								Object child2 = model.getChild(child, j);
+								if (child2 instanceof TriStateTreeNode) {
+									TriStateTreeNode node2 = (TriStateTreeNode) child2;									
+									currentSelections.put("Own planned stations /// " + node2.toString(), node2.getState());									
+								}
+							}							
+						} else if (node.toString().startsWith("Simulation: ")) {							
+							for (int j=0; j<model.getChildCount(child); j++) {
+								Object child2 = model.getChild(child, j);
+								if (child2 instanceof TriStateTreeNode) {
+									TriStateTreeNode node2 = (TriStateTreeNode) child2;									
+									currentSelections.put(node.toString() + " /// " + node2.toString(), node2.getState());									
+								}
+							}	
+						} else if (node.toString().startsWith("Stations of organization: ")) {
+							for (int j=0; j<model.getChildCount(child); j++) {
+								Object child2 = model.getChild(child, j);
+								if (child2 instanceof TriStateTreeNode) {
+									TriStateTreeNode node2 = (TriStateTreeNode) child2;									
+									currentSelections.put(node.toString() + " /// " + node2.toString(), node2.getState());									
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+
+		return currentSelections;
+	}
+	
 	@Override
 	public void findAndInit(Object obj) {
 		if (initiallySelectedLayerClassNames == null) {
@@ -1268,7 +1473,7 @@ public class StationLayer extends OMGraphicHandlerLayer implements MapMouseListe
 			layersMenu.setLayers(inLayers);
 		}
 		if (eavdamMenu != null && transmitCoverageLayer != null && receiveCoverageLayer != null && interferenceCoverageLayer != null && sidePanel != null && !stationsInitiallyUpdated) {
-			eavdamMenu.getShowOnMapMenu().updateCoverageItems(receiveCoverageLayer.isVisible(), transmitCoverageLayer.isVisible(), interferenceCoverageLayer.isVisible());
+			//eavdamMenu.getShowOnMapMenu().updateCoverageItems(receiveCoverageLayer.isVisible(), transmitCoverageLayer.isVisible(), interferenceCoverageLayer.isVisible());
 			updateStations();
 			stationsInitiallyUpdated = true;
 		}	
@@ -1292,98 +1497,89 @@ public class StationLayer extends OMGraphicHandlerLayer implements MapMouseListe
         return null;
     }
 
+	
     public void updateStations() {
 	
-		if (eavdamMenu == null || eavdamMenu.getShowOnMapMenu() == null) {
+		if (eavdamMenu == null) {
 			return;
 		}
 
+		if (tree == null) {
+			tree = createTree();
+		}
+		
         data = DBHandler.getData();                        
         if (data != null) {
-             Options options = OptionsMenuItem.loadOptions();
-             //currentIcons = options.getIconsSize();
-             graphics.clear();
-			 transmitCoverageLayer.getGraphicsList().clear();
-			 receiveCoverageLayer.getGraphicsList().clear();
-			 interferenceCoverageLayer.getGraphicsList().clear();			 
-			 if (eavdamMenu.getShowOnMapMenu().getOwnOperativeStationsMenuItem().isSelected() || eavdamMenu.getShowOnMapMenu().getOwnPlannedStationsMenuItem().isSelected()) {
-                List<ActiveStation> activeStations = data.getActiveStations();
-                if (activeStations != null) {
-                    for (ActiveStation as : activeStations) {
-                        if (as.getStations() != null) {
-                            for (AISFixedStationData stationData : as.getStations()) {
-                                if (stationData.getStatus().getStatusID() == DerbyDBInterface.STATUS_ACTIVE &&
-                                        eavdamMenu.getShowOnMapMenu().getOwnOperativeStationsMenuItem().isSelected()) {
-                                    this.addBaseStation(null, data.getUser(), stationData);
-								}
-                                if (stationData.getStatus().getStatusID() == DerbyDBInterface.STATUS_PLANNED &&
-                                        eavdamMenu.getShowOnMapMenu().getOwnPlannedStationsMenuItem().isSelected()) {
-                                    this.addBaseStation(null, data.getUser(), stationData);
-                                }
-                            }
-                        }
-                    }
-                }
-			}
-            if (eavdamMenu.getShowOnMapMenu().getSimulationMenuItems() != null) {
-				for (JCheckBoxMenuItem simulationMenuItem : eavdamMenu.getShowOnMapMenu().getSimulationMenuItems()) {
-					if (simulationMenuItem.isSelected()) {
-						String temp = "Show " + StationInformationMenuItem.SIMULATION_LABEL + " ";
-						String selectedSimulation = simulationMenuItem.getText().substring(temp.length());
-						if (data.getSimulatedStations() != null) {
-							for (Simulation s : data.getSimulatedStations()) {
-								if (s.getName().equals(selectedSimulation)) {
-									List<AISFixedStationData> stations = s.getStations();
-									for (AISFixedStationData stationData : stations) {
-										this.addBaseStation(s.getName(), data.getUser(), stationData);
+		
+            Options options = OptionsMenuItem.loadOptions();
+			graphics.clear();
+			transmitCoverageLayer.getGraphicsList().clear();
+			receiveCoverageLayer.getGraphicsList().clear();
+			interferenceCoverageLayer.getGraphicsList().clear();			 
+			
+			Map<String, TriState> currentSelections = getCurrentSelections();
+			
+			List<ActiveStation> activeStations = data.getActiveStations();
+            if (activeStations != null) {
+				for (ActiveStation as : activeStations) {
+					if (as.getStations() != null) {
+						for (AISFixedStationData stationData : as.getStations()) {
+							if (stationData.getStatus().getStatusID() == DerbyDBInterface.STATUS_ACTIVE) {
+								if (currentSelections.containsKey("Own operative stations /// " + stationData.getStationName())) {
+									if (currentSelections.get("Own operative stations /// " + stationData.getStationName()) == TriState.SELECTED) {
+										this.addBaseStation(null, data.getUser(), stationData);
 									}
-									break;
+								} else {
+									this.addBaseStation(null, data.getUser(), stationData);								
 								}
-							}
-						}
-					}   
-				}
-			}			
-            if (eavdamMenu.getShowOnMapMenu().getOtherUsersStationsMenuItems() != null && eavdamMenu.getShowOnMapMenu().getShowAllOtherUsersStationsMenuItem() != null) {			
-				if (eavdamMenu.getShowOnMapMenu().getShowAllOtherUsersStationsMenuItem().isSelected()) {
-					for (OtherUserStations ous : data.getOtherUsersStations()) {
-						EAVDAMUser user = ous.getUser();
-						List<ActiveStation> activeStations = ous.getStations();
-						for (ActiveStation as : activeStations) {
-							List<AISFixedStationData> stations = as.getStations();
-							for (AISFixedStationData station : stations) {
-								if (station.getStatus().getStatusID() == DerbyDBInterface.STATUS_ACTIVE) {
-									this.addBaseStation(user, user, station);
+							} else if (stationData.getStatus().getStatusID() == DerbyDBInterface.STATUS_PLANNED) {
+								if (currentSelections.containsKey("Own planned stations /// " + stationData.getStationName())) {
+									if (currentSelections.get("Own planned stations /// " + stationData.getStationName()) == TriState.SELECTED) {
+										this.addBaseStation(null, data.getUser(), stationData);
+									}							
+								} else {
+									this.addBaseStation(null, data.getUser(), stationData);								
 								}
 							}
 						}
 					}
-				} else {
-					for (JCheckBoxMenuItem otherUsersStationsMenuItem : eavdamMenu.getShowOnMapMenu().getOtherUsersStationsMenuItems()) {
-						if (otherUsersStationsMenuItem.isSelected()) {
-							String temp = "Show " + StationInformationMenuItem.STATIONS_OF_ORGANIZATION_LABEL + " ";
-							String selectedOtherUser = otherUsersStationsMenuItem.getText().substring(temp.length());
-							if (data.getOtherUsersStations() != null) {
-								for (OtherUserStations ous : data.getOtherUsersStations()) {
-									EAVDAMUser user = ous.getUser();
-									if (user.getOrganizationName().equals(selectedOtherUser)) {
-										List<ActiveStation> activeStations = ous.getStations();
-										for (ActiveStation as : activeStations) {
-											List<AISFixedStationData> stations = as.getStations();
-											for (AISFixedStationData station : stations) {
-												if (station.getStatus().getStatusID() == DerbyDBInterface.STATUS_ACTIVE) {
-													this.addBaseStation(user, user, station);
-												}
-											}
-										}
-										break;
-									}
-								}
-							}
+				}
+			}
+
+			if (data.getSimulatedStations() != null) {
+				for (Simulation s : data.getSimulatedStations()) {
+					List<AISFixedStationData> stations = s.getStations();
+					for (AISFixedStationData stationData : stations) {
+						if (currentSelections.containsKey("Simulation: " + s.getName() + " /// " + stationData.getStationName())) {
+							if (currentSelections.get("Simulation: " + s.getName() + " /// " + stationData.getStationName()) == TriState.SELECTED) {
+								this.addBaseStation(s.getName(), data.getUser(), stationData);
+							}							
+						} else {
+							this.addBaseStation(s.getName(), data.getUser(), stationData);							
 						}
-					}       
-				}					
-            }                           
+					}
+				}
+			}   
+			
+			for (OtherUserStations ous : data.getOtherUsersStations()) {
+				EAVDAMUser user = ous.getUser();
+				List<ActiveStation> otherUsersActiveStations = ous.getStations();
+				for (ActiveStation as : otherUsersActiveStations) {
+					List<AISFixedStationData> stations = as.getStations();
+					for (AISFixedStationData station : stations) {
+						if (station.getStatus().getStatusID() == DerbyDBInterface.STATUS_ACTIVE) {
+							if (currentSelections.containsKey("Stations of organization: " + user.getOrganizationName() + " /// " + station.getStationName())) {
+								if (currentSelections.get("Stations of organization: " + user.getOrganizationName() + " /// " + station.getStationName()) == TriState.SELECTED) {
+									this.addBaseStation(user, user, station);
+								}							
+							} else {
+								this.addBaseStation(user, user, station);					
+							}		
+						}
+					}
+				}
+			}
+                         
             this.repaint();
 		    this.validate();
             transmitCoverageLayer.repaint();

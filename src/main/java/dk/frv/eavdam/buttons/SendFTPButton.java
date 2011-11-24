@@ -104,7 +104,7 @@ public class SendFTPButton extends OMToolComponent implements ActionListener, To
 		 
 		EAVDAMData data = XMLHandler.importData();
 		if (eavdamMenu != null) {
-			eavdamMenu.setShowOnMapMenu(new ShowOnMapMenu(eavdamMenu));
+			//eavdamMenu.setShowOnMapMenu(new ShowOnMapMenu(eavdamMenu));
 			if (eavdamMenu.getStationInformationMenu() != null && eavdamMenu.getStationInformationMenu().getStationInformationMenuItem() != null) {
 				eavdamMenu.getStationInformationMenu().getStationInformationMenuItem().setData(data);
 			}
