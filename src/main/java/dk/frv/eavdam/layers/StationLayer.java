@@ -750,18 +750,33 @@ public class StationLayer extends OMGraphicHandlerLayer implements MapMouseListe
 				slotMapDialog = null;
 				new GetSlotMapDialogThread(this, data, openMapFrame, latitude, longitude).start();
 
-				waitDialog = new JDialog(openMapFrame, "Please, wait while the slotmap is being created", true);
+				waitDialog = new JDialog(openMapFrame, "Please wait...", true);
 
- 				progressBar = new JProgressBar();
-				progressBar.setIndeterminate(true);
-
-				JPanel panel = new JPanel();
-				panel.setBorder(BorderFactory.createEmptyBorder(40,0,0,0));
-				panel.add(progressBar);
+				progressBar = new JProgressBar();
+				progressBar = new JProgressBar();
+				progressBar.setIndeterminate(true);		
+				progressBar.setPreferredSize(new Dimension(330, 20));
+				progressBar.setMaximumSize(new Dimension(330, 20));
+				progressBar.setMinimumSize(new Dimension(330, 20));					
+				
+				JPanel panel = new JPanel();							
+				panel.setLayout(new GridBagLayout());
+				GridBagConstraints c = new GridBagConstraints();
+				c.gridx = 0;
+				c.gridy = 0;                   
+				c.anchor = GridBagConstraints.FIRST_LINE_START;
+				c.insets = new Insets(10,10,10,10);			
+				JLabel titleLabel = new JLabel("<html><body><p>Please wait, while the slotmap is being created...<p></body></html>");
+				titleLabel.setPreferredSize(new Dimension(330, 15));
+				titleLabel.setMaximumSize(new Dimension(330, 15));
+				titleLabel.setMinimumSize(new Dimension(330, 15));
+				panel.add(titleLabel, c);
+				c.gridy = 1;
+				c.anchor = GridBagConstraints.CENTER;
+				panel.add(progressBar, c);
 				waitDialog.getContentPane().add(panel);
 				Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
-				waitDialog.setBounds((int) screenSize.getWidth()/2 - 350/2, (int) screenSize.getHeight()/2 - 150/2, 350, 150);
-				
+				waitDialog.setBounds((int) screenSize.getWidth()/2 - 380/2, (int) screenSize.getHeight()/2 - 150/2, 380, 150);
 				new WaitThread(this).start();
 				waitDialog.setVisible(true);
 			}
@@ -1401,7 +1416,7 @@ class GetSlotMapDialogThread extends Thread {
 	public void run() {
 		HealthCheckHandler hch = new HealthCheckHandler(data);
 		AISSlotMap slotmap = hch.slotMapAtPoint(latitude, longitude);
-		stationLayer.setSlotMapDialog(new SlotMapDialog(openMapFrame, latitude, longitude, slotmap));  // TODO: should get the aisslotmap based on latitude and longitude from database
+		stationLayer.setSlotMapDialog(new SlotMapDialog(openMapFrame, latitude, longitude, slotmap));
 	}
 
 }
