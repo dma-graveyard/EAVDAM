@@ -89,7 +89,7 @@ public class DBHandler {
 //	            	for(AISFixedStationData f : a.getStations()){
 //	            		System.out.println("Station "+(f.getStatus().getStatusID() == DerbyDBInterface.STATUS_PLANNED ? "Planned" : "Operative"));
 //	            		if(f.getFATDMAChannelA() != null)
-//	            			System.out.println("A "+((AISBaseAndReceiverStationFATDMAChannel)f.getFATDMAChannelA()).getFATDMAScheme().size());
+//	            			System.out.println("A "+((AISBaseAndReceiverStationFATDMAChannel)f.getFATDMAChannelA()).getFATDMAScheme().get(0).getOwnership());
 //	            		if(f.getFATDMAChannelB() != null)
 //	            			System.out.println("B "+((AISBaseAndReceiverStationFATDMAChannel)f.getFATDMAChannelB()).getFATDMAScheme().size());
 //	            	}
@@ -104,30 +104,30 @@ public class DBHandler {
 
     	}
             
-    	try{
-	    	HealthCheckHandler hch = new HealthCheckHandler(dat);
-	    	
-	    	double[] point = {60,24.15};
-	    	AISSlotMap res = hch.slotMapAtPoint(point[0], point[1]);
-	    	
-	    	if(res != null){
-	    		try{
-	    			System.out.println("Stations found with coverage at (60;24.15)!");
-	    			if(res.getAIS1Timeslots() != null && res.getAIS1Timeslots().size() > 0){
-	    				System.out.println("\tReservation: "+res.getBandwidthReservation());
-	    				System.out.println("\t"+res.getAIS1Timeslots().get(101).toString());
-	    			}
-	    				
-	    			
-	    		}catch(Exception e){
-	    			e.printStackTrace();
-	    		}
-	    	}else{
-	    		System.out.println("\tNo stations found with coverage at (60;24.15)");
-	    	}
-    	}catch(Exception e){
-    		e.printStackTrace();
-    	}
+//    	try{
+//	    	HealthCheckHandler hch = new HealthCheckHandler(dat);
+//	    	
+//	    	double[] point = {60,24.15};
+//	    	AISSlotMap res = hch.slotMapAtPoint(point[0], point[1]);
+//	    	
+//	    	if(res != null){
+//	    		try{
+//	    			System.out.println("Stations found with coverage at (60;24.15)!");
+//	    			if(res.getAIS1Timeslots() != null && res.getAIS1Timeslots().size() > 0){
+//	    				System.out.println("\tReservation: "+res.getBandwidthReservation());
+//	    				System.out.println("\t"+res.getAIS1Timeslots().get(101).toString());
+//	    			}
+//	    				
+//	    			
+//	    		}catch(Exception e){
+//	    			e.printStackTrace();
+//	    		}
+//	    	}else{
+//	    		System.out.println("\tNo stations found with coverage at (60;24.15)");
+//	    	}
+//    	}catch(Exception e){
+//    		e.printStackTrace();
+//    	}
 
     		
         return dat;

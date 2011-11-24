@@ -362,6 +362,7 @@ public class AISFixedStationData {
 				List<FATDMAReservation> fatdmaScheme = chA.getFATDMAScheme();
 				if (fatdmaScheme != null) {
 					for (FATDMAReservation fatdmaReservation : fatdmaScheme) {
+
 						Integer startslot = fatdmaReservation.getStartslot();
 				        Integer blockSize = fatdmaReservation.getBlockSize();
 				        Integer increment = fatdmaReservation.getIncrement();
