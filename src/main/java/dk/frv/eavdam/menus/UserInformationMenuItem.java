@@ -500,11 +500,15 @@ class UserInformationActionListener implements ActionListener, DocumentListener 
             } else {
                 user.setFax(faxNumberTextField.getText().trim());
             }
-            if (websiteTextField.getText().trim().isEmpty()) {
+            if (websiteTextField.getText().trim().isEmpty()) {				
                 user.setWww(null);
             } else {
                 try {
-                    user.setWww(new URL(websiteTextField.getText().trim()));
+					String website = websiteTextField.getText().trim();
+					if (website.startsWith("www")) {
+						website = "http://" + website;
+					}
+                    user.setWww(new URL(website));
                 } catch (MalformedURLException ex) {                       
                     JOptionPane.showMessageDialog(dialog, "Website address is not a valid URL.");
                     return false;
@@ -649,9 +653,14 @@ class UserInformationActionListener implements ActionListener, DocumentListener 
         }
         if (user.getWww() == null && !websiteTextField.getText().isEmpty()) {
             return true;
-        }
-        if (user.getWww() != null && !user.getWww().toString().equals(websiteTextField.getText())) {
-            return true;
+        } else {
+			String website = websiteTextField.getText().trim();
+			if (website.startsWith("www")) {
+				website = "http://" + website;
+			}
+			if (user.getWww() != null && (!user.getWww().toString().equals(website))) {
+				return true;
+			}
         }
         Person contact = user.getContact();
         if (contact == null) {

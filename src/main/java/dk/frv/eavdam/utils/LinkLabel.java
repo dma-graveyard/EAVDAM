@@ -23,6 +23,11 @@ public class LinkLabel extends JLabel {
 		this.text = text;
 	}
 
+	public void setRedText(String text) {
+		super.setText("<html><font color=\"red\"><u>"+text+"</u></font></html>");
+		this.text = text;
+	}
+	
 	public String getNormalText() {
 		return text;
 	}

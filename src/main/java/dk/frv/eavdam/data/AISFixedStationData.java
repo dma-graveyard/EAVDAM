@@ -374,13 +374,19 @@ public class AISFixedStationData {
 							}
 							if (incrementInt == 0) {
 								for (int i=0; i<blockSizeInt; i++) {
-									reservedBlocks.add(new Integer(startslotInt+i));
+									Integer slot = new Integer(startslotInt+i);
+									if (!reservedBlocks.contains(slot)) {
+										reservedBlocks.add(slot);
+									}
 								}								
 							} else if (incrementInt > 0) {
 								int i = 0;
 								while (i*incrementInt <= 2249) {							
 									for (int j=0; j<blockSizeInt; j++) {
-										reservedBlocks.add(new Integer(startslotInt+j+(i*incrementInt)));
+										Integer slot = new Integer(startslotInt+j+(i*incrementInt));
+										if (!reservedBlocks.contains(slot)) {
+											reservedBlocks.add(slot);
+										}
 									}
 									i++;
 								}
@@ -405,13 +411,19 @@ public class AISFixedStationData {
 							}							
 							if (incrementInt == 0) {
 								for (int i=0; i<blockSizeInt; i++) {
-									reservedBlocks.add(new Integer(startslotInt+i));
+									Integer slot = new Integer(startslotInt+i);
+									if (!reservedBlocks.contains(slot)) {
+										reservedBlocks.add(slot);
+									}									
 								}								
 							} else if (incrementInt > 0) {
 								int i = 0;
 								while (i*incrementInt <= 2249) {							
 									for (int j=0; j<blockSizeInt; j++) {
-										reservedBlocks.add(new Integer(startslotInt+j+(i*incrementInt)));
+										Integer slot = new Integer(startslotInt+j+(i*incrementInt));
+										if (!reservedBlocks.contains(slot)) {
+											reservedBlocks.add(slot);
+										}										
 									}
 									i++;
 								}
@@ -447,13 +459,19 @@ public class AISFixedStationData {
 							}	
 							if (incrementInt == 0) {
 								for (int i=0; i<blockSizeInt; i++) {
-									reservedBlocks.add(new Integer(startslotInt+i));
+									Integer slot = new Integer(startslotInt+i);
+									if (!reservedBlocks.contains(slot)) {
+										reservedBlocks.add(slot);
+									}
 								}								
 							} else if (incrementInt > 0) {
 								int i = 0;
 								while (i*incrementInt <= 2249) {							
 									for (int j=0; j<blockSizeInt; j++) {
-										reservedBlocks.add(new Integer(startslotInt+j+(i*incrementInt)));
+										Integer slot = new Integer(startslotInt+j+(i*incrementInt));
+										if (!reservedBlocks.contains(slot)) {										
+											reservedBlocks.add(slot);
+										}
 									}
 									i++;
 								}
@@ -478,13 +496,19 @@ public class AISFixedStationData {
 							}							
 							if (incrementInt == 0) {
 								for (int i=0; i<blockSizeInt; i++) {
-									reservedBlocks.add(new Integer(startslotInt+i));
+									Integer slot = new Integer(startslotInt+i);
+									if (!reservedBlocks.contains(slot)) {
+										reservedBlocks.add(slot);
+									}
 								}								
 							} else if (incrementInt > 0) {
 								int i = 0;
 								while (i*incrementInt <= 2249) {							
 									for (int j=0; j<blockSizeInt; j++) {
-										reservedBlocks.add(new Integer(startslotInt+j+(i*incrementInt)));
+										Integer slot = new Integer(startslotInt+j+(i*incrementInt));
+										if (!reservedBlocks.contains(slot)) {
+											reservedBlocks.add(slot);
+										}									
 									}
 									i++;
 								}
