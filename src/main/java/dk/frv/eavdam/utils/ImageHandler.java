@@ -11,9 +11,6 @@ public class ImageHandler {
 
     public static Image getTimeslotImage(int width, int height, List<TimeslotReservation> timeslotReservations) {
  
-		//int width = 400;
-		//int height = 15;
-
 		BufferedImage bimage = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
 
 		Graphics2D g2d = bimage.createGraphics();

@@ -1773,10 +1773,14 @@ public class AddStationDialog extends JDialog implements ActionListener, ItemLis
 					try {
 						List<FATDMAReservation> fatdmaScheme = getFATDMAScheme(channelAComponents);
 						if (!fatdmaScheme.isEmpty()) {
+							if (!validateFATDMAScheme(fatdmaScheme)) {
+								JOptionPane.showMessageDialog(this, "Error. The FATDMA values of channel A are overlapping.");
+								return false;
+							}						
 							fatdmaChannelA = new AISBaseAndReceiverStationFATDMAChannel((String) addStationChannelAComboBox.getSelectedItem(), fatdmaScheme);
 						}
 					} catch (NumberFormatException e) {
-						JOptionPane.showMessageDialog(this, "All FATDMA values of channel A are not valid integers.");
+						JOptionPane.showMessageDialog(this, "Error. All FATDMA values of channel A are not valid integers.");
 						return false;
 					} catch (IllegalArgumentException e) {
 						JOptionPane.showMessageDialog(this, "The following error occurred when validating FATDMA values of channel A:\n" + e.getMessage());              
@@ -1788,10 +1792,14 @@ public class AddStationDialog extends JDialog implements ActionListener, ItemLis
 					try {
 						List<FATDMAReservation> fatdmaScheme = getFATDMAScheme(channelBComponents);
 						if (!fatdmaScheme.isEmpty()) {
+							if (!validateFATDMAScheme(fatdmaScheme)) {
+								JOptionPane.showMessageDialog(this, "Error. The FATDMA values of channel B are overlapping.");
+								return false;
+							}						
 							fatdmaChannelB = new AISBaseAndReceiverStationFATDMAChannel((String) addStationChannelBComboBox.getSelectedItem(), fatdmaScheme);
 						}			
 					} catch (NumberFormatException e) {
-						JOptionPane.showMessageDialog(this, "All FATDMA values of channel B are not valid integers.");
+						JOptionPane.showMessageDialog(this, "Error. All FATDMA values of channel B are not valid integers.");
 						return false;
 					} catch (IllegalArgumentException e) {
 						JOptionPane.showMessageDialog(this, "The following error occurred when validating FATDMA values of channel B:\n" + e.getMessage());              
@@ -1806,10 +1814,14 @@ public class AddStationDialog extends JDialog implements ActionListener, ItemLis
 				try {
 					List<AtonMessageBroadcastRate> atonMessageBroadcastList = getAtonMessageBroadcastList(channelAComponents);
 					if (!atonMessageBroadcastList.isEmpty()) {
+						if (!validateAtonMessageBroadcastList(atonMessageBroadcastList)) {
+							JOptionPane.showMessageDialog(this, "Error. The FATDMA values of channel A are overlapping.");
+							return false;
+						}						
 						fatdmaChannelA = new AISAtonStationFATDMAChannel((String) addStationChannelAComboBox.getSelectedItem(), atonMessageBroadcastList);					
 					}
 				} catch (NumberFormatException e) {
-					JOptionPane.showMessageDialog(this, "All FATDMA values of channel A are not valid integers.");
+					JOptionPane.showMessageDialog(this, "Error. All FATDMA values of channel A are not valid integers.");
 					return false;
 				} catch (IllegalArgumentException e) {
 					JOptionPane.showMessageDialog(this, "The following error occurred when validating FATDMA values of channel A:\n" + e.getMessage());              
@@ -1821,10 +1833,14 @@ public class AddStationDialog extends JDialog implements ActionListener, ItemLis
 				try {
 					List<AtonMessageBroadcastRate> atonMessageBroadcastList = getAtonMessageBroadcastList(channelBComponents);
 					if (!atonMessageBroadcastList.isEmpty()) {
+						if (!validateAtonMessageBroadcastList(atonMessageBroadcastList)) {
+							JOptionPane.showMessageDialog(this, "Error. The FATDMA values of channel B are overlapping.");
+							return false;
+						}						
 						fatdmaChannelB = new AISAtonStationFATDMAChannel((String) addStationChannelBComboBox.getSelectedItem(), atonMessageBroadcastList);
 					}
 				} catch (NumberFormatException e) {
-					JOptionPane.showMessageDialog(this, "All FATDMA values of channel B are not valid integers.");
+					JOptionPane.showMessageDialog(this, "Error. All FATDMA values of channel B are not valid integers.");
 					return false;
 				} catch (IllegalArgumentException e) {
 					JOptionPane.showMessageDialog(this, "The following error occurred when validating FATDMA values of channel B:\n" + e.getMessage());              
@@ -1880,6 +1896,8 @@ public class AddStationDialog extends JDialog implements ActionListener, ItemLis
 				doContinue = false;
 			}
 		}
+		
+		
 		
 		if (doContinue) {
 			AISFixedStationData stationData = new AISFixedStationData();
@@ -2016,5 +2034,97 @@ public class AddStationDialog extends JDialog implements ActionListener, ItemLis
 			return false;
 		}
     }
+
+	/** 
+	 * Checks whether the FATDMA scheme contains overlapping reservations,
+	 * e.g., startslot=100, blocksize=2, increment=1000 and startslot=50,
+	 * blocksize=1, increment=50, will result in block 101 beingg reserved
+	 * twice and in that case this method will return false
+	 */
+	private boolean validateFATDMAScheme(List<FATDMAReservation> fatdmaScheme) {
+		List<Integer> reservedBlocks = new ArrayList<Integer>();
+		if (fatdmaScheme != null) {
+			for (FATDMAReservation fatdmaReservation : fatdmaScheme) {
+				Integer startslot = fatdmaReservation.getStartslot();
+				Integer blockSize = fatdmaReservation.getBlockSize();
+				Integer increment = fatdmaReservation.getIncrement();
+				if (startslot != null && blockSize != null && increment != null) {
+					int startslotInt = startslot.intValue();
+					int blockSizeInt = blockSize.intValue();
+					int incrementInt = increment.intValue();
+					if (incrementInt == 0) {
+						for (int i=0; i<blockSizeInt; i++) {
+							Integer slot = new Integer(startslotInt+i);
+							if (reservedBlocks.contains(slot)) {
+								return false;
+							} else {
+								reservedBlocks.add(slot);
+							}
+						}								
+					} else if (incrementInt > 0) {
+						int i = 0;
+						while (i*incrementInt <= 2249) {							
+							for (int j=0; j<blockSizeInt; j++) {
+								Integer slot = new Integer(startslotInt+j+(i*incrementInt));
+								if (reservedBlocks.contains(slot)) {
+									return false;
+								} else {
+									reservedBlocks.add(slot);
+								}
+							}
+							i++;
+						}
+					}
+				}
+			}
+		}
+		return true;
+	}
+	
+	/** 
+	 * Checks whether the FATDMA scheme contains overlapping reservations,
+	 * e.g., startslot=100, blocksize=2, increment=1000 and startslot=50,
+	 * blocksize=1, increment=50, will result in block 101 beingg reserved
+	 * twice and in that case this method will return false
+	 */
+	private boolean validateAtonMessageBroadcastList(List<AtonMessageBroadcastRate> atonMessageBroadcastList) {
+		List<Integer> reservedBlocks = new ArrayList<Integer>();
+		if (atonMessageBroadcastList != null) {
+			for (AtonMessageBroadcastRate atonMessageBroadcastRate : atonMessageBroadcastList) {
+				Integer startslot = atonMessageBroadcastRate.getStartslot();
+			    Integer blockSize = atonMessageBroadcastRate.getBlockSize();
+			    Integer increment = atonMessageBroadcastRate.getIncrement();
+				if (startslot != null && blockSize != null && increment != null) {
+					int startslotInt = startslot.intValue();
+					int blockSizeInt = blockSize.intValue();
+					int incrementInt = increment.intValue();
+					if (incrementInt == 0) {
+						for (int i=0; i<blockSizeInt; i++) {
+							Integer slot = new Integer(startslotInt+i);
+							if (reservedBlocks.contains(slot)) {
+								return false;
+							} else {
+								reservedBlocks.add(slot);
+							}
+						}								
+					} else if (incrementInt > 0) {
+						int i = 0;
+						while (i*incrementInt <= 2249) {							
+							for (int j=0; j<blockSizeInt; j++) {
+								Integer slot = new Integer(startslotInt+j+(i*incrementInt));
+								if (reservedBlocks.contains(slot)) {
+									return false;
+								} else {
+									reservedBlocks.add(slot);
+								}
+							}
+							i++;
+						}
+					}
+				}
+			}
+		}
+		return true;
+	}	
 	
 }
