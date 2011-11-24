@@ -2,7 +2,9 @@ package dk.frv.eavdam.data;
 
 import java.io.StringWriter;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import javax.xml.transform.OutputKeys;
 import javax.xml.transform.Transformer;
@@ -112,6 +114,14 @@ public class AISFixedStationData {
 	 */
 	private int stationDBID;
 
+	/**
+	 * Stores the info about the ownership for each timeslot in both channel A and B.
+	 * 
+	 * Needed for rules checking.
+	 */
+	private Map<Integer,String> ownershipA;
+	private Map<Integer,String> ownershipB;
+	
 	public AISFixedStationData() {
 	}
 
@@ -488,36 +498,7 @@ public class AISFixedStationData {
 		return reservedBlocks;
 	}
 	
+
+	
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 

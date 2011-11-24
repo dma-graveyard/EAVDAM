@@ -82,6 +82,7 @@ public class DBHandler {
 	            }
 	            
 	        	dat = d.retrieveAllEAVDAMData(user);
+	        	
 	            //Test prints
 //	            for(ActiveStation a : dat.getActiveStations()){
 //	            	

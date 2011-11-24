@@ -12,6 +12,7 @@ import dk.frv.eavdam.data.AISDatalinkCheckIssue;
 import dk.frv.eavdam.data.AISDatalinkCheckResult;
 import dk.frv.eavdam.data.AISDatalinkCheckRule;
 import dk.frv.eavdam.data.AISFixedStationData;
+import dk.frv.eavdam.data.AISFixedStationType;
 import dk.frv.eavdam.data.AISSlotMap;
 import dk.frv.eavdam.data.AISStation;
 import dk.frv.eavdam.data.AISTimeslot;
@@ -53,6 +54,323 @@ public class HealthCheckHandler {
 	 * @return
 	 */
 	public AISSlotMap slotMapAtPoint(double lat, double lon){
+		if(this.data == null){
+			
+			this.data = DBHandler.getData(); 
+		}
+		
+		double[] point = {lat, lon};
+		
+		EAVDAMData transmission = getStationsAtPoint(data, point, HealthCheckHandler.TRANSMISSION_COVERAGE);
+		EAVDAMData interference = getStationsAtPoint(data, point, HealthCheckHandler.INTERFERENCE_COVERAGE);
+		
+		List<AISDatalinkCheckIssue> issues = new ArrayList<AISDatalinkCheckIssue>();
+		
+		AISDatalinkCheckResult result = new AISDatalinkCheckResult();
+		
+		if(transmission == null) return null;
+
+		Map<String,List<AISFixedStationData>> reservationsA = new HashMap<String, List<AISFixedStationData>>();
+		Map<String,List<AISFixedStationData>> reservationsB = new HashMap<String, List<AISFixedStationData>>();
+		
+		Set<String> handledStations = new HashSet<String>();
+		
+		//Check all active stations
+		if(transmission.getActiveStations() != null){
+			for(ActiveStation as : transmission.getActiveStations()){
+				if(as.getStations() != null){
+					for(AISFixedStationData s : as.getStations()){
+						if(s.getStatus().getStatusID() == DerbyDBInterface.STATUS_PLANNED) continue; //TODO Include the PLANNED stations to the check also?
+						
+						if(handledStations.contains(s.getStationName()+"_"+s.getOperator().getOrganizationName())) continue;
+						
+						if(s.getFATDMAChannelA() != null){
+							for(Integer a : s.getReservedBlocksForChannelA()){
+								List<AISFixedStationData> reservations = reservationsA.get(a.intValue()+"");
+								if(reservations == null) reservations = new ArrayList<AISFixedStationData>();
+								
+								reservations.add(s);
+								
+								reservationsA.put(a.intValue()+"", reservations);
+							}
+						}
+						
+						if(s.getFATDMAChannelB() != null){
+							for(Integer a : s.getReservedBlocksForChannelB()){
+								List<AISFixedStationData> reservations = reservationsB.get(a.intValue()+"");
+								if(reservations == null) reservations = new ArrayList<AISFixedStationData>();
+								
+								reservations.add(s);
+								
+								reservationsB.put(a.intValue()+"", reservations);
+							}
+						}
+						
+						handledStations.add(s.getStationName()+"_"+s.getOperator().getOrganizationName());
+					}
+				}
+				
+				
+			}
+		}
+
+		//TODO Is there a need to check proposals also? What to do to the planned stations?
+		
+		if(transmission.getOtherUsersStations() != null){
+			for(OtherUserStations other : transmission.getOtherUsersStations()){
+				if(other.getStations() != null){
+					for(ActiveStation as : other.getStations()){
+						if(as.getStations() != null){
+							for(AISFixedStationData s : as.getStations()){
+								if(s.getStatus().getStatusID() == DerbyDBInterface.STATUS_PLANNED) continue;
+								if(handledStations.contains(s.getStationName()+"_"+s.getOperator().getOrganizationName())) continue;
+								if(s.getFATDMAChannelA() != null){
+									for(Integer a : s.getReservedBlocksForChannelA()){
+										List<AISFixedStationData> reservations = reservationsA.get(a.intValue()+"");
+										if(reservations == null) reservations = new ArrayList<AISFixedStationData>();
+										
+										reservations.add(s);
+										
+										reservationsA.put(a.intValue()+"", reservations);
+									}
+								}
+								
+								if(s.getFATDMAChannelB() != null){
+									for(Integer a : s.getReservedBlocksForChannelB()){
+										List<AISFixedStationData> reservations = reservationsB.get(a.intValue()+"");
+										if(reservations == null) reservations = new ArrayList<AISFixedStationData>();
+										
+										reservations.add(s);
+										
+										reservationsB.put(a.intValue()+"", reservations);
+									}
+								}
+								
+								handledStations.add(s.getStationName()+"_"+s.getOperator().getOrganizationName());
+							}
+						}
+					}
+				}
+			}
+		}
+		
+		Map<String,List<AISFixedStationData>> interferenceA = new HashMap<String, List<AISFixedStationData>>();
+		Map<String,List<AISFixedStationData>> interferenceB = new HashMap<String, List<AISFixedStationData>>();
+		
+		Set<String> interfernceStations = new HashSet<String>();
+		
+		//Check all active stations
+		if(transmission.getActiveStations() != null){
+			for(ActiveStation as : transmission.getActiveStations()){
+				if(as.getStations() != null){
+					for(AISFixedStationData s : as.getStations()){
+						if(s.getStatus().getStatusID() == DerbyDBInterface.STATUS_PLANNED) continue; //TODO Include the PLANNED stations to the check also?
+						
+						if(interfernceStations.contains(s.getStationName()+"_"+s.getOperator().getOrganizationName())) continue;
+						
+						if(s.getFATDMAChannelA() != null){
+							for(Integer a : s.getReservedBlocksForChannelA()){
+								List<AISFixedStationData> reservations = interferenceA.get(a.intValue()+"");
+								if(reservations == null) reservations = new ArrayList<AISFixedStationData>();
+								
+								reservations.add(s);
+								
+								interferenceA.put(a.intValue()+"", reservations);
+							}
+						}
+						
+						if(s.getFATDMAChannelB() != null){
+							for(Integer a : s.getReservedBlocksForChannelB()){
+								List<AISFixedStationData> reservations = interferenceB.get(a.intValue()+"");
+								if(reservations == null) reservations = new ArrayList<AISFixedStationData>();
+								
+								reservations.add(s);
+								
+								interferenceB.put(a.intValue()+"", reservations);
+							}
+						}
+						
+						interfernceStations.add(s.getStationName()+"_"+s.getOperator().getOrganizationName());
+					}
+				}
+				
+				
+			}
+		}
+
+		//TODO Is there a need to check proposals also? What to do to the planned stations?
+		
+		if(transmission.getOtherUsersStations() != null){
+			for(OtherUserStations other : transmission.getOtherUsersStations()){
+				if(other.getStations() != null){
+					for(ActiveStation as : other.getStations()){
+						if(as.getStations() != null){
+							for(AISFixedStationData s : as.getStations()){
+								if(s.getStatus().getStatusID() == DerbyDBInterface.STATUS_PLANNED) continue;
+								if(interfernceStations.contains(s.getStationName()+"_"+s.getOperator().getOrganizationName())) continue;
+								if(s.getFATDMAChannelA() != null){
+									for(Integer a : s.getReservedBlocksForChannelA()){
+										List<AISFixedStationData> reservations = interferenceA.get(a.intValue()+"");
+										if(reservations == null) reservations = new ArrayList<AISFixedStationData>();
+										
+										reservations.add(s);
+										
+										interferenceA.put(a.intValue()+"", reservations);
+									}
+								}
+								
+								if(s.getFATDMAChannelB() != null){
+									for(Integer a : s.getReservedBlocksForChannelB()){
+										List<AISFixedStationData> reservations = interferenceB.get(a.intValue()+"");
+										if(reservations == null) reservations = new ArrayList<AISFixedStationData>();
+										
+										reservations.add(s);
+										
+										interferenceB.put(a.intValue()+"", reservations);
+									}
+								}
+								
+								interfernceStations.add(s.getStationName()+"_"+s.getOperator().getOrganizationName());
+							}
+						}
+					}
+				}
+			}
+		}
+
+		
+		
+		//Create slot map
+		AISSlotMap slotmap = new AISSlotMap();
+		
+		//Get the reservation %
+		double percentage = 1.0*(reservationsA.size()+reservationsB.size())/(numberOfFrequencies*numberOfSlotsPerFrequency);
+		slotmap.setBandwidthReservation(percentage);
+		slotmap.setLat(lat);
+		slotmap.setLon(lon);
+		
+		List<AISTimeslot> slotA = new ArrayList<AISTimeslot>();
+		List<AISTimeslot> slotB = new ArrayList<AISTimeslot>();
+		for(int i = 0; i < numberOfSlotsPerFrequency; ++i){
+			AISTimeslot a = new AISTimeslot();
+			AISTimeslot b = new AISTimeslot();
+			
+			a.setSlotNumber(i);
+			b.setSlotNumber(i);
+			
+			if(reservationsA.get(i+"") == null || reservationsA.get(i+"").size() <= 0){
+				a.setFree(new Boolean(true));
+			}else{
+				List<AISFixedStationData> stations = reservationsA.get(i+"");
+
+					List<AISStation> problems = new ArrayList<AISStation>();
+					for(AISFixedStationData station : reservationsA.get(i+"")){
+						
+						AISStation s = new AISStation(station.getOperator().getOrganizationName(), station.getStationName(), station.getLat(), station.getLon());
+					
+						problems.add(s);
+					}
+					
+					if(stations.size() > 1){
+
+						a.setPossibleConflicts(new Boolean(true));
+						a.setInterferedBy(problems);
+					}else if(interferenceA.get(i+"") != null){
+						for(AISFixedStationData station : interferenceA.get(i+"")){
+							AISStation s = new AISStation(station.getOperator().getOrganizationName(), station.getStationName(), station.getLat(), station.getLon());
+							problems.add(s);
+						}
+						
+						a.setPossibleConflicts(new Boolean(true));
+						a.setInterferedBy(problems);
+					}else{
+						a.setPossibleConflicts(new Boolean(false));
+					}
+					
+					a.setReservedBy(problems);
+					a.setUsedBy(problems); //TODO AtoN check
+					a.setFree(new Boolean(false));
+				
+			}
+			
+			if(reservationsB.get(i+"") == null){
+				b.setFree(new Boolean(true));
+			}else{
+				List<AISFixedStationData> stations = reservationsB.get(i+"");
+				
+				List<AISStation> res = new ArrayList<AISStation>();
+				List<AISStation> used = new ArrayList<AISStation>();
+				for(AISFixedStationData station : reservationsB.get(i+"")){
+					
+					
+					AISStation s = new AISStation(station.getOperator().getOrganizationName(), station.getStationName(), station.getLat(), station.getLon());
+					
+					if(station.getStationType().equals(AISFixedStationType.ATON)){
+						used.add(s);
+					}else{
+						
+					}
+					
+					res.add(s);
+				}
+				
+				if(interferenceB.get(i+"") != null){
+						
+					List<AISStation> infs = new ArrayList<AISStation>();
+					for(AISFixedStationData station : interferenceB.get(i+"")){
+						AISStation s = new AISStation(station.getOperator().getOrganizationName(), station.getStationName(), station.getLat(), station.getLon());
+						infs.add(s);
+					}
+						
+					if(stations.size() > 1){
+						infs.addAll(res);
+					}
+						
+					b.setPossibleConflicts(new Boolean(true));
+					b.setInterferedBy(infs);
+				}else if(stations.size() > 1){
+					//Check if the station is an AtoN station.
+						
+					b.setPossibleConflicts(new Boolean(true));
+					b.setInterferedBy(res);
+				}else{
+					b.setPossibleConflicts(new Boolean(false));
+				}
+					
+				b.setReservedBy(res);
+				b.setUsedBy(res);
+				b.setFree(new Boolean(false));
+				
+			}
+			
+			
+			slotA.add(a);
+			slotB.add(b);
+		}
+		
+		slotmap.setAIS1Timeslots(slotA);
+		slotmap.setAIS2Timeslots(slotB);
+		
+		
+		
+//		AISDatalinkCheckArea area = new AISDatalinkCheckArea(lat, lon, getIncrementedLatitude(resolution, lat), getIncrementedLongitude(resolution, lon), percentage);
+//		List<AISDatalinkCheckArea> areas = new ArrayList<AISDatalinkCheckArea>();
+//		areas.add(area);
+//		result.setAreas(areas);
+		
+		return slotmap;
+	}
+	
+	
+	/**
+	 * 
+	 * Gets the stations and checks the bandwith of the given point. The point is the top left corner of the area.
+	 * 
+	 * @param lat TOP LEFT Lat point of the area
+	 * @param lon TOP LEFT Lon point of the area
+	 * @return
+	 */
+	public AISDatalinkCheckResult checkRulesAtPoint(double lat, double lon, double resolution){
 		if(this.data == null){
 			
 			this.data = DBHandler.getData(); 
@@ -238,12 +556,12 @@ public class HealthCheckHandler {
 		
 		
 		
-//		AISDatalinkCheckArea area = new AISDatalinkCheckArea(lat, lon, getIncrementedLatitude(resolution, lat), getIncrementedLongitude(resolution, lon), percentage);
-//		List<AISDatalinkCheckArea> areas = new ArrayList<AISDatalinkCheckArea>();
-//		areas.add(area);
-//		result.setAreas(areas);
+		AISDatalinkCheckArea area = new AISDatalinkCheckArea(lat, lon, getIncrementedLatitude(resolution, lat), getIncrementedLongitude(resolution, lon), percentage);
+		List<AISDatalinkCheckArea> areas = new ArrayList<AISDatalinkCheckArea>();
+		areas.add(area);
+		result.setAreas(areas);
 		
-		return slotmap;
+		return result;
 	}
 	
 	
