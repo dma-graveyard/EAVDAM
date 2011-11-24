@@ -485,7 +485,7 @@ public class AISFixedStationData {
 										if (!reservedBlocks.contains(slot)) {										
 											reservedBlocks.add(slot);
 										}
-										ownershipA.put(slot, fatdmaReservation.getOwnership());
+										ownershipB.put(slot, fatdmaReservation.getOwnership());
 									}
 									i++;
 								}

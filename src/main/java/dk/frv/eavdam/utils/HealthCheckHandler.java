@@ -79,12 +79,14 @@ public class HealthCheckHandler {
 		if(transmission.getActiveStations() != null){
 			for(ActiveStation as : transmission.getActiveStations()){
 				if(as.getStations() != null){
+					
 					for(AISFixedStationData s : as.getStations()){
 						if(s.getStatus().getStatusID() == DerbyDBInterface.STATUS_PLANNED) continue; //TODO Include the PLANNED stations to the check also?
 						
 						if(handledStations.contains(s.getStationName()+"_"+s.getOperator().getOrganizationName())) continue;
 						
 						if(s.getFATDMAChannelA() != null){
+
 							for(Integer a : s.getReservedBlocksForChannelA()){
 								List<AISFixedStationData> reservations = reservationsA.get(a.intValue()+"");
 								if(reservations == null) reservations = new ArrayList<AISFixedStationData>();
@@ -109,8 +111,6 @@ public class HealthCheckHandler {
 						handledStations.add(s.getStationName()+"_"+s.getOperator().getOrganizationName());
 					}
 				}
-				
-				
 			}
 		}
 
@@ -159,9 +159,11 @@ public class HealthCheckHandler {
 		
 		Set<String> interfernceStations = new HashSet<String>();
 		
+		
+		
 		//Check all active stations
-		if(transmission.getActiveStations() != null){
-			for(ActiveStation as : transmission.getActiveStations()){
+		if(interference.getActiveStations() != null){
+			for(ActiveStation as : interference.getActiveStations()){
 				if(as.getStations() != null){
 					for(AISFixedStationData s : as.getStations()){
 						if(s.getStatus().getStatusID() == DerbyDBInterface.STATUS_PLANNED) continue; //TODO Include the PLANNED stations to the check also?
@@ -200,8 +202,8 @@ public class HealthCheckHandler {
 
 		//TODO Is there a need to check proposals also? What to do to the planned stations?
 		
-		if(transmission.getOtherUsersStations() != null){
-			for(OtherUserStations other : transmission.getOtherUsersStations()){
+		if(interference.getOtherUsersStations() != null){
+			for(OtherUserStations other : interference.getOtherUsersStations()){
 				if(other.getStations() != null){
 					for(ActiveStation as : other.getStations()){
 						if(as.getStations() != null){
@@ -249,6 +251,8 @@ public class HealthCheckHandler {
 		slotmap.setLat(lat);
 		slotmap.setLon(lon);
 		
+//		System.out.println("There are "+reservationsA.size()+" and "+reservationsB.size()+" reservations...");
+		
 		List<AISTimeslot> slotA = new ArrayList<AISTimeslot>();
 		List<AISTimeslot> slotB = new ArrayList<AISTimeslot>();
 		for(int i = 0; i < numberOfSlotsPerFrequency; ++i){
@@ -263,33 +267,54 @@ public class HealthCheckHandler {
 			}else{
 				List<AISFixedStationData> stations = reservationsA.get(i+"");
 
-					List<AISStation> problems = new ArrayList<AISStation>();
-					for(AISFixedStationData station : reservationsA.get(i+"")){
-						
-						AISStation s = new AISStation(station.getOperator().getOrganizationName(), station.getStationName(), station.getLat(), station.getLon());
+				List<AISStation> res = new ArrayList<AISStation>();
+				List<AISStation> used = new ArrayList<AISStation>();
+				for(AISFixedStationData station : reservationsA.get(i+"")){
 					
-						problems.add(s);
-					}
 					
-					if(stations.size() > 1){
-
-						a.setPossibleConflicts(new Boolean(true));
-						a.setInterferedBy(problems);
-					}else if(interferenceA.get(i+"") != null){
-						for(AISFixedStationData station : interferenceA.get(i+"")){
-							AISStation s = new AISStation(station.getOperator().getOrganizationName(), station.getStationName(), station.getLat(), station.getLon());
-							problems.add(s);
-						}
-						
-						a.setPossibleConflicts(new Boolean(true));
-						a.setInterferedBy(problems);
+					AISStation s = new AISStation(station.getOperator().getOrganizationName(), station.getStationName(), station.getLat(), station.getLon());
+					
+					if(station.getStationType().equals(AISFixedStationType.ATON)){
+						used.add(s);
 					}else{
-						a.setPossibleConflicts(new Boolean(false));
+						String o = station.getOwnershipInSlot("A", new Integer(i));
+						if(o == null){
+							System.err.println("No ownership for "+s.getStationName()+" in slot "+i+" in Channel A!");
+						}else if(o.equals("R")){
+							res.add(s);
+						}else{
+							res.add(s);
+							used.add(s);
+						}
 					}
+				}
+				
+				if(interferenceA.get(i+"") != null){
+						
+					List<AISStation> infs = new ArrayList<AISStation>();
+					for(AISFixedStationData station : interferenceA.get(i+"")){
+						AISStation s = new AISStation(station.getOperator().getOrganizationName(), station.getStationName(), station.getLat(), station.getLon());
+						infs.add(s);
+					}
+						
+					if(stations.size() > 1){
+						infs.addAll(res);
+					}
+						
+					a.setPossibleConflicts(new Boolean(true));
+					a.setInterferedBy(infs);
+				}else if(stations.size() > 1){
+					//Check if the station is an AtoN station.
+						
+					a.setPossibleConflicts(new Boolean(true));
+					a.setInterferedBy(res);
+				}else{
+					a.setPossibleConflicts(new Boolean(false));
+				}
 					
-					a.setReservedBy(problems);
-					a.setUsedBy(problems); //TODO AtoN check
-					a.setFree(new Boolean(false));
+				a.setReservedBy(res);
+				a.setUsedBy(used);
+				a.setFree(new Boolean(false));
 				
 			}
 			
@@ -308,10 +333,16 @@ public class HealthCheckHandler {
 					if(station.getStationType().equals(AISFixedStationType.ATON)){
 						used.add(s);
 					}else{
-						
+						String o = station.getOwnershipInSlot("B", new Integer(i));
+						if(o == null){
+							System.err.println("No ownership for "+s.getStationName()+" in slot "+i+" in Channel B!");
+						}else if(o.equals("R")){
+							res.add(s);
+						}else{
+							res.add(s);
+							used.add(s);
+						}
 					}
-					
-					res.add(s);
 				}
 				
 				if(interferenceB.get(i+"") != null){
@@ -338,7 +369,7 @@ public class HealthCheckHandler {
 				}
 					
 				b.setReservedBy(res);
-				b.setUsedBy(res);
+				b.setUsedBy(used);
 				b.setFree(new Boolean(false));
 				
 			}
@@ -722,61 +753,116 @@ public class HealthCheckHandler {
 	 * @return List of stations with coverage at the given point.
 	 */
 	public static EAVDAMData getStationsAtPoint(EAVDAMData data, double[] point, int coverageType){
-		if(coverageType <= 0){
-			
-			System.err.println("Coverage Type ("+coverageType+") not supported. Use values "+TRANSMISSION_COVERAGE+" or "+INTERFERENCE_COVERAGE+"! Getting results for both...");
-			return getStationsAtPoint(data, point);
-		}
-		
 		EAVDAMData filtered = new EAVDAMData();
 		
+		if(data == null) return filtered;
 		
-		List<ActiveStation> activeStations = new ArrayList<ActiveStation>();
-		for(ActiveStation as : data.getActiveStations()){
-			List<AISFixedStationData> stations = new ArrayList<AISFixedStationData>();
-			
-			for(AISFixedStationData s : as.getStations()){
-				if(coverageType == INTERFERENCE_COVERAGE && PointInPolygon.isPointInPolygon(s.getInterferenceCoverage().getCoveragePoints(), point)){
-					stations.add(s);
-				}else if(coverageType == TRANSMISSION_COVERAGE && PointInPolygon.isPointInPolygon(s.getTransmissionCoverage().getCoveragePoints(), point)){
-					stations.add(s);
-				}
-			}
-			
-			ActiveStation a = new ActiveStation();
-			if(stations.size() > 0){
-				a.setStations(stations);
-			}else if(as.getStations() != null && as.getStations().size() == 0 && stations.size() == 0){
-				a.setStations(stations);
-			}else{
-				a.setStations(null);
-			}
+		
+		if(data.getActiveStations() != null){
+			List<ActiveStation> activeStations = new ArrayList<ActiveStation>();
+			for(ActiveStation as : data.getActiveStations()){
+				List<AISFixedStationData> stations = new ArrayList<AISFixedStationData>();
 
-			activeStations.add(a);
-	
-			for(EAVDAMUser u : as.getProposals().keySet()){
-				if(coverageType == INTERFERENCE_COVERAGE && PointInPolygon.isPointInPolygon(as.getProposals().get(u).getInterferenceCoverage().getCoveragePoints(), point)){
-					Map<EAVDAMUser, AISFixedStationData> proposals = new HashMap<EAVDAMUser, AISFixedStationData>();
-					proposals.put(u, as.getProposals().get(u));
-					a.setProposals(proposals);
-
-				}else if(coverageType == TRANSMISSION_COVERAGE && PointInPolygon.isPointInPolygon(as.getProposals().get(u).getTransmissionCoverage().getCoveragePoints(), point)){
-					Map<EAVDAMUser, AISFixedStationData> proposals = new HashMap<EAVDAMUser, AISFixedStationData>();
-					proposals.put(u, as.getProposals().get(u));
-					a.setProposals(proposals);
+				for(AISFixedStationData s : as.getStations()){
+//					System.out.println("Checking: "+s.getLat()+";"+s.getLon());
+//					if(s.getLat() == 60 && s.getLon() == 24) System.out.println("\t"+s.getInterferenceCoverage().getCoveragePoints()+" | "+s.getTransmissionCoverage().getCoveragePoints());
+					if(coverageType == INTERFERENCE_COVERAGE && PointInPolygon.isPointInPolygon(s.getInterferenceCoverage().getCoveragePoints(), point)){
+//						System.out.println("ADDED: (I)"+s.getLat()+";"+s.getLon());
+						stations.add(s);
+					}else if(coverageType == TRANSMISSION_COVERAGE && PointInPolygon.isPointInPolygon(s.getTransmissionCoverage().getCoveragePoints(), point)){
+//						System.out.println("ADDED (T): "+s.getLat()+";"+s.getLon());
+						stations.add(s);
+					}
 				}
-			}
 				
+//				System.out.println("Stations: "+stations.size());
+				ActiveStation a = new ActiveStation();
+				if(stations.size() > 0){
+					a.setStations(stations);
+					activeStations.add(a);
+				}else{
+					a.setStations(null);
+				}
+	
+				if(as.getProposals() != null){
+					boolean addedProposal = false;
+					for(EAVDAMUser u : as.getProposals().keySet()){
+						if(coverageType == INTERFERENCE_COVERAGE && PointInPolygon.isPointInPolygon(as.getProposals().get(u).getInterferenceCoverage().getCoveragePoints(), point)){
+							Map<EAVDAMUser, AISFixedStationData> proposals = new HashMap<EAVDAMUser, AISFixedStationData>();
+							proposals.put(u, as.getProposals().get(u));
+							a.setProposals(proposals);
+							addedProposal = true;
+						}else if(coverageType == TRANSMISSION_COVERAGE && PointInPolygon.isPointInPolygon(as.getProposals().get(u).getTransmissionCoverage().getCoveragePoints(), point)){
+							Map<EAVDAMUser, AISFixedStationData> proposals = new HashMap<EAVDAMUser, AISFixedStationData>();
+							proposals.put(u, as.getProposals().get(u));
+							a.setProposals(proposals);
+							addedProposal = true;
+						}
+					}
+					
+					if(as.getStations() != null && as.getStations().size() == 0 && stations.size() == 0){
+						a.setStations(stations);
+					}
+					
+					if(addedProposal)
+						activeStations.add(a);
+				}
+				
+
+			}
 			
+//			System.out.println("Active stations checked. Result: "+activeStations.size());
+			filtered.setActiveStations(activeStations);
 		}
 		
-		List<OtherUserStations> others = new ArrayList<OtherUserStations>();
-		for(OtherUserStations other : data.getOtherUsersStations()){
-			List<ActiveStation> otherActiveStations = new ArrayList<ActiveStation>();
-			for(ActiveStation as : other.getStations()){
+		if(data.getOtherUsersStations() != null){
+			List<OtherUserStations> others = new ArrayList<OtherUserStations>();
+			for(OtherUserStations other : data.getOtherUsersStations()){
+				List<ActiveStation> otherActiveStations = new ArrayList<ActiveStation>();
+				for(ActiveStation as : other.getStations()){
+					List<AISFixedStationData> stations = new ArrayList<AISFixedStationData>();
+					
+					for(AISFixedStationData s : as.getStations()){
+						if(coverageType == INTERFERENCE_COVERAGE && PointInPolygon.isPointInPolygon(s.getInterferenceCoverage().getCoveragePoints(), point)){
+//							System.out.println("ADDED OTHER (I): "+s.getLat()+";"+s.getLon());
+							stations.add(s);
+						}else if(coverageType == TRANSMISSION_COVERAGE && PointInPolygon.isPointInPolygon(s.getTransmissionCoverage().getCoveragePoints(), point)){
+//							System.out.println("ADDED OTHER (T): "+s.getLat()+";"+s.getLon());
+							stations.add(s);
+						}
+					}
+					
+					ActiveStation a = new ActiveStation();
+					if(stations.size() > 0){
+						a.setStations(stations);
+					}else if(as.getStations() != null && as.getStations().size() == 0 && stations.size() == 0){
+						a.setStations(stations);
+					}else{
+						a.setStations(null);
+					}
+					
+					otherActiveStations.add(a);
+					
+				}
+				
+				OtherUserStations o = new OtherUserStations();
+				o.setUser(other.getUser());
+				o.setStations(otherActiveStations);
+				others.add(o);
+				
+			}
+			
+			filtered.setOtherUsersStations(others);
+		}
+		
+		
+		if(data.getSimulatedStations() != null){
+			List<Simulation> simulations = new ArrayList<Simulation>();
+			
+			for(Simulation sim : data.getSimulatedStations()){
 				List<AISFixedStationData> stations = new ArrayList<AISFixedStationData>();
 				
-				for(AISFixedStationData s : as.getStations()){
+				for(AISFixedStationData s : sim.getStations()){
 					if(coverageType == INTERFERENCE_COVERAGE && PointInPolygon.isPointInPolygon(s.getInterferenceCoverage().getCoveragePoints(), point)){
 						stations.add(s);
 					}else if(coverageType == TRANSMISSION_COVERAGE && PointInPolygon.isPointInPolygon(s.getTransmissionCoverage().getCoveragePoints(), point)){
@@ -784,59 +870,27 @@ public class HealthCheckHandler {
 					}
 				}
 				
-				ActiveStation a = new ActiveStation();
+				Simulation s = new Simulation();
+				s.setName(sim.getName());
+				
 				if(stations.size() > 0){
-					a.setStations(stations);
-				}else if(as.getStations() != null && as.getStations().size() == 0 && stations.size() == 0){
-					a.setStations(stations);
+					s.setStations(stations);
+				}else if(sim.getStations() != null && sim.getStations().size() == 0 && stations.size() == 0){
+					s.setStations(stations);
 				}else{
-					a.setStations(null);
+					s.setStations(null);
 				}
-				
-				otherActiveStations.add(a);
-				
+	
+				simulations.add(s);
 			}
 			
-			OtherUserStations o = new OtherUserStations();
-			o.setUser(other.getUser());
-			o.setStations(otherActiveStations);
-			others.add(o);
-			
+			filtered.setSimulatedStations(simulations);
 		}
-		
-		filtered.setOtherUsersStations(others);
-		
-		List<Simulation> simulations = new ArrayList<Simulation>();
-		for(Simulation sim : data.getSimulatedStations()){
-			List<AISFixedStationData> stations = new ArrayList<AISFixedStationData>();
-			
-			for(AISFixedStationData s : sim.getStations()){
-				if(coverageType == INTERFERENCE_COVERAGE && PointInPolygon.isPointInPolygon(s.getInterferenceCoverage().getCoveragePoints(), point)){
-					stations.add(s);
-				}else if(coverageType == TRANSMISSION_COVERAGE && PointInPolygon.isPointInPolygon(s.getTransmissionCoverage().getCoveragePoints(), point)){
-					stations.add(s);
-				}
-			}
-			
-			Simulation s = new Simulation();
-			s.setName(sim.getName());
-			
-			if(stations.size() > 0){
-				s.setStations(stations);
-			}else if(sim.getStations() != null && sim.getStations().size() == 0 && stations.size() == 0){
-				s.setStations(stations);
-			}else{
-				s.setStations(null);
-			}
 
-			simulations.add(s);
-		}
-		
-		filtered.setSimulatedStations(simulations);
-		
 		
 		return filtered;
 	}
+	
 	
 	private static double getIncrementedLongitude(double resolution, double startLon){
 // 		 System.out.println(startLon+" | "+resolution+"/(60/"+Math.cos(startLon)+") + "+startLon+" = "+(1.0*resolution/(60.0/Math.cos(startLon)) + startLon));
