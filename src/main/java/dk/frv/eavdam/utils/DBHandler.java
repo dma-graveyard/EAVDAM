@@ -89,7 +89,7 @@ public class DBHandler {
 //	            	for(AISFixedStationData f : a.getStations()){
 //	            		System.out.println("Station "+(f.getStatus().getStatusID() == DerbyDBInterface.STATUS_PLANNED ? "Planned" : "Operative"));
 //	            		if(f.getFATDMAChannelA() != null)
-//	            			System.out.println("A "+((AISBaseAndReceiverStationFATDMAChannel)f.getFATDMAChannelA()).getFATDMAScheme().size());
+//	            			System.out.println("A "+((AISBaseAndReceiverStationFATDMAChannel)f.getFATDMAChannelA()).getFATDMAScheme().get(0).getOwnership());
 //	            		if(f.getFATDMAChannelB() != null)
 //	            			System.out.println("B "+((AISBaseAndReceiverStationFATDMAChannel)f.getFATDMAChannelB()).getFATDMAScheme().size());
 //	            	}

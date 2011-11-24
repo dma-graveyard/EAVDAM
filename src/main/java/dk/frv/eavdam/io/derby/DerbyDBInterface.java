@@ -869,6 +869,8 @@ import dk.frv.eavdam.data.Simulation;
 	    	
 	    	PreparedStatement psc = conn.prepareStatement("insert into FATDMABASE values (?,?,?,?,?,?,?)");
     		
+
+	    	
 	    	psc.setInt(1, r.getDbID());
 	    	psc.setInt(2, channelID);
 	    	psc.setInt(3, r.getStartslot());
@@ -988,8 +990,12 @@ import dk.frv.eavdam.data.Simulation;
 			    	res.setUsage(r.getString(6));
 			    	
 			    	bases.add(res);
+			    	
+
 			    }
 		    		
+			    
+			    
 		    	if(bases.size() > 0){
 		    		AISBaseAndReceiverStationFATDMAChannel channel = new AISBaseAndReceiverStationFATDMAChannel(tempChannels.getChannelName());
 		    		channel.setDBID(tempChannels.getDBID());
