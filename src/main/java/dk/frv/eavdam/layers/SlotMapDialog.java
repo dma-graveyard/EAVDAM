@@ -74,9 +74,13 @@ public class SlotMapDialog extends JDialog implements ActionListener {
 		panel.add(new JLabel("<html><body><h1>Slotmap for latitude " + String.valueOf((double) (Math.round(latitude*1000))/1000) +
 			", longitude " + String.valueOf(((double) Math.round(longitude*1000))/1000) + "</h1></body></html>"), c);
 		c.anchor = GridBagConstraints.LINE_START;
+
+		c.gridy = 1;
+		panel.add(new JLabel("Total bandwith usage: " + (double) Math.round(10000 * slotmap.getBandwidthReservation()) / 100 + " %"), c);
 		c.gridwidth = 1;
-		c.fill = GridBagConstraints.BOTH;		
+		c.fill = GridBagConstraints.BOTH;
 		
+		c.gridy = 0;
 		JPanel timeslotsChartPanel = new JPanel();
 		timeslotsChartPanel.setLayout(new GridBagLayout()); 
 		List<AISTimeslot> ais1Timeslots = slotmap.getAIS1Timeslots();		
@@ -123,7 +127,7 @@ public class SlotMapDialog extends JDialog implements ActionListener {
 		}		
 
 		c.gridx = 0;
-		c.gridy = 1;
+		c.gridy = 2;
 		c.gridwidth = 9;
 		panel.add(timeslotsChartPanel, c);
 		
@@ -203,11 +207,11 @@ public class SlotMapDialog extends JDialog implements ActionListener {
 		slotsPanel.add(slots2001_2249LinkLabel, c);		
 
 		c.gridx = 0;
-		c.gridy = 2;		
+		c.gridy = 3;		
 		c.gridwidth = 9;
 		panel.add(slotsPanel, c);
 
-		c.gridy = 3;
+		c.gridy = 4;
 		c.gridwidth = 1;
 		c.insets = new Insets(0,0,0,0);
 		JLabel frequencyLabel = new JLabel(" Frequency:  ");
@@ -226,7 +230,7 @@ public class SlotMapDialog extends JDialog implements ActionListener {
 		ais2Label.setBorder(BorderFactory.createMatteBorder(1, 0, 1, 1, Color.BLACK));
 		panel.add(ais2Label, c);				
 		c.gridx = 0;                
-		c.gridy = 4;
+		c.gridy = 5;
 		c.gridwidth = 1;
 		JLabel slotnoLabel = new JLabel(" Slotno.  ");
 		slotnoLabel.setFont(new Font("Arial", Font.BOLD, 14));
@@ -478,16 +482,18 @@ public class SlotMapDialog extends JDialog implements ActionListener {
 				}	
 			}			
 		}
-			
+
 		for (int i=0; i<ais1Free.length; i++) {
 		
 			c.gridy++;
 			c.gridx = 0;
 	
-			// XXX: if there are possible problems with a cell, the whole row should be in red
-	
 			JLabel slotnoValueLabel = new JLabel("  " + String.valueOf(start+i) + "  ");
 			slotnoValueLabel.setFont(new Font("Arial", Font.PLAIN, 12));
+			if (conflicts[i] == true) {
+				slotnoValueLabel.setForeground(Color.red);
+				slotnoValueLabel.setText("  " + String.valueOf(start+i) + " (!)  ");
+			}
 			slotnoValueLabel.setBorder(BorderFactory.createMatteBorder(0, 1, 1, 1, Color.BLACK));
 			panel.add(slotnoValueLabel, c);			
 			c.gridx = 1;

@@ -23,6 +23,7 @@ public class PointInPolygon {
 		// TODO Auto-generated constructor stub
 	}
 	
+	@SuppressWarnings("deprecation")	
 	public static boolean isPointInPolygon(List<double[]> polygon, double[] point){
 		if(polygon == null || point == null || polygon.size() < 3 || point.length != 2) return false;
 		
@@ -49,7 +50,8 @@ public class PointInPolygon {
 		return p.intersects(poly);
 		
 	}
-	
+
+	@SuppressWarnings("deprecation")	
 	public static boolean isPolygonIntersection(List<double[]> polygon1, List<double[]> polygon2){
 		List<Coordinate> coordinates = new ArrayList<Coordinate>();
 		for(int i = 0; i < polygon1.size(); ++i){
