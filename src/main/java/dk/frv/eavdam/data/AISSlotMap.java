@@ -9,6 +9,8 @@ public class AISSlotMap {
 	private double lat;
 	private double lon;
 	private double bandwidthReservation;
+	private double bandwidthReservationA;
+	private double bandwidthReservationB;
 	
 	public AISSlotMap() {}
 	
@@ -55,6 +57,22 @@ public class AISSlotMap {
 
 	public void setBandwidthReservation(double bandwidthReservation) {
 		this.bandwidthReservation = bandwidthReservation;
+	}
+
+	public double getBandwidthReservationA() {
+		return bandwidthReservationA;
+	}
+
+	public void setBandwidthReservationA(double bandwidthReservationA) {
+		this.bandwidthReservationA = bandwidthReservationA;
+	}
+
+	public double getBandwidthReservationB() {
+		return bandwidthReservationB;
+	}
+
+	public void setBandwidthReservationB(double bandwidthReservationB) {
+		this.bandwidthReservationB = bandwidthReservationB;
 	}	
 	
 }

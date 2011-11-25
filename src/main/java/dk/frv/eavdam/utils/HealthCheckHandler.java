@@ -24,6 +24,7 @@ import dk.frv.eavdam.data.Simulation;
 import dk.frv.eavdam.healthcheck.PointInPolygon;
 import dk.frv.eavdam.io.AISDatalinkCheckListener;
 import dk.frv.eavdam.io.derby.DerbyDBInterface;
+import dk.frv.eavdam.io.jaxb.AisFixedStationStatus;
 
 public class HealthCheckHandler {
 
@@ -31,6 +32,7 @@ public class HealthCheckHandler {
 	public static final int INTERFERENCE_COVERAGE = 2;
 	EAVDAMData data = null;
 	
+	public static String plannedIndicator = " (P)";
 	public static int numberOfFrequencies = 2;
 	public static int numberOfSlotsPerFrequency = 2250;
 	
@@ -81,9 +83,9 @@ public class HealthCheckHandler {
 				if(as.getStations() != null){
 					
 					for(AISFixedStationData s : as.getStations()){
-						if(s.getStatus().getStatusID() == DerbyDBInterface.STATUS_PLANNED) continue; //TODO Include the PLANNED stations to the check also?
-						
-						if(handledStations.contains(s.getStationName()+"_"+s.getOperator().getOrganizationName())) continue;
+//						if(s.getStatus().getStatusID() == DerbyDBInterface.STATUS_PLANNED) continue; //TODO Include the PLANNED stations to the check also?
+//						
+//						if(handledStations.contains(s.getStationName()+"_"+s.getOperator().getOrganizationName())) continue;
 						
 						if(s.getFATDMAChannelA() != null){
 
@@ -122,8 +124,9 @@ public class HealthCheckHandler {
 					for(ActiveStation as : other.getStations()){
 						if(as.getStations() != null){
 							for(AISFixedStationData s : as.getStations()){
-								if(s.getStatus().getStatusID() == DerbyDBInterface.STATUS_PLANNED) continue;
-								if(handledStations.contains(s.getStationName()+"_"+s.getOperator().getOrganizationName())) continue;
+//								if(s.getStatus().getStatusID() == DerbyDBInterface.STATUS_PLANNED) continue;
+//								if(handledStations.contains(s.getStationName()+"_"+s.getOperator().getOrganizationName())) continue;
+								
 								if(s.getFATDMAChannelA() != null){
 									for(Integer a : s.getReservedBlocksForChannelA()){
 										List<AISFixedStationData> reservations = reservationsA.get(a.intValue()+"");
@@ -157,7 +160,7 @@ public class HealthCheckHandler {
 		Map<String,List<AISFixedStationData>> interferenceA = new HashMap<String, List<AISFixedStationData>>();
 		Map<String,List<AISFixedStationData>> interferenceB = new HashMap<String, List<AISFixedStationData>>();
 		
-		Set<String> interfernceStations = new HashSet<String>();
+		Set<String> interferenceStations = new HashSet<String>();
 		
 		
 		
@@ -166,9 +169,8 @@ public class HealthCheckHandler {
 			for(ActiveStation as : interference.getActiveStations()){
 				if(as.getStations() != null){
 					for(AISFixedStationData s : as.getStations()){
-						if(s.getStatus().getStatusID() == DerbyDBInterface.STATUS_PLANNED) continue; //TODO Include the PLANNED stations to the check also?
-						
-						if(interfernceStations.contains(s.getStationName()+"_"+s.getOperator().getOrganizationName())) continue;
+//						if(s.getStatus().getStatusID() == DerbyDBInterface.STATUS_PLANNED) continue; //TODO Include the PLANNED stations to the check also?
+//						if(interferenceStations.contains(s.getStationName()+"_"+s.getOperator().getOrganizationName())) continue;
 						
 						if(s.getFATDMAChannelA() != null){
 							for(Integer a : s.getReservedBlocksForChannelA()){
@@ -192,7 +194,7 @@ public class HealthCheckHandler {
 							}
 						}
 						
-						interfernceStations.add(s.getStationName()+"_"+s.getOperator().getOrganizationName());
+						interferenceStations.add(s.getStationName()+"_"+s.getOperator().getOrganizationName());
 					}
 				}
 				
@@ -208,8 +210,9 @@ public class HealthCheckHandler {
 					for(ActiveStation as : other.getStations()){
 						if(as.getStations() != null){
 							for(AISFixedStationData s : as.getStations()){
-								if(s.getStatus().getStatusID() == DerbyDBInterface.STATUS_PLANNED) continue;
-								if(interfernceStations.contains(s.getStationName()+"_"+s.getOperator().getOrganizationName())) continue;
+//								if(s.getStatus().getStatusID() == DerbyDBInterface.STATUS_PLANNED) continue;
+//								if(interferenceStations.contains(s.getStationName()+"_"+s.getOperator().getOrganizationName())) continue;
+								
 								if(s.getFATDMAChannelA() != null){
 									for(Integer a : s.getReservedBlocksForChannelA()){
 										List<AISFixedStationData> reservations = interferenceA.get(a.intValue()+"");
@@ -232,7 +235,7 @@ public class HealthCheckHandler {
 									}
 								}
 								
-								interfernceStations.add(s.getStationName()+"_"+s.getOperator().getOrganizationName());
+								interferenceStations.add(s.getStationName()+"_"+s.getOperator().getOrganizationName());
 							}
 						}
 					}
@@ -246,8 +249,7 @@ public class HealthCheckHandler {
 		AISSlotMap slotmap = new AISSlotMap();
 		
 		//Get the reservation %
-		double percentage = 1.0*(reservationsA.size()+reservationsB.size())/(numberOfFrequencies*numberOfSlotsPerFrequency);
-		slotmap.setBandwidthReservation(percentage);
+		
 		slotmap.setLat(lat);
 		slotmap.setLon(lon);
 		
@@ -255,194 +257,13 @@ public class HealthCheckHandler {
 		
 		List<AISTimeslot> slotA = new ArrayList<AISTimeslot>();
 		List<AISTimeslot> slotB = new ArrayList<AISTimeslot>();
+		int notFreeA = 0, notFreeB = 0;
 		for(int i = 0; i < numberOfSlotsPerFrequency; ++i){
-			AISTimeslot a = new AISTimeslot();
-			AISTimeslot b = new AISTimeslot();
+			AISTimeslot a = this.createAISTimeslot(reservationsA, interferenceA, i, "A");
+			AISTimeslot b = this.createAISTimeslot(reservationsB, interferenceB, i, "B");
 			
-			a.setSlotNumber(i);
-			b.setSlotNumber(i);
-			
-			if(reservationsA.get(i+"") == null || reservationsA.get(i+"").size() <= 0){
-				if(interferenceA.get(i+"") != null){ //First case: No reservation but there is an interference.
-					List<AISStation> infs = new ArrayList<AISStation>();
-					for(AISFixedStationData station : interferenceA.get(i+"")){
-						if(station.getOwnershipInSlot("A", new Integer(i)).equals("L")){ //Interference is for Local Base station
-							AISStation s = new AISStation(station.getOperator().getOrganizationName(), station.getStationName(), station.getLat(), station.getLon());
-							infs.add(s);
-						}
-					}
-
-					if(infs.size() > 0) a.setInterferedBy(infs); 
-					a.setFree(new Boolean(false));
-				}else{ //No interference
-					a.setFree(new Boolean(true));
-				}
-			}else{
-				int atons = 0, expectedAtoNs = 0;
-				List<AISStation> res = new ArrayList<AISStation>();
-				List<AISStation> used = new ArrayList<AISStation>();
-				Set<String> resStations = new HashSet<String>();
-				for(AISFixedStationData station : reservationsA.get(i+"")){ //Loop through the reservations
-					
-					AISStation s = new AISStation(station.getOperator().getOrganizationName(), station.getStationName(), station.getLat(), station.getLon());
-					
-					if(station.getStationType().equals(AISFixedStationType.ATON)){ //If the station is AtoN, only use it but do not reserve it.
-						used.add(s);
-						++atons;
-						
-						resStations.add(s.getStationName()+"_"+s.getOrganizationName());
-					}else{ //Not an AtoN stations
-						String o = station.getOwnershipInSlot("A", new Integer(i)); //Check if it is a local or remote.
-						if(o == null){
-							System.err.println("No ownership for "+s.getStationName()+" in slot "+i+" in Channel A!");
-						}else if(o.equals("R")){ //Remote --> Reserve for AtoN
-							res.add(s);
-							++expectedAtoNs;
-							
-							resStations.add(s.getStationName()+"_"+s.getOrganizationName());
-						}else{ //Local --> Reserve and use it
-							res.add(s);
-							used.add(s);
-							resStations.add(s.getStationName()+"_"+s.getOrganizationName());
-						}
-					}
-				}
-				
-			
-				if(interferenceA.get(i+"") != null){ //Check the interferences
-						
-					List<AISStation> infs = new ArrayList<AISStation>();
-					
-					for(AISFixedStationData station : interferenceA.get(i+"")){
-						AISStation s = new AISStation(station.getOperator().getOrganizationName(), station.getStationName(), station.getLat(), station.getLon());
-							
-						if(!resStations.contains(s.getStationName()+"_"+s.getOrganizationName())) infs.add(s);
-						
-					}
-						
-					
-					if(infs.size() > 0){
-						a.setPossibleConflicts(new Boolean(true));
-						a.setInterferedBy(infs); //Store the interfering stations
-					}
-					
-				}else if(used.size() > 1){ //Several stations use the slot
-					
-					a.setPossibleConflicts(new Boolean(true));
-				}else{
-					a.setPossibleConflicts(new Boolean(false));
-				}
-					
-				a.setReservedBy(res);
-				a.setUsedBy(used);
-				a.setFree(new Boolean(false));
-				
-				if(atons != expectedAtoNs){
-					if(atons > expectedAtoNs){
-						//AtoN usage with no reservation!
-						System.out.println("AtoNs and expected AtoN does not match! AtoN usage without reservation!");
-							
-					}else{
-						//Reservation but no usage!
-						System.out.println("AtoNs and expected AtoN does not match! Reservation without AtoN usage!");
-							
-					}
-						
-					a.setPossibleConflicts(new Boolean(true));
-				}
-			}
-			
-			if(reservationsB.get(i+"") == null){
-				
-				if(interferenceB.get(i+"") != null){
-					List<AISStation> infs = new ArrayList<AISStation>();
-					for(AISFixedStationData station : interferenceB.get(i+"")){
-						if(station.getOwnershipInSlot("B", new Integer(i)).equals("L")){
-							AISStation s = new AISStation(station.getOperator().getOrganizationName(), station.getStationName(), station.getLat(), station.getLon());
-							infs.add(s);
-						}
-					}
-
-					if(infs.size() > 0) b.setInterferedBy(infs);
-					b.setFree(new Boolean(false));
-				}else{
-					b.setFree(new Boolean(true));
-				}
-			}else{
-				int atons = 0, expectedAtoNs = 0;
-				
-				List<AISStation> res = new ArrayList<AISStation>();
-				List<AISStation> used = new ArrayList<AISStation>();
-				
-				Set<String> resStations = new HashSet<String>();
-				for(AISFixedStationData station : reservationsB.get(i+"")){
-					
-					
-					AISStation s = new AISStation(station.getOperator().getOrganizationName(), station.getStationName(), station.getLat(), station.getLon());
-					
-					if(station.getStationType().equals(AISFixedStationType.ATON)){ //If the station is AtoN, only use it but do not reserve it.
-						used.add(s);
-						++atons;
-						
-						resStations.add(s.getStationName()+"_"+s.getOrganizationName());
-					}else{ //Not an AtoN stations
-						String o = station.getOwnershipInSlot("B", new Integer(i)); //Check if it is a local or remote.
-						if(o == null){
-							System.err.println("No ownership for "+s.getStationName()+" in slot "+i+" in Channel B!");
-						}else if(o.equals("R")){ //Remote --> Reserve for AtoN
-							res.add(s);
-							++expectedAtoNs;
-							
-							resStations.add(s.getStationName()+"_"+s.getOrganizationName());
-						}else{ //Local --> Reserve and use it
-							res.add(s);
-							used.add(s);
-							
-							resStations.add(s.getStationName()+"_"+s.getOrganizationName());
-						}
-					}
-				}
-				
-				if(interferenceB.get(i+"") != null){ //Check the interferences
-					
-					List<AISStation> infs = new ArrayList<AISStation>();
-					for(AISFixedStationData station : interferenceB.get(i+"")){
-						AISStation s = new AISStation(station.getOperator().getOrganizationName(), station.getStationName(), station.getLat(), station.getLon());
-						if(!resStations.contains(s.getStationName()+"_"+s.getOrganizationName())) infs.add(s);
-						
-					}
-						
-					if(infs.size() > 0){
-						b.setPossibleConflicts(new Boolean(true));
-						b.setInterferedBy(infs); //Store the interfering stations
-					}
-				}else if(used.size() > 1){ //Several stations use the slot
-					
-					b.setPossibleConflicts(new Boolean(true));
-				}else{
-					b.setPossibleConflicts(new Boolean(false));
-				}
-					
-				b.setReservedBy(res);
-				b.setUsedBy(used);
-				b.setFree(new Boolean(false));
-			
-				
-				 if(atons != expectedAtoNs){
-					 if(atons > expectedAtoNs){
-						 //AtoN usage with no reservation!
-						System.out.println("AtoNs and expected AtoN does not match! AtoN usage without reservation!");
-							
-					 }else{
-						//Reservation but no usage!
-						System.out.println("AtoNs and expected AtoN does not match! Reservation without AtoN usage!");
-							
-					 }
-						
-					 b.setPossibleConflicts(new Boolean(true));
-				 }
-			}
-			
+			if(!a.getFree().booleanValue()) ++notFreeA;
+			if(!b.getFree().booleanValue()) ++notFreeB;
 			
 			slotA.add(a);
 			slotB.add(b);
@@ -451,16 +272,204 @@ public class HealthCheckHandler {
 		slotmap.setAIS1Timeslots(slotA);
 		slotmap.setAIS2Timeslots(slotB);
 		
-		
-		
-//		AISDatalinkCheckArea area = new AISDatalinkCheckArea(lat, lon, getIncrementedLatitude(resolution, lat), getIncrementedLongitude(resolution, lon), percentage);
-//		List<AISDatalinkCheckArea> areas = new ArrayList<AISDatalinkCheckArea>();
-//		areas.add(area);
-//		result.setAreas(areas);
+		slotmap.setBandwidthReservationA(1.0*notFreeA/numberOfSlotsPerFrequency);
+		slotmap.setBandwidthReservationB(1.0*notFreeB/numberOfSlotsPerFrequency);
 		
 		return slotmap;
 	}
 	
+	/**
+	 * Creates the timeslot for the given slot.
+	 * @param reservations List of stations with reservations.
+	 * @param interference List of interfering stations.
+	 * @param slot Number of the slot in question
+	 * @param channel Either A or B
+	 * @return Timeslot.
+	 */
+	private AISTimeslot createAISTimeslot(Map<String,List<AISFixedStationData>> reservations, Map<String,List<AISFixedStationData>> interference, int slot, String channel){
+		AISTimeslot a = new AISTimeslot();
+		a.setSlotNumber(slot);
+		
+		if(reservations.get(slot+"") == null || reservations.get(slot+"").size() <= 0){
+			if(interference.get(slot+"") != null){ //First case: No reservation but there is an interference.
+				List<AISStation> infs = new ArrayList<AISStation>();
+				for(AISFixedStationData station : interference.get(slot+"")){
+					if(station.getOwnershipInSlot(channel, new Integer(slot)).equals("L")){ //Interference is for Local Base station
+						AISStation s = new AISStation(station.getOperator().getOrganizationName(), station.getStationName(), station.getLat(), station.getLon());
+						infs.add(s);
+					}
+				}
+
+				if(infs.size() > 0) a.setInterferedBy(infs); 
+				a.setFree(new Boolean(false));
+			}else{ //No interference
+				a.setFree(new Boolean(true));
+			}
+		}else{
+			int atons = 0, expectedAtoNs = 0;
+			List<AISStation> res = new ArrayList<AISStation>();
+			List<AISStation> used = new ArrayList<AISStation>();
+			
+			Set<String> resNames = new HashSet<String>();
+			Set<String> usedNames = new HashSet<String>();
+			
+			Set<String> resStations = new HashSet<String>();
+			for(AISFixedStationData station : reservations.get(slot+"")){ //Loop through the reservations
+				
+				String planned = "";
+				if(station.getStatus().getStatusID() == DerbyDBInterface.STATUS_PLANNED) planned = plannedIndicator;
+				AISStation s = new AISStation(station.getOperator().getOrganizationName(), station.getStationName()+planned, station.getLat(), station.getLon());
+				
+				if(station.getStationType().equals(AISFixedStationType.ATON)){ //If the station is AtoN, only use it but do not reserve it.
+					if(usedNames.contains(s.getOrganizationName()+"_"+station.getStationName()) && planned.length() <= 0) { //There is a planned station added previously --> need to remove it.
+						for(int i = 0; i < used.size(); ++i){
+							String sta = used.get(i).getOrganizationName()+"_"+used.get(i).getStationName(); 
+							if(sta.equals(s.getOrganizationName()+"_"+station.getStationName()+plannedIndicator)){
+								used.remove(i);
+								break;
+							}
+						}
+						used.add(s);
+					}else if(!usedNames.contains(s.getOrganizationName()+"_"+station.getStationName())){
+						used.add(s);
+						++atons;
+						
+						usedNames.add(s.getOrganizationName()+"_"+station.getStationName());
+					}
+					
+					
+					resStations.add(s.getStationName()+"_"+s.getOrganizationName());
+				}else{ //Not an AtoN stations
+					String o = station.getOwnershipInSlot("A", new Integer(slot)); //Check if it is a local or remote.
+					if(o == null){
+						System.err.println("No ownership for "+s.getStationName()+" in slot "+slot+" in Channel "+channel+"!");
+					}else if(o.equals("R")){ //Remote --> Reserve for AtoN
+
+						if(resNames.contains(s.getOrganizationName()+"_"+station.getStationName()) && planned.length() <= 0) { //There is a planned station added previously --> need to remove it.
+							for(int i = 0; i < res.size(); ++i){
+								String sta = res.get(i).getOrganizationName()+"_"+res.get(i).getStationName(); 
+								if(sta.equals(s.getOrganizationName()+"_"+station.getStationName()+plannedIndicator)){
+									res.remove(i);
+									break;
+								}
+							}
+							res.add(s);
+						}else if(!resNames.contains(s.getOrganizationName()+"_"+station.getStationName())){
+							res.add(s);
+							++expectedAtoNs;
+							
+							resNames.add(s.getOrganizationName()+"_"+station.getStationName());
+						}
+						
+						resStations.add(s.getStationName()+"_"+s.getOrganizationName());
+					}else{ //Local --> Reserve and use it
+						if(resNames.contains(s.getOrganizationName()+"_"+station.getStationName()) && planned.length() <= 0) { //There is a planned station added previously --> need to remove it.
+							for(int i = 0; i < res.size(); ++i){
+								String sta = res.get(i).getOrganizationName()+"_"+res.get(i).getStationName(); 
+								if(sta.equals(s.getOrganizationName()+"_"+station.getStationName()+plannedIndicator)){
+									res.remove(i);
+									break;
+								}
+							}
+							res.add(s);
+						}else if(!resNames.contains(s.getOrganizationName()+"_"+station.getStationName())){
+							res.add(s);
+							++expectedAtoNs;
+							
+							resNames.add(s.getOrganizationName()+"_"+station.getStationName());
+						}
+						
+						if(usedNames.contains(s.getOrganizationName()+"_"+station.getStationName()) && planned.length() <= 0) { //There is a planned station added previously --> need to remove it.
+							for(int i = 0; i < used.size(); ++i){
+								String sta = used.get(i).getOrganizationName()+"_"+used.get(i).getStationName(); 
+								if(sta.equals(s.getOrganizationName()+"_"+station.getStationName()+plannedIndicator)){
+									used.remove(i);
+									break;
+								}
+							}
+							used.add(s);
+						}else if(!usedNames.contains(s.getOrganizationName()+"_"+station.getStationName())){
+							used.add(s);
+							++atons;
+							
+							usedNames.add(s.getOrganizationName()+"_"+station.getStationName());
+						}
+						
+						resStations.add(s.getStationName()+"_"+s.getOrganizationName());
+					}
+				}
+			}
+			
+		
+			if(interference.get(slot+"") != null){ //Check the interferences
+					
+				List<AISStation> infs = new ArrayList<AISStation>();
+				
+				Set<String> infNames = new HashSet<String>();
+				for(AISFixedStationData station : interference.get(slot+"")){
+					String planned = "";
+					if(station.getStatus().getStatusID() == DerbyDBInterface.STATUS_PLANNED) planned = plannedIndicator;
+					
+					AISStation s = new AISStation(station.getOperator().getOrganizationName(), station.getStationName()+planned, station.getLat(), station.getLon());
+						
+					if(!resStations.contains(s.getStationName()+"_"+s.getOrganizationName())){
+						if(!infNames.contains(s.getOrganizationName()+"_"+station.getStationName())){
+							infs.add(s);
+							infNames.add(s.getOrganizationName()+"_"+station.getStationName());
+						}else if(infNames.contains(s.getOrganizationName()+"_"+station.getStationName()) && planned.length() <= 0){ //Replace planned with active.
+							for(int i = 0; i < infs.size(); ++i){
+								String sta = infs.get(i).getOrganizationName()+"_"+infs.get(i).getStationName(); 
+								if(sta.equals(s.getOrganizationName()+"_"+station.getStationName()+plannedIndicator)){
+									infs.remove(i);
+									break;
+								}
+							}
+							
+							infs.add(s);
+						}
+					}
+					
+					
+					
+					
+				}
+					
+				
+				if(infs.size() > 0){
+					a.setPossibleConflicts(new Boolean(true));
+					a.setInterferedBy(infs); //Store the interfering stations
+				}
+				
+			}else if(used.size() > 1){ //Several stations use the slot
+				
+				a.setPossibleConflicts(new Boolean(true));
+			}else{
+				a.setPossibleConflicts(new Boolean(false));
+			}
+			
+
+			
+			a.setReservedBy(res);
+			a.setUsedBy(used);
+			a.setFree(new Boolean(false));
+			
+			if(atons != expectedAtoNs){
+				if(atons > expectedAtoNs){
+					//AtoN usage with no reservation!
+					System.out.println("AtoNs and expected AtoN does not match! AtoN usage without reservation!");
+						
+				}else{
+					//Reservation but no usage!
+					System.out.println("AtoNs and expected AtoN does not match! Reservation without AtoN usage!");
+						
+				}
+					
+				a.setPossibleConflicts(new Boolean(true));
+			}
+		}
+		
+		return a;
+	}
 	
 	/**
 	 * 
