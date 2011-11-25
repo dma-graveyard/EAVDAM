@@ -274,6 +274,7 @@ public class HealthCheckHandler {
 		
 		slotmap.setBandwidthReservationA(1.0*notFreeA/numberOfSlotsPerFrequency);
 		slotmap.setBandwidthReservationB(1.0*notFreeB/numberOfSlotsPerFrequency);
+		slotmap.setBandwidthReservation((1.0*notFreeA+notFreeB)/(numberOfSlotsPerFrequency*numberOfFrequencies));
 		
 		return slotmap;
 	}
