@@ -1,8 +1,5 @@
 package dk.frv.eavdam.layers;
 
-import ca.ansir.swing.tristate.TriState;
-import ca.ansir.swing.tristate.TriStateTreeHandler;
-import ca.ansir.swing.tristate.TriStateTreeNode;
 import com.bbn.openmap.InformationDelegator;
 import com.bbn.openmap.Layer;
 import com.bbn.openmap.LayerHandler;
@@ -96,8 +93,10 @@ import javax.swing.JScrollPane;
 import javax.swing.JSeparator;
 import javax.swing.JTree;
 import javax.swing.SwingUtilities;
+import javax.swing.tree.TreePath;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.TreeModel;
+import skt.swing.tree.check.*;
 
 public class StationLayer extends OMGraphicHandlerLayer implements MapMouseListener, ActionListener, WindowListener, DrawingToolRequestor {
 
@@ -134,6 +133,7 @@ public class StationLayer extends OMGraphicHandlerLayer implements MapMouseListe
 	
 	private JDialog showOnMapDialog;
 	private JTree tree;
+	private CheckTreeManager checkTreeManager;
 	private JButton okShowOnMapMenuButton;
 	private JButton cancelShowOnMapMenuButton;
 	
@@ -162,6 +162,8 @@ public class StationLayer extends OMGraphicHandlerLayer implements MapMouseListe
 	private List<Layer> initiallySelectedLayers;
 	private Map<Layer, Boolean> initiallySelectedLayersVisibilities;
 	
+	private Map<String, Boolean> initiallySelectedStations;
+	
 	private int currentX = -1;
 	private int currentY = -1;
 	
@@ -189,6 +191,10 @@ public class StationLayer extends OMGraphicHandlerLayer implements MapMouseListe
 	
 	public void setSlotMapDialog(JDialog slotMapDialog) {
 		this.slotMapDialog = slotMapDialog;
+	}
+	
+	public JMenuItem getShowOnMapMenuItem() {
+		return showOnMapMenuItem;
 	}
 	
     public void addBaseStation(Object datasetSource, EAVDAMUser owner, AISFixedStationData stationData) {
@@ -689,12 +695,12 @@ public class StationLayer extends OMGraphicHandlerLayer implements MapMouseListe
 		
 		} else if (e.getSource() == showOnMapMenuItem) {
 		
+			initiallySelectedStations = getCurrentSelections();
+		
 			showOnMapDialog = new JDialog(openMapFrame, "Show on Map", false);				
 												
-			tree = createTree();			
-		
-			TriStateTreeHandler handler = new TriStateTreeHandler(tree);
-			tree.setShowsRootHandles(false);
+			createTree();
+
 			JScrollPane scrollPane = new JScrollPane(tree);
 			scrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
 			scrollPane.setPreferredSize(new Dimension(600, 540));
@@ -723,6 +729,7 @@ public class StationLayer extends OMGraphicHandlerLayer implements MapMouseListe
 			showOnMapDialog.dispose();
 			
 		} else if (e.getSource() == cancelShowOnMapMenuButton) {
+			restoreInitiallySelectedStations();
 			showOnMapDialog.dispose();			
 		
 		} else if (e.getSource() == hideStationMenuItem) {
@@ -1218,10 +1225,10 @@ public class StationLayer extends OMGraphicHandlerLayer implements MapMouseListe
 		return data;	
 	}
 	
-	private JTree createTree() {
+	private void createTree() {
 			
 		// loads earlier selections
-		Map<String, TriState> currentSelections = getCurrentSelections();
+		Map<String, Boolean> currentSelections = getCurrentSelections();
 	
 		if (data == null) {
 			data = DBHandler.getData(); 
@@ -1245,45 +1252,34 @@ public class StationLayer extends OMGraphicHandlerLayer implements MapMouseListe
 				}
 			}
 		}	
-	
-		DefaultMutableTreeNode root = new TriStateTreeNode("All stations");
-		
+
+		DefaultMutableTreeNode root = new DefaultMutableTreeNode("All stations");
+				
 		if (!operativeStations.isEmpty()) {
-			TriStateTreeNode node = new TriStateTreeNode("Own operative stations");
+			DefaultMutableTreeNode node = new DefaultMutableTreeNode("Own operative stations");
 			root.add(node);
 			for (String s : operativeStations) {
-				TriStateTreeNode node2 = new TriStateTreeNode(s);
-				if (currentSelections != null && currentSelections.containsKey("Own operative stations /// " + s)) {
-					node2.setState(currentSelections.get("Own operative stations /// " + s));
-				} else {
-					node2.setState(TriState.SELECTED);
-				}
-				node.add(node2);
+				DefaultMutableTreeNode node2 = new DefaultMutableTreeNode(s);
+				node.add(node2);				
 			}		
 		}
 		
 		if (!plannedStations.isEmpty()) {
-			TriStateTreeNode node = new TriStateTreeNode("Own planned stations");
+			DefaultMutableTreeNode node = new DefaultMutableTreeNode("Own planned stations");
 			root.add(node);
 			for (String s : plannedStations) {
-				TriStateTreeNode node2 = new TriStateTreeNode(s);			
-				if (currentSelections != null && currentSelections.containsKey("Own planned stations /// " + s)) {
-					node2.setState(currentSelections.get("Own planned stations /// " + s));
-				}
+				DefaultMutableTreeNode node2 = new DefaultMutableTreeNode(s);			
 				node.add(node2);
 			}		
 		}			
 		
 		if (data.getSimulatedStations() != null) {
 			for (Simulation s : data.getSimulatedStations()) {
-				TriStateTreeNode node = new TriStateTreeNode("Simulation: " + s.getName());
+				DefaultMutableTreeNode node = new DefaultMutableTreeNode("Simulation: " + s.getName());
 				root.add(node);
 				List<AISFixedStationData> stations = s.getStations();
 				for (AISFixedStationData stationData : stations) {
-					TriStateTreeNode node2 = new TriStateTreeNode(stationData.getStationName());
-					if (currentSelections != null && currentSelections.containsKey("Simulation: " + s.getName() + " /// " + stationData.getStationName())) {
-						node2.setState(currentSelections.get("Simulation: " + s.getName() + " /// " + stationData.getStationName()));
-					}
+					DefaultMutableTreeNode node2 = new DefaultMutableTreeNode(stationData.getStationName());
 					node.add(node2);
 				}   
 			}
@@ -1292,72 +1288,239 @@ public class StationLayer extends OMGraphicHandlerLayer implements MapMouseListe
 		if (data.getOtherUsersStations() != null) {
 			for (OtherUserStations ous : data.getOtherUsersStations()) {
 				EAVDAMUser user = ous.getUser();
-				TriStateTreeNode node = new TriStateTreeNode("Stations of organization: " + user.getOrganizationName());
+				DefaultMutableTreeNode node = new DefaultMutableTreeNode("Stations of organization: " + user.getOrganizationName());
 				root.add(node);					
 				List<ActiveStation> otherUsersActiveStations = ous.getStations();
 				for (ActiveStation as : otherUsersActiveStations) {
 					List<AISFixedStationData> stations = as.getStations();
 					for (AISFixedStationData station : stations) {
 						if (station.getStatus().getStatusID() == DerbyDBInterface.STATUS_ACTIVE) {
-							TriStateTreeNode node2 = new TriStateTreeNode(station.getStationName());
-							if (currentSelections != null && currentSelections.containsKey("Stations of organization: " + user.getOrganizationName() + " /// " + station.getStationName())) {
-								node2.setState(currentSelections.get("Stations of organization: " + user.getOrganizationName() + " /// " + station.getStationName()));
-							} else {
-								node2.setState(TriState.SELECTED);
-							}
-							node.add(node2);									
+							DefaultMutableTreeNode node2 = new DefaultMutableTreeNode(station.getStationName());
+							node.add(node2);														
 						}
 					}
 				}	
 			}
 		}
-
-		return new JTree(root);
 		
+		tree = new JTree(root);
+		
+		checkTreeManager = new CheckTreeManager(tree, true, null);
+		
+		CheckTreeSelectionModel selectionModel = checkTreeManager.getSelectionModel();
+		
+		TreeModel model = tree.getModel();
+	
+		if (model != null) {
+			Object treeRoot = model.getRoot();
+			for (int i=0; i<model.getChildCount(treeRoot); i++) {
+				Object child = model.getChild(treeRoot, i);
+				if (child instanceof DefaultMutableTreeNode) {
+					DefaultMutableTreeNode node = (DefaultMutableTreeNode) child;
+					if (node.toString().equals("Own operative stations")) {								
+						for (int j=0; j<model.getChildCount(child); j++) {
+							Object child2 = model.getChild(child, j);
+							if (child2 instanceof DefaultMutableTreeNode) {
+								DefaultMutableTreeNode node2 = (DefaultMutableTreeNode) child2;
+								if (currentSelections != null && currentSelections.containsKey("Own operative stations /// " + node2.toString())) {
+									if (currentSelections.get("Own operative stations /// " + node2.toString()).booleanValue() == true) {
+										Object[] paths = new Object[3];
+										paths[0] = treeRoot;
+										paths[1] = node;
+										paths[2] = node2;
+										TreePath[] selectionPaths = new TreePath[1];
+										selectionPaths[0] = new TreePath(paths);
+										selectionModel.addSelectionPaths(selectionPaths);
+									}
+								} else {
+									Object[] paths = new Object[3];
+									paths[0] = treeRoot;
+									paths[1] = node;
+									paths[2] = node2;
+									TreePath[] selectionPaths = new TreePath[1];
+									selectionPaths[0] = new TreePath(paths);
+									selectionModel.addSelectionPaths(selectionPaths);
+								}
+							}							
+						}
+					} else if (node.toString().equals("Own planned stations")) {
+						for (int j=0; j<model.getChildCount(child); j++) {
+							Object child2 = model.getChild(child, j);
+							if (child2 instanceof DefaultMutableTreeNode) {
+								DefaultMutableTreeNode node2 = (DefaultMutableTreeNode) child2;
+								if (currentSelections != null && currentSelections.containsKey("Own planned stations /// " + node2.toString())) {
+									if (currentSelections.get("Own planned stations /// " + node2.toString()).booleanValue() == true) {
+										Object[] paths = new Object[3];
+										paths[0] = treeRoot;
+										paths[1] = node;
+										paths[2] = node2;
+										TreePath[] selectionPaths = new TreePath[1];
+										selectionPaths[0] = new TreePath(paths);
+										selectionModel.addSelectionPaths(selectionPaths);
+									}
+								}									
+							}
+						}							
+					} else if (node.toString().startsWith("Simulation: ")) {							
+						for (int j=0; j<model.getChildCount(child); j++) {
+							Object child2 = model.getChild(child, j);
+							if (child2 instanceof DefaultMutableTreeNode) {
+								DefaultMutableTreeNode node2 = (DefaultMutableTreeNode) child2;
+								if (currentSelections != null && currentSelections.containsKey("Simulation: " + node.toString() + " /// " + node2.toString())) {
+									if (currentSelections.get("Simulation: " + node.toString() + " /// " + node2.toString()).booleanValue() == true) {
+										Object[] paths = new Object[3];
+										paths[0] = treeRoot;
+										paths[1] = node;
+										paths[2] = node2;
+										TreePath[] selectionPaths = new TreePath[1];
+										selectionPaths[0] = new TreePath(paths);
+										selectionModel.addSelectionPaths(selectionPaths);
+									}
+								}																
+							}
+						}	
+					} else if (node.toString().startsWith("Stations of organization: ")) {
+						for (int j=0; j<model.getChildCount(child); j++) {
+							Object child2 = model.getChild(child, j);
+							if (child2 instanceof DefaultMutableTreeNode) {
+								DefaultMutableTreeNode node2 = (DefaultMutableTreeNode) child2;
+								if (currentSelections != null && currentSelections.containsKey("Stations of organization: " + node.toString() + " /// " + node2.toString())) {
+									if (currentSelections.get("Stations of organization: " + node.toString() + " /// " + node2.toString()).booleanValue() == true) {
+										Object[] paths = new Object[3];
+										paths[0] = treeRoot;
+										paths[1] = node;
+										paths[2] = node2;
+										TreePath[] selectionPaths = new TreePath[1];
+										selectionPaths[0] = new TreePath(paths);
+										selectionModel.addSelectionPaths(selectionPaths);
+									}
+								} else {
+									Object[] paths = new Object[3];
+									paths[0] = treeRoot;
+									paths[1] = node;
+									paths[2] = node2;
+									TreePath[] selectionPaths = new TreePath[1];
+									selectionPaths[0] = new TreePath(paths);
+									selectionModel.addSelectionPaths(selectionPaths);
+								}	
+							}							
+						}
+					}
+				}
+			}
+		}		
 	}
 
-	private Map<String, TriState> getCurrentSelections() {
+	private Map<String, Boolean> getCurrentSelections() {
 	
-		Map<String, TriState> currentSelections = new HashMap<String, TriState>();
+		Map<String, Boolean> currentSelections = new HashMap<String, Boolean>();
 		
-		if (tree != null) {		
+		if (tree != null && checkTreeManager != null) {				
 			TreeModel model = tree.getModel();
+			TreePath checkedPaths[] = checkTreeManager.getSelectionModel().getSelectionPaths(); 
 			if (model != null) {
 				Object root = model.getRoot();
 				for (int i=0; i<model.getChildCount(root); i++) {
 					Object child = model.getChild(root, i);
-					if (child instanceof TriStateTreeNode) {
-						TriStateTreeNode node = (TriStateTreeNode) child;
+					if (child instanceof DefaultMutableTreeNode) {
+						DefaultMutableTreeNode node = (DefaultMutableTreeNode) child;
 						if (node.toString().equals("Own operative stations")) {								
 							for (int j=0; j<model.getChildCount(child); j++) {
 								Object child2 = model.getChild(child, j);
-								if (child2 instanceof TriStateTreeNode) {
-									TriStateTreeNode node2 = (TriStateTreeNode) child2;										
-									currentSelections.put("Own operative stations /// " + node2.toString(), node2.getState());
+								if (child2 instanceof DefaultMutableTreeNode) {
+									DefaultMutableTreeNode node2 = (DefaultMutableTreeNode) child2;
+									Object[] paths = new Object[3];
+									paths[0] = root;
+									paths[1] = node;
+									paths[2] = node2;
+									TreePath temp = new TreePath(paths);
+									boolean isSelected = false;
+									for (int k=0; k<checkedPaths.length; k++) {
+									System.out.println("checkedPaths[k] is " + checkedPaths[k].toString());
+									System.out.println("temp is " + temp.toString());
+										if (temp.equals(checkedPaths[k]) || isDescendant(temp, checkedPaths[k])) {			
+										System.out.println("hep");
+											isSelected = true;
+											break;
+										}
+									}
+									if (isSelected) {
+										currentSelections.put("Own operative stations /// " + node2.toString(), new Boolean(true));										
+									} else {
+										currentSelections.put("Own operative stations /// " + node2.toString(), new Boolean(false));
+									}
 								}
 							}							
 						} else if (node.toString().equals("Own planned stations")) {
 							for (int j=0; j<model.getChildCount(child); j++) {
 								Object child2 = model.getChild(child, j);
-								if (child2 instanceof TriStateTreeNode) {
-									TriStateTreeNode node2 = (TriStateTreeNode) child2;									
-									currentSelections.put("Own planned stations /// " + node2.toString(), node2.getState());									
+								if (child2 instanceof DefaultMutableTreeNode) {
+									DefaultMutableTreeNode node2 = (DefaultMutableTreeNode) child2;
+									Object[] paths = new Object[3];
+									paths[0] = root;
+									paths[1] = node;
+									paths[2] = node2;
+									TreePath temp = new TreePath(paths);
+									boolean isSelected = false;
+									for (int k=0; k<checkedPaths.length; k++) {
+										if (temp.equals(checkedPaths[k]) || isDescendant(temp, checkedPaths[k])) {											
+											isSelected = true;
+											break;
+										}
+									}
+									if (isSelected) {
+										currentSelections.put("Own planned stations /// " + node2.toString(), new Boolean(true));	
+									} else {
+										currentSelections.put("Own planned stations /// " + node2.toString(), new Boolean(false));
+									}																	
 								}
 							}							
 						} else if (node.toString().startsWith("Simulation: ")) {							
 							for (int j=0; j<model.getChildCount(child); j++) {
 								Object child2 = model.getChild(child, j);
-								if (child2 instanceof TriStateTreeNode) {
-									TriStateTreeNode node2 = (TriStateTreeNode) child2;									
-									currentSelections.put(node.toString() + " /// " + node2.toString(), node2.getState());									
+								if (child2 instanceof DefaultMutableTreeNode) {
+									DefaultMutableTreeNode node2 = (DefaultMutableTreeNode) child2;
+									Object[] paths = new Object[3];
+									paths[0] = root;
+									paths[1] = node;
+									paths[2] = node2;
+									TreePath temp = new TreePath(paths);
+									boolean isSelected = false;
+									for (int k=0; k<checkedPaths.length; k++) {
+										if (temp.equals(checkedPaths[k]) || isDescendant(temp, checkedPaths[k])) {									
+											isSelected = true;
+											break;
+										}
+									}
+									if (isSelected) {
+										currentSelections.put(node.toString() + " /// " + node2.toString(), new Boolean(true));										
+									} else {
+										currentSelections.put(node.toString() + " /// " + node2.toString(), new Boolean(false));
+									}																	
 								}
 							}	
 						} else if (node.toString().startsWith("Stations of organization: ")) {
 							for (int j=0; j<model.getChildCount(child); j++) {
 								Object child2 = model.getChild(child, j);
-								if (child2 instanceof TriStateTreeNode) {
-									TriStateTreeNode node2 = (TriStateTreeNode) child2;									
-									currentSelections.put(node.toString() + " /// " + node2.toString(), node2.getState());									
+								if (child2 instanceof DefaultMutableTreeNode) {
+									DefaultMutableTreeNode node2 = (DefaultMutableTreeNode) child2;
+									Object[] paths = new Object[3];
+									paths[0] = root;
+									paths[1] = node;
+									paths[2] = node2;
+									TreePath temp = new TreePath(paths);
+									boolean isSelected = false;
+									for (int k=0; k<checkedPaths.length; k++) {
+										if (temp.equals(checkedPaths[k]) || isDescendant(temp, checkedPaths[k])) {										
+											isSelected = true;
+											break;
+										}
+									}
+									if (isSelected) {
+										currentSelections.put(node.toString() + " /// " + node2.toString(), new Boolean(true));										
+									} else {
+										currentSelections.put(node.toString() + " /// " + node2.toString(), new Boolean(false));
+									}										
 								}
 							}
 						}
@@ -1367,6 +1530,165 @@ public class StationLayer extends OMGraphicHandlerLayer implements MapMouseListe
 		}
 
 		return currentSelections;
+	}
+	
+	private void restoreInitiallySelectedStations() {
+			
+		CheckTreeSelectionModel selectionModel = checkTreeManager.getSelectionModel();
+		
+		TreeModel model = tree.getModel();
+		
+		if (model != null) {
+			Object treeRoot = model.getRoot();
+			
+			// removes current selections			
+			
+			for (int i=0; i<model.getChildCount(treeRoot); i++) {
+				Object child = model.getChild(treeRoot, i);
+				if (child instanceof DefaultMutableTreeNode) {
+					DefaultMutableTreeNode node = (DefaultMutableTreeNode) child;
+					if (node.toString().equals("Own operative stations")) {								
+						for (int j=0; j<model.getChildCount(child); j++) {
+							Object child2 = model.getChild(child, j);
+							if (child2 instanceof DefaultMutableTreeNode) {
+								DefaultMutableTreeNode node2 = (DefaultMutableTreeNode) child2;
+								Object[] obj = new Object[3];
+								obj[0] = treeRoot;
+								obj[1] = node;
+								obj[2] = node2;
+								TreePath[] paths = new TreePath[1];
+								paths[0] = new TreePath(obj);
+								selectionModel.removeSelectionPaths(paths);
+							}							
+						}
+					} else if (node.toString().equals("Own planned stations")) {
+						for (int j=0; j<model.getChildCount(child); j++) {
+							Object child2 = model.getChild(child, j);
+							if (child2 instanceof DefaultMutableTreeNode) {
+								DefaultMutableTreeNode node2 = (DefaultMutableTreeNode) child2;
+								Object[] obj = new Object[3];
+								obj[0] = treeRoot;
+								obj[1] = node;
+								obj[2] = node2;
+								TreePath[] paths = new TreePath[1];
+								paths[0] = new TreePath(obj);
+								selectionModel.removeSelectionPaths(paths);									
+							}
+						}							
+					} else if (node.toString().startsWith("Simulation: ")) {							
+						for (int j=0; j<model.getChildCount(child); j++) {
+							Object child2 = model.getChild(child, j);
+							if (child2 instanceof DefaultMutableTreeNode) {
+								DefaultMutableTreeNode node2 = (DefaultMutableTreeNode) child2;
+								Object[] obj = new Object[3];
+								obj[0] = treeRoot;
+								obj[1] = node;
+								obj[2] = node2;
+								TreePath[] paths = new TreePath[1];
+								paths[0] = new TreePath(obj);
+								selectionModel.removeSelectionPaths(paths);																
+							}
+						}	
+					} else if (node.toString().startsWith("Stations of organization: ")) {
+						for (int j=0; j<model.getChildCount(child); j++) {
+							Object child2 = model.getChild(child, j);
+							if (child2 instanceof DefaultMutableTreeNode) {
+								DefaultMutableTreeNode node2 = (DefaultMutableTreeNode) child2;
+								Object[] obj = new Object[3];
+								obj[0] = treeRoot;
+								obj[1] = node;
+								obj[2] = node2;
+								TreePath[] paths = new TreePath[1];
+								paths[0] = new TreePath(obj);
+								selectionModel.removeSelectionPaths(paths);	
+							}							
+						}
+					}
+				}
+			}				
+		
+			// adds initial selections
+		
+			for (int i=0; i<model.getChildCount(treeRoot); i++) {
+				Object child = model.getChild(treeRoot, i);
+				if (child instanceof DefaultMutableTreeNode) {
+					DefaultMutableTreeNode node = (DefaultMutableTreeNode) child;
+					if (node.toString().equals("Own operative stations")) {								
+						for (int j=0; j<model.getChildCount(child); j++) {
+							Object child2 = model.getChild(child, j);
+							if (child2 instanceof DefaultMutableTreeNode) {
+								DefaultMutableTreeNode node2 = (DefaultMutableTreeNode) child2;
+								if (initiallySelectedStations != null && initiallySelectedStations.containsKey("Own operative stations /// " + node2.toString())) {
+									if (initiallySelectedStations.get("Own operative stations /// " + node2.toString()).booleanValue() == true) {
+										Object[] paths = new Object[3];
+										paths[0] = treeRoot;
+										paths[1] = node;
+										paths[2] = node2;
+										TreePath[] selectionPaths = new TreePath[1];
+										selectionPaths[0] = new TreePath(paths);
+										selectionModel.addSelectionPaths(selectionPaths);
+									}
+								}
+							}							
+						}
+					} else if (node.toString().equals("Own planned stations")) {
+						for (int j=0; j<model.getChildCount(child); j++) {
+							Object child2 = model.getChild(child, j);
+							if (child2 instanceof DefaultMutableTreeNode) {
+								DefaultMutableTreeNode node2 = (DefaultMutableTreeNode) child2;
+								if (initiallySelectedStations != null && initiallySelectedStations.containsKey("Own planned stations /// " + node2.toString())) {
+									if (initiallySelectedStations.get("Own planned stations /// " + node2.toString()).booleanValue() == true) {
+										Object[] paths = new Object[3];
+										paths[0] = treeRoot;
+										paths[1] = node;
+										paths[2] = node2;
+										TreePath[] selectionPaths = new TreePath[1];
+										selectionPaths[0] = new TreePath(paths);
+										selectionModel.addSelectionPaths(selectionPaths);
+									}
+								}									
+							}
+						}							
+					} else if (node.toString().startsWith("Simulation: ")) {							
+						for (int j=0; j<model.getChildCount(child); j++) {
+							Object child2 = model.getChild(child, j);
+							if (child2 instanceof DefaultMutableTreeNode) {
+								DefaultMutableTreeNode node2 = (DefaultMutableTreeNode) child2;
+								if (initiallySelectedStations != null && initiallySelectedStations.containsKey("Simulation: " + node.toString() + " /// " + node2.toString())) {
+									if (initiallySelectedStations.get("Simulation: " + node.toString() + " /// " + node2.toString()).booleanValue() == true) {
+										Object[] paths = new Object[3];
+										paths[0] = treeRoot;
+										paths[1] = node;
+										paths[2] = node2;
+										TreePath[] selectionPaths = new TreePath[1];
+										selectionPaths[0] = new TreePath(paths);
+										selectionModel.addSelectionPaths(selectionPaths);
+									}
+								}																
+							}
+						}	
+					} else if (node.toString().startsWith("Stations of organization: ")) {
+						for (int j=0; j<model.getChildCount(child); j++) {
+							Object child2 = model.getChild(child, j);
+							if (child2 instanceof DefaultMutableTreeNode) {
+								DefaultMutableTreeNode node2 = (DefaultMutableTreeNode) child2;
+								if (initiallySelectedStations != null && initiallySelectedStations.containsKey("Stations of organization: " + node.toString() + " /// " + node2.toString())) {
+									if (initiallySelectedStations.get("Stations of organization: " + node.toString() + " /// " + node2.toString()).booleanValue() == true) {
+										Object[] paths = new Object[3];
+										paths[0] = treeRoot;
+										paths[1] = node;
+										paths[2] = node2;
+										TreePath[] selectionPaths = new TreePath[1];
+										selectionPaths[0] = new TreePath(paths);
+										selectionModel.addSelectionPaths(selectionPaths);
+									}
+								}
+							}							
+						}
+					}
+				}
+			}		
+		}	
 	}
 	
 	@Override
@@ -1497,6 +1819,16 @@ public class StationLayer extends OMGraphicHandlerLayer implements MapMouseListe
         return null;
     }
 
+	private boolean isDescendant(TreePath path1, TreePath path2) {
+		Object obj1[] = path1.getPath();
+        Object obj2[] = path2.getPath();
+        for (int i = 0; i < obj2.length; i++)
+        {
+            if (obj1[i] != obj2[i])
+                return false;
+        }
+        return true;
+	}
 	
     public void updateStations() {
 	
@@ -1504,9 +1836,7 @@ public class StationLayer extends OMGraphicHandlerLayer implements MapMouseListe
 			return;
 		}
 
-		if (tree == null) {
-			tree = createTree();
-		}
+		createTree();
 		
         data = DBHandler.getData();                        
         if (data != null) {
@@ -1517,7 +1847,7 @@ public class StationLayer extends OMGraphicHandlerLayer implements MapMouseListe
 			receiveCoverageLayer.getGraphicsList().clear();
 			interferenceCoverageLayer.getGraphicsList().clear();			 
 			
-			Map<String, TriState> currentSelections = getCurrentSelections();
+			Map<String, Boolean> currentSelections = getCurrentSelections();
 			
 			List<ActiveStation> activeStations = data.getActiveStations();
             if (activeStations != null) {
@@ -1526,7 +1856,7 @@ public class StationLayer extends OMGraphicHandlerLayer implements MapMouseListe
 						for (AISFixedStationData stationData : as.getStations()) {
 							if (stationData.getStatus().getStatusID() == DerbyDBInterface.STATUS_ACTIVE) {
 								if (currentSelections.containsKey("Own operative stations /// " + stationData.getStationName())) {
-									if (currentSelections.get("Own operative stations /// " + stationData.getStationName()) == TriState.SELECTED) {
+									if (currentSelections.get("Own operative stations /// " + stationData.getStationName()).booleanValue() == true) {
 										this.addBaseStation(null, data.getUser(), stationData);
 									}
 								} else {
@@ -1534,7 +1864,7 @@ public class StationLayer extends OMGraphicHandlerLayer implements MapMouseListe
 								}
 							} else if (stationData.getStatus().getStatusID() == DerbyDBInterface.STATUS_PLANNED) {
 								if (currentSelections.containsKey("Own planned stations /// " + stationData.getStationName())) {
-									if (currentSelections.get("Own planned stations /// " + stationData.getStationName()) == TriState.SELECTED) {
+									if (currentSelections.get("Own planned stations /// " + stationData.getStationName()).booleanValue() == true) {
 										this.addBaseStation(null, data.getUser(), stationData);
 									}							
 								} else {
@@ -1551,7 +1881,7 @@ public class StationLayer extends OMGraphicHandlerLayer implements MapMouseListe
 					List<AISFixedStationData> stations = s.getStations();
 					for (AISFixedStationData stationData : stations) {
 						if (currentSelections.containsKey("Simulation: " + s.getName() + " /// " + stationData.getStationName())) {
-							if (currentSelections.get("Simulation: " + s.getName() + " /// " + stationData.getStationName()) == TriState.SELECTED) {
+							if (currentSelections.get("Simulation: " + s.getName() + " /// " + stationData.getStationName()).booleanValue() == true) {
 								this.addBaseStation(s.getName(), data.getUser(), stationData);
 							}							
 						} else {
@@ -1569,7 +1899,7 @@ public class StationLayer extends OMGraphicHandlerLayer implements MapMouseListe
 					for (AISFixedStationData station : stations) {
 						if (station.getStatus().getStatusID() == DerbyDBInterface.STATUS_ACTIVE) {
 							if (currentSelections.containsKey("Stations of organization: " + user.getOrganizationName() + " /// " + station.getStationName())) {
-								if (currentSelections.get("Stations of organization: " + user.getOrganizationName() + " /// " + station.getStationName()) == TriState.SELECTED) {
+								if (currentSelections.get("Stations of organization: " + user.getOrganizationName() + " /// " + station.getStationName()).booleanValue() == true) {
 									this.addBaseStation(user, user, station);
 								}							
 							} else {

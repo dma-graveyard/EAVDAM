@@ -29,7 +29,7 @@ public class EavdamMenu extends AbstractOpenMapMenu implements MenuListener {
 	
 	private UserInformationMenuItem userInformationMenuItem;
 	private StationInformationMenu stationInformationMenu;
-	//private ShowOnMapMenu showOnMapMenu;
+	private ShowOnMapMenu showOnMapMenu;
 	private ShapeLayersMenu shapeLayersMenu;
 	private IssuesMenuItem issuesMenuItem;
 	private ListOfRulesMenuItem listOfRulesMenuItem;
@@ -44,11 +44,10 @@ public class EavdamMenu extends AbstractOpenMapMenu implements MenuListener {
 		
 		userInformationMenuItem = new UserInformationMenuItem(this);
         add(userInformationMenuItem);
-        //add(new AddStationMenuItem(this));
 		stationInformationMenu = new StationInformationMenu(this);
         add(stationInformationMenu);         
-		//showOnMapMenu = new ShowOnMapMenu(this);
-		//add(showOnMapMenu);
+		showOnMapMenu = new ShowOnMapMenu(this);
+		add(showOnMapMenu);
 		shapeLayersMenu = new ShapeLayersMenu(this);
 		add(shapeLayersMenu);
 		issuesMenuItem = new IssuesMenuItem(this, data.getAISDatalinkCheckIssues());
@@ -93,12 +92,10 @@ public class EavdamMenu extends AbstractOpenMapMenu implements MenuListener {
 			stationInformationMenu = new StationInformationMenu(this);
 		}
 		add(stationInformationMenu);
-		/*
 		if (showOnMapMenu == null) {
 			showOnMapMenu = new ShowOnMapMenu(this);
 		}
-		add(showOnMapMenu);
-		*/
+		add(showOnMapMenu);		
 		if (shapeLayersMenu == null) {
 			shapeLayersMenu = new ShapeLayersMenu(this);
 		}
@@ -129,7 +126,6 @@ public class EavdamMenu extends AbstractOpenMapMenu implements MenuListener {
         return layerHandler;
     }    
 	
-	/*
 	public ShowOnMapMenu getShowOnMapMenu() {
 		return showOnMapMenu;
 	}
@@ -137,7 +133,6 @@ public class EavdamMenu extends AbstractOpenMapMenu implements MenuListener {
 	public void setShowOnMapMenu(ShowOnMapMenu showOnMapMenu) {
 		this.showOnMapMenu = showOnMapMenu;
 	}
-	*/
 
 	public ShapeLayersMenu getShapeLayersMenu() {
 		return shapeLayersMenu;

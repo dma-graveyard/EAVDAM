@@ -36,7 +36,6 @@ public class AboutEAVDAMMenuItem extends JMenuItem implements ActionListener, Li
 	
 	private OpenMapFrame openMapFrame;
 	
-	private LinkLabel ansirsTriStateTreeLabel;
 	private LinkLabel commonsNetLabel;
 	private LinkLabel derbyLabel;
 	private LinkLabel image4jLabel;
@@ -100,28 +99,24 @@ public class AboutEAVDAMMenuItem extends JMenuItem implements ActionListener, Li
 			c.gridy = 1;
 			panel.add(new JLabel("Version: " + version), c);
 			c.gridy = 2;                   
-			panel.add(new JLabel("This application uses the following free components:"), c);
-			c.gridy = 3;
-			ansirsTriStateTreeLabel = new LinkLabel("Ansir's tri-state");
-			ansirsTriStateTreeLabel.addActionListener(this);
-			panel.add(ansirsTriStateTreeLabel, c);	 			
-			c.gridy = 4;
+			panel.add(new JLabel("This application uses the following open source components:"), c);
+			c.gridy = 3;			
 			commonsNetLabel = new LinkLabel("Apache Commons Net");
 			commonsNetLabel.addActionListener(this);
 			panel.add(commonsNetLabel, c);	    
-			c.gridy = 5;
+			c.gridy = 4;
 			derbyLabel = new LinkLabel("Apache Derby");
 			derbyLabel.addActionListener(this);
 			panel.add(derbyLabel, c);
-			c.gridy = 6;
+			c.gridy = 5;
 			image4jLabel = new LinkLabel("Image4j");
 			image4jLabel.addActionListener(this);
 			panel.add(image4jLabel, c);			
-			c.gridy = 7;
+			c.gridy = 6;
 			javamailLabel = new LinkLabel("JavaMail");
 			javamailLabel.addActionListener(this);
 			panel.add(javamailLabel, c);	
-			c.gridy = 8;
+			c.gridy = 7;
 			openmapLabel = new LinkLabel("OpenMap");
 			openmapLabel.addActionListener(this);
 			panel.add(openmapLabel, c);				
@@ -132,9 +127,7 @@ public class AboutEAVDAMMenuItem extends JMenuItem implements ActionListener, Li
 			dialog.setBounds((int) screenSize.getWidth()/2 - frameWidth/2,
 				(int) screenSize.getHeight()/2 - frameHeight/2, frameWidth, frameHeight);
 			dialog.setVisible(true);				
-
-		} else if (ae.getSource() == ansirsTriStateTreeLabel) {
-			openURL("http://www.ansir.ca/tristate.jsp");			
+	
 		} else if (ae.getSource() == commonsNetLabel) {
 			openURL("http://commons.apache.org/net/");
 		} else if (ae.getSource() == derbyLabel) {
