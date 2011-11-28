@@ -1366,8 +1366,8 @@ public class StationLayer extends OMGraphicHandlerLayer implements MapMouseListe
 							Object child2 = model.getChild(child, j);
 							if (child2 instanceof DefaultMutableTreeNode) {
 								DefaultMutableTreeNode node2 = (DefaultMutableTreeNode) child2;
-								if (currentSelections != null && currentSelections.containsKey("Simulation: " + node.toString() + " /// " + node2.toString())) {
-									if (currentSelections.get("Simulation: " + node.toString() + " /// " + node2.toString()).booleanValue() == true) {
+								if (currentSelections != null && currentSelections.containsKey(node.toString() + " /// " + node2.toString())) {
+									if (currentSelections.get(node.toString() + " /// " + node2.toString()).booleanValue() == true) {
 										Object[] paths = new Object[3];
 										paths[0] = treeRoot;
 										paths[1] = node;
@@ -1384,8 +1384,8 @@ public class StationLayer extends OMGraphicHandlerLayer implements MapMouseListe
 							Object child2 = model.getChild(child, j);
 							if (child2 instanceof DefaultMutableTreeNode) {
 								DefaultMutableTreeNode node2 = (DefaultMutableTreeNode) child2;
-								if (currentSelections != null && currentSelections.containsKey("Stations of organization: " + node.toString() + " /// " + node2.toString())) {
-									if (currentSelections.get("Stations of organization: " + node.toString() + " /// " + node2.toString()).booleanValue() == true) {
+								if (currentSelections != null && currentSelections.containsKey(node.toString() + " /// " + node2.toString())) {
+									if (currentSelections.get(node.toString() + " /// " + node2.toString()).booleanValue() == true) {
 										Object[] paths = new Object[3];
 										paths[0] = treeRoot;
 										paths[1] = node;
@@ -1651,8 +1651,8 @@ public class StationLayer extends OMGraphicHandlerLayer implements MapMouseListe
 							Object child2 = model.getChild(child, j);
 							if (child2 instanceof DefaultMutableTreeNode) {
 								DefaultMutableTreeNode node2 = (DefaultMutableTreeNode) child2;
-								if (initiallySelectedStations != null && initiallySelectedStations.containsKey("Simulation: " + node.toString() + " /// " + node2.toString())) {
-									if (initiallySelectedStations.get("Simulation: " + node.toString() + " /// " + node2.toString()).booleanValue() == true) {
+								if (initiallySelectedStations != null && initiallySelectedStations.containsKey(node.toString() + " /// " + node2.toString())) {
+									if (initiallySelectedStations.get(node.toString() + " /// " + node2.toString()).booleanValue() == true) {
 										Object[] paths = new Object[3];
 										paths[0] = treeRoot;
 										paths[1] = node;
@@ -1669,8 +1669,8 @@ public class StationLayer extends OMGraphicHandlerLayer implements MapMouseListe
 							Object child2 = model.getChild(child, j);
 							if (child2 instanceof DefaultMutableTreeNode) {
 								DefaultMutableTreeNode node2 = (DefaultMutableTreeNode) child2;
-								if (initiallySelectedStations != null && initiallySelectedStations.containsKey("Stations of organization: " + node.toString() + " /// " + node2.toString())) {
-									if (initiallySelectedStations.get("Stations of organization: " + node.toString() + " /// " + node2.toString()).booleanValue() == true) {
+								if (initiallySelectedStations != null && initiallySelectedStations.containsKey(node.toString() + " /// " + node2.toString())) {
+									if (initiallySelectedStations.get(node.toString() + " /// " + node2.toString()).booleanValue() == true) {
 										Object[] paths = new Object[3];
 										paths[0] = treeRoot;
 										paths[1] = node;
