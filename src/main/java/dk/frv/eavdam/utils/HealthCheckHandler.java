@@ -36,17 +36,244 @@ public class HealthCheckHandler {
 	public static int numberOfFrequencies = 2;
 	public static int numberOfSlotsPerFrequency = 2250;
 	
+	private Map<String, AISFixedStationData> stations = null;
+	
 	public HealthCheckHandler(EAVDAMData data){
 		this.data = data;
 	}
 	
-	public AISDatalinkCheckResult startAISDatalinkCheck(AISDatalinkCheckListener listener, boolean checkRule1, boolean checkRule2, boolean checkRule3, boolean checkRule4, boolean checkRule5, boolean checkRule6, boolean checkRule7, double topLeftLatitude, double topLeftLongitude, double lowerRightLatitude, double lowerRightLongitude, double resolution){
+	public AISDatalinkCheckResult startAISDatalinkCheck(AISDatalinkCheckListener listener, boolean checkRule1, boolean checkRule2, boolean checkRule3, 
+			boolean checkRule4, boolean checkRule5, boolean checkRule6, boolean checkRule7, 
+			double topLeftLatitude, double topLeftLongitude, double lowerRightLatitude, double lowerRightLongitude, double resolution){
+		
+		AISDatalinkCheckResult results = new AISDatalinkCheckResult();
+		
+//		System.out.println(topLeftLatitude+";"+topLeftLongitude+" - "+lowerRightLatitude+";"+lowerRightLongitude);
+		topLeftLatitude = topLeftLatitude + 2.5; 
+		topLeftLongitude = topLeftLongitude - 4.5;
+		lowerRightLatitude = lowerRightLatitude - 2.5;
+		lowerRightLongitude = lowerRightLongitude + 4.5;
+//		System.out.println(topLeftLatitude+";"+topLeftLongitude+" - "+lowerRightLatitude+";"+lowerRightLongitude);
+		
+		this.data = DBHandler.getData(topLeftLatitude,topLeftLongitude,lowerRightLatitude,lowerRightLongitude);  
 		
 		
+		Map<String, Map<String,AISFixedStationData>> overlappingStations = this.findOverlappingStations(topLeftLatitude,topLeftLongitude,lowerRightLatitude,lowerRightLongitude);
+		for(String key : overlappingStations.keySet()){
+			System.out.println("Found "+overlappingStations.get(key).size()+" overlapping stations for "+key+". Doing rule checks...");
+		}
 		
-		return null;
+		if(this.stations == null) this.findOverlappingStations(topLeftLatitude, topLeftLongitude, lowerRightLatitude, lowerRightLongitude);
+		
+		List<AISDatalinkCheckIssue> issues = new ArrayList<AISDatalinkCheckIssue>();
+		for(String s : overlappingStations.keySet()){
+			AISFixedStationData station = stations.get(s);
+			if(station == null){
+				System.err.println("Station "+s+" was not found when checking the rules!");
+				continue;
+			}
+			
+			if(overlappingStations.get(s) == null){
+				System.err.println("Station "+s+" was not found when getting the overlapping stations!");
+				continue;
+			}
+			
+			for(String v : overlappingStations.get(s).keySet()){
+				if(checkRule1){
+					//Checking the first rule.
+					if(this.checkRule1(station, overlappingStations.get(s).get(v)));
+					
+					
+				}
+			}
+		}
+		
+		return results;
 	}
 	
+	/**
+	 * Checks if the two stations have an the same FATDMA slots reserved.
+	 * 
+	 * @param s1
+	 * @param s2
+	 * @return
+	 */
+	public boolean checkRule1(AISFixedStationData s1, AISFixedStationData s2){
+		if(s1 == null || s2 == null){
+			System.err.println("Station is null when checking the rule 1...");
+			
+			if(s1.getReservedBlocksForChannelA() != null){
+				for(Integer rs1 : s1.getReservedBlocksForChannelA()){
+					if(s2.getReservedBlocksForChannelA() == null) break;
+					
+					for(Integer rs2 : s2.getReservedBlocksForChannelB()){
+						
+					}
+				}
+			}
+			return false;
+		}
+		
+		boolean issue = false;
+		
+		
+		return issue;
+	}
+	
+	/**
+	 * Finds the stations that have overlapping coverage areas. The areas overlap if transmit area of one cuts the interference area of another 
+	 * 
+	 * NOTE: This retrieves all the overlapping stations even if they are AtoN stations. This check should be done within the rules. 
+	 * 
+	 * @param topLeftLatitude The top left latitude of the area in observation (this will be the exact area, i.e., it will not be expanded within this method).
+	 * @param topLeftLongitude Top left longitude
+	 * @param lowerRightLatitude Low right latitude
+	 * @param lowerRightLongitude Low right longitude
+	 * @return Map that holds stations as the keys and a map with overlapping stations (e.g., Station A -> Station B, Stations C = A overlaps with B and C). 
+	 */
+	private Map<String, Map<String,AISFixedStationData>> findOverlappingStations(double topLeftLatitude,
+			double topLeftLongitude, double lowerRightLatitude,
+			double lowerRightLongitude) {
+	
+		if(this.data == null) return null;
+
+		if(this.stations == null) stations = new HashMap<String, AISFixedStationData>();
+		
+		Map<String, Map<String,AISFixedStationData>> overlappingStations = new HashMap<String, Map<String,AISFixedStationData>>();
+		
+		if(data.getActiveStations() != null){
+			for(ActiveStation as : data.getActiveStations()){
+				if(as.getStations() != null){
+					for(AISFixedStationData s1 : as.getStations()){
+						String s1Name = s1.getOperator().getOrganizationName()+"-"+s1.getStationName();
+						stations.put(s1Name, s1);
+						Map<String,AISFixedStationData> overlaps = overlappingStations.get(s1Name);
+						if(overlaps == null) overlaps = new HashMap<String, AISFixedStationData>();
+								
+						for(AISFixedStationData s2 : as.getStations()){
+							if(s1 == s2) continue;
+							
+							System.out.println("Comparing: "+s1Name+" vs. "+s2.getStationName());
+							//Compare transmit coverage against interference coverage.
+							if(PointInPolygon.isPolygonIntersection(s1.getTransmissionCoverage().getCoveragePoints(), s2.getInterferenceCoverage().getCoveragePoints())){
+								overlaps.put(s2.getOperator().getOrganizationName()+"-"+s2.getStationName(), s2);
+								System.out.println("Added "+s2.getStationName()+" to "+s1Name);
+							}
+							
+						}
+
+					
+						for(ActiveStation as1 : data.getActiveStations()){
+							if(as == as1) continue;
+							if(as1.getStations() != null){
+								for(AISFixedStationData s2 : as1.getStations()){
+									if(s1 == s2) continue;
+									
+									System.out.println("Comparing: "+s1Name+" vs. "+s2.getStationName());
+									//Compare transmit coverage against interference coverage.
+									if(PointInPolygon.isPolygonIntersection(s1.getTransmissionCoverage().getCoveragePoints(), s2.getInterferenceCoverage().getCoveragePoints())){
+										overlaps.put(s2.getOperator().getOrganizationName()+"-"+s2.getStationName(), s2);
+										System.out.println("Added "+s2.getStationName()+" to "+s1Name);
+									}
+									
+								}
+								
+								
+							}
+						}
+						
+						//Check the other user's stations also...
+						if(data.getOtherUsersStations() != null){
+							for(OtherUserStations other : data.getOtherUsersStations()){
+								if(other.getStations() != null){
+									for(ActiveStation acs : other.getStations()){
+										if(acs.getStations() != null){
+											for(AISFixedStationData o2 : acs.getStations()){
+													if(s1 == o2) continue;
+													
+													//Compare transmit coverage against interference coverage.
+													if(PointInPolygon.isPolygonIntersection(s1.getTransmissionCoverage().getCoveragePoints(), o2.getInterferenceCoverage().getCoveragePoints())){
+														overlaps.put(o2.getOperator().getOrganizationName()+"-"+o2.getStationName(), o2);
+													}
+													
+												}
+											
+												overlappingStations.put(s1Name, overlaps);
+											
+											}
+										}
+									}
+								}
+							}
+						
+							overlappingStations.put(s1Name, overlaps);
+						}
+						
+						
+					}
+				}
+			}
+		
+		
+		if(data.getOtherUsersStations() != null){
+			for(OtherUserStations other : data.getOtherUsersStations()){
+				if(other.getStations() != null){
+					for(ActiveStation as : other.getStations()){
+						if(as.getStations() != null){
+							for(AISFixedStationData o1 : as.getStations()){
+								String o1Name = o1.getOperator().getOrganizationName()+"-"+o1.getStationName();
+								stations.put(o1Name, o1);
+								
+								Map<String,AISFixedStationData> overlaps = overlappingStations.get(o1Name);
+								if(overlaps == null) overlaps = new HashMap<String, AISFixedStationData>();
+								for(AISFixedStationData s2 : as.getStations()){
+									if(o1 == s2) continue;
+									
+									//Compare transmit coverage against interference coverage.
+									if(PointInPolygon.isPolygonIntersection(o1.getTransmissionCoverage().getCoveragePoints(), s2.getInterferenceCoverage().getCoveragePoints())){
+										overlaps.put(s2.getOperator().getOrganizationName()+"-"+s2.getStationName(), s2);
+									}
+									
+								}
+								
+								overlappingStations.put(o1Name, overlaps);
+							
+								
+								
+								for(OtherUserStations other2 : data.getOtherUsersStations()){
+									if(other == other2) continue;
+									if(other2.getStations() != null){
+										for(ActiveStation acs : other.getStations()){
+											if(acs.getStations() != null){
+												for(AISFixedStationData o2 : acs.getStations()){
+													if(o1 == o2) continue;
+														
+													//Compare transmit coverage against interference coverage.
+													if(PointInPolygon.isPolygonIntersection(o1.getTransmissionCoverage().getCoveragePoints(), o2.getInterferenceCoverage().getCoveragePoints())){
+														overlaps.put(o2.getOperator().getOrganizationName()+"-"+o2.getStationName(), o2);
+													}
+														
+												}
+												
+												overlappingStations.put(o1Name, overlaps);
+												
+											}
+										}
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+		
+		
+		return overlappingStations;
+	}
+	
+	
+
 	/**
 	 * 
 	 * Gets the stations and checks the bandwith of the given point. The point is the top left corner of the area.
@@ -161,8 +388,6 @@ public class HealthCheckHandler {
 		Map<String,List<AISFixedStationData>> interferenceB = new HashMap<String, List<AISFixedStationData>>();
 		
 		Set<String> interferenceStations = new HashSet<String>();
-		
-		
 		
 		//Check all active stations
 		if(interference.getActiveStations() != null){
@@ -281,7 +506,7 @@ public class HealthCheckHandler {
 	
 	/**
 	 * Creates the timeslot for the given slot.
-	 * @param reservations List of stations with reservations.
+	 * @param reservations List of stations with reservations in the given slots. (Map's keys are the slots).
 	 * @param interference List of interfering stations.
 	 * @param slot Number of the slot in question
 	 * @param channel Either A or B
@@ -977,6 +1202,15 @@ public class HealthCheckHandler {
 		 
 		 return startLon + dres;
 	}
+	
+	private static double getLatituteChangeForResolution(double resolution, double lat){
+		return 1.0*resolution/(60.0/Math.cos(lat));
+	}
+	
+	private static double getLongitudeChangeForResolution(double resolution, double lon){
+		return 1.0*resolution/(60.0/Math.cos(lon));
+	}
+	
 	
 	private static double getIncrementedLatitude(double resolution, double startLat){
 //		System.out.println(startLat+" | "+resolution+"/(60/"+Math.cos(startLat)+") + "+startLat+" = "+(1.0*resolution/(60.0/Math.cos(startLat)) + startLat));

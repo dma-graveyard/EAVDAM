@@ -1661,15 +1661,73 @@ import dk.frv.eavdam.data.Simulation;
 	    		
 	    	}
 	    	
+	    	return data;
+	    }
+	  
+	    /**
+	     * Retrieves all the data and stations from the database that are within the given area.
+	     * 
+	     * This does not include old stations!
+	     * 
+	     * @return Data within the given area.
+	     */
+	    public EAVDAMData retrieveAllEAVDAMData(EAVDAMUser defaultUser, double topLeftLat, double topLeftLon, double lowRightLat, double lowRightLon) throws Exception{
 	    	
-	    	//Get station information
 	    	
-	    	//Get antenna information
+	    	EAVDAMData data = new EAVDAMData();
 	    	
-	    	//Get status information
+			if(log) System.out.println("Retrieving all EAVDAMData");
 	    	
-	    	//
+	    	if(this.conn == null) this.conn = this.getDBConnection(null, false);
 	    	
+	    	//Get user information
+	    	////Includes Address and Person 
+	    	
+	    	List<EAVDAMUser> users = this.retrieveAllEAVDAMUsers();
+
+	    	if(users != null && users.size() > 0 && defaultUser != null)
+	    	for(EAVDAMUser u : users){
+	    		if(u == null) continue;
+
+	    		if(u.getUserDBID() == defaultUser.getUserDBID()){
+	    			if(log) System.out.println("Retrieving data for default user "+u.getOrganizationName());
+	    			
+	    			data.setUser(u);
+	    			
+	    			//Gets both active, proposed (to this user) and planned stations...
+	    			data.setActiveStations(this.retrieveEAVDAMData(u.getUserDBID(),STATUS_ACTIVE).getActiveStations());
+	    			
+	    			//TODO Simulation
+	    			data.setSimulatedStations(this.retrieveEAVDAMData(u.getUserDBID(), STATUS_SIMULATED).getSimulatedStations());
+	    			
+	    			
+	    			
+	    		}else{
+	    			if(log) System.out.println("Retrieving data for \"other user\" "+u.getOrganizationName());
+	    			//Get "other user data"
+	    			OtherUserStations o = new OtherUserStations();
+	    			EAVDAMData others = this.retrieveEAVDAMData(u.getUserDBID(), STATUS_ACTIVE);
+	    			o.setUser(u);
+	    			o.setStations(others.getActiveStations());
+	    			
+//	    			System.out.println("There are "+o.getStations().size()+" stations: "+(o.getStations().size() > 0 ? o.getStations().get(0).getStations().get(0).getStationName() : " "));
+	    			
+	    			//TODO What about proposals to this user?
+	    			EAVDAMData prop = this.retrieveEAVDAMData(u.getUserDBID(), STATUS_PROPOSED);
+	    			if(prop != null)
+	    				o.getStations().addAll(prop.getActiveStations());
+	    			
+	    			List<OtherUserStations> lo = data.getOtherUsersStations();
+	    			if(lo == null) lo = new ArrayList<OtherUserStations>();
+	    			
+	    			if(o != null && o.getStations() != null && o.getStations().size() > 0){
+	    				lo.add(o);
+	    			}
+	    			
+	    			data.setOtherUsersStations(lo);
+	    		}
+	    		
+	    	}
 	    	
 	    	return data;
 	    }
@@ -1806,6 +1864,89 @@ import dk.frv.eavdam.data.Simulation;
 	    }
 	    
 	    /**
+	     * Retrieves the EAVDAMData only for the given organization AND only within the given area. 
+	     * 
+	     * @param user Either database userID (int) OR organization name. 
+	     * @return
+	     */
+	    public EAVDAMData retrieveEAVDAMData(int user, int status, double topLeftLat, double topLeftLon, double lowRightLat, double lowRightLon) throws Exception{
+//	    	System.out.println("Retrieving EAVDAMData for user "+user+" with status "+status);
+	    	EAVDAMData data = new EAVDAMData();
+	    	EAVDAMUser u = this.retrieveEAVDAMUser(user+"");
+	    	
+	    	if(u == null) return null;
+	    	
+	    	data.setUser(u);
+
+	    	
+	    	if(status <= 0){
+	    	
+		    	//Get the active stations.
+		    	List<AISFixedStationData> activeStations = this.retrieveAISStations(STATUS_ACTIVE, u.getUserDBID());
+		    	//Proposed stations...
+		    	List<AISFixedStationData> proposedStations = this.retrieveAISStations(STATUS_PROPOSED, u.getUserDBID());
+	
+		    	for(AISFixedStationData prop : proposedStations){
+			    	//Transform this list to ActiveStation list...
+			    	ActiveStation as = new ActiveStation();
+			    	as.setStations(activeStations);
+			    	HashMap<EAVDAMUser, AISFixedStationData> proposal = new HashMap<EAVDAMUser, AISFixedStationData>();
+			    	proposal.put(u, prop);
+			    	as.setProposals(proposal);
+			    	
+			    	List<ActiveStation> a = data.getActiveStations();
+			    	if(a == null) a = new ArrayList<ActiveStation>();
+			    	
+			    	a.add(as);
+			    	data.setActiveStations(a);
+		    	}
+		    	
+		    	List<AISFixedStationData> oldStations = this.retrieveAISStations(STATUS_OLD, u.getUserDBID());
+		    	data.setOldStations(oldStations);
+		    	
+		    	
+		    	List<AISFixedStationData> otherUserStations = this.retrieveAISStations(STATUS_ACTIVE, -1);
+		    	List<OtherUserStations> other = new ArrayList<OtherUserStations>();
+		    	OtherUserStations o = new OtherUserStations();
+		    	
+		    	
+		    	data.setOtherUsersStations(other);
+
+		    	
+		    	data.setSimulatedStations(null);
+		    	
+	    	}else{
+	    		if(status == STATUS_ACTIVE){
+
+	    			data.setActiveStations(this.retrieveActiveStations(user));
+	    		}else if(status == STATUS_OLD){
+	    			List<AISFixedStationData> oldStations = this.retrieveAISStations(STATUS_OLD, u.getUserDBID());
+	    			data.setOldStations(oldStations);
+	    			
+	    		}else if(status == STATUS_PROPOSED){
+	    			
+	    		}else if(status == STATUS_PLANNED){
+	    		
+	    			List<AISFixedStationData> plannedStations = this.retrieveAISStations(STATUS_PLANNED, u.getUserDBID());
+	    			ActiveStation as = new ActiveStation();
+	    			as.setStations(plannedStations);
+	    			
+	    			List<ActiveStation> al = new ArrayList<ActiveStation>();
+	    			al.add(as);
+	    			data.setActiveStations(al);
+	    			
+	    		}else if(status == STATUS_SIMULATED){
+	    			List<Simulation> sims = this.retrieveSimulations(u);
+	    			data.setSimulatedStations(sims);
+	    		}
+	    		
+	    	}
+	    	
+	    	
+	    	return data;
+	    }
+	    
+	    /**
 	     * Retrieves the EAVDAMData only for the given organization.
 	     * 
 	     * @param user Either database userID (int) OR organization name. 
@@ -1933,6 +2074,157 @@ import dk.frv.eavdam.data.Simulation;
 	    	
 	    	
 	    	return activeStations;
+	    }
+	    
+	    /**
+	     * Retrieves all the AISFixedStations within the given area of the given status (DerbyDBInterface.STATUS_) and user. 
+	     * 
+	     * If statusID is < 0, all of the stations are retrieved. If userID is < 0, stations are retrieved for all users. 
+	     * 
+	     * 
+	     * 
+	     * @param statusID
+	     * @param userID 
+	     * @return
+	     */
+	    public List<AISFixedStationData> retrieveAISStations(int statusID, int userID, double topLeftLat, double topLeftLon, double lowRightLat, double lowRightLon) throws Exception{
+	    	ArrayList<AISFixedStationData> data = new ArrayList<AISFixedStationData>();
+	    	
+	    	String sql = "select " +
+	    			"FIXEDSTATION.id, " +  //1.
+	    			"FIXEDSTATION.name, " +  //2.
+	    			"FIXEDSTATION.owner, " +  //3.
+	    			"FIXEDSTATION.mmsi, " + //4.
+	    			"FIXEDSTATION.lat, " +  //5.
+	    			"FIXEDSTATION.lon, " +  //6.
+	    			"FIXEDSTATION.transmissionpower, " +  //7.
+	    			"FIXEDSTATION.description, " + //8.
+	    			"FIXEDSTATION.stationtype, "+  //9.
+	    			"FIXEDSTATION.anyvalue, "+  //10.
+	    			"FIXEDSTATION.proposee, "+  //11.
+	    			"STATUS.statustype, "+   //12.
+	    			"STATUS.startdate, "+   //13.
+	    			"STATUS.enddate, "+  //14.
+	    			"STATUS.refstation,"+ //15
+	    			"FIXEDSTATION.stationtype " +  //16.
+	    			"from FIXEDSTATION, STATUS " +
+	    			"where FIXEDSTATION.ID = STATUS.STATION";
+	    	
+	    	String whereClause = " AND FIXEDSTATION.lat >= "+lowRightLat
+	    			+" AND FIXEDSTATION.lon <= "+lowRightLon
+	    			+" AND FIXEDSTATION.lat <= "+topLeftLat
+	    			+" AND FIXEDSTATION.lon >= "+topLeftLon;
+	    	if(statusID > 0){
+	    		whereClause += " AND STATUS.statustype="+statusID;
+	    	}
+	    	
+	    	HashMap<String, EAVDAMUser> users = new HashMap<String, EAVDAMUser>();
+	    	if(userID >= 0){
+	    		whereClause += " AND FIXEDSTATION.owner="+userID;
+	    		
+	    		users.put(userID+"", this.retrieveEAVDAMUser(userID+""));
+	    		
+	    	}else{
+	    		for(EAVDAMUser u : this.retrieveAllEAVDAMUsers()){
+	    			users.put(u.getUserDBID()+"", u);
+	    		}
+	    	}
+	    	
+	    	PreparedStatement ps = conn.prepareStatement(sql+whereClause);
+	    	
+	    	ResultSet rs = ps.executeQuery();
+
+	    	while(rs.next()){
+	    		AISFixedStationData ais = new AISFixedStationData();
+	    		ais.setStationDBID(rs.getInt(1));
+	    		ais.setStationName(rs.getString(2));
+	    		ais.setMmsi(rs.getString(4));
+	    		ais.setLat(rs.getDouble(5));
+	    		ais.setLon(rs.getDouble(6));
+	    		ais.setTransmissionPower(rs.getDouble(7));
+	    		ais.setDescription(rs.getString(8));
+	    		ais.setProposee(rs.getInt(11));
+
+	    		ais.setOperator(users.get(rs.getInt(3)+""));
+	    		
+	    		ais.setRefStationID(rs.getInt(15));
+
+	    		
+	    		AISFixedStationStatus status = new AISFixedStationStatus();
+	    		status.setStartDate(rs.getDate(13));
+	    		status.setEndDate(rs.getDate(14));
+	    		status.setStatusID(rs.getInt(12));
+	    		ais.setStatus(status);
+	    		
+	    		int stationType = rs.getInt(16);
+	    		if(stationType == STATION_ATON){
+	    			ais.setStationType(AISFixedStationType.ATON);
+	    		}else if(stationType == STATION_BASE){
+	    			ais.setStationType(AISFixedStationType.BASESTATION);
+	    		} else if(stationType == STATION_RECEIVER){
+	    			ais.setStationType(AISFixedStationType.RECEIVER);
+	    		} else if(stationType == STATION_REPEATER){
+	    			ais.setStationType(AISFixedStationType.REPEATER);
+	    		} else{
+	    			ais.setStationType(null);
+	    		}
+	    		
+	    		ais.setFATDMAChannelA(this.retrieveFATDMAAllocations(ais.getStationDBID(), FATDMA_CHANNEL_A));
+	    		ais.setFATDMAChannelB(this.retrieveFATDMAAllocations(ais.getStationDBID(), FATDMA_CHANNEL_B));
+	    		
+//	    		System.out.println(ais.getFATDMAChannels().size()+" --> "+(ais.getFATDMAChannels().size() > 0 ? ais.getFATDMAChannels().get(0).getChannelName()+"" : "") );
+	    		
+	    		//TODO Get this data also...
+	    		int stationID = ais.getStationDBID();
+	    		ais.setTransmissionCoverage(this.retrieveCoverageArea(stationID,COVERAGE_TRANSMIT));
+	    		ais.setReceiveCoverage(this.retrieveCoverageArea(stationID, COVERAGE_RECEIVE));
+	    		ais.setInterferenceCoverage(this.retrieveCoverageArea(stationID, COVERAGE_INTERFERENCE));
+	    		
+	    		
+	    		
+	    		ais.setAnything(null);
+	    		
+	    		data.add(ais);
+	    	}
+	    	
+	    	//Get the antenna information
+	    	for(AISFixedStationData ais : data){
+		    	sql = "select " +
+		    			"ANTENNA.antennaheight, " +  //1.
+		    			"ANTENNA.terrainheight, " +  //2.
+		    			"ANTENNA.antennaheading, " +  //3.
+		    			"ANTENNA.fieldofviewangle, " +  //4.
+		    			"ANTENNA.gain, " +  //5.
+		    			"ANTENNA.antennatype " +  //6.
+		    			"from ANTENNA " +
+		    			"where ANTENNA.station = ?";
+		    	
+		    	
+		    	ps = conn.prepareStatement(sql);
+		    	ps.setInt(1, ais.getStationDBID());
+		    	
+		    	rs.close();
+		    	rs = ps.executeQuery();
+		    	while(rs.next()){
+		    		Antenna antenna = new Antenna();
+		    		antenna.setAntennaHeight(rs.getDouble(1));
+		    		if(rs.getInt(6) == ANTENNA_DIRECTIONAL){
+		    			antenna.setAntennaType(AntennaType.DIRECTIONAL);
+		    		}else{
+		    			antenna.setAntennaType(AntennaType.OMNIDIRECTIONAL);
+		    		}
+		    		antenna.setFieldOfViewAngle(rs.getInt(4));
+		    		antenna.setGain(rs.getDouble(5));
+		    		antenna.setHeading(rs.getInt(3));
+		    		antenna.setTerrainHeight(rs.getDouble(2));
+		    		ais.setAntenna(antenna);
+		    	}
+	    	}
+	    	
+	    	rs.close();
+	    	ps.close();
+	    	
+	    	return data;
 	    }
 	    
 	    /**

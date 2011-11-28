@@ -2,6 +2,7 @@ package dk.frv.eavdam.data;
 
 import java.io.StringWriter;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -121,6 +122,8 @@ public class AISFixedStationData {
 	 */
 	private Map<Integer,String> ownershipA;
 	private Map<Integer,String> ownershipB;
+	
+	private List<Integer> reservedBlocks = null;
 	
 	public AISFixedStationData() {
 	}
@@ -354,7 +357,8 @@ public class AISFixedStationData {
 	
 	public List<Integer> getReservedBlocksForChannelA() {
 		
-		List<Integer> reservedBlocks = null;
+		if(reservedBlocks != null) return this.reservedBlocks; 
+		
 		
 		if (fatdmaChannelA != null) {
 			if (fatdmaChannelA instanceof AISBaseAndReceiverStationFATDMAChannel) {
@@ -443,6 +447,11 @@ public class AISFixedStationData {
 			}				
 		}
 
+
+		//Put them into ascending order. 
+		Collections.sort(reservedBlocks);
+
+		
 		return reservedBlocks;
 	}
 	
@@ -534,6 +543,10 @@ public class AISFixedStationData {
 			}				
 		}
 
+
+		//Put them into ascending order. 
+		Collections.sort(reservedBlocks);
+		
 		return reservedBlocks;
 	}
 	

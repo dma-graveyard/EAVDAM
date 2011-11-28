@@ -134,6 +134,29 @@ public class DBHandler {
 
     }
 
+    public static EAVDAMData getData(double topLeftLat, double topLeftLon, double lowRightLat, double lowRightLon){
+    	EAVDAMData dat = null;
+    	
+    	try {
+    		DerbyDBInterface d = new DerbyDBInterface();
+            EAVDAMUser user = d.retrieveDefaultUser();  
+            if(user != null){
+            	System.out.println("Retrieved default user: "+user.getOrganizationName());
+            
+            }
+            
+        	dat = d.retrieveAllEAVDAMData(user, topLeftLat, topLeftLon, lowRightLat, lowRightLon);
+        	
+                  
+                
+
+    	} catch (Exception e) {
+    		e.printStackTrace();
+    	}
+
+    	return dat;
+    }
+    
     public static void saveData(EAVDAMData data) {
         DBHandler.data = data;   // for testing before the database works
         DerbyDBInterface d = new DerbyDBInterface();
