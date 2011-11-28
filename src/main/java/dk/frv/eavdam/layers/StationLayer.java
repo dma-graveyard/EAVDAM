@@ -1436,10 +1436,7 @@ public class StationLayer extends OMGraphicHandlerLayer implements MapMouseListe
 									TreePath temp = new TreePath(paths);
 									boolean isSelected = false;
 									for (int k=0; k<checkedPaths.length; k++) {
-									System.out.println("checkedPaths[k] is " + checkedPaths[k].toString());
-									System.out.println("temp is " + temp.toString());
 										if (temp.equals(checkedPaths[k]) || isDescendant(temp, checkedPaths[k])) {			
-										System.out.println("hep");
 											isSelected = true;
 											break;
 										}
