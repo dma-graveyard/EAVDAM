@@ -132,7 +132,9 @@ public class AddStationDialog extends JDialog implements ActionListener, ItemLis
 		addStationStatusComboBox.addItemListener(this);
 
 		addLatitudeTextField = menuItem.getTextField(16);
+		addLatitudeTextField.setToolTipText("Positive values are in northern hemisphere while negative values are in southern hemisphere");		
 		addLongitudeTextField = menuItem.getTextField(16);
+		addLongitudeTextField.setToolTipText("Positive values are east of Greenwich while negative values are west of Greenwich");		
 		addMMSINumberTextField = menuItem.getTextField(16);
 		addTransmissionPowerTextField = menuItem.getTextField(16);
 		addStationStatusComboBox = menuItem.getComboBox(new String[] {StationInformationMenuItem.OPERATIVE_LABEL, StationInformationMenuItem.PLANNED_LABEL});
@@ -236,11 +238,15 @@ public class AddStationDialog extends JDialog implements ActionListener, ItemLis
 		c = menuItem.updateGBC(c, 1, 2, 0.5, GridBagConstraints.LINE_START, GridBagConstraints.NONE, new Insets(5,5,5,5));    
 		p2.add(addStationStatusComboBox, c);     			
 		c = menuItem.updateGBC(c, 0, 3, 0.5, GridBagConstraints.LINE_START, GridBagConstraints.NONE, new Insets(5,5,5,5));                                        
-		p2.add(new JLabel("Latitude (in decimal degrees):"), c);
+        JLabel latitudeLabel = new JLabel("Latitude (in decimal degrees):");
+		latitudeLabel.setToolTipText("Positive values are in northern hemisphere while negative values are in southern hemisphere");
+		p2.add(latitudeLabel, c);
 		c = menuItem.updateGBC(c, 1, 3, 0.5, GridBagConstraints.LINE_START, GridBagConstraints.NONE, new Insets(5,5,5,5));                   
 		p2.add(addLatitudeTextField, c);                    
 		c = menuItem.updateGBC(c, 0, 4, 0.5, GridBagConstraints.LINE_START, GridBagConstraints.NONE, new Insets(5,5,5,5));                 
-		p2.add(new JLabel("Longitude (in decimal degrees):"), c);
+		JLabel longitudeLabel = new JLabel("Longitude (in decimal degrees):");
+		longitudeLabel.setToolTipText("Positive values are east of Greenwich while negative values are west of Greenwich");
+        p2.add(longitudeLabel, c);
 		c = menuItem.updateGBC(c, 1, 4, 0.5, GridBagConstraints.LINE_START, GridBagConstraints.NONE, new Insets(5,5,5,5));                   
 		p2.add(addLongitudeTextField, c);        
 		c = menuItem.updateGBC(c, 0, 5, 0.5, GridBagConstraints.LINE_START, GridBagConstraints.NONE, new Insets(5,5,5,5));                
