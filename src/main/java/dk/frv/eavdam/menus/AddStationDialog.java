@@ -359,8 +359,8 @@ public class AddStationDialog extends JDialog implements ActionListener, ItemLis
 
 		} else if ((addStationTypeComboBox != null && e.getItemSelectable() == addStationTypeComboBox && e.getStateChange() == ItemEvent.SELECTED)) {
 			if (oldAddStationTypeIndex != -1) {
-				if ((channelAPanel == null || channelAPanel.getComponents().length < 2) &&
-						(channelBPanel == null || channelBPanel.getComponents().length < 2)) {
+				if ((channelAPanel == null || getFATDMAScheme(channelAPanel.getComponents()).isEmpty()) && 
+						(channelBPanel == null || getFATDMAScheme(channelBPanel.getComponents()).isEmpty())) {			
 					updateAddStationChannelComboBoxesAndScrollPanes(null, null, true, true, true, true, false, false);
 				} else {
 					int response = JOptionPane.showConfirmDialog(this, "Are you sure you want change the station type? This will reset the FATDMA information.", "Confirm action", JOptionPane.YES_NO_OPTION);
@@ -387,7 +387,7 @@ public class AddStationDialog extends JDialog implements ActionListener, ItemLis
 			
 		} else if (addStationChannelAComboBox != null && e.getItemSelectable() == addStationChannelAComboBox && e.getStateChange() == ItemEvent.SELECTED) {			
 			if (oldAddStationChannelAIndex != -1) {
-				if (channelAPanel == null || channelAPanel.getComponents().length < 2) {
+				if (channelAPanel == null || getFATDMAScheme(channelAPanel.getComponents()).isEmpty()) {
 					updateAddStationChannelComboBoxesAndScrollPanes(null, null, true, false, true, false, false, false);
 				} else {
 					int response = JOptionPane.showConfirmDialog(this, "Are you sure you want change the channel A? This will reset the FATDMA information for it.", "Confirm action", JOptionPane.YES_NO_OPTION);
@@ -414,7 +414,7 @@ public class AddStationDialog extends JDialog implements ActionListener, ItemLis
 			
 		} else if (addStationChannelBComboBox != null && e.getItemSelectable() == addStationChannelBComboBox && e.getStateChange() == ItemEvent.SELECTED) {     
 			if (oldAddStationChannelBIndex != -1) {
-				if (channelBPanel == null || channelBPanel.getComponents().length < 2) {
+				if (channelBPanel == null || getFATDMAScheme(channelBPanel.getComponents()).isEmpty()) {
 					updateAddStationChannelComboBoxesAndScrollPanes(null, null, false, true, false, true, false, false);
 				} else {
 					int response = JOptionPane.showConfirmDialog(this, "Are you sure you want change the channel B? This will reset the FATDMA information for it.", "Confirm action", JOptionPane.YES_NO_OPTION);

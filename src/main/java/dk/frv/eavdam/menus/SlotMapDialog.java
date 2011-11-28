@@ -76,7 +76,8 @@ public class SlotMapDialog extends JDialog implements ActionListener {
 		c.anchor = GridBagConstraints.LINE_START;
 		
 		c.gridy = 1;
-		panel.add(new JLabel("Total bandwith usage: " + (double) Math.round(10000 * slotmap.getBandwidthReservation()) / 100 + " %"), c);
+		panel.add(new JLabel("Total bandwith usage:   AIS1: " + (double) Math.round(10000 * slotmap.getBandwidthReservationA()) / 100 +
+			" %      AIS2: " + (double) Math.round(10000 * slotmap.getBandwidthReservationB()) / 100 + " %"), c);
 		c.gridwidth = 1;	
 		
 		c.gridy = 0;
