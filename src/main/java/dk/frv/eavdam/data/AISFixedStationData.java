@@ -123,7 +123,9 @@ public class AISFixedStationData {
 	private Map<Integer,String> ownershipA;
 	private Map<Integer,String> ownershipB;
 	
-	private List<Integer> reservedBlocks = null;
+	private List<Integer> reservedBlocksA = null;
+	private List<Integer> reservedBlocksB = null;
+	
 	
 	public AISFixedStationData() {
 	}
@@ -357,7 +359,7 @@ public class AISFixedStationData {
 	
 	public List<Integer> getReservedBlocksForChannelA() {
 		
-		if(reservedBlocks != null) return this.reservedBlocks; 
+		if(reservedBlocksA != null) return this.reservedBlocksA; 
 		
 		
 		if (fatdmaChannelA != null) {
@@ -374,8 +376,8 @@ public class AISFixedStationData {
 							int startslotInt = startslot.intValue();
 							int blockSizeInt = blockSize.intValue();
 							int incrementInt = increment.intValue();
-							if (reservedBlocks == null) {
-								reservedBlocks = new ArrayList<Integer>();
+							if (reservedBlocksA == null) {
+								reservedBlocksA = new ArrayList<Integer>();
 
 							}
 							if(ownershipA == null){
@@ -385,8 +387,8 @@ public class AISFixedStationData {
 							if (incrementInt == 0) {
 								for (int i=0; i<blockSizeInt; i++) {
 									Integer slot = new Integer(startslotInt+i);
-									if (!reservedBlocks.contains(slot)) {
-										reservedBlocks.add(slot);
+									if (!reservedBlocksA.contains(slot)) {
+										reservedBlocksA.add(slot);
 									}
 									ownershipA.put(slot, fatdmaReservation.getOwnership());
 								}								
@@ -395,8 +397,8 @@ public class AISFixedStationData {
 								while (i*incrementInt <= 2249) {							
 									for (int j=0; j<blockSizeInt; j++) {
 										Integer slot = new Integer(startslotInt+j+(i*incrementInt));
-										if (!reservedBlocks.contains(slot)) {
-											reservedBlocks.add(slot);
+										if (!reservedBlocksA.contains(slot)) {
+											reservedBlocksA.add(slot);
 										}
 										
 										ownershipA.put(slot, fatdmaReservation.getOwnership());
@@ -419,14 +421,14 @@ public class AISFixedStationData {
 							int startslotInt = startslot.intValue();
 							int blockSizeInt = blockSize.intValue();
 							int incrementInt = increment.intValue();
-							if (reservedBlocks == null) {
-								reservedBlocks = new ArrayList<Integer>();
+							if (reservedBlocksA == null) {
+								reservedBlocksA = new ArrayList<Integer>();
 							}							
 							if (incrementInt == 0) {
 								for (int i=0; i<blockSizeInt; i++) {
 									Integer slot = new Integer(startslotInt+i);
-									if (!reservedBlocks.contains(slot)) {
-										reservedBlocks.add(slot);
+									if (!reservedBlocksA.contains(slot)) {
+										reservedBlocksA.add(slot);
 									}									
 								}								
 							} else if (incrementInt > 0) {
@@ -434,8 +436,8 @@ public class AISFixedStationData {
 								while (i*incrementInt <= 2249) {							
 									for (int j=0; j<blockSizeInt; j++) {
 										Integer slot = new Integer(startslotInt+j+(i*incrementInt));
-										if (!reservedBlocks.contains(slot)) {
-											reservedBlocks.add(slot);
+										if (!reservedBlocksA.contains(slot)) {
+											reservedBlocksA.add(slot);
 										}										
 									}
 									i++;
@@ -448,16 +450,17 @@ public class AISFixedStationData {
 		}
 
 
-		//Put them into ascending order. 
-		Collections.sort(reservedBlocks);
-
+		if(this.reservedBlocksA != null){
+			//Put them into ascending order. 
+			Collections.sort(reservedBlocksA);
+		}
 		
-		return reservedBlocks;
+		return reservedBlocksA;
 	}
 	
 	public List<Integer> getReservedBlocksForChannelB() {
 		
-		List<Integer> reservedBlocks = null;
+		if(this.reservedBlocksB != null) return reservedBlocksB;
 		
 		if (fatdmaChannelB != null) {
 			if (fatdmaChannelB instanceof AISBaseAndReceiverStationFATDMAChannel) {
@@ -472,8 +475,8 @@ public class AISFixedStationData {
 							int startslotInt = startslot.intValue();
 							int blockSizeInt = blockSize.intValue();
 							int incrementInt = increment.intValue();
-							if (reservedBlocks == null) {
-								reservedBlocks = new ArrayList<Integer>();
+							if (reservedBlocksB == null) {
+								reservedBlocksB = new ArrayList<Integer>();
 							}	
 							
 							if(ownershipB == null){
@@ -482,8 +485,8 @@ public class AISFixedStationData {
 							if (incrementInt == 0) {
 								for (int i=0; i<blockSizeInt; i++) {
 									Integer slot = new Integer(startslotInt+i);
-									if (!reservedBlocks.contains(slot)) {
-										reservedBlocks.add(slot);
+									if (!reservedBlocksB.contains(slot)) {
+										reservedBlocksB.add(slot);
 									}
 									ownershipB.put(slot, fatdmaReservation.getOwnership());
 								}								
@@ -492,8 +495,8 @@ public class AISFixedStationData {
 								while (i*incrementInt <= 2249) {							
 									for (int j=0; j<blockSizeInt; j++) {
 										Integer slot = new Integer(startslotInt+j+(i*incrementInt));
-										if (!reservedBlocks.contains(slot)) {										
-											reservedBlocks.add(slot);
+										if (!reservedBlocksB.contains(slot)) {										
+											reservedBlocksB.add(slot);
 										}
 										ownershipB.put(slot, fatdmaReservation.getOwnership());
 									}
@@ -515,14 +518,14 @@ public class AISFixedStationData {
 							int startslotInt = startslot.intValue();
 							int blockSizeInt = blockSize.intValue();
 							int incrementInt = increment.intValue();
-							if (reservedBlocks == null) {
-								reservedBlocks = new ArrayList<Integer>();
+							if (reservedBlocksB == null) {
+								reservedBlocksB = new ArrayList<Integer>();
 							}							
 							if (incrementInt == 0) {
 								for (int i=0; i<blockSizeInt; i++) {
 									Integer slot = new Integer(startslotInt+i);
-									if (!reservedBlocks.contains(slot)) {
-										reservedBlocks.add(slot);
+									if (!reservedBlocksB.contains(slot)) {
+										reservedBlocksB.add(slot);
 									}
 								}								
 							} else if (incrementInt > 0) {
@@ -530,8 +533,8 @@ public class AISFixedStationData {
 								while (i*incrementInt <= 2249) {							
 									for (int j=0; j<blockSizeInt; j++) {
 										Integer slot = new Integer(startslotInt+j+(i*incrementInt));
-										if (!reservedBlocks.contains(slot)) {
-											reservedBlocks.add(slot);
+										if (!reservedBlocksB.contains(slot)) {
+											reservedBlocksB.add(slot);
 										}									
 									}
 									i++;
@@ -544,10 +547,12 @@ public class AISFixedStationData {
 		}
 
 
-		//Put them into ascending order. 
-		Collections.sort(reservedBlocks);
+		if(reservedBlocksB != null){
+			//Put them into ascending order. 
+			Collections.sort(reservedBlocksB);
+		}
 		
-		return reservedBlocks;
+		return reservedBlocksB;
 	}
 	
 	/**

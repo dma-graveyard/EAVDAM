@@ -11,8 +11,10 @@ import dk.frv.eavdam.data.AISDatalinkCheckArea;
 import dk.frv.eavdam.data.AISDatalinkCheckIssue;
 import dk.frv.eavdam.data.AISDatalinkCheckResult;
 import dk.frv.eavdam.data.AISDatalinkCheckRule;
+import dk.frv.eavdam.data.AISDatalinkCheckSeverity;
 import dk.frv.eavdam.data.AISFixedStationData;
 import dk.frv.eavdam.data.AISFixedStationType;
+import dk.frv.eavdam.data.AISFrequency;
 import dk.frv.eavdam.data.AISSlotMap;
 import dk.frv.eavdam.data.AISStation;
 import dk.frv.eavdam.data.AISTimeslot;
@@ -59,13 +61,12 @@ public class HealthCheckHandler {
 		
 		
 		Map<String, Map<String,AISFixedStationData>> overlappingStations = this.findOverlappingStations(topLeftLatitude,topLeftLongitude,lowerRightLatitude,lowerRightLongitude);
-		for(String key : overlappingStations.keySet()){
-			System.out.println("Found "+overlappingStations.get(key).size()+" overlapping stations for "+key+". Doing rule checks...");
-		}
 		
 		if(this.stations == null) this.findOverlappingStations(topLeftLatitude, topLeftLongitude, lowerRightLatitude, lowerRightLongitude);
 		
 		List<AISDatalinkCheckIssue> issues = new ArrayList<AISDatalinkCheckIssue>();
+		Set<String> foundProblems = new HashSet<String>();
+		
 		for(String s : overlappingStations.keySet()){
 			AISFixedStationData station = stations.get(s);
 			if(station == null){
@@ -81,12 +82,38 @@ public class HealthCheckHandler {
 			for(String v : overlappingStations.get(s).keySet()){
 				if(checkRule1){
 					//Checking the first rule.
-					if(this.checkRule1(station, overlappingStations.get(s).get(v)));
+					List<AISTimeslot> problems = this.checkRule1(station, overlappingStations.get(s).get(v));
+					if(problems != null && problems.size() > 0){
+						
+						AISFixedStationData station2 = overlappingStations.get(s).get(v);
+						
+						List<AISStation> stations = new ArrayList<AISStation>();
+						AISStation s1 = new AISStation(station.getOperator().getOrganizationName(), station.getStationName(), station.getLat(), station.getLon());
+						stations.add(s1);
+						
+						AISStation s2 = new AISStation(station2.getOperator().getOrganizationName(), station2.getStationName(), station2.getLat(), station2.getLon());
+						stations.add(s2);
+						
+						String problemName = "RULE1_"+s1.getOrganizationName()+"_"+s1.getStationName()+" "+s2.getOrganizationName()+"_"+s2.getStationName();
+						String problemName2 = "RULE1_"+s2.getOrganizationName()+"_"+s2.getStationName()+" "+s1.getOrganizationName()+"_"+s1.getStationName();
+						if(!foundProblems.contains(problemName) && !foundProblems.contains(problemName2) ){
+							AISDatalinkCheckIssue issue = new AISDatalinkCheckIssue(-1,AISDatalinkCheckRule.RULE1,AISDatalinkCheckSeverity.SEVERE,stations,problems);
+							
+							foundProblems.add(problemName);
+							foundProblems.add(problemName2);
+							
+							issues.add(issue);
+						}
+					}
 					
 					
 				}
 			}
 		}
+		
+		System.out.println("Found "+issues.size()+" problems!");
+		
+		results.setIssues(issues);
 		
 		return results;
 	}
@@ -98,26 +125,50 @@ public class HealthCheckHandler {
 	 * @param s2
 	 * @return
 	 */
-	public boolean checkRule1(AISFixedStationData s1, AISFixedStationData s2){
+	public List<AISTimeslot> checkRule1(AISFixedStationData s1, AISFixedStationData s2){
 		if(s1 == null || s2 == null){
 			System.err.println("Station is null when checking the rule 1...");
-			
-			if(s1.getReservedBlocksForChannelA() != null){
-				for(Integer rs1 : s1.getReservedBlocksForChannelA()){
-					if(s2.getReservedBlocksForChannelA() == null) break;
+			return null;
+		}			
+		
+		List<AISTimeslot> problems = new ArrayList<AISTimeslot>();
+		if(s1.getReservedBlocksForChannelA() != null){
+			for(Integer rs1 : s1.getReservedBlocksForChannelA()){
+				if(s2.getReservedBlocksForChannelA() == null) break;
 					
-					for(Integer rs2 : s2.getReservedBlocksForChannelB()){
+				for(Integer rs2 : s2.getReservedBlocksForChannelA()){
+					if(rs2.intValue() > rs1.intValue()) break;
 						
+					if(rs1.intValue() == rs2.intValue()){
+						//Problem found!
+						AISTimeslot slot = new AISTimeslot(AISFrequency.AIS1,rs1.intValue(),new Boolean(false),null,null,null,new Boolean(true));
+						problems.add(slot);
+						
+						break;
 					}
 				}
 			}
-			return false;
 		}
 		
-		boolean issue = false;
+		if(s1.getReservedBlocksForChannelB() != null){
+			for(Integer rs1 : s1.getReservedBlocksForChannelB()){
+				if(s2.getReservedBlocksForChannelB() == null) break;
+					
+				for(Integer rs2 : s2.getReservedBlocksForChannelB()){
+					if(rs2.intValue() > rs1.intValue()) break;
+						
+					if(rs1.intValue() == rs2.intValue()){
+						//Problem found!
+						AISTimeslot slot = new AISTimeslot(AISFrequency.AIS2,rs1.intValue(),new Boolean(false),null,null,null,new Boolean(true));
+						problems.add(slot);
+						
+						break;
+					}
+				}
+			}
+		}
 		
-		
-		return issue;
+		return problems;
 	}
 	
 	/**
