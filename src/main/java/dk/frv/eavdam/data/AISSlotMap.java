@@ -14,6 +14,8 @@ public class AISSlotMap {
 	private double bandwidthUsedByLocalA;
 	private double bandwidthUsedByLocalB;
 	
+	private List<AISDatalinkCheckIssue> issues;
+	
 	public AISSlotMap() {}
 	
 	public AISSlotMap(List<AISTimeslot> ais1Timeslots, List<AISTimeslot> ais2Timeslots) {
@@ -91,6 +93,14 @@ public class AISSlotMap {
 
 	public void setBandwidthUsedByLocalB(double bandwidthUsedByLocalB) {
 		this.bandwidthUsedByLocalB = bandwidthUsedByLocalB;
+	}
+
+	public List<AISDatalinkCheckIssue> getIssues() {
+		return issues;
+	}
+
+	public void setIssues(List<AISDatalinkCheckIssue> issues) {
+		this.issues = issues;
 	}	
 	
 }

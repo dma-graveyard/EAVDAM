@@ -1,6 +1,8 @@
 package dk.frv.eavdam.utils;
 
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -38,8 +40,9 @@ public class HealthCheckHandler {
 	public static String plannedIndicator = " (P)";
 	public static int numberOfFrequencies = 2;
 	public static int numberOfSlotsPerFrequency = 2250;
-	private Map<String, AISDatalinkCheckArea> areaIssueMap = null; //Store the issues found from the area to this map.
 	
+	private Map<String, String> areaIssueMap = null; //Store the issues found from the area to this map. This is a pointer to the stationSlotmap
+	private Map<String, AISSlotMap> stationSlotmap = null; //Stores slot map of each station combination.
 	private Map<String, AISFixedStationData> stations = null;
 	
 	public HealthCheckHandler(EAVDAMData data){
@@ -89,41 +92,50 @@ public class HealthCheckHandler {
 				AISSlotMap sm = slotMapAtPoint(lat, lon);
 				
 				if(ithLine > 1 && ithColumn > 1){
-					//Make the average
-					AISDatalinkCheckArea a1 = this.areaIssueMap.remove(prevLat+";"+prevLon); //Only remove this one
-					if(a1 == null){
-						System.out.println("A1 is null");
-						continue;
-					}
+//					//Make the average
+//					AISSlotMap sm1 = this.stationSlotmap.get(this.areaIssueMap.get(prevLat+";"+prevLon));
+//					if(sm1 == null){
+//						System.out.println("A1 is null");
+//						continue;
+//					}
+//					
+//					AISSlotMap sm2 = this.stationSlotmap.get(this.areaIssueMap.get(prevLat+";"+lon));
+//					if(sm2 == null){
+//						System.out.println("A2 is null");
+//						continue;
+//					}
+//					
+//					AISSlotMap sm3 = this.stationSlotmap.get(this.areaIssueMap.get(lat+";"+prevLon));
+//					if(sm3 == null){
+//						System.out.println("A3 is null");
+//						continue;
+//					}
+//					
+//					
+//					if(sm == null){
+//						System.out.println("A4 is null");
+//						continue;
+//					}
+//					
 					
-					AISDatalinkCheckArea a2 = this.areaIssueMap.get(prevLat+";"+lon);
-					if(a2 == null){
-						System.out.println("A2 is null");
-						continue;
-					}
-					
-					AISDatalinkCheckArea a3 = this.areaIssueMap.get(lat+";"+prevLon);
-					if(a3 == null){
-						System.out.println("A3 is null");
-						continue;
-					}
-					
-					AISDatalinkCheckArea a4 = this.areaIssueMap.get(lat+";"+lon);
-					if(a4 == null){
-						System.out.println("A4 is null");
-						continue;
-					}
-					
-					
-					this.areaIssueMap.put(prevLat+";"+prevLon+"-"+lat+";"+lon, this.getAverageArea(a1, a2, a3, a4));
+					this.areaIssueMap.put(prevLat+";"+prevLon+"-"+lat+";"+lon, this.areaIssueMap.get(lat+";"+lon));
 					foundAreas.add(prevLat+";"+prevLon+"-"+lat+";"+lon);
+					
 				}
 				
 
 				
 				prevLon = lon;
 			}
-			System.out.println("Total "+ithTotal+"/"+((int)numberOfCells)+"");
+			if(ithTotal > numberOfCells) ithTotal = (int)numberOfCells;
+			
+//			System.out.println("Total "+ithTotal+"/"+((int)numberOfCells)+"");
+			
+			if(listener != null){
+				listener.progressed(1.0*ithTotal/((int) numberOfCells));
+			}
+			
+			
 			prevLat = lat;
 			
 		}
@@ -238,38 +250,29 @@ public class HealthCheckHandler {
 		}
 		
 		System.out.println("Health checks completed...");
-//		for(AISDatalinkCheckIssue issue : issues){
-//			System.out.println(issue.toString());
-//		}
+
 		
 		for(String keys : foundAreas){
-			areas.add(this.areaIssueMap.get(keys));
+			String key = this.areaIssueMap.get(keys);
+			String[] top = keys.split("\\-");
+			
+			AISDatalinkCheckArea area = new AISDatalinkCheckArea(Double.parseDouble(top[0].split(";")[0]),Double.parseDouble(top[0].split(";")[1]),Double.parseDouble(top[1].split(";")[0]),Double.parseDouble(top[1].split(";")[1]));
+			area.setSlotmap(this.stationSlotmap.get(key));
+			
+			
+			areas.add(area);
 		}
 		
 		
 		results.setIssues(issues);
 		results.setAreas(areas);
 		
+		if(listener != null) listener.completed(results);
+		
 		return results;
 	}
 	
-	private AISDatalinkCheckArea getAverageArea(AISDatalinkCheckArea a1, AISDatalinkCheckArea a2, AISDatalinkCheckArea a3, AISDatalinkCheckArea a4){
-		AISDatalinkCheckArea area = new AISDatalinkCheckArea(a1.getTopLeftLatitude(), a1.getTopLeftLongitude(),a4.getTopLeftLatitude(),a4.getTopLeftLongitude());
-		
-		List<AISDatalinkCheckIssue> allIssues = new ArrayList<AISDatalinkCheckIssue>();
-		allIssues.addAll(a1.getIssues());
-		allIssues.addAll(a2.getIssues());
-		allIssues.addAll(a3.getIssues());
-		allIssues.addAll(a4.getIssues());
-		
-		this.trimIssueList(allIssues);
-		
-		area.setIssues(allIssues);
-		area.setSlotmap(a4.getSlotmap()); //TODO make an average slotmap!
-		
-		
-		return area;
-	}
+	
 	
 	/**
 	 * Checks the Rule 1: two stations have the same FATDMA slots reserved (both of them for local and neither of them are AtoN stations).
@@ -649,6 +652,9 @@ public class HealthCheckHandler {
 		
 		Set<String> handledStations = new HashSet<String>();
 		
+		List<Integer> listOfTransmitStations = new ArrayList<Integer>();
+		List<Integer> listOfInterferenceStations = new ArrayList<Integer>();
+		
 		//Check all active stations
 		if(transmission.getActiveStations() != null){
 			if(transmission.getActiveStations() != null)
@@ -656,6 +662,7 @@ public class HealthCheckHandler {
 				if(as.getStations() != null){
 					
 					for(AISFixedStationData s : as.getStations()){
+						listOfTransmitStations.add(new Integer(s.getStationDBID()));
 //						if(s.getStatus().getStatusID() == DerbyDBInterface.STATUS_PLANNED) continue; //TODO Include the PLANNED stations to the check also?
 //						
 //						if(handledStations.contains(s.getStationName()+"_"+s.getOperator().getOrganizationName())) continue;
@@ -695,6 +702,8 @@ public class HealthCheckHandler {
 					for(ActiveStation as : other.getStations()){
 						if(as.getStations() != null){
 							for(AISFixedStationData s : as.getStations()){
+								listOfTransmitStations.add(new Integer(s.getStationDBID()));
+								
 //								if(s.getStatus().getStatusID() == DerbyDBInterface.STATUS_PLANNED) continue;
 //								if(handledStations.contains(s.getStationName()+"_"+s.getOperator().getOrganizationName())) continue;
 								
@@ -738,6 +747,8 @@ public class HealthCheckHandler {
 			for(ActiveStation as : interference.getActiveStations()){
 				if(as.getStations() != null){
 					for(AISFixedStationData s : as.getStations()){
+						listOfInterferenceStations.add(new Integer(s.getStationDBID()));
+						
 //						if(s.getStatus().getStatusID() == DerbyDBInterface.STATUS_PLANNED) continue; //TODO Include the PLANNED stations to the check also?
 //						if(interferenceStations.contains(s.getStationName()+"_"+s.getOperator().getOrganizationName())) continue;
 						
@@ -779,6 +790,7 @@ public class HealthCheckHandler {
 					for(ActiveStation as : other.getStations()){
 						if(as.getStations() != null){
 							for(AISFixedStationData s : as.getStations()){
+								listOfInterferenceStations.add(s.getStationDBID());
 //								if(s.getStatus().getStatusID() == DerbyDBInterface.STATUS_PLANNED) continue;
 //								if(interferenceStations.contains(s.getStationName()+"_"+s.getOperator().getOrganizationName())) continue;
 								
@@ -812,6 +824,15 @@ public class HealthCheckHandler {
 			}
 		}
 
+		Collections.sort(listOfTransmitStations);
+		Collections.sort(listOfInterferenceStations);
+		
+		if(this.stationSlotmap == null) this.stationSlotmap = new HashMap<String, AISSlotMap>();
+		else if(this.stationSlotmap.get(listOfTransmitStations.toString()+"-"+listOfInterferenceStations.toString()) != null){
+			this.areaIssueMap.put(lat+";"+lon, listOfTransmitStations.toString()+"-"+listOfInterferenceStations.toString());
+			
+			return this.stationSlotmap.get(listOfTransmitStations.toString()+"-"+listOfInterferenceStations.toString());
+		}
 		
 		
 		//Create slot map
@@ -856,17 +877,19 @@ public class HealthCheckHandler {
 		slotmap.setBandwidthReservation((1.0*notFreeA+notFreeB)/(numberOfSlotsPerFrequency*numberOfFrequencies));
 		
 		this.trimIssueList(issues);
-		area.setIssues(issues);
+		slotmap.setIssues(issues);
 
+		
 		if(slotmap.getBandwidthReservationA() > 0.5){
 			AISDatalinkCheckIssue issue = new AISDatalinkCheckIssue(-1,AISDatalinkCheckRule.RULE7,AISDatalinkCheckSeverity.MAJOR,null,null);
 			issues.add(issue);
 		}
 		
 		area.setSlotmap(slotmap);
-		if(this.areaIssueMap == null) this.areaIssueMap = new HashMap<String, AISDatalinkCheckArea>();
+		if(this.areaIssueMap == null) this.areaIssueMap = new HashMap<String, String>();
 		
-		this.areaIssueMap.put(lat+";"+lon, area);
+		this.areaIssueMap.put(lat+";"+lon, listOfTransmitStations.toString()+"-"+listOfInterferenceStations.toString());
+		this.stationSlotmap.put(listOfTransmitStations.toString()+"-"+listOfInterferenceStations.toString(),slotmap);
 		
 		return slotmap;
 	}
