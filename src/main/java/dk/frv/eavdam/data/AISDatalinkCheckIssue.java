@@ -62,5 +62,9 @@ public class AISDatalinkCheckIssue {
 	public void setInvolvedTimeslots(List<AISTimeslot> involvedTimeslots) {
 		this.involvedTimeslots = involvedTimeslots;
 	}	
-	
+
+	public String toString(){
+		return id+": "+severity+" "+ruleViolated+". There are "+getInvolvedStations().size()+" involved stations " +
+				"("+getInvolvedStations().get(0).getStationName()+(getInvolvedStations().size() > 1 ? " and "+getInvolvedStations().get(1).getStationName() : "")+") and "+involvedTimeslots.size()+" involved timeslots...";
+	}
 }

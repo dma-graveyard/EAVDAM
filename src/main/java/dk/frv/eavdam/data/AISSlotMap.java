@@ -11,6 +11,8 @@ public class AISSlotMap {
 	private double bandwidthReservation;
 	private double bandwidthReservationA;
 	private double bandwidthReservationB;
+	private double bandwidthUsedByLocalA;
+	private double bandwidthUsedByLocalB;
 	
 	public AISSlotMap() {}
 	
@@ -73,6 +75,22 @@ public class AISSlotMap {
 
 	public void setBandwidthReservationB(double bandwidthReservationB) {
 		this.bandwidthReservationB = bandwidthReservationB;
+	}
+
+	public double getBandwidthUsedByLocalA() {
+		return bandwidthUsedByLocalA;
+	}
+
+	public void setBandwidthUsedByLocalA(double bandwidthUsedByLocalA) {
+		this.bandwidthUsedByLocalA = bandwidthUsedByLocalA;
+	}
+
+	public double getBandwidthUsedByLocalB() {
+		return bandwidthUsedByLocalB;
+	}
+
+	public void setBandwidthUsedByLocalB(double bandwidthUsedByLocalB) {
+		this.bandwidthUsedByLocalB = bandwidthUsedByLocalB;
 	}	
 	
 }

@@ -1,5 +1,6 @@
 package dk.frv.eavdam.data;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -12,6 +13,8 @@ public class AISDatalinkCheckArea {
 	private double lowerRightLatitude;
 	private double lowerRightLongitude;
 	private double bandwithUsageLevel;
+	private List<AISDatalinkCheckIssue> issues;
+	private AISSlotMap slotmap;
 	
 	public AISDatalinkCheckArea() {}
 	
@@ -65,6 +68,28 @@ public class AISDatalinkCheckArea {
 	
 	public String toString(){
 		return "("+topLeftLatitude+";"+topLeftLongitude+") - ("+lowerRightLatitude+";"+lowerRightLongitude+"): "+bandwithUsageLevel;
+	}
+
+	public List<AISDatalinkCheckIssue> getIssues() {
+		return issues;
+	}
+
+	public void setIssues(List<AISDatalinkCheckIssue> issues) {
+		this.issues = issues;
+	}
+	
+	public void addIssue(AISDatalinkCheckIssue issue){
+		if(this.issues == null) this.issues = new ArrayList<AISDatalinkCheckIssue>();
+		
+		issues.add(issue);
+	}
+
+	public AISSlotMap getSlotmap() {
+		return slotmap;
+	}
+
+	public void setSlotmap(AISSlotMap slotmap) {
+		this.slotmap = slotmap;
 	}
 	
 }

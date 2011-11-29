@@ -1,5 +1,7 @@
 package dk.frv.eavdam.data;
 
+import dk.frv.eavdam.io.jaxb.AisFixedStationType;
+
 /**
  * This class is used when querying for slotmap information.
  */
@@ -9,6 +11,9 @@ public class AISStation {
 	private String stationName;
 	private Double latitude;
 	private Double longitude;
+	private AISFixedStationType stationType; //Type needed for rule checking
+	
+	
 	// should have more information?
 	
 	public AISStation() {}
@@ -50,6 +55,14 @@ public class AISStation {
 
 	public void setLongitude(Double longitude) {
 		this.longitude = longitude;
+	}
+
+	public AISFixedStationType getStationType() {
+		return stationType;
+	}
+
+	public void setStationType(AISFixedStationType stationType) {
+		this.stationType = stationType;
 	}		
 	
 }

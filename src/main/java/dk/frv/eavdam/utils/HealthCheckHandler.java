@@ -27,6 +27,7 @@ import dk.frv.eavdam.healthcheck.PointInPolygon;
 import dk.frv.eavdam.io.AISDatalinkCheckListener;
 import dk.frv.eavdam.io.derby.DerbyDBInterface;
 import dk.frv.eavdam.io.jaxb.AisFixedStationStatus;
+import dk.frv.eavdam.io.jaxb.AisFixedStationType;
 
 public class HealthCheckHandler {
 
@@ -37,6 +38,7 @@ public class HealthCheckHandler {
 	public static String plannedIndicator = " (P)";
 	public static int numberOfFrequencies = 2;
 	public static int numberOfSlotsPerFrequency = 2250;
+	private Map<String, AISDatalinkCheckArea> areaIssueMap = null; //Store the issues found from the area to this map.
 	
 	private Map<String, AISFixedStationData> stations = null;
 	
@@ -50,22 +52,37 @@ public class HealthCheckHandler {
 		
 		AISDatalinkCheckResult results = new AISDatalinkCheckResult();
 		
-//		System.out.println(topLeftLatitude+";"+topLeftLongitude+" - "+lowerRightLatitude+";"+lowerRightLongitude);
-		topLeftLatitude = topLeftLatitude + 2.5; 
-		topLeftLongitude = topLeftLongitude - 4.5;
-		lowerRightLatitude = lowerRightLatitude - 2.5;
-		lowerRightLongitude = lowerRightLongitude + 4.5;
-//		System.out.println(topLeftLatitude+";"+topLeftLongitude+" - "+lowerRightLatitude+";"+lowerRightLongitude);
-		
-		this.data = DBHandler.getData(topLeftLatitude,topLeftLongitude,lowerRightLatitude,lowerRightLongitude);  
+		this.data = DBHandler.getData(topLeftLatitude + 2.5, topLeftLongitude - 4.5, lowerRightLatitude -2.5, lowerRightLongitude + 4.5);  
 		
 		
-		Map<String, Map<String,AISFixedStationData>> overlappingStations = this.findOverlappingStations(topLeftLatitude,topLeftLongitude,lowerRightLatitude,lowerRightLongitude);
-		
-		if(this.stations == null) this.findOverlappingStations(topLeftLatitude, topLeftLongitude, lowerRightLatitude, lowerRightLongitude);
+		Map<String, Map<String,AISFixedStationData>> overlappingStations = this.findOverlappingStations(topLeftLatitude + 2.5, topLeftLongitude - 4.5, lowerRightLatitude -2.5, lowerRightLongitude + 4.5);
 		
 		List<AISDatalinkCheckIssue> issues = new ArrayList<AISDatalinkCheckIssue>();
 		Set<String> foundProblems = new HashSet<String>();
+		
+		
+		
+		//AREA FOCUSED HEALTH CHECK
+		double latIncrement = getIncrementedLatitude(resolution, topLeftLatitude)-topLeftLatitude;
+		if(latIncrement < 0) latIncrement *= -1;
+		
+		double lonIncrement = getIncrementedLongitude(resolution, topLeftLongitude) - topLeftLongitude;
+		if(lonIncrement < 0) lonIncrement *= -1;
+		
+		System.out.println("Starting area focused health check (Rules 1, 3, and 7).");
+		List<AISDatalinkCheckArea> areas = new ArrayList<AISDatalinkCheckArea>();
+		//Loop through the area?
+		for(double lat = topLeftLatitude ; lat < lowerRightLatitude; lat = lat + latIncrement){
+			for(double lon = topLeftLongitude; lon < lowerRightLongitude; lon = lon - lonIncrement){
+				AISSlotMap slotmap = slotMapAtPoint(lat, lon);
+				
+				if(slotmap != null){
+					
+				}
+			}
+		}
+		System.out.println("Area focused health check completed...\nStarting station focused health check (Rules 2, 4, 5, and 6)");
+		
 		
 		for(String s : overlappingStations.keySet()){
 			AISFixedStationData station = stations.get(s);
@@ -77,6 +94,67 @@ public class HealthCheckHandler {
 			if(overlappingStations.get(s) == null){
 				System.err.println("Station "+s+" was not found when getting the overlapping stations!");
 				continue;
+			}
+			
+			if(checkRule2){
+				List<AISTimeslot> problems = this.checkRule2(station,overlappingStations.get(s));
+				if(problems != null && problems.size() > 0){
+					
+					List<AISStation> stations = new ArrayList<AISStation>();
+					AISStation s1 = new AISStation(station.getOperator().getOrganizationName(), station.getStationName(), station.getLat(), station.getLon());
+					stations.add(s1);
+					
+					String problemName = "RULE2_"+s1.getOrganizationName()+"_"+s1.getStationName();
+					
+					if(!foundProblems.contains(problemName)){
+						AISDatalinkCheckIssue issue = new AISDatalinkCheckIssue(-1,AISDatalinkCheckRule.RULE2,AISDatalinkCheckSeverity.MAJOR,stations,problems);
+						
+						foundProblems.add(problemName);
+						
+						issues.add(issue);
+					}
+				}
+				
+			}
+			
+			if(checkRule3){
+				List<AISTimeslot> problems = this.checkRule4(station);
+				if(problems != null && problems.size() > 0){
+					
+					List<AISStation> stations = new ArrayList<AISStation>();
+					AISStation s1 = new AISStation(station.getOperator().getOrganizationName(), station.getStationName(), station.getLat(), station.getLon());
+					stations.add(s1);
+					
+					String problemName = "RULE3_"+s1.getOrganizationName()+"_"+s1.getStationName();
+					if(!foundProblems.contains(problemName)){
+						AISDatalinkCheckIssue issue = new AISDatalinkCheckIssue(-1,AISDatalinkCheckRule.RULE3,AISDatalinkCheckSeverity.MAJOR,stations,problems);
+						
+						foundProblems.add(problemName);
+						
+						issues.add(issue);
+					}
+				}
+			}
+			
+			if(checkRule4){
+				List<AISTimeslot> problems = this.checkRule4(station);
+				if(problems != null && problems.size() > 0){
+					
+					List<AISStation> stations = new ArrayList<AISStation>();
+					AISStation s1 = new AISStation(station.getOperator().getOrganizationName(), station.getStationName(), station.getLat(), station.getLon());
+					stations.add(s1);
+					
+					String problemName = "RULE4_"+s1.getOrganizationName()+"_"+s1.getStationName();
+					if(!foundProblems.contains(problemName)){
+						AISDatalinkCheckIssue issue = new AISDatalinkCheckIssue(-1,AISDatalinkCheckRule.RULE4,AISDatalinkCheckSeverity.MAJOR,stations,problems);
+						
+						foundProblems.add(problemName);
+						
+						issues.add(issue);
+					}
+				}
+				
+				
 			}
 			
 			for(String v : overlappingStations.get(s).keySet()){
@@ -105,21 +183,27 @@ public class HealthCheckHandler {
 							issues.add(issue);
 						}
 					}
-					
-					
 				}
+				
+
+				
+
 			}
 		}
 		
-		System.out.println("Found "+issues.size()+" problems!");
+		System.out.println("Health checks completed...");
+//		for(AISDatalinkCheckIssue issue : issues){
+//			System.out.println(issue.toString());
+//		}
 		
 		results.setIssues(issues);
+		results.setAreas(areas);
 		
 		return results;
 	}
 	
 	/**
-	 * Checks if the two stations have an the same FATDMA slots reserved.
+	 * Checks the Rule 1: two stations have the same FATDMA slots reserved (both of them for local and neither of them are AtoN stations).
 	 * 
 	 * @param s1
 	 * @param s2
@@ -135,14 +219,19 @@ public class HealthCheckHandler {
 		if(s1.getReservedBlocksForChannelA() != null){
 			for(Integer rs1 : s1.getReservedBlocksForChannelA()){
 				if(s2.getReservedBlocksForChannelA() == null) break;
-					
+				if(s1.getStationType().equals(AisFixedStationType.ATON) || s2.getStationType().equals(AisFixedStationType.ATON)) break;	
+				
 				for(Integer rs2 : s2.getReservedBlocksForChannelA()){
 					if(rs2.intValue() > rs1.intValue()) break;
 						
 					if(rs1.intValue() == rs2.intValue()){
-						//Problem found!
-						AISTimeslot slot = new AISTimeslot(AISFrequency.AIS1,rs1.intValue(),new Boolean(false),null,null,null,new Boolean(true));
-						problems.add(slot);
+						
+						//Check if the slots are reserved for the remote use.
+						if(!s1.getOwnershipInSlot("A", rs1.intValue()).equals("R") && !s2.getOwnershipInSlot("A", rs1.intValue()).equals("R")){
+							//Problem found!
+							AISTimeslot slot = new AISTimeslot(AISFrequency.AIS1,rs1.intValue(),new Boolean(false),null,null,null,new Boolean(true));
+							problems.add(slot);
+						}
 						
 						break;
 					}
@@ -158,9 +247,12 @@ public class HealthCheckHandler {
 					if(rs2.intValue() > rs1.intValue()) break;
 						
 					if(rs1.intValue() == rs2.intValue()){
-						//Problem found!
-						AISTimeslot slot = new AISTimeslot(AISFrequency.AIS2,rs1.intValue(),new Boolean(false),null,null,null,new Boolean(true));
-						problems.add(slot);
+						//Check if the slots are remote use.
+						if(!s1.getOwnershipInSlot("B", rs1.intValue()).equals("R") && !s2.getOwnershipInSlot("B", rs1.intValue()).equals("R")){
+							//Problem found!
+							AISTimeslot slot = new AISTimeslot(AISFrequency.AIS1,rs1.intValue(),new Boolean(false),null,null,null,new Boolean(true));
+							problems.add(slot);
+						}
 						
 						break;
 					}
@@ -171,6 +263,119 @@ public class HealthCheckHandler {
 		return problems;
 	}
 	
+	/**
+	 * Checks the rule 2: Remote reservations but no intended use
+	 * 
+	 * @param s1
+	 * @param s2
+	 * @return
+	 */
+	private List<AISTimeslot> checkRule2(AISFixedStationData s1, Map<String,AISFixedStationData> stations) {
+		if(s1 == null || stations == null){
+			System.err.println("Station is null when checking the rule 1...");
+			return null;
+		}			
+		
+		//First station must not be an AtoN station 
+		if(s1.getStationType().equals(AisFixedStationType.ATON)){
+			return null;
+		}
+		
+		List<AISTimeslot> problems = new ArrayList<AISTimeslot>();
+		if(s1.getReservedBlocksForChannelA() != null){
+			for(Integer rs1 : s1.getReservedBlocksForChannelA()){
+				if(s1.getOwnershipInSlot("A", rs1.intValue()).equals("L")) continue;  //We only need the remote slots.
+
+				boolean reservation = false;
+				//Check the all the stations that overlap this one.
+				for(String s : stations.keySet()){
+					AISFixedStationData s2 = stations.get(s);
+					if(s2 == null) continue;
+					
+					double[] s2Loc = {s2.getLat(),s2.getLon()};
+					boolean pip = PointInPolygon.isPointInPolygon(s1.getTransmissionCoverage().getCoveragePoints(), s2Loc);
+					
+					if(!pip) continue; //Not within the station's transmit area
+					
+					if(s2.getOwnershipInSlot("A", rs1) == null || s2.getOwnershipInSlot("A", rs1).equals("R")) continue; //No reservation or a Remote reservation
+					else{
+						reservation = true; //There is a reservation for another station that isn't remote and that is within the area.
+					}
+				}
+				
+				if(!reservation){
+					AISTimeslot slot = new AISTimeslot(AISFrequency.AIS1,rs1.intValue(),new Boolean(false),null,null,null,new Boolean(true));
+					problems.add(slot);
+				}
+			}
+		}
+		
+		if(s1.getReservedBlocksForChannelB() != null){
+			for(Integer rs1 : s1.getReservedBlocksForChannelB()){
+				if(s1.getOwnershipInSlot("B", rs1.intValue()).equals("L")) continue;  //We only need the remote slots.
+
+				boolean reservation = false;
+				//Check the all the stations that overlap this one.
+				for(String s : stations.keySet()){
+					AISFixedStationData s2 = stations.get(s);
+					if(s2 == null) continue;
+					
+					double[] s2Loc = {s2.getLat(),s2.getLon()};
+					boolean pip = PointInPolygon.isPointInPolygon(s1.getTransmissionCoverage().getCoveragePoints(), s2Loc);
+					
+					if(!pip) continue; //Not within the station's transmit area
+					
+					if(s2.getOwnershipInSlot("B", rs1) == null || s2.getOwnershipInSlot("B", rs1).equals("R")) continue; //No reservation or a Remote reservation
+					else{
+						reservation = true; //There is a reservation for another station that isn't remote and that is within the area.
+					}
+				}
+				
+				if(!reservation){
+					AISTimeslot slot = new AISTimeslot(AISFrequency.AIS2,rs1.intValue(),new Boolean(false),null,null,null,new Boolean(true));
+					problems.add(slot);
+				}
+			}
+			
+		}
+		
+		return problems;
+
+	}
+
+	private List<AISTimeslot> checkRule4(AISFixedStationData s1) {
+		if(s1 == null || s1.getReservedBlocksForChannelA() == null || s1.getReservedBlocksForChannelB() == null){
+			
+			return null;
+		}			
+		
+		
+		List<AISTimeslot> problems = new ArrayList<AISTimeslot>();
+		if(s1.getReservedBlocksForChannelA() != null){
+			for(Integer rs1 : s1.getReservedBlocksForChannelA()){
+				for(Integer rs2 : s1.getReservedBlocksForChannelB()){
+					if(rs1.intValue() == rs2.intValue()){
+						//Problem if they are both for local use!
+						
+						if(!s1.getOwnershipInSlot("A", rs1.intValue()).equals("R") && !s1.getOwnershipInSlot("B", rs1.intValue()).equals("R")){
+							AISTimeslot slot = new AISTimeslot(AISFrequency.AIS1,rs1.intValue(),new Boolean(false),null,null,null,new Boolean(true));
+							problems.add(slot);
+						}
+					}
+					
+					if(rs2.intValue() > rs1.intValue()) break;
+				}
+					
+			}
+				
+		}
+		
+		
+		
+		return problems;
+	}
+
+
 	/**
 	 * Finds the stations that have overlapping coverage areas. The areas overlap if transmit area of one cuts the interference area of another 
 	 * 
@@ -183,10 +388,11 @@ public class HealthCheckHandler {
 	 * @return Map that holds stations as the keys and a map with overlapping stations (e.g., Station A -> Station B, Stations C = A overlaps with B and C). 
 	 */
 	private Map<String, Map<String,AISFixedStationData>> findOverlappingStations(double topLeftLatitude,
-			double topLeftLongitude, double lowerRightLatitude,
+			double topLeftLongitude, 
+			double lowerRightLatitude,
 			double lowerRightLongitude) {
 	
-		if(this.data == null) return null;
+		if(this.data == null) this.data = DBHandler.getData(topLeftLatitude + 2.5, topLeftLongitude - 4.5, lowerRightLatitude -2.5, lowerRightLongitude + 4.5);
 
 		if(this.stations == null) stations = new HashMap<String, AISFixedStationData>();
 		
@@ -201,14 +407,15 @@ public class HealthCheckHandler {
 						Map<String,AISFixedStationData> overlaps = overlappingStations.get(s1Name);
 						if(overlaps == null) overlaps = new HashMap<String, AISFixedStationData>();
 								
+						
 						for(AISFixedStationData s2 : as.getStations()){
-							if(s1 == s2) continue;
+							if(s1 == s2 || s1Name.equals(s2.getOperator().getOrganizationName()+"-"+s2.getStationName())) continue;
 							
-							System.out.println("Comparing: "+s1Name+" vs. "+s2.getStationName());
+//							System.out.println("Comparing: "+s1Name+" vs. "+s2.getStationName());
 							//Compare transmit coverage against interference coverage.
 							if(PointInPolygon.isPolygonIntersection(s1.getTransmissionCoverage().getCoveragePoints(), s2.getInterferenceCoverage().getCoveragePoints())){
 								overlaps.put(s2.getOperator().getOrganizationName()+"-"+s2.getStationName(), s2);
-								System.out.println("Added "+s2.getStationName()+" to "+s1Name);
+//								System.out.println("Added "+s2.getStationName()+" to "+s1Name);
 							}
 							
 						}
@@ -220,11 +427,11 @@ public class HealthCheckHandler {
 								for(AISFixedStationData s2 : as1.getStations()){
 									if(s1 == s2) continue;
 									
-									System.out.println("Comparing: "+s1Name+" vs. "+s2.getStationName());
+//									System.out.println("Comparing: "+s1Name+" vs. "+s2.getStationName());
 									//Compare transmit coverage against interference coverage.
 									if(PointInPolygon.isPolygonIntersection(s1.getTransmissionCoverage().getCoveragePoints(), s2.getInterferenceCoverage().getCoveragePoints())){
 										overlaps.put(s2.getOperator().getOrganizationName()+"-"+s2.getStationName(), s2);
-										System.out.println("Added "+s2.getStationName()+" to "+s1Name);
+//										System.out.println("Added "+s2.getStationName()+" to "+s1Name);
 									}
 									
 								}
@@ -357,6 +564,7 @@ public class HealthCheckHandler {
 		
 		//Check all active stations
 		if(transmission.getActiveStations() != null){
+			if(transmission.getActiveStations() != null)
 			for(ActiveStation as : transmission.getActiveStations()){
 				if(as.getStations() != null){
 					
@@ -393,8 +601,6 @@ public class HealthCheckHandler {
 				}
 			}
 		}
-
-		//TODO Is there a need to check proposals also? What to do to the planned stations?
 		
 		if(transmission.getOtherUsersStations() != null){
 			for(OtherUserStations other : transmission.getOtherUsersStations()){
@@ -530,16 +736,21 @@ public class HealthCheckHandler {
 		slotmap.setLon(lon);
 		
 //		System.out.println("There are "+reservationsA.size()+" and "+reservationsB.size()+" reservations...");
+		AISDatalinkCheckArea area = new AISDatalinkCheckArea(); //This point.
 		
 		List<AISTimeslot> slotA = new ArrayList<AISTimeslot>();
 		List<AISTimeslot> slotB = new ArrayList<AISTimeslot>();
-		int notFreeA = 0, notFreeB = 0;
+		int notFreeA = 0, notFreeB = 0, usedA = 0, usedB = 0;
 		for(int i = 0; i < numberOfSlotsPerFrequency; ++i){
 			AISTimeslot a = this.createAISTimeslot(reservationsA, interferenceA, i, "A");
 			AISTimeslot b = this.createAISTimeslot(reservationsB, interferenceB, i, "B");
 			
+			
 			if(!a.getFree().booleanValue()) ++notFreeA;
 			if(!b.getFree().booleanValue()) ++notFreeB;
+			
+			if(a.getUsedBy() != null && a.getUsedBy().size() > 0) ++usedA;
+			if(b.getUsedBy() != null && b.getUsedBy().size() > 0) ++usedB;
 			
 			slotA.add(a);
 			slotB.add(b);
@@ -550,6 +761,8 @@ public class HealthCheckHandler {
 		
 		slotmap.setBandwidthReservationA(1.0*notFreeA/numberOfSlotsPerFrequency);
 		slotmap.setBandwidthReservationB(1.0*notFreeB/numberOfSlotsPerFrequency);
+		slotmap.setBandwidthUsedByLocalA(1.0*usedA/numberOfSlotsPerFrequency);
+		slotmap.setBandwidthUsedByLocalB(1.0*usedB/numberOfSlotsPerFrequency);
 		slotmap.setBandwidthReservation((1.0*notFreeA+notFreeB)/(numberOfSlotsPerFrequency*numberOfFrequencies));
 		
 		return slotmap;
@@ -566,6 +779,8 @@ public class HealthCheckHandler {
 	private AISTimeslot createAISTimeslot(Map<String,List<AISFixedStationData>> reservations, Map<String,List<AISFixedStationData>> interference, int slot, String channel){
 		AISTimeslot a = new AISTimeslot();
 		a.setSlotNumber(slot);
+		
+		List<AISDatalinkCheckIssue> issues = new ArrayList<AISDatalinkCheckIssue>();
 		
 		if(reservations.get(slot+"") == null || reservations.get(slot+"").size() <= 0){
 			if(interference.get(slot+"") != null){ //First case: No reservation but there is an interference.
@@ -596,6 +811,7 @@ public class HealthCheckHandler {
 				String planned = "";
 				if(station.getStatus().getStatusID() == DerbyDBInterface.STATUS_PLANNED) planned = plannedIndicator;
 				AISStation s = new AISStation(station.getOperator().getOrganizationName(), station.getStationName()+planned, station.getLat(), station.getLon());
+				s.setStationType(station.getStationType());
 				
 				if(station.getStationType().equals(AISFixedStationType.ATON)){ //If the station is AtoN, only use it but do not reserve it.
 					if(usedNames.contains(s.getOrganizationName()+"_"+station.getStationName()) && planned.length() <= 0) { //There is a planned station added previously --> need to remove it.
@@ -688,7 +904,8 @@ public class HealthCheckHandler {
 					if(station.getStatus().getStatusID() == DerbyDBInterface.STATUS_PLANNED) planned = plannedIndicator;
 					
 					AISStation s = new AISStation(station.getOperator().getOrganizationName(), station.getStationName()+planned, station.getLat(), station.getLon());
-						
+					s.setStationType(station.getStationType());	
+					
 					if(!resStations.contains(s.getStationName()+"_"+s.getOrganizationName())){
 						if(!infNames.contains(s.getOrganizationName()+"_"+station.getStationName())){
 							infs.add(s);
@@ -731,13 +948,25 @@ public class HealthCheckHandler {
 			a.setFree(new Boolean(false));
 			
 			if(atons != expectedAtoNs){
+				AISDatalinkCheckIssue issue = null;
+				
 				if(atons > expectedAtoNs){
 					//AtoN usage with no reservation!
-					System.out.println("AtoNs and expected AtoN does not match! AtoN usage without reservation!");
-						
+//					System.out.println("AtoNs and expected AtoN does not match! AtoN usage without reservation!");
+					List<AISStation> atonStations = new ArrayList<AISStation>();
+					for(AISStation as : used){
+						if(as.getStationType().equals(AISFixedStationType.ATON)){
+							atonStations.add(as);
+						}
+					}
+					List<AISTimeslot> slots = new ArrayList<AISTimeslot>();
+					slots.add(a);
+				
+					issue = new AISDatalinkCheckIssue(-1,AISDatalinkCheckRule.RULE3, AISDatalinkCheckSeverity.MAJOR,atonStations,slots);
+					
 				}else{
 					//Reservation but no usage!
-					System.out.println("AtoNs and expected AtoN does not match! Reservation without AtoN usage!");
+//					System.out.println("AtoNs and expected AtoN does not match! Reservation without AtoN usage!");
 						
 				}
 					
@@ -747,6 +976,17 @@ public class HealthCheckHandler {
 		
 		return a;
 	}
+	
+	public List<AISDatalinkCheckIssue> checkRulesAtTimeslot(AISTimeslot timeslot){
+		List<AISDatalinkCheckIssue> issues = new ArrayList<AISDatalinkCheckIssue>();
+		
+		List<AISStation> interfered = timeslot.getInterferedBy();
+		
+		
+		
+		return issues;
+	}
+	
 	
 	/**
 	 * 
