@@ -134,6 +134,8 @@ public class AISFixedStationData {
 	 */
 	private double[] northCoveragePoint = null; 
 	private double[] westCoveragePoint = null;		
+	private double[] southCoveragePoint = null; 
+	private double[] eastCoveragePoint = null;	
 	
 	public AISFixedStationData() {
 	}
@@ -596,41 +598,113 @@ public class AISFixedStationData {
 	public double[] getNorthTransmitCoveragePoints(){
 		if(this.northCoveragePoint != null) return this.northCoveragePoint;
 		
-		if(this.transmissionCoverage == null) return null;
+		if(this.transmissionCoverage == null || this.transmissionCoverage.getCoveragePoints() == null) return null;
 		
 		double[] maxLat = {Double.MIN_VALUE,Double.MIN_VALUE};
+		double[] minLat = {Double.MAX_VALUE,Double.MAX_VALUE};
+		double[] maxLon = {Double.MIN_VALUE,Double.MIN_VALUE};
 		double[] minLon = {Double.MAX_VALUE,Double.MAX_VALUE};
 		
-		for(double[] p : transmissionCoverage.getCoveragePoints()){
+		
+		for(double[] p : this.transmissionCoverage.getCoveragePoints()){
 			if(p[0] > maxLat[0]) maxLat = p;
+			if(p[0] < minLat[0]) minLat = p;
 			
 			if(p[1] < minLon[1]) minLon = p; 
+			if(p[1] > maxLon[1]) maxLon = p;
+			
 		}
 		
 		this.northCoveragePoint = maxLat;
 		this.westCoveragePoint = minLon;
+		this.eastCoveragePoint = maxLon;
+		this.southCoveragePoint = minLat;
 		
 		return maxLat;
 	}
 	
-	public double[] getwestTransmitCoveragePoints(){
+	public double[] getWestTransmitCoveragePoints(){
 		if(this.westCoveragePoint != null) return this.westCoveragePoint;
 		
-		if(this.transmissionCoverage == null) return null;
+		if(this.transmissionCoverage == null || this.transmissionCoverage.getCoveragePoints() == null) return null;
 		
 		double[] maxLat = {Double.MIN_VALUE,Double.MIN_VALUE};
+		double[] minLat = {Double.MAX_VALUE,Double.MAX_VALUE};
+		double[] maxLon = {Double.MIN_VALUE,Double.MIN_VALUE};
 		double[] minLon = {Double.MAX_VALUE,Double.MAX_VALUE};
+		
 		
 		for(double[] p : transmissionCoverage.getCoveragePoints()){
 			if(p[0] > maxLat[0]) maxLat = p;
+			if(p[0] < minLat[0]) minLat = p;
 			
 			if(p[1] < minLon[1]) minLon = p; 
+			if(p[1] > maxLon[1]) maxLon = p;
+			
 		}
 		
 		this.northCoveragePoint = maxLat;
 		this.westCoveragePoint = minLon;
+		this.eastCoveragePoint = maxLon;
+		this.southCoveragePoint = minLat;
 		
 		return minLon;
+	}
+	
+	public double[] getEastTransmitCoveragePoints(){
+		if(this.eastCoveragePoint != null) return this.eastCoveragePoint;
+		
+		if(this.transmissionCoverage == null || this.transmissionCoverage.getCoveragePoints() == null) return null;
+		
+		double[] maxLat = {Double.MIN_VALUE,Double.MIN_VALUE};
+		double[] minLat = {Double.MAX_VALUE,Double.MAX_VALUE};
+		double[] maxLon = {Double.MIN_VALUE,Double.MIN_VALUE};
+		double[] minLon = {Double.MAX_VALUE,Double.MAX_VALUE};
+		
+		
+		for(double[] p : transmissionCoverage.getCoveragePoints()){
+			if(p[0] > maxLat[0]) maxLat = p;
+			if(p[0] < minLat[0]) minLat = p;
+			
+			if(p[1] < minLon[1]) minLon = p; 
+			if(p[1] > maxLon[1]) maxLon = p;
+			
+		}
+		
+		this.northCoveragePoint = maxLat;
+		this.westCoveragePoint = minLon;
+		this.eastCoveragePoint = maxLon;
+		this.southCoveragePoint = minLat;
+		
+		return maxLon;
+	}
+	
+	public double[] getSouthTransmitCoveragePoints(){
+		if(this.southCoveragePoint != null) return this.southCoveragePoint;
+		
+		if(this.transmissionCoverage == null || this.transmissionCoverage.getCoveragePoints() == null) return null;
+		
+		double[] maxLat = {Double.MIN_VALUE,Double.MIN_VALUE};
+		double[] minLat = {Double.MAX_VALUE,Double.MAX_VALUE};
+		double[] maxLon = {Double.MIN_VALUE,Double.MIN_VALUE};
+		double[] minLon = {Double.MAX_VALUE,Double.MAX_VALUE};
+		
+		
+		for(double[] p : transmissionCoverage.getCoveragePoints()){
+			if(p[0] > maxLat[0]) maxLat = p;
+			if(p[0] < minLat[0]) minLat = p;
+			
+			if(p[1] < minLon[1]) minLon = p; 
+			if(p[1] > maxLon[1]) maxLon = p;
+			
+		}
+		
+		this.northCoveragePoint = maxLat;
+		this.westCoveragePoint = minLon;
+		this.eastCoveragePoint = maxLon;
+		this.southCoveragePoint = minLat;
+		
+		return minLat;
 	}
 }
 

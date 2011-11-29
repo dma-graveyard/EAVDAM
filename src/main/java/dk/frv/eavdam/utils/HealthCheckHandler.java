@@ -9,6 +9,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import javax.lang.model.type.NullType;
+
 import dk.frv.eavdam.data.AISDatalinkCheckArea;
 import dk.frv.eavdam.data.AISDatalinkCheckIssue;
 import dk.frv.eavdam.data.AISDatalinkCheckResult;
@@ -81,57 +83,99 @@ public class HealthCheckHandler {
 		Set<String> foundAreas = new HashSet<String>();
 		double numberOfCells = 1.0*(topLeftLatitude-lowerRightLatitude)/latIncrement * 1.0*(lowerRightLongitude-topLeftLongitude)/lonIncrement;
 		
-		//Check the areas within the area.
-		for(double lat = topLeftLatitude ; lat > lowerRightLatitude; lat = lat - latIncrement){
+		List<AISFixedStationData> latitudeStopPoints = this.getLatitudeStopPoints();
+		List<AISFixedStationData> endStopPoints = new ArrayList<AISFixedStationData>();
+		
+		if(latitudeStopPoints == null || latitudeStopPoints.size() <= 0){
+			System.out.println("Problem with latitude stop points...");
 			
+			return null;
 		}
 		
+		int currentStopPoint = 0;
+		
+		double lon = lowerRightLongitude, maxLongitude = Double.MIN_VALUE;
 		for(double lat = topLeftLatitude ; lat > lowerRightLatitude; lat = lat - latIncrement){
-//			if(true) break;
+			
+			//Optimization: Skip cells that do not have any information.
+			if(currentStopPoint < latitudeStopPoints.size() && latitudeStopPoints.get(currentStopPoint).getNorthTransmitCoveragePoints()[0] < lat){ //No stop point
+				//We are between the stop points. No need to do anything?
+				
+			}else{ //We passed a stop point.
+				if(currentStopPoint < latitudeStopPoints.size()){
+				
+					System.out.println("Found stop point at "+lat+" ith stop point: "+currentStopPoint);
+					
+					//check if the old lon is smaller than the new one:
+					if(latitudeStopPoints.get(currentStopPoint).getWestTransmitCoveragePoints()[1] < lon)
+						lon = latitudeStopPoints.get(currentStopPoint).getWestTransmitCoveragePoints()[1];
+					
+					if(latitudeStopPoints.get(currentStopPoint).getEastTransmitCoveragePoints()[1] > maxLongitude)
+						maxLongitude = latitudeStopPoints.get(currentStopPoint).getEastTransmitCoveragePoints()[1];
+					
+					if(endStopPoints.size() == 0){ //Add new end point.
+						endStopPoints.add(latitudeStopPoints.get(currentStopPoint));
+					}else{
+						for(int i = 0; i < endStopPoints.size(); ++i){ //Add point to the list to indicate when it should be stopped.
+							if(endStopPoints.get(i).getSouthTransmitCoveragePoints()[0] < latitudeStopPoints.get(currentStopPoint).getSouthTransmitCoveragePoints()[0]){
+								endStopPoints.add(latitudeStopPoints.get(currentStopPoint));
+								break;
+							}
+							
+							if(i == endStopPoints.size() - 1){
+								endStopPoints.add(latitudeStopPoints.get(currentStopPoint));
+								break;
+							}
+						}
+						
+					}
+					
+					
+					++currentStopPoint; //Move stop point to the next point.
+				}
+			}
+			
+			//Check if we have reached an end point
+			if(endStopPoints.size() > 0){
+				if(endStopPoints.get(0).getSouthTransmitCoveragePoints()[0] > lat){
+					//We have passed an end point. 
+					
+					//Find a new longitude
+					lon = lowerRightLongitude;
+					maxLongitude = topLeftLongitude;
+					for(int i = 1; i < endStopPoints.size(); ++i){
+						if(endStopPoints.get(i).getWestTransmitCoveragePoints()[1] < lon) lon = endStopPoints.get(i).getWestTransmitCoveragePoints()[1];
+						if(endStopPoints.get(i).getEastTransmitCoveragePoints()[1] > maxLongitude) maxLongitude = endStopPoints.get(i).getEastTransmitCoveragePoints()[1];
+					}
+					
+					endStopPoints.remove(0); //Delete the top-most end point.
+				}
+				
+				
+			}else if(currentStopPoint >= latitudeStopPoints.size()){
+				break;
+			}
+			
 			++ithLine;
 			
 			int ithColumn = 0;
-			for(double lon = topLeftLongitude; lon < lowerRightLongitude; lon = lon + lonIncrement){
+			for(; lon < maxLongitude; lon = lon + lonIncrement){
 				++ithColumn;
-				++ithTotal;
+				
 				AISSlotMap sm = slotMapAtPoint(lat, lon);
 				
 				if(ithLine > 1 && ithColumn > 1){
-//					//Make the average
-//					AISSlotMap sm1 = this.stationSlotmap.get(this.areaIssueMap.get(prevLat+";"+prevLon));
-//					if(sm1 == null){
-//						System.out.println("A1 is null");
-//						continue;
-//					}
-//					
-//					AISSlotMap sm2 = this.stationSlotmap.get(this.areaIssueMap.get(prevLat+";"+lon));
-//					if(sm2 == null){
-//						System.out.println("A2 is null");
-//						continue;
-//					}
-//					
-//					AISSlotMap sm3 = this.stationSlotmap.get(this.areaIssueMap.get(lat+";"+prevLon));
-//					if(sm3 == null){
-//						System.out.println("A3 is null");
-//						continue;
-//					}
-//					
-//					
-//					if(sm == null){
-//						System.out.println("A4 is null");
-//						continue;
-//					}
-//					
 					
 					this.areaIssueMap.put(prevLat+";"+prevLon+"-"+lat+";"+lon, this.areaIssueMap.get(lat+";"+lon));
 					foundAreas.add(prevLat+";"+prevLon+"-"+lat+";"+lon);
 					
 				}
 				
-
-				
 				prevLon = lon;
 			}
+			
+			ithTotal += 1.0*(lowerRightLongitude-topLeftLongitude)/lonIncrement;
+			
 			if(ithTotal > numberOfCells) ithTotal = (int)numberOfCells;
 			
 //			System.out.println("Total "+ithTotal+"/"+((int)numberOfCells)+"");
@@ -279,6 +323,67 @@ public class HealthCheckHandler {
 	
 	
 	
+	private List<AISFixedStationData> getLatitudeStopPoints() {
+		List<AISFixedStationData> latitudeStopPoints = new ArrayList<AISFixedStationData>();
+		
+		//Check the areas within the area.
+		if(this.data.getActiveStations() != null){
+			for(ActiveStation as : this.data.getActiveStations()){
+				if(as.getStations() != null){
+					for(AISFixedStationData d : as.getStations()){
+						if(d.getNorthTransmitCoveragePoints() == null) continue;
+						if(latitudeStopPoints.size() == 0){
+							latitudeStopPoints.add(d);
+						}else{
+							for(int i = 0; i < latitudeStopPoints.size(); ++i){
+								if(latitudeStopPoints.get(i).getNorthTransmitCoveragePoints()[0] < d.getNorthTransmitCoveragePoints()[0]){
+									latitudeStopPoints.add(i,d);
+									break;
+								}
+								
+								if(i == latitudeStopPoints.size() - 1){
+									latitudeStopPoints.add(d);
+									break;
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+		
+		if(this.data.getOtherUsersStations() != null){
+			for(OtherUserStations other : this.data.getOtherUsersStations()){
+				if(other.getStations() != null){
+					for(ActiveStation ao : other.getStations()){
+						if(ao.getStations() != null){
+							for(AISFixedStationData d : ao.getStations()){
+								if(latitudeStopPoints.size() == 0){
+									latitudeStopPoints.add(d);
+								}else{
+									for(int i = 0; i < latitudeStopPoints.size(); ++i){
+										if(latitudeStopPoints.get(i).getNorthTransmitCoveragePoints()[0] < d.getNorthTransmitCoveragePoints()[0]){
+											latitudeStopPoints.add(i,d);
+											break;
+										}
+										
+										if(i == latitudeStopPoints.size() - 1){
+											latitudeStopPoints.add(d);
+											break;
+										}
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+		
+		
+		return latitudeStopPoints;
+	}
+
 	/**
 	 * Checks the Rule 1: two stations have the same FATDMA slots reserved (both of them for local and neither of them are AtoN stations).
 	 * 
