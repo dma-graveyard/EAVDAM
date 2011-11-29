@@ -26,6 +26,18 @@ public class AISDatalinkCheckArea {
 		this.bandwithUsageLevel = bandwithUsageLevel;	
 	}
 
+	public AISDatalinkCheckArea(double topLeftLatitude, double topLeftLongitude, double lowerRightLatitude, double lowerRightLongitude) {
+		this.topLeftLatitude = topLeftLatitude;
+		this.topLeftLongitude = topLeftLongitude;
+		this.lowerRightLatitude = lowerRightLatitude;
+		this.lowerRightLongitude = lowerRightLongitude;	
+	}
+
+	public AISDatalinkCheckArea(double topLeftLatitude, double topLeftLongitude) {
+		this.topLeftLatitude = topLeftLatitude;
+		this.topLeftLongitude = topLeftLongitude;
+	}
+	
 	public double getTopLeftLatitude() {
 		return topLeftLatitude;
 	}

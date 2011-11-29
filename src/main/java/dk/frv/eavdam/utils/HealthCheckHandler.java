@@ -72,14 +72,55 @@ public class HealthCheckHandler {
 		System.out.println("Starting area focused health check (Rules 1, 3, and 7).");
 		List<AISDatalinkCheckArea> areas = new ArrayList<AISDatalinkCheckArea>();
 		//Loop through the area?
+		
+		int ithLine = 0;
+		double prevLat = 0, prevLon = 0;
+		Set<String> foundAreas = new HashSet<String>();
 		for(double lat = topLeftLatitude ; lat < lowerRightLatitude; lat = lat + latIncrement){
+//			if(true) break;
+			++ithLine;
+			
+			int ithColumn = 0;
 			for(double lon = topLeftLongitude; lon < lowerRightLongitude; lon = lon - lonIncrement){
-				AISSlotMap slotmap = slotMapAtPoint(lat, lon);
+				++ithColumn;
 				
-				if(slotmap != null){
+				slotMapAtPoint(lat, lon);
+				
+				if(ithLine > 1 && ithColumn > 1){
+					//Make the average
+					AISDatalinkCheckArea a1 = this.areaIssueMap.remove(prevLat+";"+prevLon); //Only remove this one
+					if(a1 == null){
+						System.out.println("A1 is null");
+						continue;
+					}
 					
+					AISDatalinkCheckArea a2 = this.areaIssueMap.get(prevLat+";"+lon);
+					if(a2 == null){
+						System.out.println("A2 is null");
+						continue;
+					}
+					
+					AISDatalinkCheckArea a3 = this.areaIssueMap.get(lat+";"+prevLon);
+					if(a3 == null){
+						System.out.println("A3 is null");
+						continue;
+					}
+					
+					AISDatalinkCheckArea a4 = this.areaIssueMap.get(lat+";"+lon);
+					if(a4 == null){
+						System.out.println("A4 is null");
+						continue;
+					}
+					
+					
+					this.areaIssueMap.put(prevLat+";"+prevLon+"-"+lat+";"+lon, this.getAverageArea(a1, a2, a3, a4));
+					foundAreas.add(prevLat+";"+prevLon+"-"+lat+";"+lon);
 				}
+				
+				prevLon = lon;
 			}
+			prevLat = lat;
+			
 		}
 		System.out.println("Area focused health check completed...\nStarting station focused health check (Rules 2, 4, 5, and 6)");
 		
@@ -196,10 +237,33 @@ public class HealthCheckHandler {
 //			System.out.println(issue.toString());
 //		}
 		
+		for(String keys : foundAreas){
+			areas.add(this.areaIssueMap.get(keys));
+		}
+		
+		
 		results.setIssues(issues);
 		results.setAreas(areas);
 		
 		return results;
+	}
+	
+	private AISDatalinkCheckArea getAverageArea(AISDatalinkCheckArea a1, AISDatalinkCheckArea a2, AISDatalinkCheckArea a3, AISDatalinkCheckArea a4){
+		AISDatalinkCheckArea area = new AISDatalinkCheckArea(a1.getTopLeftLatitude(), a1.getTopLeftLongitude(),a4.getTopLeftLatitude(),a4.getTopLeftLongitude());
+		
+		List<AISDatalinkCheckIssue> allIssues = new ArrayList<AISDatalinkCheckIssue>();
+		allIssues.addAll(a1.getIssues());
+		allIssues.addAll(a2.getIssues());
+		allIssues.addAll(a3.getIssues());
+		allIssues.addAll(a4.getIssues());
+		
+		this.trimIssueList(allIssues);
+		
+		area.setIssues(allIssues);
+		area.setSlotmap(a4.getSlotmap()); //TODO make an average slotmap!
+		
+		
+		return area;
 	}
 	
 	/**
@@ -219,12 +283,22 @@ public class HealthCheckHandler {
 		if(s1.getReservedBlocksForChannelA() != null){
 			for(Integer rs1 : s1.getReservedBlocksForChannelA()){
 				if(s2.getReservedBlocksForChannelA() == null) break;
-				if(s1.getStationType().equals(AisFixedStationType.ATON) || s2.getStationType().equals(AisFixedStationType.ATON)) break;	
+				if(s1.getStationType().equals(AISFixedStationType.ATON) || s2.getStationType().equals(AISFixedStationType.ATON)) break;	
 				
 				for(Integer rs2 : s2.getReservedBlocksForChannelA()){
 					if(rs2.intValue() > rs1.intValue()) break;
 						
 					if(rs1.intValue() == rs2.intValue()){
+						
+						if(s1.getOwnershipInSlot("A", rs1.intValue()) == null){
+							System.out.println("No ownership for slot "+rs1+" in station 1 ("+s1.getStationType()+")");
+							continue;
+						}
+					
+						if(s2.getOwnershipInSlot("A", rs1.intValue()) == null){
+							System.out.println("No ownership for slot "+rs1+" in station 2 ("+s2.getStationType()+")");
+							continue;
+						}
 						
 						//Check if the slots are reserved for the remote use.
 						if(!s1.getOwnershipInSlot("A", rs1.intValue()).equals("R") && !s2.getOwnershipInSlot("A", rs1.intValue()).equals("R")){
@@ -242,15 +316,27 @@ public class HealthCheckHandler {
 		if(s1.getReservedBlocksForChannelB() != null){
 			for(Integer rs1 : s1.getReservedBlocksForChannelB()){
 				if(s2.getReservedBlocksForChannelB() == null) break;
-					
+				if(s1.getStationType().equals(AISFixedStationType.ATON) || s2.getStationType().equals(AISFixedStationType.ATON)) break;	
+				
 				for(Integer rs2 : s2.getReservedBlocksForChannelB()){
 					if(rs2.intValue() > rs1.intValue()) break;
 						
 					if(rs1.intValue() == rs2.intValue()){
-						//Check if the slots are remote use.
+						
+						if(s1.getOwnershipInSlot("B", rs1.intValue()) == null){
+							System.out.println("No ownership for slot "+rs1+" in station 1 ("+s1.getStationType()+")");
+							continue;
+						}
+					
+						if(s2.getOwnershipInSlot("B", rs1.intValue()) == null){
+							System.out.println("No ownership for slot "+rs1+" in station 2 ("+s2.getStationType()+")");
+							continue;
+						}
+						
+						//Check if the slots are reserved for the remote use.
 						if(!s1.getOwnershipInSlot("B", rs1.intValue()).equals("R") && !s2.getOwnershipInSlot("B", rs1.intValue()).equals("R")){
 							//Problem found!
-							AISTimeslot slot = new AISTimeslot(AISFrequency.AIS1,rs1.intValue(),new Boolean(false),null,null,null,new Boolean(true));
+							AISTimeslot slot = new AISTimeslot(AISFrequency.AIS2,rs1.intValue(),new Boolean(false),null,null,null,new Boolean(true));
 							problems.add(slot);
 						}
 						
@@ -277,7 +363,7 @@ public class HealthCheckHandler {
 		}			
 		
 		//First station must not be an AtoN station 
-		if(s1.getStationType().equals(AisFixedStationType.ATON)){
+		if(s1.getStationType().equals(AISFixedStationType.ATON)){
 			return null;
 		}
 		
@@ -551,8 +637,6 @@ public class HealthCheckHandler {
 		EAVDAMData transmission = getStationsAtPoint(data, point, HealthCheckHandler.TRANSMISSION_COVERAGE);
 		EAVDAMData interference = getStationsAtPoint(data, point, HealthCheckHandler.INTERFERENCE_COVERAGE);
 		
-		List<AISDatalinkCheckIssue> issues = new ArrayList<AISDatalinkCheckIssue>();
-		
 		AISDatalinkCheckResult result = new AISDatalinkCheckResult();
 		
 		if(transmission == null) return null;
@@ -736,14 +820,15 @@ public class HealthCheckHandler {
 		slotmap.setLon(lon);
 		
 //		System.out.println("There are "+reservationsA.size()+" and "+reservationsB.size()+" reservations...");
-		AISDatalinkCheckArea area = new AISDatalinkCheckArea(); //This point.
+		AISDatalinkCheckArea area = new AISDatalinkCheckArea(lat, lon); //This point.
 		
 		List<AISTimeslot> slotA = new ArrayList<AISTimeslot>();
 		List<AISTimeslot> slotB = new ArrayList<AISTimeslot>();
 		int notFreeA = 0, notFreeB = 0, usedA = 0, usedB = 0;
+		List<AISDatalinkCheckIssue> issues = new ArrayList<AISDatalinkCheckIssue>();
 		for(int i = 0; i < numberOfSlotsPerFrequency; ++i){
-			AISTimeslot a = this.createAISTimeslot(reservationsA, interferenceA, i, "A");
-			AISTimeslot b = this.createAISTimeslot(reservationsB, interferenceB, i, "B");
+			AISTimeslot a = this.createAISTimeslot(reservationsA, interferenceA, i, "A", issues);
+			AISTimeslot b = this.createAISTimeslot(reservationsB, interferenceB, i, "B", issues);
 			
 			
 			if(!a.getFree().booleanValue()) ++notFreeA;
@@ -756,6 +841,8 @@ public class HealthCheckHandler {
 			slotB.add(b);
 		}
 		
+				
+		
 		slotmap.setAIS1Timeslots(slotA);
 		slotmap.setAIS2Timeslots(slotB);
 		
@@ -765,7 +852,59 @@ public class HealthCheckHandler {
 		slotmap.setBandwidthUsedByLocalB(1.0*usedB/numberOfSlotsPerFrequency);
 		slotmap.setBandwidthReservation((1.0*notFreeA+notFreeB)/(numberOfSlotsPerFrequency*numberOfFrequencies));
 		
+		this.trimIssueList(issues);
+		area.setIssues(issues);
+
+		if(slotmap.getBandwidthReservationA() > 0.5){
+			AISDatalinkCheckIssue issue = new AISDatalinkCheckIssue(-1,AISDatalinkCheckRule.RULE7,AISDatalinkCheckSeverity.MAJOR,null,null);
+			issues.add(issue);
+		}
+		
+		area.setSlotmap(slotmap);
+		this.areaIssueMap.put(lat+";"+lon, area);
+		
 		return slotmap;
+	}
+	
+	private void trimIssueList(List<AISDatalinkCheckIssue> issues){
+		Map<String, List<AISDatalinkCheckIssue>> rules = new HashMap<String, List<AISDatalinkCheckIssue>>();
+		for(AISDatalinkCheckIssue i : issues){
+			List<AISDatalinkCheckIssue> ri = rules.get(i.getRuleViolated().toString());
+			if(ri == null) ri = new ArrayList<AISDatalinkCheckIssue>();
+			
+			ri.add(i);
+			
+			rules.put(i.getRuleViolated().toString(), ri);
+		}
+		
+		List<AISDatalinkCheckIssue> r = new ArrayList<AISDatalinkCheckIssue>();
+		for(String rule : rules.keySet()){
+			Map<String, AISStation> stations = new HashMap<String, AISStation>();
+			List<AISTimeslot> timeslots = new ArrayList<AISTimeslot>();
+			AISDatalinkCheckRule rl = null;
+			AISDatalinkCheckSeverity sev = null;
+			for(AISDatalinkCheckIssue i : rules.get(rule)){
+				rl = i.getRuleViolated();
+				sev = i.getSeverity();
+				for(AISStation s : i.getInvolvedStations()){
+					stations.put(s.getOrganizationName()+"-"+s.getStationName(), s);
+				}
+				
+				for(AISTimeslot t : i.getInvolvedTimeslots()){
+					timeslots.add(t);
+				}
+			}
+			
+			List<AISStation> st = new ArrayList<AISStation>();
+			for(String s : stations.keySet()){
+				st.add(stations.get(s));
+			}
+			
+			AISDatalinkCheckIssue newIssue = new AISDatalinkCheckIssue(-1, rl, sev, st, timeslots);
+			r.add(newIssue);
+		}
+		
+		issues = r;
 	}
 	
 	/**
@@ -776,11 +915,13 @@ public class HealthCheckHandler {
 	 * @param channel Either A or B
 	 * @return Timeslot.
 	 */
-	private AISTimeslot createAISTimeslot(Map<String,List<AISFixedStationData>> reservations, Map<String,List<AISFixedStationData>> interference, int slot, String channel){
+	private AISTimeslot createAISTimeslot(Map<String,List<AISFixedStationData>> reservations, 
+			Map<String,List<AISFixedStationData>> interference, int slot, String channel,
+			List<AISDatalinkCheckIssue> issues){
 		AISTimeslot a = new AISTimeslot();
 		a.setSlotNumber(slot);
 		
-		List<AISDatalinkCheckIssue> issues = new ArrayList<AISDatalinkCheckIssue>();
+		if(issues == null) issues = new ArrayList<AISDatalinkCheckIssue>();
 		
 		if(reservations.get(slot+"") == null || reservations.get(slot+"").size() <= 0){
 			if(interference.get(slot+"") != null){ //First case: No reservation but there is an interference.
@@ -892,7 +1033,8 @@ public class HealthCheckHandler {
 					}
 				}
 			}
-			
+		
+			boolean addRule1 = false;
 		
 			if(interference.get(slot+"") != null){ //Check the interferences
 					
@@ -932,11 +1074,40 @@ public class HealthCheckHandler {
 				if(infs.size() > 0){
 					a.setPossibleConflicts(new Boolean(true));
 					a.setInterferedBy(infs); //Store the interfering stations
+					
+					//Create a new issue with Rule 1.
+					List<AISTimeslot> slots = new ArrayList<AISTimeslot>();
+					slots.add(a);
+					
+					List<AISStation> ps = new ArrayList<AISStation>();
+					ps.addAll(used);
+					if(a.getInterferedBy() != null)
+						ps.addAll(a.getInterferedBy());
+					
+					AISDatalinkCheckIssue issue = new AISDatalinkCheckIssue(-1,AISDatalinkCheckRule.RULE1,AISDatalinkCheckSeverity.MAJOR,ps,slots);
+					
+					issues.add(issue);
+					addRule1 = true;
 				}
 				
 			}else if(used.size() > 1){ //Several stations use the slot
 				
 				a.setPossibleConflicts(new Boolean(true));
+				
+				if(!addRule1){
+					//Create a new issue with Rule 1 if it has not been created yet.
+					List<AISTimeslot> slots = new ArrayList<AISTimeslot>();
+					slots.add(a);
+					
+					List<AISStation> ps = new ArrayList<AISStation>();
+					ps.addAll(used);
+					if(a.getInterferedBy() != null)
+						ps.addAll(a.getInterferedBy());
+					
+					AISDatalinkCheckIssue issue = new AISDatalinkCheckIssue(-1,AISDatalinkCheckRule.RULE1,AISDatalinkCheckSeverity.SEVERE,ps,slots);
+									
+					issues.add(issue);
+				}
 			}else{
 				a.setPossibleConflicts(new Boolean(false));
 			}
@@ -964,6 +1135,7 @@ public class HealthCheckHandler {
 				
 					issue = new AISDatalinkCheckIssue(-1,AISDatalinkCheckRule.RULE3, AISDatalinkCheckSeverity.MAJOR,atonStations,slots);
 					
+					issues.add(issue);
 				}else{
 					//Reservation but no usage!
 //					System.out.println("AtoNs and expected AtoN does not match! Reservation without AtoN usage!");
@@ -1486,6 +1658,15 @@ public class HealthCheckHandler {
 		return filtered;
 	}
 	
+	private double[] getLatitudeBorders(){
+		if(this.data == null) return null;
+		
+		double maxLatitude = Double.MIN_VALUE;
+		double minLatitude = Double.MAX_VALUE;
+		
+		
+		return null;
+	}
 	
 	private static double getIncrementedLongitude(double resolution, double startLon){
 // 		 System.out.println(startLon+" | "+resolution+"/(60/"+Math.cos(startLon)+") + "+startLon+" = "+(1.0*resolution/(60.0/Math.cos(startLon)) + startLon));
