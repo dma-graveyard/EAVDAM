@@ -73,18 +73,20 @@ public class HealthCheckHandler {
 		List<AISDatalinkCheckArea> areas = new ArrayList<AISDatalinkCheckArea>();
 		//Loop through the area?
 		
-		int ithLine = 0;
+		int ithLine = 0, ithTotal = 0;
 		double prevLat = 0, prevLon = 0;
 		Set<String> foundAreas = new HashSet<String>();
-		for(double lat = topLeftLatitude ; lat < lowerRightLatitude; lat = lat + latIncrement){
+		double numberOfCells = 1.0*(topLeftLatitude-lowerRightLatitude)/latIncrement * 1.0*(lowerRightLongitude-topLeftLongitude)/lonIncrement;
+		AISSlotMap prevSlotMap = null;
+		for(double lat = topLeftLatitude ; lat > lowerRightLatitude; lat = lat - latIncrement){
 //			if(true) break;
 			++ithLine;
 			
 			int ithColumn = 0;
-			for(double lon = topLeftLongitude; lon < lowerRightLongitude; lon = lon - lonIncrement){
+			for(double lon = topLeftLongitude; lon < lowerRightLongitude; lon = lon + lonIncrement){
 				++ithColumn;
-				
-				slotMapAtPoint(lat, lon);
+				++ithTotal;
+				AISSlotMap sm = slotMapAtPoint(lat, lon);
 				
 				if(ithLine > 1 && ithColumn > 1){
 					//Make the average
@@ -117,8 +119,11 @@ public class HealthCheckHandler {
 					foundAreas.add(prevLat+";"+prevLon+"-"+lat+";"+lon);
 				}
 				
+
+				
 				prevLon = lon;
 			}
+			System.out.println("Total "+ithTotal+"/"+((int)numberOfCells)+"");
 			prevLat = lat;
 			
 		}
@@ -637,8 +642,6 @@ public class HealthCheckHandler {
 		EAVDAMData transmission = getStationsAtPoint(data, point, HealthCheckHandler.TRANSMISSION_COVERAGE);
 		EAVDAMData interference = getStationsAtPoint(data, point, HealthCheckHandler.INTERFERENCE_COVERAGE);
 		
-		AISDatalinkCheckResult result = new AISDatalinkCheckResult();
-		
 		if(transmission == null) return null;
 
 		Map<String,List<AISFixedStationData>> reservationsA = new HashMap<String, List<AISFixedStationData>>();
@@ -861,6 +864,8 @@ public class HealthCheckHandler {
 		}
 		
 		area.setSlotmap(slotmap);
+		if(this.areaIssueMap == null) this.areaIssueMap = new HashMap<String, AISDatalinkCheckArea>();
+		
 		this.areaIssueMap.put(lat+";"+lon, area);
 		
 		return slotmap;
@@ -886,6 +891,9 @@ public class HealthCheckHandler {
 			for(AISDatalinkCheckIssue i : rules.get(rule)){
 				rl = i.getRuleViolated();
 				sev = i.getSeverity();
+
+				if(i == null || i.getInvolvedStations() == null) continue;
+				
 				for(AISStation s : i.getInvolvedStations()){
 					stations.put(s.getOrganizationName()+"-"+s.getStationName(), s);
 				}
@@ -909,6 +917,7 @@ public class HealthCheckHandler {
 	
 	/**
 	 * Creates the timeslot for the given slot.
+	 * 
 	 * @param reservations List of stations with reservations in the given slots. (Map's keys are the slots).
 	 * @param interference List of interfering stations.
 	 * @param slot Number of the slot in question
@@ -927,6 +936,8 @@ public class HealthCheckHandler {
 			if(interference.get(slot+"") != null){ //First case: No reservation but there is an interference.
 				List<AISStation> infs = new ArrayList<AISStation>();
 				for(AISFixedStationData station : interference.get(slot+"")){
+					if(station.getStationType().equals(AISFixedStationType.ATON)) continue; //AtoNs do not interfere?
+					
 					if(station.getOwnershipInSlot(channel, new Integer(slot)).equals("L")){ //Interference is for Local Base station
 						AISStation s = new AISStation(station.getOperator().getOrganizationName(), station.getStationName(), station.getLat(), station.getLon());
 						infs.add(s);
