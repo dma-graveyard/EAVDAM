@@ -985,7 +985,7 @@ public class HealthCheckHandler {
 					
 					resStations.add(s.getStationName()+"_"+s.getOrganizationName());
 				}else{ //Not an AtoN stations
-					String o = station.getOwnershipInSlot("A", new Integer(slot)); //Check if it is a local or remote.
+					String o = station.getOwnershipInSlot(channel, new Integer(slot)); //Check if it is a local or remote.
 					if(o == null){
 						System.err.println("No ownership for "+s.getStationName()+" in slot "+slot+" in Channel "+channel+"!");
 					}else if(o.equals("R")){ //Remote --> Reserve for AtoN
