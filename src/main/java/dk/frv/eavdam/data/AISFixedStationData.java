@@ -123,9 +123,17 @@ public class AISFixedStationData {
 	private Map<Integer,String> ownershipA;
 	private Map<Integer,String> ownershipB;
 	
+	/**
+	 * For optimizing. No need to get this information several times.
+	 */
 	private List<Integer> reservedBlocksA = null;
 	private List<Integer> reservedBlocksB = null;
 	
+	/**
+	 * Used for optimizing the algorithm.
+	 */
+	private double[] northCoveragePoint = null; 
+	private double[] westCoveragePoint = null;		
 	
 	public AISFixedStationData() {
 	}
@@ -580,5 +588,49 @@ public class AISFixedStationData {
 		}
 	}
 	
+	/**
+	 * Finds the northest point of the coverage. Used to optimize the rule checking.
+	 * 
+	 * @return
+	 */
+	public double[] getNorthTransmitCoveragePoints(){
+		if(this.northCoveragePoint != null) return this.northCoveragePoint;
+		
+		if(this.transmissionCoverage == null) return null;
+		
+		double[] maxLat = {Double.MIN_VALUE,Double.MIN_VALUE};
+		double[] minLon = {Double.MAX_VALUE,Double.MAX_VALUE};
+		
+		for(double[] p : transmissionCoverage.getCoveragePoints()){
+			if(p[0] > maxLat[0]) maxLat = p;
+			
+			if(p[1] < minLon[1]) minLon = p; 
+		}
+		
+		this.northCoveragePoint = maxLat;
+		this.westCoveragePoint = minLon;
+		
+		return maxLat;
+	}
+	
+	public double[] getwestTransmitCoveragePoints(){
+		if(this.westCoveragePoint != null) return this.westCoveragePoint;
+		
+		if(this.transmissionCoverage == null) return null;
+		
+		double[] maxLat = {Double.MIN_VALUE,Double.MIN_VALUE};
+		double[] minLon = {Double.MAX_VALUE,Double.MAX_VALUE};
+		
+		for(double[] p : transmissionCoverage.getCoveragePoints()){
+			if(p[0] > maxLat[0]) maxLat = p;
+			
+			if(p[1] < minLon[1]) minLon = p; 
+		}
+		
+		this.northCoveragePoint = maxLat;
+		this.westCoveragePoint = minLon;
+		
+		return minLon;
+	}
 }
 

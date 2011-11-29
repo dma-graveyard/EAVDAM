@@ -80,7 +80,12 @@ public class HealthCheckHandler {
 		double prevLat = 0, prevLon = 0;
 		Set<String> foundAreas = new HashSet<String>();
 		double numberOfCells = 1.0*(topLeftLatitude-lowerRightLatitude)/latIncrement * 1.0*(lowerRightLongitude-topLeftLongitude)/lonIncrement;
-		AISSlotMap prevSlotMap = null;
+		
+		//Check the areas within the area.
+		for(double lat = topLeftLatitude ; lat > lowerRightLatitude; lat = lat - latIncrement){
+			
+		}
+		
 		for(double lat = topLeftLatitude ; lat > lowerRightLatitude; lat = lat - latIncrement){
 //			if(true) break;
 			++ithLine;
