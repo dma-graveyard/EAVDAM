@@ -27,6 +27,14 @@ public class AISTimeslot {
 		this.possibleConflicts = possibleConflicts;
 	}	
 	
+	public AISFrequency getFrequency() {
+		return frequency;
+	}
+	
+	public void setFrequency(AISFrequency frequency) {
+		this.frequency = frequency;
+	}	
+	
 	public int getSlotNumber() {
 		return slotNumber;
 	}

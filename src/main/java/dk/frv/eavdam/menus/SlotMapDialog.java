@@ -50,10 +50,27 @@ public class SlotMapDialog extends JDialog implements ActionListener {
 	
 		super(openMapFrame, "Slotmap for latitude " + String.valueOf((double) (Math.round(latitude*1000))/1000) +
 			", longitude " + String.valueOf(((double) Math.round(longitude*1000))/1000) , true);
-		
+			
 		this.latitude = latitude;
 		this.longitude = longitude;
 		this.slotmap = slotmap;
+
+		Toolkit toolkit = Toolkit.getDefaultToolkit();
+		Dimension dimension = toolkit.getScreenSize();
+
+		if (dimension.width-100 < SLOTMAP_WINDOW_WIDTH) {
+			SLOTMAP_WINDOW_WIDTH = dimension.width-100;
+		}
+		if (dimension.width-100 < SlotMapDialog.SLOTMAP_WINDOW_WIDTH) {
+			SlotMapDialog.SLOTMAP_WINDOW_WIDTH = dimension.width-100;
+		}
+		if (dimension.height-100 < SLOTMAP_WINDOW_HEIGHT) {
+			SLOTMAP_WINDOW_HEIGHT = dimension.height-100;
+		}
+		if (dimension.height-100 < SlotMapDialog.SLOTMAP_WINDOW_HEIGHT) {
+			SlotMapDialog.SLOTMAP_WINDOW_HEIGHT = dimension.height-100;
+		}
+
 		JScrollPane scrollPane = getScrollPane(0);
 		getContentPane().add(scrollPane);				
 	}
@@ -78,7 +95,15 @@ public class SlotMapDialog extends JDialog implements ActionListener {
 		c.gridy = 1;
 		panel.add(new JLabel("Total bandwith usage:   AIS1: " + (double) Math.round(10000 * slotmap.getBandwidthReservationA()) / 100 +
 			" %      AIS2: " + (double) Math.round(10000 * slotmap.getBandwidthReservationB()) / 100 + " %"), c);
-		c.gridwidth = 1;	
+		
+		c.gridy = 2;
+		panel.add(new JLabel("Bandwidth in use by local fixed stations:   AIS1: " + (double) Math.round(10000 * slotmap.getBandwidthUsedByLocalA()) / 100 +
+			" %      AIS2: " + (double) Math.round(10000 * slotmap.getBandwidthUsedByLocalB()) / 100 + " %"), c);	
+
+		c.gridy = 3;
+		panel.add(new JLabel("Bandwidth free for selection:   AIS1: " + (double) Math.round(10000 * (1-slotmap.getBandwidthReservationA())) / 100 +
+			" %      AIS2: " + (double) Math.round(10000 * (1-slotmap.getBandwidthReservationB())) / 100 + " %"), c);
+		c.gridwidth = 1;
 		
 		c.gridy = 0;
 		JPanel timeslotsChartPanel = new JPanel();
@@ -127,7 +152,7 @@ public class SlotMapDialog extends JDialog implements ActionListener {
 		}		
 
 		c.gridx = 0;
-		c.gridy = 2;
+		c.gridy = 4;
 		c.gridwidth = 9;
 		panel.add(timeslotsChartPanel, c);
 		
@@ -207,11 +232,11 @@ public class SlotMapDialog extends JDialog implements ActionListener {
 		slotsPanel.add(slots2001_2249LinkLabel, c);		
 
 		c.gridx = 0;
-		c.gridy = 3;		
+		c.gridy = 5;		
 		c.gridwidth = 9;
 		panel.add(slotsPanel, c);
 
-		c.gridy = 4;
+		c.gridy = 6;
 		c.gridwidth = 1;
 		c.fill = GridBagConstraints.BOTH;
 		c.insets = new Insets(0,0,0,0);
@@ -231,7 +256,7 @@ public class SlotMapDialog extends JDialog implements ActionListener {
 		ais2Label.setBorder(BorderFactory.createMatteBorder(1, 0, 1, 1, Color.BLACK));
 		panel.add(ais2Label, c);				
 		c.gridx = 0;                
-		c.gridy = 5;
+		c.gridy = 7;
 		c.gridwidth = 1;
 		JLabel slotnoLabel = new JLabel(" Slotno.  ");
 		slotnoLabel.setFont(new Font("Arial", Font.BOLD, 14));
@@ -376,7 +401,7 @@ public class SlotMapDialog extends JDialog implements ActionListener {
 							String html = "<html><body>";
 							for (int i=0; i<timeslot.getReservedBy().size(); i++) {
 								AISStation reservedBy = timeslot.getReservedBy().get(i);
-								html += "  " + reservedBy.getOrganizationName() + ": " + reservedBy.getStationName() + "  ";
+								html += "&nbsp;&nbsp;" + reservedBy.getOrganizationName() + ": " + reservedBy.getStationName() + "&nbsp;&nbsp;";
 								if (i<timeslot.getReservedBy().size()-1) {
 									html += "<br>";
 								}
@@ -393,7 +418,7 @@ public class SlotMapDialog extends JDialog implements ActionListener {
 							String html = "<html><body>";
 							for (int i=0; i<timeslot.getUsedBy().size(); i++) {
 								AISStation usedBy = timeslot.getUsedBy().get(i);
-								html += "  " + usedBy.getOrganizationName() + ": " + usedBy.getStationName() + "  ";
+								html += "&nbsp;&nbsp;" + usedBy.getOrganizationName() + ": " + usedBy.getStationName() + "&nbsp;&nbsp;";
 								if (i<timeslot.getUsedBy().size()-1) {
 									html += "<br>";
 								}
@@ -410,7 +435,7 @@ public class SlotMapDialog extends JDialog implements ActionListener {
 							String html = "<html><body>";
 							for (int i=0; i<timeslot.getInterferedBy().size(); i++) {
 								AISStation interferedBy = timeslot.getInterferedBy().get(i);
-								html += "  " + interferedBy.getOrganizationName() + ": " + interferedBy.getStationName() + "  ";
+								html += "&nbsp;&nbsp;" + interferedBy.getOrganizationName() + ": " + interferedBy.getStationName() + "&nbsp;&nbsp;";
 								if (i<timeslot.getInterferedBy().size()-1) {
 									html += "<br>";
 								}
@@ -437,7 +462,7 @@ public class SlotMapDialog extends JDialog implements ActionListener {
 							String html = "<html><body>";
 							for (int i=0; i<timeslot.getReservedBy().size(); i++) {
 								AISStation reservedBy = timeslot.getReservedBy().get(i);
-								html += "  " + reservedBy.getOrganizationName() + ": " + reservedBy.getStationName() + "  ";
+								html += "&nbsp;&nbsp;" + reservedBy.getOrganizationName() + ": " + reservedBy.getStationName() + "&nbsp;&nbsp;";
 								if (i<timeslot.getReservedBy().size()-1) {
 									html += "<br>";
 								}
@@ -454,7 +479,7 @@ public class SlotMapDialog extends JDialog implements ActionListener {
 							String html = "<html><body>";
 							for (int i=0; i<timeslot.getUsedBy().size(); i++) {
 								AISStation usedBy = timeslot.getUsedBy().get(i);
-								html += "  " + usedBy.getOrganizationName() + ": " + usedBy.getStationName() + "  ";
+								html += "&nbsp;&nbsp;" + usedBy.getOrganizationName() + ": " + usedBy.getStationName() + "&nbsp;&nbsp;";
 								if (i<timeslot.getUsedBy().size()-1) {
 									html += "<br>";
 								}
@@ -471,7 +496,7 @@ public class SlotMapDialog extends JDialog implements ActionListener {
 							String html = "<html><body>";
 							for (int i=0; i<timeslot.getInterferedBy().size(); i++) {
 								AISStation interferedBy = timeslot.getInterferedBy().get(i);
-								html += "  " + interferedBy.getOrganizationName() + ": " + interferedBy.getStationName() + "  ";
+								html += "&nbsp;&nbsp;" + interferedBy.getOrganizationName() + ": " + interferedBy.getStationName() + "&nbsp;&nbsp;";
 								if (i<timeslot.getInterferedBy().size()-1) {
 									html += "<br>";
 								}

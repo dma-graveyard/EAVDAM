@@ -163,7 +163,7 @@ public class SidePanel extends JPanel implements MapPanelChild, ActionListener {
             "<tr><td valign=\"top\">Angle:</td><td>...</td></tr>" +            
             "<tr><td valign=\"top\">Gain:</td><td>...</td></tr>" +
             "<tr><td valign=\"top\">Timeslots reserved on CH A (AIS1):</td><td>...</td></tr>" +
-			"<tr><td valign=\"top\">Timeslots reserved on CH B (AIS2)::</td><td>...</td></tr></table>");
+			"<tr><td valign=\"top\">Timeslots reserved on CH B (AIS2):</td><td>...</td></tr></table>");
         infoPane.setBackground(new Color(238, 238, 238));
         //infoPane.setBorder(new CompoundBorder
         //    (BorderFactory.createLineBorder(new Color(122, 138, 153), 1),

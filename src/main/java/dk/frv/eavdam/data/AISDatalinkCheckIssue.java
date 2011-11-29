@@ -12,6 +12,7 @@ public class AISDatalinkCheckIssue {
 	private AISDatalinkCheckSeverity severity;
 	private List<AISStation> involvedStations;
 	private List<AISTimeslot> involvedTimeslots;
+	private boolean acknowledged;
 	
 	public AISDatalinkCheckIssue() {}
 	
@@ -62,6 +63,14 @@ public class AISDatalinkCheckIssue {
 	public void setInvolvedTimeslots(List<AISTimeslot> involvedTimeslots) {
 		this.involvedTimeslots = involvedTimeslots;
 	}	
+	
+	public boolean isAcknowledged() {
+		return acknowledged;
+	}
+	
+	public void setAcknowledged(boolean acknowledged) {
+		this.acknowledged = acknowledged;
+	}
 
 	public String toString(){
 		return id+": "+severity+" "+ruleViolated+". There are "+getInvolvedStations().size()+" involved stations " +

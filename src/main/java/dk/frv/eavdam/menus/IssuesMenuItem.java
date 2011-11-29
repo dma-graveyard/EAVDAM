@@ -2,8 +2,15 @@ package dk.frv.eavdam.menus;
 
 import com.bbn.openmap.gui.OpenMapFrame;
 import dk.frv.eavdam.data.AISDatalinkCheckIssue;
+import dk.frv.eavdam.data.AISDatalinkCheckRule;
+import dk.frv.eavdam.data.AISDatalinkCheckSeverity;
+import dk.frv.eavdam.data.AISFrequency;
 import dk.frv.eavdam.data.AISStation;
 import dk.frv.eavdam.data.AISTimeslot;
+import dk.frv.eavdam.data.EAVDAMData;
+import dk.frv.eavdam.utils.DBHandler;
+import dk.frv.eavdam.utils.HealthCheckHandler;
+import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Cursor;
 import java.awt.Dimension;
@@ -15,9 +22,14 @@ import java.awt.Insets;
 import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.util.ArrayList;
 import java.util.List;
+import javax.swing.AbstractAction;
 import javax.swing.BorderFactory;
+import javax.swing.Box;
+import javax.swing.BoxLayout;
 import javax.swing.ImageIcon;
+import javax.swing.JButton;
 import javax.swing.JDialog;
 import javax.swing.JLabel;
 import javax.swing.JMenuItem;
@@ -40,527 +52,323 @@ public class IssuesMenuItem extends JMenuItem {
  
 class IssuesMenuItemActionListener implements ActionListener {
 
-    private EavdamMenu eavdamMenu;                                                   
+    private EavdamMenu eavdamMenu;
     private JDialog dialog;
      
 	private List<AISDatalinkCheckIssue> issues;
-	 
+		 
     public IssuesMenuItemActionListener(EavdamMenu eavdamMenu, List<AISDatalinkCheckIssue> issues) {
         super();
         this.eavdamMenu = eavdamMenu;
 		this.issues = issues;
     }
-                   		   
+     
+	public List<AISDatalinkCheckIssue> getIssues() {
+		return issues;
+	}
+	 
+	public void setIssues(List<AISDatalinkCheckIssue> issues) {
+		this.issues = issues;
+	}
+						 
     public void actionPerformed(ActionEvent e) {
         
         if (e.getSource() instanceof IssuesMenuItem) {
+			
+			// XXX: FOR TESTING
+			List<AISStation> testStations = new ArrayList<AISStation>();
+			testStations.add(new AISStation("VTT", "Test station", (double) 60, (double) 20));
+			testStations.add(new AISStation("VTT", "Test station 2", (double) 59, (double) 19));
+			List<AISTimeslot> testTimeslots = new ArrayList<AISTimeslot>();
+			testTimeslots.add(new AISTimeslot(AISFrequency.AIS1, 100, false, null, null, null, null));
+			testTimeslots.add(new AISTimeslot(AISFrequency.AIS2, 101, false, null, null, null, null));			
+			testTimeslots.add(new AISTimeslot(AISFrequency.AIS1, 102, false, null, null, null, null));	
+			testTimeslots.add(new AISTimeslot(AISFrequency.AIS2, 103, false, null, null, null, null));	
+			testTimeslots.add(new AISTimeslot(AISFrequency.AIS1, 104, true, null, null, null, null));	
+			AISDatalinkCheckIssue test = new AISDatalinkCheckIssue(1, AISDatalinkCheckRule.RULE4, AISDatalinkCheckSeverity.SEVERE, testStations, testTimeslots);
+			//test.setAcknowledged(true);
+			if (issues == null || issues.isEmpty()) {
+				issues = new ArrayList<AISDatalinkCheckIssue>();			
+				issues.add(test);
+			}
 
+			Toolkit toolkit = Toolkit.getDefaultToolkit();
+			Dimension dimension = toolkit.getScreenSize();
+
+			if (dimension.width-100 < IssuesMenuItem.ISSUES_WINDOW_WIDTH) {
+				IssuesMenuItem.ISSUES_WINDOW_WIDTH = dimension.width-100;
+			}
+			if (dimension.width-100 < IssuesMenuItem.ISSUES_WINDOW_WIDTH) {
+				IssuesMenuItem.ISSUES_WINDOW_WIDTH = dimension.width-100;
+			}
+			if (dimension.height-100 < IssuesMenuItem.ISSUES_WINDOW_HEIGHT) {
+				IssuesMenuItem.ISSUES_WINDOW_HEIGHT = dimension.height-100;
+			}
+			if (dimension.height-100 < IssuesMenuItem.ISSUES_WINDOW_HEIGHT) {
+				IssuesMenuItem.ISSUES_WINDOW_HEIGHT = dimension.height-100;
+			}		
+		
             dialog = new JDialog(eavdamMenu.getOpenMapFrame(), "AIS VHF Datalink Issues", false);			
 			
 			JScrollPane scrollPane = getScrollPane();
-			dialog.getContentPane().add(scrollPane);
+			scrollPane.setBorder(BorderFactory.createEmptyBorder());
+			
+			JPanel containerPane = new JPanel();
+			containerPane.setBorder(BorderFactory.createEmptyBorder());
+			containerPane.setLayout(new BorderLayout());		 
+			containerPane.add(scrollPane, BorderLayout.NORTH);			
+			
+			dialog.getContentPane().add(containerPane);
 
             Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
             dialog.setBounds((int) screenSize.getWidth()/2 - IssuesMenuItem.ISSUES_WINDOW_WIDTH/2,
                 (int) screenSize.getHeight()/2 - IssuesMenuItem.ISSUES_WINDOW_HEIGHT/2,
 				IssuesMenuItem.ISSUES_WINDOW_WIDTH, IssuesMenuItem.ISSUES_WINDOW_HEIGHT);
             dialog.setVisible(true);	
-
 		}
 		
 	}
 
 	private JScrollPane getScrollPane() {
-	
+
 		JPanel panel = new JPanel();
 		panel.setLayout(new GridBagLayout());                  
 		
 		GridBagConstraints c = new GridBagConstraints();
 		c.gridx = 0;
-		c.gridy = 0;                   
+		c.gridy = 0;    
+		//c.weightx = 0.5;
+		//c.weighty = 0.5;
 		c.anchor = GridBagConstraints.LINE_START;
 		c.insets = new Insets(5,5,5,5);
 		
-		/*
-		//c.anchor = GridBagConstraints.CENTER;		
-		c.gridwidth = 9;
-		panel.add(new JLabel("<html><body><h1>Slotmap for latitude " + String.valueOf((double) (Math.round(latitude*1000))/1000) +
-			", longitude " + String.valueOf(((double) Math.round(longitude*1000))/1000) + "</h1></body></html>"), c);
-		c.anchor = GridBagConstraints.LINE_START;
+		if (issues == null || issues.isEmpty()) {
 		
-		c.gridy = 1;
-		panel.add(new JLabel("Total bandwith usage: " + (double) Math.round(10000 * slotmap.getBandwidthReservation()) / 100 + " %"), c);
-		c.gridwidth = 1;	
-		
-		c.gridy = 0;
-		JPanel timeslotsChartPanel = new JPanel();
-		timeslotsChartPanel.setLayout(new GridBagLayout()); 
-		List<AISTimeslot> ais1Timeslots = slotmap.getAIS1Timeslots();		
-		boolean[] reservationsForChannelA = new boolean[2250];
-		for (int i=0; i<2250; i++) {
-			reservationsForChannelA[i] = false;
-		}
-		if (ais1Timeslots != null) {
-			for (AISTimeslot timeslot : ais1Timeslots) {
-				if (timeslot.getFree() != null && timeslot.getFree().booleanValue() == false) {
-					reservationsForChannelA[timeslot.getSlotNumber()] = true;
-				}
-			}
-		}
-		Image timeslotImageForChannelA = ImageHandler.getTimeslotImage(SLOTMAP_WINDOW_WIDTH-200, 15, reservationsForChannelA);
-		if (timeslotImageForChannelA != null) {
-			timeslotsChartPanel.add(new JLabel("AIS1:"), c);
-			c.gridx = 1;
-			JLabel timeslotsForChannelALabel = new JLabel();
-			timeslotsForChannelALabel.setIcon(new ImageIcon(timeslotImageForChannelA));
-			timeslotsChartPanel.add(timeslotsForChannelALabel, c);
-		}
-		List<AISTimeslot> ais2Timeslots = slotmap.getAIS2Timeslots();		
-		boolean[] reservationsForChannelB = new boolean[2250];
-		for (int i=0; i<2250; i++) {
-			reservationsForChannelB[i] = false;
-		}
-		if (ais2Timeslots != null) {
-			for (AISTimeslot timeslot : ais2Timeslots) {
-				if (timeslot.getFree() != null && timeslot.getFree().booleanValue() == false) {
-					reservationsForChannelB[timeslot.getSlotNumber()] = true;
-				}
-			}
-		}
-		Image timeslotImageForChannelB = ImageHandler.getTimeslotImage(SLOTMAP_WINDOW_WIDTH-200, 15, reservationsForChannelB);
-		if (timeslotImageForChannelB != null) {
-			c.gridx = 0;
-			c.gridy = 1;
-			timeslotsChartPanel.add(new JLabel("AIS2:"), c);
-			c.gridx = 1;
-			JLabel timeslotsForChannelBLabel = new JLabel();
-			timeslotsForChannelBLabel.setIcon(new ImageIcon(timeslotImageForChannelB));
-			timeslotsChartPanel.add(timeslotsForChannelBLabel, c);
-		}		
-
-		c.gridx = 0;
-		c.gridy = 2;
-		c.gridwidth = 9;
-		panel.add(timeslotsChartPanel, c);
-		
-		JPanel slotsPanel = new JPanel();
-		slotsPanel.setLayout(new GridBagLayout());
-		
-		c.gridwidth = 1;
-		slots0_250LinkLabel = new LinkLabel("Slots 0...250");
-		if (selectedSlotsIndex == 0) {
-			slots0_250LinkLabel.setRedText("Slots 0...250");
-		}
-		slots0_250LinkLabel.addActionListener(this);
-		slotsPanel.add(slots0_250LinkLabel, c);
-		
-		c.gridx = 1;
-		slots251_500LinkLabel = new LinkLabel("Slots 251...500");
-		if (selectedSlotsIndex == 1) {
-			slots251_500LinkLabel.setRedText("Slots 251...500");
-		}
-		slots251_500LinkLabel.addActionListener(this);
-		slotsPanel.add(slots251_500LinkLabel, c);		
-		
-		c.gridx = 2;
-		slots501_750LinkLabel = new LinkLabel("Slots 501...750");
-		if (selectedSlotsIndex == 2) {
-			slots501_750LinkLabel.setRedText("Slots 501...750");
-		}
-		slots501_750LinkLabel.addActionListener(this);
-		slotsPanel.add(slots501_750LinkLabel, c);	
-		
-		c.gridx = 3;
-		slots751_1000LinkLabel = new LinkLabel("Slots 751...1000");
-		if (selectedSlotsIndex == 3) {
-			slots751_1000LinkLabel.setRedText("Slots 751...1000");
-		}
-		slots751_1000LinkLabel.addActionListener(this);
-		slotsPanel.add(slots751_1000LinkLabel, c);	
-		
-		c.gridx = 4;
-		slots1001_1250LinkLabel = new LinkLabel("Slots 1001...1250");
-		if (selectedSlotsIndex == 4) {
-			slots1001_1250LinkLabel.setRedText("Slots 1001...1250");
-		}		
-		slots1001_1250LinkLabel.addActionListener(this);
-		slotsPanel.add(slots1001_1250LinkLabel, c);
+			panel.add(new JLabel("<html><body><h1>AIS VHF Datalink Issues</h1></body></html>"), c);
+			c.anchor = GridBagConstraints.LINE_START;
 			
-		c.gridx = 5;
-		slots1251_1500LinkLabel = new LinkLabel("Slots 1251...1500");
-		if (selectedSlotsIndex == 5) {
-			slots1251_1500LinkLabel.setRedText("Slots 1251...1500");
-		}		
-		slots1251_1500LinkLabel.addActionListener(this);
-		slotsPanel.add(slots1251_1500LinkLabel, c);
-
-		c.gridx = 6;
-		slots1501_1750LinkLabel = new LinkLabel("Slots 1501...1750");
-		if (selectedSlotsIndex == 6) {
-			slots1501_1750LinkLabel.setRedText("Slots 1501...1750");
-		}		
-		slots1501_1750LinkLabel.addActionListener(this);
-		slotsPanel.add(slots1501_1750LinkLabel, c);
-
-		c.gridx = 7;
-		slots1751_2000LinkLabel = new LinkLabel("Slots 1751...2000");
-		if (selectedSlotsIndex == 7) {
-			slots1751_2000LinkLabel.setRedText("Slots 1751...2000");
-		}		
-		slots1751_2000LinkLabel.addActionListener(this);
-		slotsPanel.add(slots1751_2000LinkLabel, c);
-
-		c.gridx = 8;
-		slots2001_2249LinkLabel = new LinkLabel("Slots 2001...2249");
-		if (selectedSlotsIndex == 8) {
-			slots2001_2249LinkLabel.setRedText("Slots 2001...2249");
-		}		
-		slots2001_2249LinkLabel.addActionListener(this);
-		slotsPanel.add(slots2001_2249LinkLabel, c);		
-
-		c.gridx = 0;
-		c.gridy = 3;		
-		c.gridwidth = 9;
-		panel.add(slotsPanel, c);
-
-		c.gridy = 4;
-		c.gridwidth = 1;
-		c.fill = GridBagConstraints.BOTH;
-		c.insets = new Insets(0,0,0,0);
-		JLabel frequencyLabel = new JLabel(" Frequency:  ");
-		frequencyLabel.setFont(new Font("Arial", Font.BOLD, 14));
-		frequencyLabel.setBorder(BorderFactory.createMatteBorder(1, 1, 1, 1, Color.BLACK));
-		panel.add(frequencyLabel, c);
-		c.gridx = 1;           
-		c.gridwidth = 4;
-		JLabel ais1Label = new JLabel(" AIS1  ");
-		ais1Label.setFont(new Font("Arial", Font.BOLD, 14));
-		ais1Label.setBorder(BorderFactory.createMatteBorder(1, 0, 1, 1, Color.BLACK));
-		panel.add(ais1Label, c);
-		c.gridx = 5;
-		JLabel ais2Label = new JLabel(" AIS2  ");
-		ais2Label.setFont(new Font("Arial", Font.BOLD, 14));
-		ais2Label.setBorder(BorderFactory.createMatteBorder(1, 0, 1, 1, Color.BLACK));
-		panel.add(ais2Label, c);				
-		c.gridx = 0;                
-		c.gridy = 5;
-		c.gridwidth = 1;
-		JLabel slotnoLabel = new JLabel(" Slotno.  ");
-		slotnoLabel.setFont(new Font("Arial", Font.BOLD, 14));
-		slotnoLabel.setBorder(BorderFactory.createMatteBorder(0, 1, 1, 1, Color.BLACK));
-		panel.add(slotnoLabel, c);
-		c.gridx = 1;   
-		JLabel ais1FreeLabel = new JLabel(" Free  ");
-		ais1FreeLabel.setFont(new Font("Arial", Font.BOLD, 14));
-		ais1FreeLabel.setBorder(BorderFactory.createMatteBorder(0, 0, 1, 1, Color.BLACK));
-		panel.add(ais1FreeLabel, c);				
-		c.gridx = 2;         
-		JLabel ais1ReservedByLabel = new JLabel(" Reserved by  ");
-		ais1ReservedByLabel.setFont(new Font("Arial", Font.BOLD, 14));
-		ais1ReservedByLabel.setBorder(BorderFactory.createMatteBorder(0, 0, 1, 1, Color.BLACK));
-		panel.add(ais1ReservedByLabel, c);
-		c.gridx = 3;   
-		JLabel ais1UsedByLabel = new JLabel(" Used by  ");
-		ais1UsedByLabel.setFont(new Font("Arial", Font.BOLD, 14));
-		ais1UsedByLabel.setBorder(BorderFactory.createMatteBorder(0, 0, 1, 1, Color.BLACK));
-		panel.add(ais1UsedByLabel, c);	
-		c.gridx = 4;
-		JLabel ais1InterferedByLabel = new JLabel(" Interfered by  ");
-		ais1InterferedByLabel.setFont(new Font("Arial", Font.BOLD, 14));
-		ais1InterferedByLabel.setBorder(BorderFactory.createMatteBorder(0, 0, 1, 1, Color.BLACK));
-		panel.add(ais1InterferedByLabel, c);						
-		c.gridx = 5; 
-		JLabel ais2FreeLabel = new JLabel(" Free  ");
-		ais2FreeLabel.setFont(new Font("Arial", Font.BOLD, 14));
-		ais2FreeLabel.setBorder(BorderFactory.createMatteBorder(0, 0, 1, 1, Color.BLACK));
-		panel.add(ais2FreeLabel, c);				
-		c.gridx = 6;         
-		JLabel ais2ReservedByLabel = new JLabel(" Reserved by  ");
-		ais2ReservedByLabel.setFont(new Font("Arial", Font.BOLD, 14));
-		ais2ReservedByLabel.setBorder(BorderFactory.createMatteBorder(0, 0, 1, 1, Color.BLACK));
-		panel.add(ais2ReservedByLabel, c);
-		c.gridx = 7;   
-		JLabel ais2UsedByLabel = new JLabel(" Used by  ");
-		ais2UsedByLabel.setFont(new Font("Arial", Font.BOLD, 14));
-		ais2UsedByLabel.setBorder(BorderFactory.createMatteBorder(0, 0, 1, 1, Color.BLACK));
-		panel.add(ais2UsedByLabel, c);	
-		c.gridx = 8;
-		JLabel ais2InterferedByLabel = new JLabel(" Interfered by  ");
-		ais2InterferedByLabel.setFont(new Font("Arial", Font.BOLD, 14));
-		ais2InterferedByLabel.setBorder(BorderFactory.createMatteBorder(0, 0, 1, 1, Color.BLACK));
-		panel.add(ais2InterferedByLabel, c);
+			c.gridy = 1;
+			panel.add(new JLabel("No issues."), c);
 		
-		int start = -1;
-		int end = -1;
+		} else {
 		
-		boolean[] ais1Free = new boolean[0];
-		String[] ais1ReservedBy = new String[0];
-		String[] ais1UsedBy = new String[0];
-		String[] ais1InterferedBy = new String[0];
-		boolean[] ais2Free = new boolean[0];
-		String[] ais2ReservedBy = new String[0];
-		String[] ais2UsedBy = new String[0];
-		String[] ais2InterferedBy = new String[0];
-		boolean[] conflicts = new boolean[0];
-		
-		if (selectedSlotsIndex == 0) {
-			ais1Free = new boolean[251];
-			ais1ReservedBy = new String[251];
-			ais1UsedBy = new String[251];
-			ais1InterferedBy = new String[251];
-			ais2Free = new boolean[251];
-			ais2ReservedBy = new String[251];
-			ais2UsedBy = new String[251];
-			ais2InterferedBy = new String[251];	
-			conflicts = new boolean[251];	
-		} else if (selectedSlotsIndex > 0 && selectedSlotsIndex < 8) {
-			ais1Free = new boolean[250];
-			ais1ReservedBy = new String[250];
-			ais1UsedBy = new String[250];
-			ais1InterferedBy = new String[250];
-			ais2Free = new boolean[250];
-			ais2ReservedBy = new String[250];
-			ais2UsedBy = new String[250];
-			ais2InterferedBy = new String[250];
-			conflicts = new boolean[250];			
-		} else if (selectedSlotsIndex == 8) {
-			ais1Free = new boolean[249];
-			ais1ReservedBy = new String[249];
-			ais1UsedBy = new String[249];
-			ais1InterferedBy = new String[249];
-			ais2Free = new boolean[249];
-			ais2ReservedBy = new String[249];
-			ais2UsedBy = new String[249];
-			ais2InterferedBy = new String[249];
-			conflicts = new boolean[249];
-		}
-		
-		if (selectedSlotsIndex == 0) {
-			start = 0;
-			end = 250;
-		} else if (selectedSlotsIndex == 1) {
-			start = 251;
-			end = 500;
-		} else if (selectedSlotsIndex == 2) {
-			start = 501;
-			end = 750;
-		} else if (selectedSlotsIndex == 3) {
-			start = 751;
-			end = 1000;
-		} else if (selectedSlotsIndex == 4) {
-			start = 1001;
-			end = 1250;
-		} else if (selectedSlotsIndex == 5) {
-			start = 1251;
-			end = 1500;
-		} else if (selectedSlotsIndex == 6) {
-			start = 1501;
-			end = 1750;
-		} else if (selectedSlotsIndex == 7) {
-			start = 1751;
-			end = 2000;		
-		} else if (selectedSlotsIndex == 8) {
-			start = 2001;
-			end = 2249;			
-		}
-		
-		ais1Free = fillEmpty(ais1Free, true);
-		ais1ReservedBy = fillEmpty(ais1ReservedBy);
-		ais1UsedBy = fillEmpty(ais1UsedBy);
-		ais1InterferedBy = fillEmpty(ais1InterferedBy);
-		ais2Free = fillEmpty(ais2Free, true);
-		ais2ReservedBy = fillEmpty(ais2ReservedBy);
-		ais2UsedBy = fillEmpty(ais2UsedBy);
-		ais2InterferedBy = fillEmpty(ais2InterferedBy);
-		conflicts = fillEmpty(conflicts, false);
-		
-		if (ais1Timeslots != null) {
-			for (AISTimeslot timeslot : ais1Timeslots) {
-				if (timeslot.getSlotNumber() >= start && timeslot.getSlotNumber() <= end) {
-					if (timeslot.getFree() != null) {
-						ais1Free[timeslot.getSlotNumber()-start] = timeslot.getFree().booleanValue();
-					}		
-					if (timeslot.getReservedBy() != null) {
-						if (timeslot.getReservedBy().size() == 1) {
-							AISStation reservedBy = timeslot.getReservedBy().get(0);
-							ais1ReservedBy[timeslot.getSlotNumber()-start] = "  " + reservedBy.getOrganizationName() + ": " + reservedBy.getStationName() + "  ";
-						} else if (timeslot.getReservedBy().size() > 1) {
-							String html = "<html><body>";
-							for (int i=0; i<timeslot.getReservedBy().size(); i++) {
-								AISStation reservedBy = timeslot.getReservedBy().get(i);
-								html += "  " + reservedBy.getOrganizationName() + ": " + reservedBy.getStationName() + "  ";
-								if (i<timeslot.getReservedBy().size()-1) {
-									html += "<br>";
-								}
-							}
-							html += "</body></html>";
-							ais1ReservedBy[timeslot.getSlotNumber()-start] = html;
-						}
-					}					
-					if (timeslot.getUsedBy() != null) {
-						if (timeslot.getUsedBy().size() == 1) {
-							AISStation usedBy = timeslot.getUsedBy().get(0);
-							ais1UsedBy[timeslot.getSlotNumber()-start] = "  " + usedBy.getOrganizationName() + ": " + usedBy.getStationName() + "  ";						
-						} else if (timeslot.getUsedBy().size() > 1) {
-							String html = "<html><body>";
-							for (int i=0; i<timeslot.getUsedBy().size(); i++) {
-								AISStation usedBy = timeslot.getUsedBy().get(i);
-								html += "  " + usedBy.getOrganizationName() + ": " + usedBy.getStationName() + "  ";
-								if (i<timeslot.getUsedBy().size()-1) {
-									html += "<br>";
-								}
-							}
-							html += "</body></html>";
-							ais1UsedBy[timeslot.getSlotNumber()-start] = html;
-						}
-					}				
-					if (timeslot.getInterferedBy() != null) {
-						if (timeslot.getInterferedBy().size() == 1) {
-							AISStation interferedBy = timeslot.getInterferedBy().get(0);
-							ais1InterferedBy[timeslot.getSlotNumber()-start] = "  " + interferedBy.getOrganizationName() + ": " + interferedBy.getStationName() + "  ";			
-						} else if (timeslot.getInterferedBy().size() > 1) {
-							String html = "<html><body>";
-							for (int i=0; i<timeslot.getInterferedBy().size(); i++) {
-								AISStation interferedBy = timeslot.getInterferedBy().get(i);
-								html += "  " + interferedBy.getOrganizationName() + ": " + interferedBy.getStationName() + "  ";
-								if (i<timeslot.getInterferedBy().size()-1) {
-									html += "<br>";
-								}
-							}
-							html += "</body></html>";
-							ais1InterferedBy[timeslot.getSlotNumber()-start] = html;
-						}
-					}						
-				}
-			}
-		}
-
-		if (ais2Timeslots != null) {
-			for (AISTimeslot timeslot : ais2Timeslots) {
-				if (timeslot.getSlotNumber() >= start && timeslot.getSlotNumber() <= end) {
-					if (timeslot.getFree() != null) {
-						ais2Free[timeslot.getSlotNumber()-start] = timeslot.getFree().booleanValue();
-					}
-					if (timeslot.getReservedBy() != null) {
-						if (timeslot.getReservedBy().size() == 1) {
-							AISStation reservedBy = timeslot.getReservedBy().get(0);
-							ais2ReservedBy[timeslot.getSlotNumber()-start] = "  " + reservedBy.getOrganizationName() + ": " + reservedBy.getStationName() + "  ";
-						} else if (timeslot.getReservedBy().size() > 1) {
-							String html = "<html><body>";
-							for (int i=0; i<timeslot.getReservedBy().size(); i++) {
-								AISStation reservedBy = timeslot.getReservedBy().get(i);
-								html += "  " + reservedBy.getOrganizationName() + ": " + reservedBy.getStationName() + "  ";
-								if (i<timeslot.getReservedBy().size()-1) {
-									html += "<br>";
-								}
-							}
-							html += "</body></html>";
-							ais2ReservedBy[timeslot.getSlotNumber()-start] = html;
-						}
-					}
-					if (timeslot.getUsedBy() != null) {
-						if (timeslot.getUsedBy().size() == 1) {
-							AISStation usedBy = timeslot.getUsedBy().get(0);
-							ais2UsedBy[timeslot.getSlotNumber()-start] = "  " + usedBy.getOrganizationName() + ": " + usedBy.getStationName() + "  ";
-						} else if (timeslot.getUsedBy().size() > 1) {
-							String html = "<html><body>";
-							for (int i=0; i<timeslot.getUsedBy().size(); i++) {
-								AISStation usedBy = timeslot.getUsedBy().get(i);
-								html += "  " + usedBy.getOrganizationName() + ": " + usedBy.getStationName() + "  ";
-								if (i<timeslot.getUsedBy().size()-1) {
-									html += "<br>";
-								}
-							}
-							html += "</body></html>";
-							ais2UsedBy[timeslot.getSlotNumber()-start] = html;
-						}
-					}
-					if (timeslot.getInterferedBy() != null) {
-						if (timeslot.getInterferedBy().size() == 1) {
-							AISStation interferedBy = timeslot.getInterferedBy().get(0);
-							ais2InterferedBy[timeslot.getSlotNumber()-start] = "  " + interferedBy.getOrganizationName() + ": " + interferedBy.getStationName() + "  ";
-						} else if (timeslot.getInterferedBy().size() > 1) {
-							String html = "<html><body>";
-							for (int i=0; i<timeslot.getInterferedBy().size(); i++) {
-								AISStation interferedBy = timeslot.getInterferedBy().get(i);
-								html += "  " + interferedBy.getOrganizationName() + ": " + interferedBy.getStationName() + "  ";
-								if (i<timeslot.getInterferedBy().size()-1) {
-									html += "<br>";
-								}
-							}
-							html += "</body></html>";
-							ais2InterferedBy[timeslot.getSlotNumber()-start] = html;
-						}
-					}						
-				}	
-			}			
-		}
-
-		for (int i=0; i<ais1Free.length; i++) {
-		
-			c.gridy++;
-			c.gridx = 0;
-	
-			JLabel slotnoValueLabel = new JLabel("  " + String.valueOf(start+i) + "  ");
-			slotnoValueLabel.setFont(new Font("Arial", Font.PLAIN, 12));
-			if (conflicts[i] == true) {
-				slotnoValueLabel.setForeground(Color.red);
-				slotnoValueLabel.setText("  " + String.valueOf(start+i) + " (!)  ");
-			}
-			slotnoValueLabel.setBorder(BorderFactory.createMatteBorder(0, 1, 1, 1, Color.BLACK));
-			panel.add(slotnoValueLabel, c);			
-			c.gridx = 1;
-			JLabel ais1FreeValueLabel = new JLabel();
-			if (ais1Free[i] == true) {
-				ais1FreeValueLabel.setText("  Yes  ");
-			} else if (ais1Free[i] == false) {
-				ais1FreeValueLabel.setText("  No  ");
-			}
-			ais1FreeValueLabel.setFont(new Font("Arial", Font.PLAIN, 12));
-			ais1FreeValueLabel.setBorder(BorderFactory.createMatteBorder(0, 0, 1, 1, Color.BLACK));
-			panel.add(ais1FreeValueLabel, c);		
+			//c.anchor = GridBagConstraints.CENTER;		
+			c.gridwidth = 7;
+			panel.add(new JLabel("<html><body><h1>AIS VHF Datalink Issues</h1></body></html>"), c);
+			c.anchor = GridBagConstraints.LINE_START;
+			
+			c.gridy = 1;
+			c.gridwidth = 1;
+			c.fill = GridBagConstraints.BOTH;
+			c.insets = new Insets(0,0,0,0);
+			JLabel ruleViolatedTitleLabel = new JLabel(" Rule violated:  ");
+			ruleViolatedTitleLabel.setFont(new Font("Arial", Font.BOLD, 14));
+			ruleViolatedTitleLabel.setBorder(BorderFactory.createMatteBorder(1, 1, 1, 1, Color.BLACK));
+			panel.add(ruleViolatedTitleLabel, c);
+			c.gridx = 1;           		
+			JLabel severityTitleLabel = new JLabel(" Severity  ");
+			severityTitleLabel.setFont(new Font("Arial", Font.BOLD, 14));
+			severityTitleLabel.setBorder(BorderFactory.createMatteBorder(1, 0, 1, 1, Color.BLACK));
+			panel.add(severityTitleLabel, c);
 			c.gridx = 2;
-			JLabel ais1ReservedByValueLabel = new JLabel(ais1ReservedBy[i]);
-			ais1ReservedByValueLabel.setFont(new Font("Arial", Font.PLAIN, 12));
-			ais1ReservedByValueLabel.setBorder(BorderFactory.createMatteBorder(0, 0, 1, 1, Color.BLACK));
-			panel.add(ais1ReservedByValueLabel, c);
+			JLabel aisStationsInvolvedTitleLabel = new JLabel(" AIS stations involved  ");
+			aisStationsInvolvedTitleLabel.setFont(new Font("Arial", Font.BOLD, 14));
+			aisStationsInvolvedTitleLabel.setBorder(BorderFactory.createMatteBorder(1, 0, 1, 1, Color.BLACK));
+			panel.add(aisStationsInvolvedTitleLabel, c);				
 			c.gridx = 3;
-			JLabel ais1UsedByValueLabel = new JLabel(ais1UsedBy[i]);
-			ais1UsedByValueLabel.setFont(new Font("Arial", Font.PLAIN, 12));
-			ais1UsedByValueLabel.setBorder(BorderFactory.createMatteBorder(0, 0, 1, 1, Color.BLACK));
-			panel.add(ais1UsedByValueLabel, c);					
-			c.gridx = 4;
-			JLabel ais1InterferedByValueLabel = new JLabel(ais1InterferedBy[i]);
-			ais1InterferedByValueLabel.setFont(new Font("Arial", Font.PLAIN, 12));
-			ais1InterferedByValueLabel.setBorder(BorderFactory.createMatteBorder(0, 0, 1, 1, Color.BLACK));
-			panel.add(ais1InterferedByValueLabel, c);			
-			c.gridx = 5;
-			JLabel ais2FreeValueLabel = new JLabel("");
-			if (ais2Free[i] == true) {
-				ais2FreeValueLabel.setText("  Yes  ");
-			} else if (ais2Free[i] == false) {
-				ais2FreeValueLabel.setText("  No  ");
-			}
-			ais2FreeValueLabel.setFont(new Font("Arial", Font.PLAIN, 12));
-			ais2FreeValueLabel.setBorder(BorderFactory.createMatteBorder(0, 0, 1, 1, Color.BLACK));
-			panel.add(ais2FreeValueLabel, c);		
-			c.gridx = 6;
-			JLabel ais2ReservedByValueLabel = new JLabel(ais2ReservedBy[i]);
-			ais2ReservedByValueLabel.setFont(new Font("Arial", Font.PLAIN, 12));
-			ais2ReservedByValueLabel.setBorder(BorderFactory.createMatteBorder(0, 0, 1, 1, Color.BLACK));
-			panel.add(ais2ReservedByValueLabel, c);		
-			c.gridx = 7;
-			JLabel ais2UsedByValueLabel = new JLabel(ais2UsedBy[i]);
-			ais2UsedByValueLabel.setFont(new Font("Arial", Font.PLAIN, 12));
-			ais2UsedByValueLabel.setBorder(BorderFactory.createMatteBorder(0, 0, 1, 1, Color.BLACK));
-			panel.add(ais2UsedByValueLabel, c);
-			c.gridx = 8;
-			JLabel ais2InterferedByValueLabel = new JLabel(ais2InterferedBy[i]);
-			ais2InterferedByValueLabel.setFont(new Font("Arial", Font.PLAIN, 12));
-			ais2InterferedByValueLabel.setBorder(BorderFactory.createMatteBorder(0, 0, 1, 1, Color.BLACK));
-			panel.add(ais2InterferedByValueLabel, c);
+			JLabel timeslotsInvolvedTitleLabel = new JLabel(" Timeslots involved  ");
+			timeslotsInvolvedTitleLabel.setFont(new Font("Arial", Font.BOLD, 14));
+			timeslotsInvolvedTitleLabel.setBorder(BorderFactory.createMatteBorder(1, 0, 1, 1, Color.BLACK));
+			panel.add(timeslotsInvolvedTitleLabel, c);
+			c.gridx = 4;   
+			JLabel acknowledgedTitleLabel = new JLabel(" Acknowledged  ");
+			acknowledgedTitleLabel.setFont(new Font("Arial", Font.BOLD, 14));
+			acknowledgedTitleLabel.setBorder(BorderFactory.createMatteBorder(1, 0, 1, 1, Color.BLACK));
+			panel.add(acknowledgedTitleLabel, c);				
+			c.gridx = 5;         
+			JLabel acknowledgeButtonTitleLabel = new JLabel("  ");
+			acknowledgeButtonTitleLabel.setBorder(BorderFactory.createMatteBorder(1, 0, 1, 1, Color.BLACK));
+			panel.add(acknowledgeButtonTitleLabel, c);
+			c.gridx = 6;   
+			JLabel deleteTitleLabel = new JLabel("  ");
+			deleteTitleLabel.setBorder(BorderFactory.createMatteBorder(1, 0, 1, 1, Color.BLACK));
+			panel.add(deleteTitleLabel, c);
+			
+			for (AISDatalinkCheckIssue issue : issues) {
+			
+				int id = issue.getId();
+				AISDatalinkCheckRule ruleViolated = issue.getRuleViolated();
+				AISDatalinkCheckSeverity severity = issue.getSeverity();
+				List<AISStation> involvedStations = issue.getInvolvedStations();
+				List<AISTimeslot> involvedTimeslots = issue.getInvolvedTimeslots();
+				boolean acknowledged = issue.isAcknowledged();
+			
+				c.gridy++;
+				c.gridx = 0;
+			
+				String ruleViolatedStr = "";
+				if (ruleViolated != null) {
+					if (ruleViolated == AISDatalinkCheckRule.RULE1) {
+						ruleViolatedStr = "<html><body>&nbsp;&nbsp;Conflicting stations&nbsp;&nbsp;</html></body>";
+					} else if (ruleViolated == AISDatalinkCheckRule.RULE2) {
+						ruleViolatedStr = "<html><body>&nbsp;&nbsp;Reservation, but no intended use&nbsp;&nbsp;</html></body>";
+					} else if (ruleViolated == AISDatalinkCheckRule.RULE3) {
+						ruleViolatedStr = "<html><body>&nbsp;&nbsp;Intended FATDMA use, but no&nbsp;&nbsp;<br>&nbsp;&nbsp;reservation&nbsp;&nbsp;</html></body>";
+					} else if (ruleViolated == AISDatalinkCheckRule.RULE4) {
+						ruleViolatedStr = "<html><body>&nbsp;&nbsp;Simultaneous use of several&nbsp;&nbsp;<br>&nbsp;&nbsp;frequencies&nbsp;&nbsp;</html></body>";
+					} else if (ruleViolated == AISDatalinkCheckRule.RULE5) {
+						ruleViolatedStr = "<html><body>&nbsp;&nbsp;Slots reserved outside IALA A-124&nbsp;&nbsp;<br>&nbsp;&nbsp;recommended default FATDMA schemes&nbsp;&nbsp;</html></body>";
+					} else if (ruleViolated == AISDatalinkCheckRule.RULE6) {
+						ruleViolatedStr = "<html><body>&nbsp;&nbsp;Slots reserved outside overall slot&nbsp;&nbsp;<br>&nbsp;&nbsp;pattern for fixed statons (IALA A-124)&nbsp;&nbsp;</html></body>";
+					} else if (ruleViolated == AISDatalinkCheckRule.RULE7) {					
+						ruleViolatedStr = "<html><body>&nbsp;&nbsp;Free Bandwith below 50%&nbsp;&nbsp;</html></body>";
+					}
+				}
+
+				JLabel ruleViolatedLabel = new JLabel(ruleViolatedStr);
+				ruleViolatedLabel.setFont(new Font("Arial", Font.PLAIN, 12));
+				ruleViolatedLabel.setBorder(BorderFactory.createMatteBorder(0, 1, 1, 1, Color.BLACK));        
+				panel.add(ruleViolatedLabel, c);
+				
+				c.gridx = 1;
+				
+				String severityStr = "";
+				if (severity != null) {
+					if (severity == AISDatalinkCheckSeverity.SEVERE) {
+						ruleViolatedStr = "  Severe  ";		
+					} else if (severity == AISDatalinkCheckSeverity.MAJOR) {
+						ruleViolatedStr = "  Major  ";	
+					} else if (severity == AISDatalinkCheckSeverity.MAJOR) {
+						ruleViolatedStr = "  Minor  ";	
+					}
+				}				
+				
+				JLabel severityLabel = new JLabel(severityStr);
+				severityLabel.setFont(new Font("Arial", Font.PLAIN, 12));
+				severityLabel.setBorder(BorderFactory.createMatteBorder(0, 0, 1, 1, Color.BLACK));
+				panel.add(severityLabel, c);		
+				
+				c.gridx = 2;
+				
+				String involvedStationsStr = "";
+				if (involvedStations != null) {
+					if (involvedStations.size() == 1) {
+						AISStation involvedStation = involvedStations.get(0);
+						involvedStationsStr = "  " + involvedStation.getOrganizationName() + ": " + involvedStation.getStationName() + "  ";
+					} else if (involvedStations.size() > 1) {
+						involvedStationsStr = "<html><body>";
+						for (int i=0; i<involvedStations.size(); i++) {
+							AISStation involvedStation = involvedStations.get(i);
+							involvedStationsStr += "&nbsp;&nbsp;" + involvedStation.getOrganizationName() + ": " + involvedStation.getStationName() + "&nbsp;&nbsp;";
+							if (i<involvedStations.size()-1) {
+								involvedStationsStr += "<br>";
+							}
+						}
+						involvedStationsStr += "</body></html>";
+					}
+				}					
+				
+				JLabel involvedStationsLabel = new JLabel(involvedStationsStr);
+				involvedStationsLabel.setFont(new Font("Arial", Font.PLAIN, 12));
+				involvedStationsLabel.setBorder(BorderFactory.createMatteBorder(0, 0, 1, 1, Color.BLACK));
+				panel.add(involvedStationsLabel, c);
+			
+				c.gridx = 3;
+			
+				String involvedTimeslotsStr = "";
+				if (involvedTimeslots != null) {
+					involvedTimeslotsStr = "<html><body>";
+					for (int i=0; i<involvedTimeslots.size(); i++) {
+						if (i > 0 && i%2 == 0) {
+							involvedTimeslotsStr += "&nbsp;&nbsp;<br>";
+						} else {
+							involvedTimeslotsStr += " ";
+						}
+						AISTimeslot involvedTimeslot = involvedTimeslots.get(i);
+						String frequency = "NULL";
+						if (involvedTimeslot.getFrequency() != null) {
+							if (involvedTimeslot.getFrequency() == AISFrequency.AIS1) {
+								frequency = "AIS1";
+							} else if (involvedTimeslot.getFrequency() == AISFrequency.AIS2) {
+								frequency = "AIS2";
+							}
+						}							
+						if (i == 0) {
+							involvedTimeslotsStr += "&nbsp;&nbsp;{";
+						} else {
+							involvedTimeslotsStr += "&nbsp;&nbsp;";
+						}
+						involvedTimeslotsStr += "(" + frequency + "," + involvedTimeslot.getSlotNumber() + ")";
+
+						if (i<involvedTimeslots.size()-1) {
+							involvedTimeslotsStr += ",";
+						} else {
+							involvedTimeslotsStr += "}&nbsp;&nbsp;";	
+						}
+					}
+					involvedTimeslotsStr += "</body></html>";					
+				}
+				
+				JLabel involvedTimeslotsLabel = new JLabel(involvedTimeslotsStr);
+				involvedTimeslotsLabel.setFont(new Font("Arial", Font.PLAIN, 12));
+				involvedTimeslotsLabel.setBorder(BorderFactory.createMatteBorder(0, 0, 1, 1, Color.BLACK));
+				panel.add(involvedTimeslotsLabel, c);	
+
+				c.gridx = 4;
+			
+				String acknowledgedStr = "";
+				if (acknowledged) {
+					acknowledgedStr = "  Yes  ";
+				} else {
+					acknowledgedStr = "  No  ";
+				}
+				JLabel acknowledgedLabel = new JLabel(acknowledgedStr);
+				acknowledgedLabel.setFont(new Font("Arial", Font.PLAIN, 12));
+				acknowledgedLabel.setBorder(BorderFactory.createMatteBorder(0, 0, 1, 1, Color.BLACK));
+				panel.add(acknowledgedLabel, c);		
+			
+				c.gridx = 5;
+			
+				JButton acknowledgeButton = new JButton("Acknowledge");
+				acknowledgeButton.setPreferredSize(new Dimension(90, 25));
+				acknowledgeButton.setMaximumSize(new Dimension(90, 25));
+				acknowledgeButton.setMinimumSize(new Dimension(90, 25));					
+				acknowledgeButton.setMargin(new Insets(1,1,1,1));  					
+				acknowledgeButton.setFont(new Font("Arial", Font.PLAIN, 12));
+				acknowledgeButton.setFocusPainted(false);
+				acknowledgeButton.setAction(new AcknowledgeAction("Acknowledge", this, id));
+				if (acknowledged) {
+					acknowledgeButton.setEnabled(false);
+				}
+				Box verticalBox = Box.createVerticalBox();			
+				verticalBox.add(Box.createVerticalGlue());
+				verticalBox.add(acknowledgeButton);
+				verticalBox.add(Box.createVerticalGlue());
+				JPanel temp = new JPanel(new BorderLayout());
+				temp.add(verticalBox, BorderLayout.CENTER);
+				temp.setBorder(BorderFactory.createCompoundBorder(BorderFactory.createMatteBorder(0, 0, 1, 1, Color.BLACK), BorderFactory.createEmptyBorder(5, 5, 5, 5)));	
+				panel.add(temp, c);
+				
+				c.gridx = 6;
+			
+				JButton deleteButton = new JButton("Delete");
+				deleteButton.setPreferredSize(new Dimension(60, 25));
+				deleteButton.setMaximumSize(new Dimension(60, 25));
+				deleteButton.setMinimumSize(new Dimension(60, 25));
+				deleteButton.setMargin(new Insets(1,1,1,1));  				
+				deleteButton.setFont(new Font("Arial", Font.PLAIN, 12));							
+				deleteButton.setFocusPainted(false);				
+				deleteButton.setAction(new DeleteAction("Delete", this, id));				
+				Box verticalBox2 = Box.createVerticalBox();			
+				verticalBox2.add(Box.createVerticalGlue());
+				verticalBox2.add(deleteButton);
+				verticalBox2.add(Box.createVerticalGlue());
+				JPanel temp2 = new JPanel(new BorderLayout());
+				temp2.add(verticalBox2, BorderLayout.CENTER);
+				temp2.setBorder(BorderFactory.createCompoundBorder(BorderFactory.createMatteBorder(0, 0, 1, 1, Color.BLACK), BorderFactory.createEmptyBorder(5, 5, 5, 5)));	
+				panel.add(temp2, c);	
+			}	
 		}			
-		*/
 		
 		JScrollPane scrollPane = new JScrollPane(panel);
 		
@@ -575,19 +383,62 @@ class IssuesMenuItemActionListener implements ActionListener {
 		
 		return scrollPane;
 	}
+		
+	public void updateScrollPane() {
+		JScrollPane scrollPane = getScrollPane();		
+		scrollPane.setBorder(BorderFactory.createEmptyBorder());
+			
+		JPanel containerPane = new JPanel();
+		containerPane.setBorder(BorderFactory.createEmptyBorder());
+		containerPane.setLayout(new BorderLayout());		 
+		containerPane.add(scrollPane, BorderLayout.NORTH);			
 
-	private String[] fillEmpty(String[] array) {
-		for (int i=0; i<array.length; i++) {
-			array[i] = "";
-		}
-		return array;
+		dialog.setContentPane(containerPane);
+		dialog.validate();
 	}
 	
-	private boolean[] fillEmpty(boolean[] array, boolean defaultValue) {
-		for (int i=0; i<array.length; i++) {
-			array[i] = defaultValue;
-		}
-		return array;
-	}	
-	
+}
+
+
+class AcknowledgeAction extends AbstractAction {
+
+    public static final long serialVersionUID = 1L;
+
+	private IssuesMenuItemActionListener issuesMenuItemActionListener;
+	private int id;
+
+    public AcknowledgeAction(String name, IssuesMenuItemActionListener issuesMenuItemActionListener, int id) {
+        super(name);
+		this.issuesMenuItemActionListener = issuesMenuItemActionListener;
+		this.id = id;
+    }
+    public void actionPerformed(ActionEvent e) {
+		EAVDAMData data = DBHandler.getData();
+		HealthCheckHandler hch = new HealthCheckHandler(data);
+		//data = hch.acknowledgeIssue(id);  // NOT YET IMPLEMENTED
+		//issuesMenuItemActionListener.setIssues(data.getAISDatalinkCheckIssues());	 // NOT YET IMPLEMENTED
+		issuesMenuItemActionListener.updateScrollPane();
+    }
+}
+
+
+class DeleteAction extends AbstractAction {
+
+    public static final long serialVersionUID = 1L;
+
+	private IssuesMenuItemActionListener issuesMenuItemActionListener;
+	private int id;
+
+    public DeleteAction(String name, IssuesMenuItemActionListener issuesMenuItemActionListener, int id) {
+        super(name);
+		this.issuesMenuItemActionListener = issuesMenuItemActionListener;
+		this.id = id;
+    }
+    public void actionPerformed(ActionEvent e) {
+		EAVDAMData data = DBHandler.getData();
+		HealthCheckHandler hch = new HealthCheckHandler(data);
+		//data = hch.deleteIssue(id);  // NOT YET IMPLEMENTED
+		//issuesMenuItemActionListener.setIssues(data.getAISDatalinkCheckIssues());	 // NOT YET IMPLEMENTED
+		issuesMenuItemActionListener.updateScrollPane();
+    }
 }
