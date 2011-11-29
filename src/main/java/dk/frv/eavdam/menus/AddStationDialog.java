@@ -122,8 +122,24 @@ public class AddStationDialog extends JDialog implements ActionListener, ItemLis
 	public AddStationDialog(StationInformationMenuItem menuItem) {
 
 		super(menuItem.getEavdamMenu().getOpenMapFrame(), "Add Station", false);  // true for modal dialog
+
+		this.menuItem = menuItem;		
 		
-		this.menuItem = menuItem;
+		Toolkit toolkit = Toolkit.getDefaultToolkit();
+		Dimension dimension = toolkit.getScreenSize();
+
+		if (dimension.width-100 < WINDOW_WIDTH) {
+			WINDOW_WIDTH = dimension.width-100;
+		}
+		if (dimension.width-100 < AddStationDialog.WINDOW_WIDTH) {
+			AddStationDialog.WINDOW_WIDTH = dimension.width-100;
+		}
+		if (dimension.height-100 < WINDOW_HEIGHT) {
+			WINDOW_HEIGHT = dimension.height-100;
+		}
+		if (dimension.height-100 < AddStationDialog.WINDOW_HEIGHT) {
+			AddStationDialog.WINDOW_HEIGHT = dimension.height-100;
+		}
 
 		addStationNameTextField = menuItem.getTextField(16);
 		addStationTypeComboBox = menuItem.getComboBox(new String[] {"AIS Base Station", "AIS Repeater", "AIS Receiver station", "AIS AtoN station"});
