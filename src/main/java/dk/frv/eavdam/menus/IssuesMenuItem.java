@@ -43,9 +43,9 @@ public class IssuesMenuItem extends JMenuItem {
 	public static int ISSUES_WINDOW_WIDTH = 1024;
 	public static int ISSUES_WINDOW_HEIGHT = 1000;	
 	
-    public IssuesMenuItem(EavdamMenu eavdamMenu, List<AISDatalinkCheckIssue> issues) {        
+    public IssuesMenuItem(EavdamMenu eavdamMenu) {        
         super("AIS VHF Datalink Issues");                
-        addActionListener(new IssuesMenuItemActionListener(eavdamMenu, issues));
+        addActionListener(new IssuesMenuItemActionListener(eavdamMenu));
     }
 	
 }
@@ -54,44 +54,16 @@ class IssuesMenuItemActionListener implements ActionListener {
 
     private EavdamMenu eavdamMenu;
     private JDialog dialog;
-     
-	private List<AISDatalinkCheckIssue> issues;
 		 
-    public IssuesMenuItemActionListener(EavdamMenu eavdamMenu, List<AISDatalinkCheckIssue> issues) {
+    public IssuesMenuItemActionListener(EavdamMenu eavdamMenu) {
         super();
         this.eavdamMenu = eavdamMenu;
-		this.issues = issues;
     }
      
-	public List<AISDatalinkCheckIssue> getIssues() {
-		return issues;
-	}
-	 
-	public void setIssues(List<AISDatalinkCheckIssue> issues) {
-		this.issues = issues;
-	}
-						 
     public void actionPerformed(ActionEvent e) {
         
         if (e.getSource() instanceof IssuesMenuItem) {
-			
-			// XXX: FOR TESTING
-			List<AISStation> testStations = new ArrayList<AISStation>();
-			testStations.add(new AISStation("VTT", "Test station", (double) 60, (double) 20));
-			testStations.add(new AISStation("VTT", "Test station 2", (double) 59, (double) 19));
-			List<AISTimeslot> testTimeslots = new ArrayList<AISTimeslot>();
-			testTimeslots.add(new AISTimeslot(AISFrequency.AIS1, 100, false, null, null, null, null));
-			testTimeslots.add(new AISTimeslot(AISFrequency.AIS2, 101, false, null, null, null, null));			
-			testTimeslots.add(new AISTimeslot(AISFrequency.AIS1, 102, false, null, null, null, null));	
-			testTimeslots.add(new AISTimeslot(AISFrequency.AIS2, 103, false, null, null, null, null));	
-			testTimeslots.add(new AISTimeslot(AISFrequency.AIS1, 104, true, null, null, null, null));	
-			AISDatalinkCheckIssue test = new AISDatalinkCheckIssue(1, AISDatalinkCheckRule.RULE4, AISDatalinkCheckSeverity.SEVERE, testStations, testTimeslots);
-			//test.setAcknowledged(true);
-			if (issues == null || issues.isEmpty()) {
-				issues = new ArrayList<AISDatalinkCheckIssue>();			
-				issues.add(test);
-			}
-
+						
 			Toolkit toolkit = Toolkit.getDefaultToolkit();
 			Dimension dimension = toolkit.getScreenSize();
 
@@ -130,6 +102,28 @@ class IssuesMenuItemActionListener implements ActionListener {
 	}
 
 	private JScrollPane getScrollPane() {
+
+		EAVDAMData data = DBHandler.getData();
+		List<AISDatalinkCheckIssue> issues = data.getAISDatalinkCheckIssues();
+				
+		// XXX: FOR TESTING
+		/*
+		List<AISStation> testStations = new ArrayList<AISStation>();
+		testStations.add(new AISStation("VTT", "Test station", (double) 60, (double) 20));
+		testStations.add(new AISStation("VTT", "Test station 2", (double) 59, (double) 19));
+		List<AISTimeslot> testTimeslots = new ArrayList<AISTimeslot>();
+		testTimeslots.add(new AISTimeslot(AISFrequency.AIS1, 100, false, null, null, null, null));
+		testTimeslots.add(new AISTimeslot(AISFrequency.AIS2, 101, false, null, null, null, null));			
+		testTimeslots.add(new AISTimeslot(AISFrequency.AIS1, 102, false, null, null, null, null));	
+		testTimeslots.add(new AISTimeslot(AISFrequency.AIS2, 103, false, null, null, null, null));	
+		testTimeslots.add(new AISTimeslot(AISFrequency.AIS1, 104, true, null, null, null, null));	
+		AISDatalinkCheckIssue test = new AISDatalinkCheckIssue(1, AISDatalinkCheckRule.RULE4, AISDatalinkCheckSeverity.SEVERE, testStations, testTimeslots);
+		//test.setAcknowledged(true);
+		if (issues == null || issues.isEmpty()) {
+			issues = new ArrayList<AISDatalinkCheckIssue>();			
+			issues.add(test);
+		}
+		*/
 
 		JPanel panel = new JPanel();
 		panel.setLayout(new GridBagLayout());                  
@@ -416,7 +410,7 @@ class AcknowledgeAction extends AbstractAction {
 		EAVDAMData data = DBHandler.getData();
 		HealthCheckHandler hch = new HealthCheckHandler(data);
 		//data = hch.acknowledgeIssue(id);  // NOT YET IMPLEMENTED
-		//issuesMenuItemActionListener.setIssues(data.getAISDatalinkCheckIssues());	 // NOT YET IMPLEMENTED
+		DBHandler.saveData(data);
 		issuesMenuItemActionListener.updateScrollPane();
     }
 }
@@ -438,7 +432,7 @@ class DeleteAction extends AbstractAction {
 		EAVDAMData data = DBHandler.getData();
 		HealthCheckHandler hch = new HealthCheckHandler(data);
 		//data = hch.deleteIssue(id);  // NOT YET IMPLEMENTED
-		//issuesMenuItemActionListener.setIssues(data.getAISDatalinkCheckIssues());	 // NOT YET IMPLEMENTED
+		DBHandler.saveData(data);
 		issuesMenuItemActionListener.updateScrollPane();
     }
 }

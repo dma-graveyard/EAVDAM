@@ -11,7 +11,10 @@ import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Font;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
 import java.awt.GridLayout;
+import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.WindowAdapter;
@@ -31,6 +34,7 @@ import javax.swing.JEditorPane;
 import javax.swing.JLabel;
 import javax.swing.JList;
 import javax.swing.JPanel;
+import javax.swing.JProgressBar;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
@@ -42,7 +46,18 @@ public class SidePanel extends JPanel implements MapPanelChild, ActionListener {
 	private static final long serialVersionUID = 1L;
 
     private JEditorPane infoPane;
+	
+	private JPanel progressIndicatorPane;
+	private JProgressBar progressBar;
 
+	public JPanel getProgressIndicatorPane() {
+		return progressIndicatorPane;
+	}
+	
+	public JProgressBar getProgressBar() {
+		return progressBar;
+	}
+	
 	public SidePanel() {
 	        
         setLayout(new BoxLayout(this, BoxLayout.PAGE_AXIS));             
@@ -179,7 +194,31 @@ public class SidePanel extends JPanel implements MapPanelChild, ActionListener {
         infoScrollPane.setMaximumSize(new Dimension(230, 500));
         add(infoScrollPane);
         //add(infoPane);        
-        
+        	
+		progressIndicatorPane = new JPanel();								
+		progressIndicatorPane.setLayout(new GridBagLayout());
+		GridBagConstraints c = new GridBagConstraints();
+		c.gridx = 0;
+		c.gridy = 0;                   
+		c.anchor = GridBagConstraints.LINE_START;
+		c.insets = new Insets(5,5,5,5);			
+		JLabel titleLabel = new JLabel("<html><body><p>The AIS VHF datalink health check is being executed...<p></body></html>");
+		titleLabel.setPreferredSize(new Dimension(230, 30));
+		titleLabel.setMaximumSize(new Dimension(230, 30));
+		titleLabel.setMinimumSize(new Dimension(230, 30));
+		progressIndicatorPane.add(titleLabel, c);
+		c.gridy = 1;
+		c.anchor = GridBagConstraints.CENTER;
+		progressBar = new JProgressBar(0, 100);
+		progressBar.setValue(0);
+		progressBar.setStringPainted(true);			
+		progressBar.setPreferredSize(new Dimension(230, 20));
+		progressBar.setMaximumSize(new Dimension(230, 20));
+		progressBar.setMinimumSize(new Dimension(230, 20));					
+		progressIndicatorPane.add(progressBar, c);
+		add(progressIndicatorPane);
+		progressIndicatorPane.setVisible(false);
+		
         // efficiensea logo
         
         URL efficienSeaImgURL = getClass().getResource("/share/data/images/efficiensea.png");        

@@ -1,15 +1,23 @@
 package dk.frv.eavdam.buttons;
 
+import com.bbn.openmap.Layer;
+import com.bbn.openmap.LayerHandler;
 import com.bbn.openmap.MapBean;
+import com.bbn.openmap.gui.LayersMenu;
 import com.bbn.openmap.gui.OMToolComponent;
 import com.bbn.openmap.gui.OpenMapFrame;
 import com.bbn.openmap.gui.Tool;
 import com.bbn.openmap.proj.Projection;
+import dk.frv.eavdam.app.SidePanel;
 import dk.frv.eavdam.data.AISDatalinkCheckResult;
 import dk.frv.eavdam.data.EAVDAMData;
 import dk.frv.eavdam.data.Options;
 import dk.frv.eavdam.io.AISDatalinkCheckListener;
 import dk.frv.eavdam.io.EmailSender;
+import dk.frv.eavdam.layers.AISDatalinkCheckBandwidthAreasLayer;
+import dk.frv.eavdam.layers.AISDatalinkCheckIssueLayer;
+import dk.frv.eavdam.menus.EavdamMenu;
+import dk.frv.eavdam.menus.IssuesMenuItem;
 import dk.frv.eavdam.menus.OptionsMenuItem;
 import dk.frv.eavdam.utils.DBHandler;
 import dk.frv.eavdam.utils.HealthCheckHandler;
@@ -57,9 +65,14 @@ public class InitiateHealthCheckButton extends OMToolComponent implements Action
 	protected JToolBar jToolBar;
     private OpenMapFrame openMapFrame;
 	private MapBean mapBean;
+	private LayerHandler layerHandler;
+	private LayersMenu layersMenu;
+	private EavdamMenu eavdamMenu;
+	private SidePanel sidePanel;
 	
 	private JDialog dialog;
 	private JDialog waitDialog;
+	private JDialog completedDialog;
 	
 	private JCheckBox rule1CheckBox;
 	private JCheckBox rule2CheckBox;
@@ -72,10 +85,12 @@ public class InitiateHealthCheckButton extends OMToolComponent implements Action
 	
 	private JSlider resolutionSlider;
 	
-	private JProgressBar progressBar;
-	
 	private JButton goButton;
 	private JButton cancelButton;
+	private JButton viewIssuesButton;
+	private JButton cancelViewIssuesButton;
+
+	private EAVDAMData data;
 	
 	public InitiateHealthCheckButton() {
 		super();
@@ -133,32 +148,32 @@ public class InitiateHealthCheckButton extends OMToolComponent implements Action
 				
 				c.gridy = 1;
 				rule2CheckBox = new JCheckBox("Rule 2: Reservation, but no intended use");
-				rule2CheckBox.setSelected(true);
+				//rule2CheckBox.setSelected(true);
 				rulesPanel.add(rule2CheckBox, c);				
 
 				c.gridy = 2;
 				rule3CheckBox = new JCheckBox("Rule 3: Intended FATDMA use, but no reservation");
-				rule3CheckBox.setSelected(true);
+				//rule3CheckBox.setSelected(true);
 				rulesPanel.add(rule3CheckBox, c);		
 
 				c.gridy = 3;
 				rule4CheckBox = new JCheckBox("Rule 4: Simultaneous use of several frequencies");
-				rule4CheckBox.setSelected(true);
+				//rule4CheckBox.setSelected(true);
 				rulesPanel.add(rule4CheckBox, c);		
 
 				c.gridy = 4;
 				rule5CheckBox = new JCheckBox("Rule 5: Slots reserved outside IALA A-124 recommended default FATDMA schemes");
-				rule5CheckBox.setSelected(true);
+				//rule5CheckBox.setSelected(true);
 				rulesPanel.add(rule5CheckBox, c);		
 
 				c.gridy = 5;
 				rule6CheckBox = new JCheckBox("Rule 6: Slots reserved outside overall slot pattern for fixed statons (IALA A-124)");
-				rule6CheckBox.setSelected(true);
+				//rule6CheckBox.setSelected(true);
 				rulesPanel.add(rule6CheckBox, c);					
 
 				c.gridy = 6;
 				rule7CheckBox = new JCheckBox("Rule 7: Free Bandwith below 50%");
-				rule7CheckBox.setSelected(true);
+				//rule7CheckBox.setSelected(true);
 				rulesPanel.add(rule7CheckBox, c);
 				
 				c.gridy = 7;
@@ -271,7 +286,7 @@ public class InitiateHealthCheckButton extends OMToolComponent implements Action
 			double lowerRightLatitude = lowerRight.getY();
 			double lowerRightLongitude = lowerRight.getX();
 			
-			EAVDAMData data = DBHandler.getData();
+			data = DBHandler.getData();
 			
 			boolean checkRule1 = false;
 			if (rule1CheckBox.isSelected()) {
@@ -307,63 +322,97 @@ public class InitiateHealthCheckButton extends OMToolComponent implements Action
 			new InitiateHealthCheckThread(data, this, checkRule1, checkRule2, checkRule3, checkRule4, 
 				checkRule5, checkRule6, checkRule7, topLeftLatitude, topLeftLongitude, lowerRightLatitude, 
 				lowerRightLongitude, resolution).start();
-				
-			waitDialog = new JDialog(openMapFrame, "Please wait...", true);
-
- 			progressBar = new JProgressBar();
-			progressBar = new JProgressBar(0, 100);
-			progressBar.setValue(0);
-			progressBar.setStringPainted(true);			
-			progressBar.setPreferredSize(new Dimension(330, 20));
-			progressBar.setMaximumSize(new Dimension(330, 20));
-			progressBar.setMinimumSize(new Dimension(330, 20));			
-
-			JPanel panel = new JPanel();							
-			panel.setLayout(new GridBagLayout());
-			GridBagConstraints c = new GridBagConstraints();
-			c.gridx = 0;
-			c.gridy = 0;                   
-			c.anchor = GridBagConstraints.LINE_START;
-			c.insets = new Insets(10,10,10,10);			
-			JLabel titleLabel = new JLabel("<html><body><p>Please wait, while the AIS VHF datalink health check is being executed...<p></body></html>");
-			titleLabel.setPreferredSize(new Dimension(330, 30));
-			titleLabel.setMaximumSize(new Dimension(330, 30));
-			titleLabel.setMinimumSize(new Dimension(330, 30));
-			panel.add(titleLabel, c);
-			c.gridy = 1;
-			c.anchor = GridBagConstraints.CENTER;
-			panel.add(progressBar, c);
-			waitDialog.getContentPane().add(panel);
-			Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
-			waitDialog.setBounds((int) screenSize.getWidth()/2 - 380/2, (int) screenSize.getHeight()/2 - 150/2, 380, 150);
-			waitDialog.setVisible(true);
+			
+			sidePanel.getProgressIndicatorPane().setVisible(true);
+			
+			dialog.dispose();
 			
 		} else if (e.getSource() == cancelButton) {		
 			dialog.dispose();	
+	
+		} else if (e.getSource() == viewIssuesButton) {
+			completedDialog.dispose();
+			new IssuesMenuItem(eavdamMenu).doClick();
+			
+		} else if (e.getSource() == cancelViewIssuesButton) {
+			completedDialog.dispose();
 		}
-    
 	}
 
 	public void progressed(double progress) {
-		if (progressBar != null) {
-			progressBar.setValue((int) Math.round(100*progress));
+		if (sidePanel.getProgressBar() != null) {
+			sidePanel.getProgressBar().setValue((int) Math.round(100*progress));
 		}
 	}
 	
 	public void completed(AISDatalinkCheckResult result) {	
 
-		// TODO: create a new issues screen based on result.getIssues()
+		if (data == null) {
+			data = DBHandler.getData();
+		}
 		
-		// TODO: create layers based on issues (red circles) and areas (bandwith areas)
+		if (result == null) {
+			data.setAISDatalinkCheckIssues(null);		
+		} else {
+			data.setAISDatalinkCheckIssues(result.getIssues());
+		}
 		
-		// TODO: at least result.getIssues() tallennetaan EAVDAMDataan ja kantaan		
+		DBHandler.saveData(data);		
+				
+		Layer[] layers = layerHandler.getLayers();
+		Layer aisDatalinkCheckIssueLayer = null;
+		for (Layer layer : layers) {
+			if (layer.getClass().getCanonicalName().equals("dk.frv.eavdam.layers.AISDatalinkCheckIssueLayer")) {
+				layerHandler.turnLayerOn(true, layer);
+				aisDatalinkCheckIssueLayer = layer;
+			} else if (layer.getClass().getCanonicalName().equals("dk.frv.eavdam.layers.AISDatalinkCheckBandwidthAreasLayer")) {
+				if (result != null && result.getAreas() != null && !result.getAreas().isEmpty()) {
+					((AISDatalinkCheckBandwidthAreasLayer) layer).setAreas(result.getAreas());				
+					layerHandler.turnLayerOn(true, layer);
+				}
+			}
+		}		
+		if (aisDatalinkCheckIssueLayer != null) {
+			layerHandler.moveLayer(aisDatalinkCheckIssueLayer, 0);		
+		}
+		layersMenu.setLayers(layers);
+
+		sidePanel.getProgressIndicatorPane().setVisible(false);
+		dialog.dispose();
 		
-		waitDialog.dispose();
-		
-		// TODO: make layers visible
-		
-		// TODO: goto issues screen
-		
+		completedDialog = new JDialog(openMapFrame, "AIS VHF datalink health check completed", true);
+		JPanel panel = new JPanel();
+		panel.setLayout(new GridBagLayout());
+		GridBagConstraints c = new GridBagConstraints();
+		c.gridx = 0;
+		c.gridy = 0;
+		c.anchor = GridBagConstraints.LINE_START;
+		c.insets = new Insets(5,5,5,5);
+		int numberOfIssues = 0;
+		if (result != null && result.getIssues() != null) {
+			numberOfIssues = result.getIssues().size();
+		}
+		JLabel titleLabel = new JLabel("<html><body><p>The AIS VHF datalink health check is now completed. Found " + numberOfIssues +
+			" issues. View issues now or later through the Eavdam menu. The AIS VHF datalink issues and bandwidth areas layers are also activated.<p></body></html>");
+		titleLabel.setPreferredSize(new Dimension(330, 90));
+		titleLabel.setMaximumSize(new Dimension(330, 90));
+		titleLabel.setMinimumSize(new Dimension(330, 90));
+		panel.add(titleLabel, c);
+		c.gridy = 1;
+		JPanel buttonPanel = new JPanel();
+		viewIssuesButton = new JButton("View issues now");
+		viewIssuesButton.addActionListener(this);
+		cancelViewIssuesButton = new JButton("Cancel");
+		cancelViewIssuesButton.addActionListener(this);
+		buttonPanel.setBorder(BorderFactory.createEmptyBorder(0, 0, 0, 0));
+		buttonPanel.add(viewIssuesButton);
+		buttonPanel.add(cancelViewIssuesButton);
+		c.anchor = GridBagConstraints.CENTER;
+		panel.add(buttonPanel, c);
+		completedDialog.getContentPane().add(panel);
+		Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
+		completedDialog.setBounds((int) screenSize.getWidth()/2 - 380/2, (int) screenSize.getHeight()/2 - 200/2, 380, 200);
+		completedDialog.setVisible(true);				
 	}
 	
 	public void findAndInit(Object obj) {
@@ -371,6 +420,14 @@ public class InitiateHealthCheckButton extends OMToolComponent implements Action
 			this.openMapFrame = (OpenMapFrame) obj;
 		} else if (obj instanceof MapBean) {
 			this.mapBean = (MapBean) obj;
+		} else if (obj instanceof EavdamMenu) {
+			this.eavdamMenu = (EavdamMenu) obj;
+        } else if (obj instanceof LayerHandler) {
+			this.layerHandler = (LayerHandler) obj;		
+		} else if (obj instanceof LayersMenu) {
+			this.layersMenu = (LayersMenu) obj;
+		} else if (obj instanceof SidePanel) {
+			this.sidePanel = (SidePanel) obj;
 		}
 	}	    
 
@@ -417,17 +474,22 @@ class InitiateHealthCheckThread extends Thread {
 	
 	public void run() {
 		HealthCheckHandler hch = new HealthCheckHandler(data);		
-		// XXX: should not get result here, instead hch should call the listener with the result
-		AISDatalinkCheckResult result = hch.startAISDatalinkCheck(listener, checkRule1, checkRule2, checkRule3, checkRule4,
-			checkRule5, checkRule6, checkRule7, topLeftLatitude, topLeftLongitude, lowerRightLatitude, lowerRightLongitude, resolution);
-		// XXX: for testing
+		hch.startAISDatalinkCheck(listener, checkRule1, checkRule2, checkRule3, checkRule4, checkRule5, checkRule6,
+			checkRule7, topLeftLatitude, topLeftLongitude, lowerRightLatitude, lowerRightLongitude, resolution);		
+		
+		// XXX: for testing -->
+		/*
 		for (int i=1; i<=5; i++) {
 			listener.progressed(0.2*i);
 			try {
 				Thread.sleep(1000);							
 			} catch (InterruptedException ex) {}
 		}
-		listener.completed(result);
+		AISDatalinkCheckResult result = null;
+		*/
+		// XXX: <-- for testing
+		
+		//listener.completed(result);
 	}
 
 }

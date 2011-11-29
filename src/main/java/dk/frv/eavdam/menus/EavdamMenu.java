@@ -50,7 +50,7 @@ public class EavdamMenu extends AbstractOpenMapMenu implements MenuListener {
 		add(showOnMapMenu);
 		shapeLayersMenu = new ShapeLayersMenu(this);
 		add(shapeLayersMenu);
-		issuesMenuItem = new IssuesMenuItem(this, data.getAISDatalinkCheckIssues());
+		issuesMenuItem = new IssuesMenuItem(this);
 		add(issuesMenuItem);
 		listOfRulesMenuItem = new ListOfRulesMenuItem(this);
 		add(listOfRulesMenuItem);
@@ -80,8 +80,6 @@ public class EavdamMenu extends AbstractOpenMapMenu implements MenuListener {
 	
     public void	menuSelected(MenuEvent e) {
 		
-		EAVDAMData data = DBHandler.getData(); 	
-		
 		removeAll();
 		
 		if (userInformationMenuItem == null) {
@@ -101,7 +99,7 @@ public class EavdamMenu extends AbstractOpenMapMenu implements MenuListener {
 		}
 		add(shapeLayersMenu);	
 		if (issuesMenuItem == null) {
-			issuesMenuItem = new IssuesMenuItem(this, data.getAISDatalinkCheckIssues());
+			issuesMenuItem = new IssuesMenuItem(this);
 		}
 		add(issuesMenuItem);
 		if (listOfRulesMenuItem == null) {

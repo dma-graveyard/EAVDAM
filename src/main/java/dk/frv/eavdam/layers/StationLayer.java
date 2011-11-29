@@ -167,7 +167,10 @@ public class StationLayer extends OMGraphicHandlerLayer implements MapMouseListe
 	private int currentX = -1;
 	private int currentY = -1;
 	
-    public StationLayer() {}
+    public StationLayer() {
+		showOnMapMenuItem = new JMenuItem("Show on map");
+		showOnMapMenuItem.addActionListener(this);
+	}
 
     public OMAISBaseStationTransmitCoverageLayer getTransmitCoverageLayer() {
         return transmitCoverageLayer;
@@ -485,8 +488,6 @@ public class StationLayer extends OMGraphicHandlerLayer implements MapMouseListe
             if (allClosest == null || allClosest.isEmpty()) {			  
 	            JPopupMenu popup = new JPopupMenu();			
                 //popup.add(eavdamMenu.getShowOnMapMenu());
-				showOnMapMenuItem = new JMenuItem("Show on map");
-				showOnMapMenuItem.addActionListener(this);
 				popup.add(showOnMapMenuItem);
 				if (hiddenBaseStations != null && !hiddenBaseStations.isEmpty()) {
 					showHiddenStationsMenuItem = new JMenuItem("Show " + hiddenBaseStations.size() + " hidden stations");
@@ -1716,8 +1717,10 @@ public class StationLayer extends OMGraphicHandlerLayer implements MapMouseListe
 				initiallySelectedLayersVisibilities = new HashMap<Layer, Boolean>();
 			}			
 			Boolean visibility = initiallySelectedLayerClassNames.get(obj.getClass().getCanonicalName());
-			initiallySelectedLayers.add((Layer) obj);
-			initiallySelectedLayersVisibilities.put((Layer) obj, visibility);	
+			if (!initiallySelectedLayers.contains((Layer) obj)) {
+				initiallySelectedLayers.add((Layer) obj);
+				initiallySelectedLayersVisibilities.put((Layer) obj, visibility);	
+			}
 		}
 	    if (obj instanceof MapBean) {
 			this.mapBean = (MapBean) obj;
@@ -1759,7 +1762,7 @@ public class StationLayer extends OMGraphicHandlerLayer implements MapMouseListe
 			Layer[] layers = layerHandler.getLayers();
 			for (Layer layer : layers) {
 				out.write(layer.getClass().getCanonicalName() + ": " + layer.isVisible() + System.getProperty("line.separator"));
-			}
+			}			
 			out.close();
 		} catch (Exception ex) {}	
 	}
@@ -1778,17 +1781,30 @@ public class StationLayer extends OMGraphicHandlerLayer implements MapMouseListe
 		}
 		if (dimension.height-100 < SlotMapDialog.SLOTMAP_WINDOW_HEIGHT) {
 			SlotMapDialog.SLOTMAP_WINDOW_HEIGHT = dimension.height-100;
-		}	
-		if (initiallySelectedLayers != null) {
+		}
+		if (initiallySelectedLayers != null && initiallySelectedLayers.size() == layerHandler.getLayers().length) {
 			layersMenu.removeAll();
 			Layer[] inLayers = new Layer[initiallySelectedLayers.size()];
 			int i = 0;
+			Layer aisDatalinkCheckIssueLayer = null;
 			for (Layer layer : initiallySelectedLayers) {
-				boolean setting = initiallySelectedLayersVisibilities.get(layer).booleanValue();
-				layerHandler.turnLayerOn(setting, layer);
-				inLayers[i] = layer;
-				i++;
+				if (layer.getClass().getCanonicalName().equals("dk.frv.eavdam.layers.AISDatalinkCheckIssueLayer")) {
+					aisDatalinkCheckIssueLayer = layer;
+				}
+				if (layer.getClass().getCanonicalName().equals("dk.frv.eavdam.layers.AISDatalinkCheckBandwidthAreasLayer")) {  // no need for this layer to be on at startup
+					layerHandler.turnLayerOn(false, layer);
+					inLayers[i] = layer;
+					i++;
+				} else {				
+					boolean setting = initiallySelectedLayersVisibilities.get(layer).booleanValue();
+					layerHandler.turnLayerOn(setting, layer);
+					inLayers[i] = layer;
+					i++;
+				}
 			}
+			if (aisDatalinkCheckIssueLayer != null) {
+				layerHandler.moveLayer(aisDatalinkCheckIssueLayer, 0);		
+			}			
 			layersMenu.setLayers(inLayers);
 		}
 		if (eavdamMenu != null && transmitCoverageLayer != null && receiveCoverageLayer != null && interferenceCoverageLayer != null && sidePanel != null && !stationsInitiallyUpdated) {
