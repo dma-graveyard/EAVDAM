@@ -20,6 +20,7 @@ import com.bbn.openmap.omGraphics.OMGraphicList;
 import com.bbn.openmap.omGraphics.OMList;
 import com.bbn.openmap.omGraphics.OMPoly;
 import com.bbn.openmap.omGraphics.OMRect;
+import com.bbn.openmap.omGraphics.OMText;
 import com.bbn.openmap.proj.Length;
 import com.bbn.openmap.proj.Projection;
 import com.bbn.openmap.tools.drawing.DrawingTool;
@@ -353,6 +354,30 @@ public class StationLayer extends OMGraphicHandlerLayer implements MapMouseListe
 		}
 		
 		graphics.add(base);
+
+		if (showStationNamesOnMapCheckBox.isSelected() || showMMSINumbersOnMapCheckBox.isSelected()) {
+			String text = "";
+			if (showStationNamesOnMapCheckBox.isSelected() && !showMMSINumbersOnMapCheckBox.isSelected()) {
+				text = stationData.getStationName();
+			} else if (showMMSINumbersOnMapCheckBox.isSelected() && !showStationNamesOnMapCheckBox.isSelected()) {
+				if (stationData.getMmsi() != null) {
+					text = stationData.getMmsi();
+				}
+			} else if (showMMSINumbersOnMapCheckBox.isSelected() && showStationNamesOnMapCheckBox.isSelected()) {
+				if (stationData.getMmsi() == null) {
+					text = stationData.getStationName();
+				} else {
+					text = stationData.getStationName() + " (" + stationData.getMmsi() + ")";					
+				}
+			}
+			if (!text.equals("")) {
+				OMText omText = new OMText(stationData.getLat()-0.2, stationData.getLon(), text, OMText.JUSTIFY_CENTER);
+				omText.setBaseline(OMText.BASELINE_MIDDLE);
+				Color c = new Color(0, 0, 0, 255);
+				omText.setLinePaint(c);		
+				graphics.add(omText);
+			}
+		}
 		
 		graphics.project(getProjection(), true);
 		this.repaint();
