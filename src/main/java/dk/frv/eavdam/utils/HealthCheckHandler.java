@@ -307,7 +307,9 @@ public class HealthCheckHandler {
 			
 			AISDatalinkCheckArea area = new AISDatalinkCheckArea(Double.parseDouble(top[0].split(";")[0]),Double.parseDouble(top[0].split(";")[1]),Double.parseDouble(top[1].split(";")[0]),Double.parseDouble(top[1].split(";")[1]));
 			area.setSlotmap(this.stationSlotmap.get(key));
-			
+			if(area.getSlotmap() != null){
+				area.setIssues(area.getSlotmap().getIssues());
+			}
 			
 			areas.add(area);
 		}
