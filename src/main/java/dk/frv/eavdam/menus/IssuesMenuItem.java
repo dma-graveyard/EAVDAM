@@ -43,6 +43,8 @@ public class IssuesMenuItem extends JMenuItem {
 	public static int ISSUES_WINDOW_WIDTH = 1024;
 	public static int ISSUES_WINDOW_HEIGHT = 1000;	
 	
+	public static List<AISDatalinkCheckIssue> issues = null;
+	
     public IssuesMenuItem(EavdamMenu eavdamMenu) {        
         super("AIS VHF Datalink Issues");                
         addActionListener(new IssuesMenuItemActionListener(eavdamMenu));
@@ -103,8 +105,10 @@ class IssuesMenuItemActionListener implements ActionListener {
 
 	private JScrollPane getScrollPane() {
 
-		EAVDAMData data = DBHandler.getData();
-		List<AISDatalinkCheckIssue> issues = data.getAISDatalinkCheckIssues();
+		if (IssuesMenuItem.issues == null) {
+			EAVDAMData data = DBHandler.getData();
+			IssuesMenuItem.issues = data.getAISDatalinkCheckIssues();
+		}
 				
 		// XXX: FOR TESTING
 		/*
@@ -136,7 +140,7 @@ class IssuesMenuItemActionListener implements ActionListener {
 		c.anchor = GridBagConstraints.LINE_START;
 		c.insets = new Insets(5,5,5,5);
 		
-		if (issues == null || issues.isEmpty()) {
+		if (IssuesMenuItem.issues == null || IssuesMenuItem.issues.isEmpty()) {
 		
 			panel.add(new JLabel("<html><body><h1>AIS VHF Datalink Issues</h1></body></html>"), c);
 			c.anchor = GridBagConstraints.LINE_START;
@@ -188,7 +192,7 @@ class IssuesMenuItemActionListener implements ActionListener {
 			deleteTitleLabel.setBorder(BorderFactory.createMatteBorder(1, 0, 1, 1, Color.BLACK));
 			panel.add(deleteTitleLabel, c);
 			
-			for (AISDatalinkCheckIssue issue : issues) {
+			for (AISDatalinkCheckIssue issue : IssuesMenuItem.issues) {
 			
 				int id = issue.getId();
 				AISDatalinkCheckRule ruleViolated = issue.getRuleViolated();

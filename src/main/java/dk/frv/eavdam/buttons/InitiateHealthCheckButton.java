@@ -361,6 +361,7 @@ public class InitiateHealthCheckButton extends OMToolComponent implements Action
 			data.setAISDatalinkCheckIssues(null);		
 		} else {			
 			data.setAISDatalinkCheckIssues(result.getIssues());
+			IssuesMenuItem.issues = result.getIssues();
 		}
 		
 		DBHandler.saveData(data);		
