@@ -16,13 +16,19 @@ import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
+import java.util.Stack;
 
 import dk.frv.eavdam.data.AISAtonStationFATDMAChannel;
 import dk.frv.eavdam.data.AISBaseAndReceiverStationFATDMAChannel;
+import dk.frv.eavdam.data.AISDatalinkCheckIssue;
+import dk.frv.eavdam.data.AISDatalinkCheckRule;
 import dk.frv.eavdam.data.AISFixedStationCoverage;
 import dk.frv.eavdam.data.AISFixedStationData;
 import dk.frv.eavdam.data.AISFixedStationStatus;
 import dk.frv.eavdam.data.AISFixedStationType;
+import dk.frv.eavdam.data.AISFrequency;
+import dk.frv.eavdam.data.AISStation;
+import dk.frv.eavdam.data.AISTimeslot;
 import dk.frv.eavdam.data.ActiveStation;
 import dk.frv.eavdam.data.Address;
 import dk.frv.eavdam.data.Antenna;
@@ -237,7 +243,10 @@ import dk.frv.eavdam.data.Simulation;
 	        		}
 	        	}
 	        	
-            	
+            	if(data.getAISDatalinkCheckIssues() != null && data.getAISDatalinkCheckIssues().size() > 0){
+            		this.insertIssues(data.getAISDatalinkCheckIssues());
+            	}
+	        	
 	        }catch(Exception e){
 	        	e.printStackTrace();
 	        	success = false;
@@ -370,6 +379,19 @@ import dk.frv.eavdam.data.Simulation;
     		ps.executeUpdate();
     		ps.close();
 
+	    }
+	    
+	    private int getStationID(String stationName, String organizationName) throws Exception{
+	    	PreparedStatement ps  = this.conn.prepareStatement("select FIXEDSTATION.id from FIXEDSTATION,ORGANIZATION where FIXEDSTATION.name = ? AND ORGANIZATION.organizationname = ?");
+	    	ps.setString(1, stationName);
+	    	ps.setString(2, organizationName);
+	    	
+	    	ResultSet rSet = ps.executeQuery();
+	    	if(rSet.next()){
+	    		return rSet.getInt(1);
+	    	}
+	    	
+	    	return -1;
 	    }
 	    
 	    private int getOrganizationID(EAVDAMUser user, boolean defaultUser) throws Exception{
@@ -915,6 +937,158 @@ import dk.frv.eavdam.data.Simulation;
 	    	
 	    }
 	    
+	    private void insertIssues(List<AISDatalinkCheckIssue> issues) throws Exception{
+	    	if(issues == null || issues.size() == 0) return;
+	    	
+	    	
+	    	
+	    	
+	    	int maxId = 0;
+	    	PreparedStatement id = this.conn.prepareStatement("select max(id) from ISSUES");
+	    	ResultSet rs = id.executeQuery();
+	    	if(rs.next()){
+	    		maxId = rs.getInt(1);
+	    	}
+	    	
+
+	    	
+	    	for(AISDatalinkCheckIssue issue : issues){
+	    		//Check if this issue exists.
+	    		String sql = "select ISSUES.id, ISSUES.acknowledged, ISSUES.deleted from ISSUES, ISSUESSTATION where ISSUES.ruleviolated = ? AND ISSUES.id = ISSUESSTATION.issue ";
+	    		for(AISStation s : issue.getInvolvedStations()){
+	    			if(s.getDbId() <= 0) s.setDbId(this.getStationID(s.getStationName(), s.getOrganizationName()));
+	    			
+	    			sql += " AND ISSUESTATION.station = "+s.getDbId()+"";
+	    		}
+	    		
+	    		
+	    		
+	    		PreparedStatement check = this.conn.prepareStatement(sql);
+	    		
+	    		
+	    		if(issue.getId() > 0){
+	    		
+	    			
+	    			
+	    			
+	    			
+	    		}else{
+	    		
+	    		
+			    	
+		    		PreparedStatement ps = conn.prepareStatement("insert into ISSUES values(?,?,?,?)");
+		    		int rule = 0;
+		    		
+		    		if(issue.getRuleViolated().equals(AISDatalinkCheckRule.RULE1)) rule = 1;
+		    		else if(issue.getRuleViolated().equals(AISDatalinkCheckRule.RULE2)) rule = 2;
+		    		else if(issue.getRuleViolated().equals(AISDatalinkCheckRule.RULE3)) rule = 3;
+		    		else if(issue.getRuleViolated().equals(AISDatalinkCheckRule.RULE4)) rule = 4;
+		    		else if(issue.getRuleViolated().equals(AISDatalinkCheckRule.RULE5)) rule = 5;
+		    		else if(issue.getRuleViolated().equals(AISDatalinkCheckRule.RULE6)) rule = 6;
+		    		else if(issue.getRuleViolated().equals(AISDatalinkCheckRule.RULE7)) rule = 7;
+		    				
+		    		ps.setInt(1, (issue.getId() > 0 ? issue.getId() : ++maxId));
+		    		ps.setInt(2, rule);
+		    		ps.setInt(3, (issue.isAcknowledged() ? 1 : 0));
+		    		ps.setInt(4, (issue.isDeleted() ? 1 : 0));
+		    		
+		    		ps.executeUpdate();
+		    		
+		    		//Store stations for this issues.
+		    		if(issue.getInvolvedStations() != null && issue.getInvolvedStations().size() > 0){
+		    			for(AISStation s : issue.getInvolvedStations()){
+		    				if(s.getDbId() <= 0){
+		    					s.setDbId(this.getStationID(s.getStationName(), s.getOrganizationName()));
+		    				}
+		    				
+		    				PreparedStatement station = this.conn.prepareStatement("insert into ISSUESTATION VALUES(?,?)");
+		    				station.setInt(1, maxId);
+		    				station.setInt(2, s.getDbId());
+		    				
+		    				station.executeUpdate();
+		    			}
+		    		}
+		    		
+		    		if(issue.getInvolvedTimeslots() != null && issue.getInvolvedTimeslots().size() > 0){
+		    			for(AISTimeslot ts : issue.getInvolvedTimeslots()){
+		    				PreparedStatement timeslot = this.conn.prepareStatement("Insert into ISSUETIMESLOT values (?,?,?)");
+		    				timeslot.setInt(1, maxId);
+		    				timeslot.setInt(2, ts.getSlotNumber());
+		    				timeslot.setInt(3, (ts.getFrequency().equals(AISFrequency.AIS2) ? 2 : 1));
+		    				
+		    				timeslot.executeUpdate();
+		    			}
+		    			
+		    		}
+	    		}
+	    	}
+	    }
+	    
+	    private List<AISDatalinkCheckIssue> retrieveAllIssues() throws Exception{
+	    	List<AISDatalinkCheckIssue> issues = new ArrayList<AISDatalinkCheckIssue>();
+	    	
+			
+	    	PreparedStatement ps = this.conn.prepareStatement("select ID, RULEVIOLATED, ACKNOWLEDGED, DELETED from ISSUES");
+	    	ResultSet rs = ps.executeQuery();
+	    	while(rs.next()){
+	    		AISDatalinkCheckIssue issue = new AISDatalinkCheckIssue();
+	    		issue.setId(rs.getInt(1));
+	    		issue.setRuleViolated(dk.frv.eavdam.utils.HealthCheckHandler.getRule(rs.getInt(2)));
+	    		issue.setSeverity(dk.frv.eavdam.utils.HealthCheckHandler.getRuleSeverity(issue.getRuleViolated()));
+	    		issue.setAcknowledged((rs.getInt(3) == 1));
+	    		issue.setDeleted((rs.getInt(4)==1));
+	    		
+	    		PreparedStatement stations = conn.prepareStatement("select ORGANIZATION.organizationName, FIXEDSTATION.name, FIXEDSTATION.lat, FIXEDSTATION.lon, FIXEDSTATION.id " +
+	    				"from FIXEDSTATION, ORGANIZATION, ISSUESSTATION " +
+	    				"where ISSUESSTATION.issue = ? AND ISSUESSTATION.station = FIXEDSTATION.id AND FIXEDSTATION.owner = ORGANIZATION.name");
+	    		stations.setInt(1, issue.getId());
+	    		ResultSet stationsRS = stations.executeQuery();
+	    		
+	    		List<AISStation> sta = new ArrayList<AISStation>();
+	    		while(stationsRS.next()){
+	    			AISStation as = new AISStation(rs.getString(1), rs.getString(2), rs.getDouble(3), rs.getDouble(4));
+	    			as.setDbId(rs.getInt(5));
+	    			sta.add(as);
+	    		}
+	    		
+	    		issue.setInvolvedStations(sta);
+	    		
+	    		stations.close();
+	    		stationsRS.close();
+
+	    		PreparedStatement slots = conn.prepareStatement("select TIMESLOT, FREQUENCY from ISSUESTIMESLOT where ISSUE = ?");
+	    		slots.setInt(1, issue.getId());
+	    		ResultSet slotRS = slots.executeQuery();
+	    		
+	    		List<AISTimeslot> timeslots = new ArrayList<AISTimeslot>();
+	    		while(slotRS.next()){
+	    			AISTimeslot s = new AISTimeslot();
+	    			s.setSlotNumber(slotRS.getInt(1));
+	    			if(slotRS.getInt(2) == 2) s.setFrequency(AISFrequency.AIS2);
+	    			else s.setFrequency(AISFrequency.AIS1);
+	    			
+	    			s.setFree(new Boolean(false));
+	    			s.setPossibleConflicts(new Boolean(true));
+	    		
+	    			timeslots.add(s);
+	    		}	
+	    		issue.setInvolvedTimeslots(timeslots);
+	    		
+	    		slotRS.close();
+	    		slots.close();
+	    		
+	    		issues.add(issue);
+	    		
+	    	}
+
+			
+	    	
+	    	ps.close();
+	    	
+	    	return issues;
+	    }
+	    
+	    	    
 	    private FATDMAChannel retrieveFATDMAAllocations(int stationID, int channelType) throws Exception{
 			if(log) System.out.print("Retrieving FATDMA Channel "+(channelType == FATDMA_CHANNEL_A ? "A" : "B"));
 	    	
@@ -1595,6 +1769,9 @@ import dk.frv.eavdam.data.Simulation;
 	    	
 	    }
 	    
+
+	    
+	    
 	    /**
 	     * Retrieves all the data from the database.
 	     * 
@@ -1660,6 +1837,9 @@ import dk.frv.eavdam.data.Simulation;
 	    		}
 	    		
 	    	}
+	    	
+	    	//Get the issues.
+	    	data.setAISDatalinkCheckIssues(this.retrieveAllIssues());
 	    	
 	    	return data;
 	    }
@@ -2942,6 +3122,12 @@ import dk.frv.eavdam.data.Simulation;
 						e.printStackTrace();
 				}
 
+				try {
+					s.execute("DROP TABLE ISSUES");
+				} catch (Exception e) {
+					if(log)
+						e.printStackTrace();
+				}
 
 				//Then create the tables.
 				try {
@@ -3202,6 +3388,41 @@ import dk.frv.eavdam.data.Simulation;
 						e.printStackTrace();
 				}
 				
+				try {
+					s.execute("CREATE TABLE ISSUES"
+							+ "(ID INT, " 
+							+ "RULEVIOLATED INT,"
+							+ "ACKNOWLEDGED INT,"
+							+ "DELETED INT,"
+							+ "CONSTRAINT pk_issue PRIMARY KEY (ID)");
+				} catch (Exception e) {
+					if(log)
+						e.printStackTrace();
+				}
+
+				try {
+					s.execute("CREATE TABLE ISSUESTIMESLOT"
+							+ "(ISSUE INT, " 
+							+ "TIMESLOT INT,"
+							+ "FREQUENCY INT,"
+							+ "CONSTRAINT fk_iss_slot FOREIGN KEY (ISSUE) references ISSUES(ID))");
+				} catch (Exception e) {
+					if(log)
+						e.printStackTrace();
+				}
+
+				try {
+					s.execute("CREATE TABLE ISSUESSTATION"
+							+ "(ISSUE INT," 
+							+ "STATION INT,"
+							+ "CONSTRAINT fk_iss_station FOREIGN KEY (ISSUE) references ISSUES(ID)," 
+							+ "CONSTRAINT fk_station_iss FOREIGN KEY (STATION) references FIXEDSTATION(ID))");
+				} catch (Exception e) {
+					if(log)
+						e.printStackTrace();
+				}
+
+				
 				//Insert the predefined data
 	    		s.execute("INSERT INTO ANTENNATYPE VALUES("+ANTENNA_DIRECTIONAL+", 'Directional Antenna')");
 	    		s.execute("INSERT INTO ANTENNATYPE VALUES("+ANTENNA_OMNIDIR+", 'Omnidirectional Antenna')");
@@ -3288,6 +3509,66 @@ import dk.frv.eavdam.data.Simulation;
 				}
 				
 			}
+			
+			//Create new tables for issues 
+			try{
+				if(this.conn == null) this.conn = this.getDBConnection(null, true);
+				
+				PreparedStatement ps = this.conn.prepareStatement("insert into ISSUES values (10000000,1,0,0)");
+				ps.executeUpdate();
+				
+				ps = this.conn.prepareStatement("delete from ISSUES where id = 10000000");
+				ps.executeUpdate();
+				ps.close();
+			}catch(Exception e){
+				try{
+					System.out.print("No ISSUES table found. Creating it to match the latest version...");
+					Statement s = conn.createStatement();
+					try {
+						s.execute("CREATE TABLE ISSUES"
+								+ "(ID INT, " 
+								+ "RULEVIOLATED INT,"
+								+ "ACKNOWLEDGED INT,"
+								+ "DELETED INT,"
+								+ "CONSTRAINT pk_issue PRIMARY KEY (ID)");
+					} catch (Exception e1) {
+						if(log)
+							e.printStackTrace();
+					}
+
+					try {
+						s.execute("CREATE TABLE ISSUESTIMESLOT"
+								+ "(ISSUE INT, " 
+								+ "TIMESLOT INT,"
+								+ "FREQUENCY INT,"
+								+ "CONSTRAINT fk_iss_slot FOREIGN KEY (ISSUE) references ISSUES(ID))");
+					} catch (Exception e1) {
+						if(log)
+							e.printStackTrace();
+					}
+
+					try {
+						s.execute("CREATE TABLE ISSUESSTATION"
+								+ "(ISSUE INT," 
+								+ "STATION INT,"
+								+ "CONSTRAINT fk_iss_station FOREIGN KEY (ISSUE) references ISSUES(ID)," 
+								+ "CONSTRAINT fk_station_iss FOREIGN KEY (STATION) references FIXEDSTATION(ID))");
+					} catch (Exception e1) {
+						if(log)
+							e.printStackTrace();
+					}
+
+					
+					s.close();
+				}catch(Exception e2){
+					e2.printStackTrace();
+				}
+				
+			}
+
+			
+			
+			
 			
 		}
 

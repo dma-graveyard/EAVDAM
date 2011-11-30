@@ -13,6 +13,7 @@ public class AISDatalinkCheckIssue {
 	private List<AISStation> involvedStations;
 	private List<AISTimeslot> involvedTimeslots;
 	private boolean acknowledged;
+	private boolean deleted;
 	
 	public AISDatalinkCheckIssue() {}
 	
@@ -75,5 +76,13 @@ public class AISDatalinkCheckIssue {
 	public String toString(){
 		return id+": "+severity+" "+ruleViolated+". There are "+getInvolvedStations().size()+" involved stations " +
 				"("+getInvolvedStations().get(0).getStationName()+(getInvolvedStations().size() > 1 ? " and "+getInvolvedStations().get(1).getStationName() : "")+") and "+involvedTimeslots.size()+" involved timeslots...";
+	}
+
+	public boolean isDeleted() {
+		return deleted;
+	}
+
+	public void setDeleted(boolean deleted) {
+		this.deleted = deleted;
 	}
 }

@@ -12,7 +12,7 @@ public class AISStation {
 	private Double latitude;
 	private Double longitude;
 	private AISFixedStationType stationType; //Type needed for rule checking
-	
+	private int dbId;
 	
 	// should have more information?
 	
@@ -63,6 +63,14 @@ public class AISStation {
 
 	public void setStationType(AISFixedStationType stationType) {
 		this.stationType = stationType;
+	}
+
+	public int getDbId() {
+		return dbId;
+	}
+
+	public void setDbId(int dbId) {
+		this.dbId = dbId;
 	}		
 	
 }

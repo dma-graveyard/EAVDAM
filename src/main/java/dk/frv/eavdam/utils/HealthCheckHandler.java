@@ -52,7 +52,7 @@ public class HealthCheckHandler {
 	}
 	
 	public AISDatalinkCheckResult startAISDatalinkCheck(AISDatalinkCheckListener listener, boolean checkRule1, boolean checkRule2, boolean checkRule3, 
-			boolean checkRule4, boolean checkRule5, boolean checkRule6, boolean checkRule7, 
+			boolean checkRule4, boolean checkRule5, boolean checkRule6, boolean checkRule7, boolean includePlanned,
 			double topLeftLatitude, double topLeftLongitude, double lowerRightLatitude, double lowerRightLongitude, double resolution){
 		
 		AISDatalinkCheckResult results = new AISDatalinkCheckResult();
@@ -162,6 +162,7 @@ public class HealthCheckHandler {
 			for(; lon < maxLongitude; lon = lon + lonIncrement){
 				++ithColumn;
 				
+				//Get the issues
 				AISSlotMap sm = slotMapAtPoint(lat, lon);
 				
 				if(ithLine > 1 && ithColumn > 1){
@@ -209,12 +210,13 @@ public class HealthCheckHandler {
 					
 					List<AISStation> stations = new ArrayList<AISStation>();
 					AISStation s1 = new AISStation(station.getOperator().getOrganizationName(), station.getStationName(), station.getLat(), station.getLon());
+					s1.setDbId(station.getStationDBID());
 					stations.add(s1);
 					
 					String problemName = "RULE2_"+s1.getOrganizationName()+"_"+s1.getStationName();
 					
 					if(!foundProblems.contains(problemName)){
-						AISDatalinkCheckIssue issue = new AISDatalinkCheckIssue(-1,AISDatalinkCheckRule.RULE2,AISDatalinkCheckSeverity.MAJOR,stations,problems);
+						AISDatalinkCheckIssue issue = new AISDatalinkCheckIssue(-1,AISDatalinkCheckRule.RULE2,getRuleSeverity(AISDatalinkCheckRule.RULE2),stations,problems);
 						
 						foundProblems.add(problemName);
 						
@@ -224,17 +226,18 @@ public class HealthCheckHandler {
 				
 			}
 			
-			if(checkRule3){
+			if(false){ //3. Rule
 				List<AISTimeslot> problems = this.checkRule4(station);
 				if(problems != null && problems.size() > 0){
 					
 					List<AISStation> stations = new ArrayList<AISStation>();
 					AISStation s1 = new AISStation(station.getOperator().getOrganizationName(), station.getStationName(), station.getLat(), station.getLon());
+					s1.setDbId(station.getStationDBID());
 					stations.add(s1);
 					
 					String problemName = "RULE3_"+s1.getOrganizationName()+"_"+s1.getStationName();
 					if(!foundProblems.contains(problemName)){
-						AISDatalinkCheckIssue issue = new AISDatalinkCheckIssue(-1,AISDatalinkCheckRule.RULE3,AISDatalinkCheckSeverity.MAJOR,stations,problems);
+						AISDatalinkCheckIssue issue = new AISDatalinkCheckIssue(-1,AISDatalinkCheckRule.RULE3,getRuleSeverity(AISDatalinkCheckRule.RULE3),stations,problems);
 						
 						foundProblems.add(problemName);
 						
@@ -249,11 +252,12 @@ public class HealthCheckHandler {
 					
 					List<AISStation> stations = new ArrayList<AISStation>();
 					AISStation s1 = new AISStation(station.getOperator().getOrganizationName(), station.getStationName(), station.getLat(), station.getLon());
+					s1.setDbId(station.getStationDBID());
 					stations.add(s1);
 					
 					String problemName = "RULE4_"+s1.getOrganizationName()+"_"+s1.getStationName();
 					if(!foundProblems.contains(problemName)){
-						AISDatalinkCheckIssue issue = new AISDatalinkCheckIssue(-1,AISDatalinkCheckRule.RULE4,AISDatalinkCheckSeverity.MAJOR,stations,problems);
+						AISDatalinkCheckIssue issue = new AISDatalinkCheckIssue(-1,AISDatalinkCheckRule.RULE4,getRuleSeverity(AISDatalinkCheckRule.RULE4),stations,problems);
 						
 						foundProblems.add(problemName);
 						
@@ -265,7 +269,7 @@ public class HealthCheckHandler {
 			}
 			
 			for(String v : overlappingStations.get(s).keySet()){
-				if(false){
+				if(false){ //1. rule
 					//Checking the first rule.
 					List<AISTimeslot> problems = this.checkRule1(station, overlappingStations.get(s).get(v));
 					if(problems != null && problems.size() > 0){
@@ -274,15 +278,17 @@ public class HealthCheckHandler {
 						
 						List<AISStation> stations = new ArrayList<AISStation>();
 						AISStation s1 = new AISStation(station.getOperator().getOrganizationName(), station.getStationName(), station.getLat(), station.getLon());
+						s1.setDbId(station.getStationDBID());
 						stations.add(s1);
 						
 						AISStation s2 = new AISStation(station2.getOperator().getOrganizationName(), station2.getStationName(), station2.getLat(), station2.getLon());
+						s2.setDbId(station2.getStationDBID());
 						stations.add(s2);
 						
 						String problemName = "RULE1_"+s1.getOrganizationName()+"_"+s1.getStationName()+" "+s2.getOrganizationName()+"_"+s2.getStationName();
 						String problemName2 = "RULE1_"+s2.getOrganizationName()+"_"+s2.getStationName()+" "+s1.getOrganizationName()+"_"+s1.getStationName();
 						if(!foundProblems.contains(problemName) && !foundProblems.contains(problemName2) ){
-							AISDatalinkCheckIssue issue = new AISDatalinkCheckIssue(-1,AISDatalinkCheckRule.RULE1,AISDatalinkCheckSeverity.SEVERE,stations,problems);
+							AISDatalinkCheckIssue issue = new AISDatalinkCheckIssue(-1,AISDatalinkCheckRule.RULE1,getRuleSeverity(AISDatalinkCheckRule.RULE1),stations,problems);
 							
 							foundProblems.add(problemName);
 							foundProblems.add(problemName2);
@@ -994,7 +1000,7 @@ public class HealthCheckHandler {
 
 		
 		if(slotmap.getBandwidthReservationA() > 0.5){
-			AISDatalinkCheckIssue issue = new AISDatalinkCheckIssue(-1,AISDatalinkCheckRule.RULE7,AISDatalinkCheckSeverity.MAJOR,null,null);
+			AISDatalinkCheckIssue issue = new AISDatalinkCheckIssue(-1,AISDatalinkCheckRule.RULE7,getRuleSeverity(AISDatalinkCheckRule.RULE7),null,null);
 			issues.add(issue);
 		}
 		
@@ -1076,6 +1082,7 @@ public class HealthCheckHandler {
 					
 					if(station.getOwnershipInSlot(channel, new Integer(slot)).equals("L")){ //Interference is for Local Base station
 						AISStation s = new AISStation(station.getOperator().getOrganizationName(), station.getStationName(), station.getLat(), station.getLon());
+						s.setDbId(station.getStationDBID());
 						infs.add(s);
 					}
 				}
@@ -1099,6 +1106,7 @@ public class HealthCheckHandler {
 				String planned = "";
 				if(station.getStatus().getStatusID() == DerbyDBInterface.STATUS_PLANNED) planned = plannedIndicator;
 				AISStation s = new AISStation(station.getOperator().getOrganizationName(), station.getStationName()+planned, station.getLat(), station.getLon());
+				s.setDbId(station.getStationDBID());
 				s.setStationType(station.getStationType());
 				
 				if(station.getStationType().equals(AISFixedStationType.ATON)){ //If the station is AtoN, only use it but do not reserve it.
@@ -1193,6 +1201,7 @@ public class HealthCheckHandler {
 					if(station.getStatus().getStatusID() == DerbyDBInterface.STATUS_PLANNED) planned = plannedIndicator;
 					
 					AISStation s = new AISStation(station.getOperator().getOrganizationName(), station.getStationName()+planned, station.getLat(), station.getLon());
+					s.setDbId(station.getStationDBID());
 					s.setStationType(station.getStationType());	
 					
 					if(!resStations.contains(s.getStationName()+"_"+s.getOrganizationName())){
@@ -1231,7 +1240,7 @@ public class HealthCheckHandler {
 					if(a.getInterferedBy() != null)
 						ps.addAll(a.getInterferedBy());
 					
-					AISDatalinkCheckIssue issue = new AISDatalinkCheckIssue(-1,AISDatalinkCheckRule.RULE1,AISDatalinkCheckSeverity.MAJOR,ps,slots);
+					AISDatalinkCheckIssue issue = new AISDatalinkCheckIssue(-1,AISDatalinkCheckRule.RULE1,getRuleSeverity(AISDatalinkCheckRule.RULE1),ps,slots);
 					
 					issues.add(issue);
 					addRule1 = true;
@@ -1251,7 +1260,7 @@ public class HealthCheckHandler {
 					if(a.getInterferedBy() != null)
 						ps.addAll(a.getInterferedBy());
 					
-					AISDatalinkCheckIssue issue = new AISDatalinkCheckIssue(-1,AISDatalinkCheckRule.RULE1,AISDatalinkCheckSeverity.SEVERE,ps,slots);
+					AISDatalinkCheckIssue issue = new AISDatalinkCheckIssue(-1,AISDatalinkCheckRule.RULE1,getRuleSeverity(AISDatalinkCheckRule.RULE1),ps,slots);
 									
 					issues.add(issue);
 				}
@@ -1280,7 +1289,7 @@ public class HealthCheckHandler {
 					List<AISTimeslot> slots = new ArrayList<AISTimeslot>();
 					slots.add(a);
 				
-					issue = new AISDatalinkCheckIssue(-1,AISDatalinkCheckRule.RULE3, AISDatalinkCheckSeverity.MAJOR,atonStations,slots);
+					issue = new AISDatalinkCheckIssue(-1,AISDatalinkCheckRule.RULE3, getRuleSeverity(AISDatalinkCheckRule.RULE3),atonStations,slots);
 					
 					issues.add(issue);
 				}else{
@@ -1296,15 +1305,6 @@ public class HealthCheckHandler {
 		return a;
 	}
 	
-	public List<AISDatalinkCheckIssue> checkRulesAtTimeslot(AISTimeslot timeslot){
-		List<AISDatalinkCheckIssue> issues = new ArrayList<AISDatalinkCheckIssue>();
-		
-		List<AISStation> interfered = timeslot.getInterferedBy();
-		
-		
-		
-		return issues;
-	}
 	
 	
 	/**
@@ -1838,5 +1838,39 @@ public class HealthCheckHandler {
 	
 	public static void isPolygonIntersection(){
 		
+	}
+	
+	public static AISDatalinkCheckSeverity getRuleSeverity(AISDatalinkCheckRule rule){
+		//Rule 1:
+		if(rule.equals(AISDatalinkCheckRule.RULE1)){
+			return AISDatalinkCheckSeverity.SEVERE;
+		}else if(rule.equals(AISDatalinkCheckRule.RULE2)){
+			return AISDatalinkCheckSeverity.MAJOR;
+		}else if(rule.equals(AISDatalinkCheckRule.RULE3)){
+			return AISDatalinkCheckSeverity.MAJOR;
+		}else if(rule.equals(AISDatalinkCheckRule.RULE4)){
+			return AISDatalinkCheckSeverity.MAJOR;
+		}else if(rule.equals(AISDatalinkCheckRule.RULE5)){
+			return AISDatalinkCheckSeverity.MINOR;
+		}else if(rule.equals(AISDatalinkCheckRule.RULE6)){
+			return AISDatalinkCheckSeverity.MINOR;
+		}else if(rule.equals(AISDatalinkCheckRule.RULE7)){
+			return AISDatalinkCheckSeverity.MAJOR;
+		}
+		
+		return null;
+	}
+	
+	public static AISDatalinkCheckRule getRule(int ruleNumber){
+		//Rule 1:
+		if(ruleNumber == 1) return AISDatalinkCheckRule.RULE1;
+		else if(ruleNumber == 2) return AISDatalinkCheckRule.RULE2;
+		else if(ruleNumber == 3) return AISDatalinkCheckRule.RULE3;
+		else if(ruleNumber == 4) return AISDatalinkCheckRule.RULE4;
+		else if(ruleNumber == 5) return AISDatalinkCheckRule.RULE5;
+		else if(ruleNumber == 6) return AISDatalinkCheckRule.RULE6;
+		else if(ruleNumber == 7) return AISDatalinkCheckRule.RULE7;
+		
+		return null;
 	}
 }
