@@ -44,6 +44,7 @@ import dk.frv.eavdam.data.Options;
 import dk.frv.eavdam.data.OtherUserStations;
 import dk.frv.eavdam.data.Person;
 import dk.frv.eavdam.data.Simulation;
+import dk.frv.eavdam.utils.HealthCheckHandler;
 
 
 	/**
@@ -244,7 +245,7 @@ import dk.frv.eavdam.data.Simulation;
 	        	}
 	        	
             	if(data.getAISDatalinkCheckIssues() != null && data.getAISDatalinkCheckIssues().size() > 0){
-            		this.insertIssues(data.getAISDatalinkCheckIssues());
+//            		this.insertIssues(data.getAISDatalinkCheckIssues());
             	}
 	        	
 	        }catch(Exception e){
@@ -951,21 +952,34 @@ import dk.frv.eavdam.data.Simulation;
 	    	}
 	    	
 
+	    	Set<Integer> issueIds = new HashSet<Integer>(); //These issues are the same as the issues in the 
+	    	Map<String, Boolean> ackIssues = new HashMap<String, Boolean>();
+	    	//Find issues that overlap with the stations in the new issue list.
+	    	for(AISDatalinkCheckIssue issue : issues){
+	    		
+	    		String sql = "select ISSUES.id, ISSUES.acknowledged, ISSUES.deleted from ISSUES, ISSUESSTATION where ISSUES.ruleviolated = ? " +
+	    				"AND ISSUES.id = ISSUESSTATION.issue";
+	    		for(AISStation s : issue.getInvolvedStations()){
+	    			if(s.getDbId() < 0) s.setDbId(this.getStationID(s.getStationName(), s.getOrganizationName()));
+	    			
+	    			sql +=  " AND ISSUESSTATION.station = "+s.getDbId();
+	    		}
+	    		
+	    		PreparedStatement check = this.conn.prepareStatement(sql);
+	    		check.setInt(1, HealthCheckHandler.getRuleInt(issue.getRuleViolated()));
+
+	    		ResultSet is = check.executeQuery();
+	    		if(is.next()){
+	    			int issid = is.getInt(1);
+	    			issueIds.add(new Integer(issid));
+	    		}
+	    		is.close();
+	    		check.close();
+	    		
+	    	}
 	    	
 	    	for(AISDatalinkCheckIssue issue : issues){
 	    		//Check if this issue exists.
-	    		String sql = "select ISSUES.id, ISSUES.acknowledged, ISSUES.deleted from ISSUES, ISSUESSTATION where ISSUES.ruleviolated = ? AND ISSUES.id = ISSUESSTATION.issue ";
-	    		for(AISStation s : issue.getInvolvedStations()){
-	    			if(s.getDbId() <= 0) s.setDbId(this.getStationID(s.getStationName(), s.getOrganizationName()));
-	    			
-	    			sql += " AND ISSUESTATION.station = "+s.getDbId()+"";
-	    		}
-	    		
-	    		
-	    		
-	    		PreparedStatement check = this.conn.prepareStatement(sql);
-	    		
-	    		
 	    		if(issue.getId() > 0){
 	    		
 	    			
@@ -1088,6 +1102,70 @@ import dk.frv.eavdam.data.Simulation;
 	    	return issues;
 	    }
 	    
+	    private List<AISDatalinkCheckIssue> retrieveIssuesWithinArea(double topLat, double leftLon, double lowLat, double rightLon) throws Exception{
+	    	List<AISDatalinkCheckIssue> issues = new ArrayList<AISDatalinkCheckIssue>();
+	    	
+			
+	    	PreparedStatement ps = this.conn.prepareStatement("select ID, RULEVIOLATED, ACKNOWLEDGED, DELETED from ISSUES,ISSUESSTATION,FIXEDSTATION where ISSUES.id = ISSUESSTATION.issue " +
+	    			"AND ISSUESSTATION.station = FIXEDSTATION.id AND ");
+	    	ResultSet rs = ps.executeQuery();
+	    	while(rs.next()){
+	    		AISDatalinkCheckIssue issue = new AISDatalinkCheckIssue();
+	    		issue.setId(rs.getInt(1));
+	    		issue.setRuleViolated(dk.frv.eavdam.utils.HealthCheckHandler.getRule(rs.getInt(2)));
+	    		issue.setSeverity(dk.frv.eavdam.utils.HealthCheckHandler.getRuleSeverity(issue.getRuleViolated()));
+	    		issue.setAcknowledged((rs.getInt(3) == 1));
+	    		issue.setDeleted((rs.getInt(4)==1));
+	    		
+	    		PreparedStatement stations = conn.prepareStatement("select ORGANIZATION.organizationName, FIXEDSTATION.name, FIXEDSTATION.lat, FIXEDSTATION.lon, FIXEDSTATION.id " +
+	    				"from FIXEDSTATION, ORGANIZATION, ISSUESSTATION " +
+	    				"where ISSUESSTATION.issue = ? AND ISSUESSTATION.station = FIXEDSTATION.id AND FIXEDSTATION.owner = ORGANIZATION.name");
+	    		stations.setInt(1, issue.getId());
+	    		ResultSet stationsRS = stations.executeQuery();
+	    		
+	    		List<AISStation> sta = new ArrayList<AISStation>();
+	    		while(stationsRS.next()){
+	    			AISStation as = new AISStation(rs.getString(1), rs.getString(2), rs.getDouble(3), rs.getDouble(4));
+	    			as.setDbId(rs.getInt(5));
+	    			sta.add(as);
+	    		}
+	    		
+	    		issue.setInvolvedStations(sta);
+	    		
+	    		stations.close();
+	    		stationsRS.close();
+
+	    		PreparedStatement slots = conn.prepareStatement("select TIMESLOT, FREQUENCY from ISSUESTIMESLOT where ISSUE = ?");
+	    		slots.setInt(1, issue.getId());
+	    		ResultSet slotRS = slots.executeQuery();
+	    		
+	    		List<AISTimeslot> timeslots = new ArrayList<AISTimeslot>();
+	    		while(slotRS.next()){
+	    			AISTimeslot s = new AISTimeslot();
+	    			s.setSlotNumber(slotRS.getInt(1));
+	    			if(slotRS.getInt(2) == 2) s.setFrequency(AISFrequency.AIS2);
+	    			else s.setFrequency(AISFrequency.AIS1);
+	    			
+	    			s.setFree(new Boolean(false));
+	    			s.setPossibleConflicts(new Boolean(true));
+	    		
+	    			timeslots.add(s);
+	    		}	
+	    		issue.setInvolvedTimeslots(timeslots);
+	    		
+	    		slotRS.close();
+	    		slots.close();
+	    		
+	    		issues.add(issue);
+	    		
+	    	}
+
+			
+	    	
+	    	ps.close();
+	    	
+	    	return issues;
+	    }
 	    	    
 	    private FATDMAChannel retrieveFATDMAAllocations(int stationID, int channelType) throws Exception{
 			if(log) System.out.print("Retrieving FATDMA Channel "+(channelType == FATDMA_CHANNEL_A ? "A" : "B"));
@@ -1839,7 +1917,7 @@ import dk.frv.eavdam.data.Simulation;
 	    	}
 	    	
 	    	//Get the issues.
-	    	data.setAISDatalinkCheckIssues(this.retrieveAllIssues());
+//	    	data.setAISDatalinkCheckIssues(this.retrieveAllIssues());
 	    	
 	    	return data;
 	    }
@@ -3521,6 +3599,7 @@ import dk.frv.eavdam.data.Simulation;
 				ps.executeUpdate();
 				ps.close();
 			}catch(Exception e){
+				e.printStackTrace();
 				try{
 					System.out.print("No ISSUES table found. Creating it to match the latest version...");
 					Statement s = conn.createStatement();
@@ -3530,7 +3609,7 @@ import dk.frv.eavdam.data.Simulation;
 								+ "RULEVIOLATED INT,"
 								+ "ACKNOWLEDGED INT,"
 								+ "DELETED INT,"
-								+ "CONSTRAINT pk_issue PRIMARY KEY (ID)");
+								+ "CONSTRAINT pk_issue PRIMARY KEY (ID))");
 					} catch (Exception e1) {
 						if(log)
 							e.printStackTrace();

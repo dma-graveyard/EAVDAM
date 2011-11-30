@@ -1873,4 +1873,18 @@ public class HealthCheckHandler {
 		
 		return null;
 	}
+
+	public static int getRuleInt(AISDatalinkCheckRule ruleViolated) {
+		//Rule 1:
+		if(ruleViolated.equals(AISDatalinkCheckRule.RULE1)) return 1;
+		else if(ruleViolated.equals(AISDatalinkCheckRule.RULE2)) return 2;
+		else if(ruleViolated.equals(AISDatalinkCheckRule.RULE3)) return 3;
+		else if(ruleViolated.equals(AISDatalinkCheckRule.RULE4)) return 4;
+		else if(ruleViolated.equals(AISDatalinkCheckRule.RULE5)) return 5;
+		else if(ruleViolated.equals(AISDatalinkCheckRule.RULE6)) return 6;
+		else if(ruleViolated.equals(AISDatalinkCheckRule.RULE7)) return 7;
+		
+		
+		return 0;
+	}
 }
