@@ -353,7 +353,7 @@ public class InitiateHealthCheckButton extends OMToolComponent implements Action
 		
 		if (result == null) {
 			data.setAISDatalinkCheckIssues(null);		
-		} else {
+		} else {			
 			data.setAISDatalinkCheckIssues(result.getIssues());
 		}
 		

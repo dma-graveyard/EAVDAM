@@ -47,6 +47,7 @@ import dk.frv.eavdam.menus.SlotMapDialog;
 import dk.frv.eavdam.menus.StationInformationMenu;
 import dk.frv.eavdam.menus.StationInformationMenuItem;
 import dk.frv.eavdam.utils.DBHandler;
+import dk.frv.eavdam.utils.FATDMAUtils;
 import dk.frv.eavdam.utils.HealthCheckHandler;
 import dk.frv.eavdam.utils.RoundCoverage;
 import java.awt.BorderLayout;
@@ -78,8 +79,10 @@ import java.util.List;
 import java.util.Map;
 import javax.xml.bind.JAXBException;
 import javax.swing.BorderFactory;
+import javax.swing.BoxLayout;
 import javax.swing.ButtonGroup;
 import javax.swing.JButton;
+import javax.swing.JCheckBox;
 import javax.swing.JCheckBoxMenuItem;
 import javax.swing.JDialog;
 import javax.swing.JLabel;
@@ -131,6 +134,9 @@ public class StationLayer extends OMGraphicHandlerLayer implements MapMouseListe
 	private JMenuItem resetInterferenceCoverageToPolygonMenuItem;	
 	private OMBaseStation currentlySelectedOMBaseStation;
 	
+	private JCheckBox showStationNamesOnMapCheckBox;
+	private JCheckBox showMMSINumbersOnMapCheckBox;
+	
 	private JDialog showOnMapDialog;
 	private JTree tree;
 	private CheckTreeManager checkTreeManager;
@@ -162,6 +168,8 @@ public class StationLayer extends OMGraphicHandlerLayer implements MapMouseListe
 	private List<Layer> initiallySelectedLayers;
 	private Map<Layer, Boolean> initiallySelectedLayersVisibilities;
 	
+	private boolean initiallySelectedShowStationNamesOnMap;
+	private boolean initiallySelectedShowMMSINumbersOnMap;
 	private Map<String, Boolean> initiallySelectedStations;
 	
 	private int currentX = -1;
@@ -170,6 +178,12 @@ public class StationLayer extends OMGraphicHandlerLayer implements MapMouseListe
     public StationLayer() {
 		showOnMapMenuItem = new JMenuItem("Show on map");
 		showOnMapMenuItem.addActionListener(this);
+		if (showStationNamesOnMapCheckBox == null) {
+			showStationNamesOnMapCheckBox = new JCheckBox("Show station names on map");
+		}
+		if (showMMSINumbersOnMapCheckBox == null) {
+			showMMSINumbersOnMapCheckBox = new JCheckBox("Show MMSI numbers on map");
+		}
 	}
 
     public OMAISBaseStationTransmitCoverageLayer getTransmitCoverageLayer() {
@@ -270,7 +284,7 @@ public class StationLayer extends OMGraphicHandlerLayer implements MapMouseListe
 		
 		boolean needsSaving = false;
 		
-        OMBaseStation base = new OMBaseStation(datasetSource, stationData, owner, bytearr);		
+        OMBaseStation base = new OMBaseStation(datasetSource, stationData, owner, bytearr);
 		Antenna antenna = stationData.getAntenna();
 		if (antenna != null) {
 			if (antenna.getAntennaType() == AntennaType.DIRECTIONAL) {
@@ -339,6 +353,7 @@ public class StationLayer extends OMGraphicHandlerLayer implements MapMouseListe
 		}
 		
 		graphics.add(base);
+		
 		graphics.project(getProjection(), true);
 		this.repaint();
 		this.validate();
@@ -697,18 +712,35 @@ public class StationLayer extends OMGraphicHandlerLayer implements MapMouseListe
 		} else if (e.getSource() == showOnMapMenuItem) {
 		
 			initiallySelectedStations = getCurrentSelections();
+		    initiallySelectedShowStationNamesOnMap = showStationNamesOnMapCheckBox.isSelected();
+			initiallySelectedShowMMSINumbersOnMap = showMMSINumbersOnMapCheckBox.isSelected();
 		
 			showOnMapDialog = new JDialog(openMapFrame, "Show on Map", false);				
-												
+									
+			JPanel showStationNameMMSIOnMapPanel = new JPanel();
+			showStationNameMMSIOnMapPanel.setPreferredSize(new Dimension(640, 90));	
+			showStationNameMMSIOnMapPanel.setMinimumSize(new Dimension(640, 90));
+			showStationNameMMSIOnMapPanel.setMaximumSize(new Dimension(640, 90));			
+			showStationNameMMSIOnMapPanel.setBorder(BorderFactory.createCompoundBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5), BorderFactory.createTitledBorder("Select information to show on map")));
+			showStationNameMMSIOnMapPanel.setLayout(new BoxLayout(showStationNameMMSIOnMapPanel, BoxLayout.PAGE_AXIS));			
+			showStationNameMMSIOnMapPanel.add(showStationNamesOnMapCheckBox);
+			showStationNameMMSIOnMapPanel.add(showMMSINumbersOnMapCheckBox);	
+			
 			createTree();
-
+			
 			JScrollPane scrollPane = new JScrollPane(tree);
 			scrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
-			scrollPane.setPreferredSize(new Dimension(600, 540));
-	
-			JPanel panel = new JPanel();		
-			panel.add(scrollPane);
-			showOnMapDialog.getContentPane().add(panel, BorderLayout.CENTER);
+			scrollPane.setPreferredSize(new Dimension(600, 540));	
+			scrollPane.setMinimumSize(new Dimension(600, 540));
+			scrollPane.setMaximumSize(new Dimension(600, 540));				
+			scrollPane.setBorder(BorderFactory.createCompoundBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5), BorderFactory.createTitledBorder("Select stations to show on map")));
+			
+			JPanel containerPanel = new JPanel();
+			containerPanel.setLayout(new BorderLayout());
+			containerPanel.add(showStationNameMMSIOnMapPanel, BorderLayout.NORTH);
+			containerPanel.add(scrollPane, BorderLayout.CENTER);			
+			
+			showOnMapDialog.getContentPane().add(containerPanel, BorderLayout.CENTER);
 		
 			okShowOnMapMenuButton = new JButton("Ok");
 			okShowOnMapMenuButton.addActionListener(this);
@@ -731,6 +763,8 @@ public class StationLayer extends OMGraphicHandlerLayer implements MapMouseListe
 			
 		} else if (e.getSource() == cancelShowOnMapMenuButton) {
 			restoreInitiallySelectedStations();
+		    showStationNamesOnMapCheckBox.setSelected(initiallySelectedShowStationNamesOnMap);
+			showMMSINumbersOnMapCheckBox.setSelected(initiallySelectedShowMMSINumbersOnMap);
 			showOnMapDialog.dispose();			
 		
 		} else if (e.getSource() == hideStationMenuItem) {
