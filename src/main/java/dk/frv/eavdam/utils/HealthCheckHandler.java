@@ -309,6 +309,7 @@ public class HealthCheckHandler {
 			area.setSlotmap(this.stationSlotmap.get(key));
 			if(area.getSlotmap() != null){
 				area.setIssues(area.getSlotmap().getIssues());
+				area.setBandwithUsageLevel(area.getSlotmap().getBandwidthReservation());
 			}
 			
 			areas.add(area);
