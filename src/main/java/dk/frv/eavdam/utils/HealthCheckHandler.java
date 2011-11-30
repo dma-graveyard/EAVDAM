@@ -321,9 +321,19 @@ public class HealthCheckHandler {
 			areas.add(area);
 		}
 		
+		System.out.println("Found "+issues.size()+" station issues: ");
+		for(AISDatalinkCheckIssue i : issues){
+			System.out.println("\t"+i.toString());
+		}
 		
 		results.setIssues(issues);
 		results.setAreas(areas);
+		
+		System.out.println("Found "+areas.size()+" area issues: ");
+		for(AISDatalinkCheckArea i : areas){
+			if(Math.random() < 0.001)
+				System.out.println("\t"+i.toString());
+		}
 		
 		if(listener != null) listener.completed(results);
 		

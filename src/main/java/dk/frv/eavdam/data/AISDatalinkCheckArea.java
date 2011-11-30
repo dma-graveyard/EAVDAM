@@ -79,7 +79,13 @@ public class AISDatalinkCheckArea {
 	}		
 	
 	public String toString(){
-		return "("+topLeftLatitude+";"+topLeftLongitude+") - ("+lowerRightLatitude+";"+lowerRightLongitude+"): "+bandwithUsageLevel;
+		String ut = "("+topLeftLatitude+";"+topLeftLongitude+") - ("+lowerRightLatitude+";"+lowerRightLongitude+"): "+bandwithUsageLevel+" "+(issues != null ? issues.size() +" issues " : "");
+		if(this.issues != null && issues.size() > 0){
+			 ut+= "\n\t"+issues.get(0).getRuleViolated();
+		
+		}
+		
+		return ut;
 	}
 
 	public List<AISDatalinkCheckIssue> getIssues() {

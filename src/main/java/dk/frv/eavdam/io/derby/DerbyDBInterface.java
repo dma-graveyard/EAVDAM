@@ -950,33 +950,7 @@ import dk.frv.eavdam.utils.HealthCheckHandler;
 	    	if(rs.next()){
 	    		maxId = rs.getInt(1);
 	    	}
-	    	
 
-	    	Set<Integer> issueIds = new HashSet<Integer>(); //These issues are the same as the issues in the 
-	    	Map<String, Boolean> ackIssues = new HashMap<String, Boolean>();
-	    	//Find issues that overlap with the stations in the new issue list.
-	    	for(AISDatalinkCheckIssue issue : issues){
-	    		
-	    		String sql = "select ISSUES.id, ISSUES.acknowledged, ISSUES.deleted from ISSUES, ISSUESSTATION where ISSUES.ruleviolated = ? " +
-	    				"AND ISSUES.id = ISSUESSTATION.issue";
-	    		for(AISStation s : issue.getInvolvedStations()){
-	    			if(s.getDbId() < 0) s.setDbId(this.getStationID(s.getStationName(), s.getOrganizationName()));
-	    			
-	    			sql +=  " AND ISSUESSTATION.station = "+s.getDbId();
-	    		}
-	    		
-	    		PreparedStatement check = this.conn.prepareStatement(sql);
-	    		check.setInt(1, HealthCheckHandler.getRuleInt(issue.getRuleViolated()));
-
-	    		ResultSet is = check.executeQuery();
-	    		if(is.next()){
-	    			int issid = is.getInt(1);
-	    			issueIds.add(new Integer(issid));
-	    		}
-	    		is.close();
-	    		check.close();
-	    		
-	    	}
 	    	
 	    	for(AISDatalinkCheckIssue issue : issues){
 	    		//Check if this issue exists.
@@ -1102,12 +1076,26 @@ import dk.frv.eavdam.utils.HealthCheckHandler;
 	    	return issues;
 	    }
 	    
+	    private void deleteIssue(int id) throws Exception{
+	    	PreparedStatement ps = this.conn.prepareStatement("delete from ISSUESTIMESLOT where ISSUE = "+id);
+	    	ps.executeUpdate();
+
+	    	ps = this.conn.prepareStatement("delete from ISSUESSTATION where ISSUE = "+id);
+	    	ps.executeUpdate();
+	    	
+	    	ps = this.conn.prepareStatement("delete from ISSUES where ID = "+id);
+	    	ps.executeUpdate();
+	    	
+	    	ps.close();
+	    	
+	    }
+	    
 	    private List<AISDatalinkCheckIssue> retrieveIssuesWithinArea(double topLat, double leftLon, double lowLat, double rightLon) throws Exception{
 	    	List<AISDatalinkCheckIssue> issues = new ArrayList<AISDatalinkCheckIssue>();
 	    	
 			
 	    	PreparedStatement ps = this.conn.prepareStatement("select ID, RULEVIOLATED, ACKNOWLEDGED, DELETED from ISSUES,ISSUESSTATION,FIXEDSTATION where ISSUES.id = ISSUESSTATION.issue " +
-	    			"AND ISSUESSTATION.station = FIXEDSTATION.id AND ");
+	    			"AND ISSUESSTATION.station = FIXEDSTATION.id AND FIXEDSTATION.lat >= "+lowLat+" AND FIXEDSTATION.lat <= "+topLat+" AND FIXEDSTATION.lon >= "+leftLon+" AND FIXEDSTATION.lon <= "+rightLon);
 	    	ResultSet rs = ps.executeQuery();
 	    	while(rs.next()){
 	    		AISDatalinkCheckIssue issue = new AISDatalinkCheckIssue();
