@@ -265,7 +265,7 @@ public class HealthCheckHandler {
 			}
 			
 			for(String v : overlappingStations.get(s).keySet()){
-				if(checkRule1){
+				if(false){
 					//Checking the first rule.
 					List<AISTimeslot> problems = this.checkRule1(station, overlappingStations.get(s).get(v));
 					if(problems != null && problems.size() > 0){
