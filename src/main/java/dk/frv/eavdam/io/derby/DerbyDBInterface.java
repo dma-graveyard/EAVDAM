@@ -3599,7 +3599,7 @@ import dk.frv.eavdam.utils.HealthCheckHandler;
 				ps.executeUpdate();
 				ps.close();
 			}catch(Exception e){
-				e.printStackTrace();
+//				e.printStackTrace();
 				try{
 					System.out.print("No ISSUES table found. Creating it to match the latest version...");
 					Statement s = conn.createStatement();
