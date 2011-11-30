@@ -82,7 +82,7 @@ public class InitiateHealthCheckButton extends OMToolComponent implements Action
 	private JCheckBox rule6CheckBox;
 	private JCheckBox rule7CheckBox;
 	private LinkLabel rulesHelpLabel;
-	
+	private JCheckBox includePlannedCheckBox;
 	private JSlider resolutionSlider;
 	
 	private JButton goButton;
@@ -137,10 +137,10 @@ public class InitiateHealthCheckButton extends OMToolComponent implements Action
 				c.insets = new Insets(5,5,5,5);
 				
 				JPanel rulesPanel = new JPanel(new GridBagLayout());
-				rulesPanel.setPreferredSize(new Dimension(520, 300));
-				rulesPanel.setMaximumSize(new Dimension(520, 300));
-				rulesPanel.setMinimumSize(new Dimension(520, 300));					
-				rulesPanel.setBorder(BorderFactory.createTitledBorder("Which rules to process"));
+				rulesPanel.setPreferredSize(new Dimension(520, 330));
+				rulesPanel.setMaximumSize(new Dimension(520, 330));
+				rulesPanel.setMinimumSize(new Dimension(520, 330));					
+				rulesPanel.setBorder(BorderFactory.createTitledBorder("Which rules and stations to process"));
 
 				rule1CheckBox = new JCheckBox("Rule 1: Conflicting stations");
 				rule1CheckBox.setSelected(true);
@@ -181,17 +181,19 @@ public class InitiateHealthCheckButton extends OMToolComponent implements Action
 				rulesHelpLabel.addActionListener(this);
 				rulesPanel.add(rulesHelpLabel, c);
 				
+				c.gridy = 8;
+				includePlannedCheckBox = new JCheckBox("Process also planned stations");
+				rulesPanel.add(includePlannedCheckBox, c);				
+				
 				c.gridy = 0;
-				panel.add(rulesPanel, c);
+				panel.add(rulesPanel, c);		
 				
 				JPanel resolutionPanel = new JPanel(new GridBagLayout());
 				resolutionPanel.setBorder(BorderFactory.createTitledBorder("Resolution for area based check in nautical miles"));
 				resolutionPanel.setPreferredSize(new Dimension(520, 100));
 				resolutionPanel.setMaximumSize(new Dimension(520, 100));
 				resolutionPanel.setMinimumSize(new Dimension(520, 100));					
-
-				c.gridx = 0;
-				c.gridy = 0;			
+		
 				resolutionSlider = new JSlider(JSlider.HORIZONTAL, 1, 50, 10);
 				resolutionSlider.setPreferredSize(new Dimension(480, 50));
 				resolutionSlider.setMaximumSize(new Dimension(480, 50));
@@ -216,7 +218,7 @@ public class InitiateHealthCheckButton extends OMToolComponent implements Action
 				panel.add(resolutionPanel, c);
 				
 				JPanel buttonPanel = new JPanel(new GridBagLayout());        
-				buttonPanel.setBorder(BorderFactory.createEmptyBorder(20, 0, 0, 0));
+				buttonPanel.setBorder(BorderFactory.createEmptyBorder(10, 0, 0, 0));
 				c.gridx = 0;
 				c.gridy = 0;
 				c.gridwidth = 1;
@@ -236,7 +238,7 @@ public class InitiateHealthCheckButton extends OMToolComponent implements Action
 				dialog.getContentPane().add(panel);
 			
 				Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
-				dialog.setBounds((int) screenSize.getWidth()/2 - 640/2, (int) screenSize.getHeight()/2 - 550/2, 640, 550);
+				dialog.setBounds((int) screenSize.getWidth()/2 - 560/2, (int) screenSize.getHeight()/2 - 600/2, 600, 560);
 				dialog.setVisible(true);
 
 			 //} else if (response == JOptionPane.NO_OPTION) { 
@@ -316,12 +318,16 @@ public class InitiateHealthCheckButton extends OMToolComponent implements Action
 			if (rule7CheckBox.isSelected()) {
 				checkRule7 = true;
 			}
+			boolean includePlanned = false;
+			if (includePlannedCheckBox.isSelected()) {
+				includePlanned = true;
+			}
 			
 			double resolution = (double) resolutionSlider.getValue() / 10;
 			
 			new InitiateHealthCheckThread(data, this, checkRule1, checkRule2, checkRule3, checkRule4, 
-				checkRule5, checkRule6, checkRule7, topLeftLatitude, topLeftLongitude, lowerRightLatitude, 
-				lowerRightLongitude, resolution).start();
+				checkRule5, checkRule6, checkRule7, includePlanned, topLeftLatitude, topLeftLongitude,
+				lowerRightLatitude, lowerRightLongitude, resolution).start();
 			
 			sidePanel.getProgressIndicatorPane().setVisible(true);
 			
@@ -447,6 +453,7 @@ class InitiateHealthCheckThread extends Thread {
 	boolean checkRule5;
 	boolean checkRule6;
 	boolean checkRule7;
+	boolean includePlanned;
 	double topLeftLatitude;
 	double topLeftLongitude;
 	double lowerRightLatitude;
@@ -454,7 +461,7 @@ class InitiateHealthCheckThread extends Thread {
 	double resolution;
 	
 	InitiateHealthCheckThread(EAVDAMData data, AISDatalinkCheckListener listener, boolean checkRule1, boolean checkRule2,
-			boolean checkRule3, boolean checkRule4, boolean checkRule5, boolean checkRule6, boolean checkRule7,
+			boolean checkRule3, boolean checkRule4, boolean checkRule5, boolean checkRule6, boolean checkRule7, boolean includePlanned,
 			double topLeftLatitude, double topLeftLongitude, double lowerRightLatitude, double lowerRightLongitude, double resolution) {
 		this.data = data;
 		this.listener = listener;
@@ -465,6 +472,7 @@ class InitiateHealthCheckThread extends Thread {
 		this.checkRule5 = checkRule5;
 		this.checkRule6 = checkRule6;
 		this.checkRule7 = checkRule7;
+		this.includePlanned = includePlanned;
 		this.topLeftLatitude = topLeftLatitude;
 		this.topLeftLongitude = topLeftLongitude;
 		this.lowerRightLatitude = lowerRightLatitude;
@@ -475,7 +483,7 @@ class InitiateHealthCheckThread extends Thread {
 	public void run() {
 		HealthCheckHandler hch = new HealthCheckHandler(data);		
 		hch.startAISDatalinkCheck(listener, checkRule1, checkRule2, checkRule3, checkRule4, checkRule5, checkRule6,
-			checkRule7, topLeftLatitude, topLeftLongitude, lowerRightLatitude, lowerRightLongitude, resolution);		
+			checkRule7, includePlanned, topLeftLatitude, topLeftLongitude, lowerRightLatitude, lowerRightLongitude, resolution);		
 		
 		// XXX: for testing -->
 		/*
