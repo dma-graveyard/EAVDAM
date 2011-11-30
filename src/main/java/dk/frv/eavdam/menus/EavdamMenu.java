@@ -61,11 +61,13 @@ public class EavdamMenu extends AbstractOpenMapMenu implements MenuListener {
 		
 		// if user is not defined, open the edit user information dialog                                        
         if (data != null) {
-            EAVDAMUser user = data.getUser();
+		EAVDAMUser user = data.getUser();
 			if (user == null || user.getOrganizationName() == null || user.getOrganizationName().isEmpty()) {
-				userInformationMenuItem.doClick();
+			userInformationMenuItem.doClick();
 			}
-		}
+		} else {		
+			userInformationMenuItem.doClick();
+		}			
     }
 		
 	/*
