@@ -30,6 +30,8 @@ public class DBHandler {
     private static EAVDAMData data = new EAVDAMData();  // for testing before the database works        
     private static boolean initialized = false;    
     private static boolean updatedXML = false;
+	
+	public static boolean importDataUpdated = false;
     
     public static EAVDAMData getData() {        
 
@@ -37,51 +39,34 @@ public class DBHandler {
     	if(!initialized){
     		//Check if the database exists. It does the check in the constructor.
     		DerbyDBInterface d = new DerbyDBInterface();
-			
-			// loads other users' xmls
-			try {
-				Options options = getOptions();
-				String ownFileName = XMLHandler.getLatestDataFileName();
-				if (ownFileName != null && ownFileName.indexOf("/") != -1) {
-					ownFileName = ownFileName.substring(ownFileName.lastIndexOf("/")+1);
-				}			
-				List<FTP> ftps = options.getFTPs();
-				if (ftps != null && !ftps.isEmpty()) {
-					for (FTP ftp : ftps) {
-						try {
-							FTPClient ftpClient = FTPHandler.connect(ftp);
-							FTPHandler.importDataFromFTP(ftpClient, XMLHandler.importDataFolder, ownFileName);                                       
-							FTPHandler.disconnect(ftpClient);
-						} catch (IOException ex) {
-							System.out.println(ex.getMessage());
-							ex.printStackTrace();
-						}
-					}
-				}	
-				
-				
-	    	} catch (Exception e) {
-	    		e.printStackTrace();
-	//    		System.out.println(e.getMessage());
-	    	}	
-			
+	
+			new LoadXMLsFromFTPsThread().start();
+	
+	
     		d.closeConnection();
     		
     		dat = XMLHandler.importData();
     		initialized = true;
     	}else{
     	
- 
-	    	
 	    	try {
-	    		DerbyDBInterface d = new DerbyDBInterface();
-	            EAVDAMUser user = d.retrieveDefaultUser();  
-	            if(user != null){
-	            	System.out.println("Retrieved default user: "+user.getOrganizationName());
-	            
-	            }
-	            
-	        	dat = d.retrieveAllEAVDAMData(user);
+			
+				if (importDataUpdated) {
+				    dat = XMLHandler.importData();
+					importDataUpdated = false;
+					
+				} else {
+			
+					DerbyDBInterface d = new DerbyDBInterface();
+					EAVDAMUser user = d.retrieveDefaultUser();  
+					if(user != null){
+						System.out.println("Retrieved default user: "+user.getOrganizationName());
+					
+					}
+					
+					dat = d.retrieveAllEAVDAMData(user);
+				
+				}
 	        	
 	            //Test prints
 //	            for(ActiveStation a : dat.getActiveStations()){
@@ -128,7 +113,6 @@ public class DBHandler {
 //    	}catch(Exception e){
 //    		e.printStackTrace();
 //    	}
-
     		
         return dat;
 
@@ -229,5 +213,40 @@ public class DBHandler {
 			e.printStackTrace();
 		}
     }
+}
+
+
+// loads other users xmls from ftps
+class LoadXMLsFromFTPsThread extends Thread {
+		
+	LoadXMLsFromFTPsThread() {}
+	
+	public void run() {
+		try {
+			Options options = DBHandler.getOptions();
+			String ownFileName = XMLHandler.getLatestDataFileName();
+			if (ownFileName != null && ownFileName.indexOf("/") != -1) {
+				ownFileName = ownFileName.substring(ownFileName.lastIndexOf("/")+1);
+			}			
+			List<FTP> ftps = options.getFTPs();
+			if (ftps != null && !ftps.isEmpty()) {
+				for (FTP ftp : ftps) {
+					try {
+						FTPClient ftpClient = FTPHandler.connect(ftp);
+						FTPHandler.importDataFromFTP(ftpClient, XMLHandler.importDataFolder, ownFileName);                                       
+						FTPHandler.disconnect(ftpClient);
+					} catch (IOException ex) {
+						System.out.println(ex.getMessage());
+						ex.printStackTrace();
+					}
+				}
+			}	
+	    } catch (Exception e) {
+	    	e.printStackTrace();
+	//  	System.out.println(e.getMessage());
+	    }
+		DBHandler.importDataUpdated = true;		
+	}
+
 }
         

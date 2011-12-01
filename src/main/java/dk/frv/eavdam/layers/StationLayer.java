@@ -1371,7 +1371,7 @@ public class StationLayer extends OMGraphicHandlerLayer implements MapMouseListe
 		CheckTreeSelectionModel selectionModel = checkTreeManager.getSelectionModel();
 		
 		TreeModel model = tree.getModel();
-	
+
 		if (model != null) {
 			Object treeRoot = model.getRoot();
 			for (int i=0; i<model.getChildCount(treeRoot); i++) {
@@ -1455,7 +1455,7 @@ public class StationLayer extends OMGraphicHandlerLayer implements MapMouseListe
 										selectionPaths[0] = new TreePath(paths);
 										selectionModel.addSelectionPaths(selectionPaths);
 									}
-								} else {
+								} else {									
 									Object[] paths = new Object[3];
 									paths[0] = treeRoot;
 									paths[1] = node;
@@ -1855,7 +1855,7 @@ public class StationLayer extends OMGraphicHandlerLayer implements MapMouseListe
 					layerHandler.turnLayerOn(false, layer);
 					inLayers[i] = layer;
 					i++;
-				} else {				
+				} else {
 					boolean setting = initiallySelectedLayersVisibilities.get(layer).booleanValue();
 					layerHandler.turnLayerOn(setting, layer);
 					inLayers[i] = layer;
@@ -1910,7 +1910,7 @@ public class StationLayer extends OMGraphicHandlerLayer implements MapMouseListe
 		}
 
 		createTree();
-		
+
         data = DBHandler.getData();                        
         if (data != null) {
 		
@@ -1922,10 +1922,32 @@ public class StationLayer extends OMGraphicHandlerLayer implements MapMouseListe
 			
 			Map<String, Boolean> currentSelections = getCurrentSelections();
 			
+			boolean anyOwnStations = false;
+			for (Object key: currentSelections.keySet()) {			
+				if (((String) key).startsWith("Own")) {
+					anyOwnStations = true;
+					break;
+				}
+			}
+			boolean anySimulations = false;
+			for (Object key: currentSelections.keySet()) {			
+				if (((String) key).startsWith("Simulation")) {
+					anySimulations = true;
+					break;
+				}
+			}			
+			boolean anyOtherUsersStations = false;
+			for (Object key: currentSelections.keySet()) {			
+				if (((String) key).startsWith("Stations of organization")) {
+					anyOtherUsersStations = true;
+					break;
+				}
+			}			
+			
 			List<ActiveStation> activeStations = data.getActiveStations();
             if (activeStations != null) {
 				for (ActiveStation as : activeStations) {
-					if (as.getStations() != null) {
+					if (as.getStations() != null && anyOwnStations) {
 						for (AISFixedStationData stationData : as.getStations()) {
 							if (stationData.getStatus().getStatusID() == DerbyDBInterface.STATUS_ACTIVE) {
 								if (currentSelections.containsKey("Own operative stations /// " + stationData.getStationName())) {
@@ -1949,7 +1971,7 @@ public class StationLayer extends OMGraphicHandlerLayer implements MapMouseListe
 				}
 			}
 
-			if (data.getSimulatedStations() != null) {
+			if (data.getSimulatedStations() != null && anySimulations) {
 				for (Simulation s : data.getSimulatedStations()) {
 					List<AISFixedStationData> stations = s.getStations();
 					for (AISFixedStationData stationData : stations) {
@@ -1964,20 +1986,22 @@ public class StationLayer extends OMGraphicHandlerLayer implements MapMouseListe
 				}
 			}   
 			
-			for (OtherUserStations ous : data.getOtherUsersStations()) {
-				EAVDAMUser user = ous.getUser();
-				List<ActiveStation> otherUsersActiveStations = ous.getStations();
-				for (ActiveStation as : otherUsersActiveStations) {
-					List<AISFixedStationData> stations = as.getStations();
-					for (AISFixedStationData station : stations) {
-						if (station.getStatus().getStatusID() == DerbyDBInterface.STATUS_ACTIVE) {
-							if (currentSelections.containsKey("Stations of organization: " + user.getOrganizationName() + " /// " + station.getStationName())) {
-								if (currentSelections.get("Stations of organization: " + user.getOrganizationName() + " /// " + station.getStationName()).booleanValue() == true) {
-									this.addBaseStation(user, user, station);
-								}							
-							} else {
-								this.addBaseStation(user, user, station);					
-							}		
+			if (data.getOtherUsersStations() != null && anyOtherUsersStations) {
+				for (OtherUserStations ous : data.getOtherUsersStations()) {
+					EAVDAMUser user = ous.getUser();
+					List<ActiveStation> otherUsersActiveStations = ous.getStations();
+					for (ActiveStation as : otherUsersActiveStations) {
+						List<AISFixedStationData> stations = as.getStations();
+						for (AISFixedStationData station : stations) {
+							if (station.getStatus().getStatusID() == DerbyDBInterface.STATUS_ACTIVE) {
+								if (currentSelections.containsKey("Stations of organization: " + user.getOrganizationName() + " /// " + station.getStationName())) {
+									if (currentSelections.get("Stations of organization: " + user.getOrganizationName() + " /// " + station.getStationName()).booleanValue() == true) {
+										this.addBaseStation(user, user, station);
+									}							
+								} else {
+									this.addBaseStation(user, user, station);					
+								}		
+							}
 						}
 					}
 				}
