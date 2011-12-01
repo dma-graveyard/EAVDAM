@@ -91,7 +91,7 @@ public class AISDatalinkCheckBandwidthAreasLayer extends OMGraphicHandlerLayer {
 				}
 				if (c != null) {
 				
-					c = new Color(255, 0, 0, 100);  // FOR TESTING
+					//c = new Color(255, 0, 0, 100);  // FOR TESTING
 				
 					omRect.setFillPaint(c);
 					omRect.setLinePaint(c);
