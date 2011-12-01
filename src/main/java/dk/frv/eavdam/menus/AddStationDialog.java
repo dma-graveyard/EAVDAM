@@ -1008,8 +1008,8 @@ public class AddStationDialog extends JDialog implements ActionListener, ItemLis
 	
 		Map<String,List<FATDMACell>> fatdmaCellsMap = DefaultFATDMAReader.readDefaultValues(null, null);
 		List<FATDMACell> fatdmaCells = fatdmaCellsMap.get((String) selectIALADefaultFATDMASchemeComboBox.getSelectedItem());			
-
-		if (fatdmaCells.size() == 3) {			
+		
+		if (fatdmaCells != null && fatdmaCells.size() == 3) {			
 
 			if (baseStationReportInCheckBox.isSelected()) {
 			
