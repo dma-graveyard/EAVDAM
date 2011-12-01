@@ -90,6 +90,9 @@ public class AISDatalinkCheckBandwidthAreasLayer extends OMGraphicHandlerLayer {
 					c = new Color(204, 0, 0, (int) Math.round(2.55*40+(bandwithUsageLevel-0.5)*2*2.55*50));  // Above 50% BW loading: Dark red colors 60-10% transparency
 				}
 				if (c != null) {
+				
+					c = new Color(255, 0, 0, 100);  // FOR TESTING
+				
 					omRect.setFillPaint(c);
 					omRect.setLinePaint(c);
 					graphics.add(omRect);
