@@ -15,6 +15,7 @@ import com.bbn.openmap.proj.Length;
 import dk.frv.eavdam.data.AISDatalinkCheckIssue;
 import dk.frv.eavdam.data.AISStation;
 import dk.frv.eavdam.data.EAVDAMData;
+import dk.frv.eavdam.menus.IssuesMenuItem;
 import dk.frv.eavdam.utils.DBHandler;
 import java.awt.BasicStroke;
 import java.awt.Color;
@@ -40,8 +41,11 @@ public class AISDatalinkCheckIssueLayer extends OMGraphicHandlerLayer {
 	@Override
 	public synchronized OMGraphicList prepare() {		
 	
-		EAVDAMData data = DBHandler.getData();
-		List<AISDatalinkCheckIssue> issues = data.getAISDatalinkCheckIssues();
+		List<AISDatalinkCheckIssue> issues = IssuesMenuItem.issues;
+		if (issues == null) {
+			EAVDAMData data = DBHandler.getData();
+		    issues = data.getAISDatalinkCheckIssues();
+		}
 		
 		graphics.clear();
 		
