@@ -9,6 +9,7 @@ import dk.frv.eavdam.io.EmailSender;
 import dk.frv.eavdam.layers.StationLayer;
 import dk.frv.eavdam.utils.DBHandler;
 import dk.frv.eavdam.utils.IconChanger;
+import javax.swing.JOptionPane;
 import javax.swing.JSeparator;
 import javax.swing.event.MenuEvent;
 import javax.swing.event.MenuListener;
@@ -42,7 +43,7 @@ public class EavdamMenu extends AbstractOpenMapMenu implements MenuListener {
 		
         EAVDAMData data = DBHandler.getData(); 		
 		
-		userInformationMenuItem = new UserInformationMenuItem(this);
+		userInformationMenuItem = new UserInformationMenuItem(this, false);
         add(userInformationMenuItem);
 		stationInformationMenu = new StationInformationMenu(this);
         add(stationInformationMenu);         
@@ -61,11 +62,13 @@ public class EavdamMenu extends AbstractOpenMapMenu implements MenuListener {
 		
 		// if user is not defined, open the edit user information dialog                                        
         if (data != null) {
-		EAVDAMUser user = data.getUser();
+			EAVDAMUser user = data.getUser();
 			if (user == null || user.getOrganizationName() == null || user.getOrganizationName().isEmpty()) {
-			userInformationMenuItem.doClick();
+				userInformationMenuItem = new UserInformationMenuItem(this, true);
+				userInformationMenuItem.doClick();
 			}
 		} else {		
+			userInformationMenuItem = new UserInformationMenuItem(this, true);
 			userInformationMenuItem.doClick();
 		}			
     }
@@ -84,9 +87,8 @@ public class EavdamMenu extends AbstractOpenMapMenu implements MenuListener {
 		
 		removeAll();
 		
-		if (userInformationMenuItem == null) {
-			userInformationMenuItem = new UserInformationMenuItem(this);
-		}
+		userInformationMenuItem = new UserInformationMenuItem(this, false);
+
 		add(userInformationMenuItem);
 		if (stationInformationMenu == null) {
 			stationInformationMenu = new StationInformationMenu(this);

@@ -1871,7 +1871,7 @@ public class StationLayer extends OMGraphicHandlerLayer implements MapMouseListe
 			//eavdamMenu.getShowOnMapMenu().updateCoverageItems(receiveCoverageLayer.isVisible(), transmitCoverageLayer.isVisible(), interferenceCoverageLayer.isVisible());
 			updateStations();
 			stationsInitiallyUpdated = true;
-		}	
+		}		
 	}
 
 	private byte[] getImage(String filename) {    

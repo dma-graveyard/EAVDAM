@@ -57,9 +57,9 @@ public class UserInformationMenuItem extends JMenuItem {
 
 	private UserInformationActionListener userInformationActionListener;
 	
-    public UserInformationMenuItem(EavdamMenu eavdamMenu) {        
+    public UserInformationMenuItem(EavdamMenu eavdamMenu, boolean expectNoUserDefined) {
         super("Edit User Information");                
-		this.userInformationActionListener = new UserInformationActionListener(eavdamMenu);
+		this.userInformationActionListener = new UserInformationActionListener(eavdamMenu, expectNoUserDefined);
         addActionListener(userInformationActionListener);
     }
 
@@ -72,6 +72,8 @@ public class UserInformationMenuItem extends JMenuItem {
 class UserInformationActionListener implements ActionListener, DocumentListener {
 
     private EavdamMenu eavdamMenu;
+	
+	private boolean expectNoUserDefined;  // needed because in the exe version data may be null initially even if it isn't
                                                          
     private JDialog dialog;
     
@@ -99,9 +101,10 @@ class UserInformationActionListener implements ActionListener, DocumentListener 
     
     private EAVDAMData data;                
               
-    public UserInformationActionListener(EavdamMenu eavdamMenu) {
+    public UserInformationActionListener(EavdamMenu eavdamMenu, boolean expectNoUserDefined) {
         super();
         this.eavdamMenu = eavdamMenu;
+		this.expectNoUserDefined = expectNoUserDefined;
     }
 	
 	public void setData(EAVDAMData data) {
@@ -158,6 +161,9 @@ class UserInformationActionListener implements ActionListener, DocumentListener 
             }                                   
          
             if (user != null) {
+				if (expectNoUserDefined) {
+					return;
+				}	
                 if (user.getOrganizationName() != null) {
                     organizationNameTextField.setText(user.getOrganizationName());
                 }

@@ -1,7 +1,9 @@
 2011-11-29 Version 1.3
 
 	* User interfaces for performing the AIS VHF Datalink Health Check and displaying its results
+	* Database components for parts of the AIS VHF Datalink Health Check
 	* Show on map dialog for selecting which stations are shown on map
+	* Default interference coverage layer for directional antennas
 
 2011-11-23 Version 1.2
 
