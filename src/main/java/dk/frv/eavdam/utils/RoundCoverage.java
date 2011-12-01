@@ -133,7 +133,7 @@ public class RoundCoverage {
 	}
 	
 	/**
-	 * Gets the coverage area in a polygon form. 
+	 * Gets the coverage area (for directional antennas) in a polygon form. 
 	 * 
 	 * @param antennaHeight Height of the antenna.
 	 * @param receiverHeight Height of the receiver. Default is 4.0 meters.
@@ -144,30 +144,55 @@ public class RoundCoverage {
 	 * @param numberOfPoints Number of points in the polygon. Should be at least 10.
 	 * @return List of points (lat,lon) in the polygon. The first and the last point is the same. The index 0 in the double array has the latitude and the index 1 has the longitude. 
 	 */
-	public static List<double[]> getRoundInterferenceCoverage(double centerLat, double centerLon, double heading, double fieldOfViewAngle, int numberOfPoints){
+	public static List<double[]> getRoundInterferenceCoverage(double antennaHeight, double receiverHeight, double centerLat, double centerLon, double heading, double fieldOfViewAngle, int numberOfPoints){
 		List<double[]> points = new ArrayList<double[]>();
-				
+	
+		double radius1 = getRoundCoverageRadius(antennaHeight, receiverHeight);
+		
 		if(numberOfPoints < 10) numberOfPoints = 10;
 		
-		double partOfCircleAngle = (fieldOfViewAngle/5)/Math.round(numberOfPoints/2);
-		for(double angle = heading+(fieldOfViewAngle/10); angle >= heading-(fieldOfViewAngle/10); angle -= partOfCircleAngle){
-			double[] point = getCoordinates(centerLat, centerLon, 0.01, angle);
-			points.add(point);
+		double partOfCircleAngle = 180.0/Math.round(numberOfPoints/2);
+		
+		double startAngle = heading -90;
+		if (startAngle < 0) {
+			startAngle = 360 + startAngle;
 		}
-		double[] point = getCoordinates(centerLat, centerLon, 0.01, heading-(fieldOfViewAngle/10));
-		points.add(point);	
-		
-		double radius = 120*1.852;	
-		
+		double endAngle = heading + 90;
+		if (endAngle < 0) {
+			endAngle = 360 + endAngle;
+		}
+		if (endAngle < startAngle) {
+			double temp = endAngle;
+			endAngle = startAngle;
+			startAngle = temp;
+		}
+
+		double temp = -1;
+		for (double angle = startAngle; angle <= endAngle; angle += partOfCircleAngle){			
+			double[] point = getCoordinates(centerLat, centerLon, radius1, angle);
+			points.add(point);
+			temp = angle;
+		}
+		if (temp != endAngle) {
+			double[] point = getCoordinates(centerLat, centerLon, radius1, endAngle);
+			points.add(point);		
+		}
+
+		double radius2 = 120*1.852;	
+				
 		partOfCircleAngle = fieldOfViewAngle/Math.round(numberOfPoints/2);
 		for(double angle = heading-(fieldOfViewAngle/2); angle <= heading+(fieldOfViewAngle/2); angle += partOfCircleAngle){	
-			point = getCoordinates(centerLat, centerLon, radius, angle);
+			double[] point = getCoordinates(centerLat, centerLon, radius2, angle);
 			points.add(point);
+			temp = angle;			
 		}
-		point = getCoordinates(centerLat, centerLon, radius, heading+(fieldOfViewAngle/2));
-		points.add(point);		
+		if (temp != heading+(fieldOfViewAngle/2)) {
+			double[] point = getCoordinates(centerLat, centerLon, radius2, heading+(fieldOfViewAngle/2));
+			points.add(point);		
+		}
 
-		points.add(getCoordinates(centerLat, centerLon, 0.01, heading+(fieldOfViewAngle/10)));  // first point		
+		double[] point = getCoordinates(centerLat, centerLon, radius1, startAngle);  // first point		
+		points.add(point);
 		
 		return points;
 	}	

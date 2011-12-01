@@ -92,19 +92,35 @@ public class SlotMapDialog extends JDialog implements ActionListener {
 			", longitude " + String.valueOf(((double) Math.round(longitude*1000))/1000) + "</h1></body></html>"), c);
 		c.anchor = GridBagConstraints.LINE_START;
 		
+		JPanel infoPanel = new JPanel();
+		infoPanel.setLayout(new GridBagLayout()); 		
+		c.gridwidth = 1;		
+		infoPanel.add(new JLabel("Total bandwith usage:"), c);
+		c.gridx = 1;			
+		infoPanel.add(new JLabel("AIS1: " + (double) Math.round(10000 * slotmap.getBandwidthReservationA()) / 100 + " %"), c);
+		c.gridx = 2;			
+		infoPanel.add(new JLabel("AIS2: " + (double) Math.round(10000 * slotmap.getBandwidthReservationB()) / 100 + " %"), c);
+		c.gridx = 0;
 		c.gridy = 1;
-		panel.add(new JLabel("Total bandwith usage:   AIS1: " + (double) Math.round(10000 * slotmap.getBandwidthReservationA()) / 100 +
-			" %      AIS2: " + (double) Math.round(10000 * slotmap.getBandwidthReservationB()) / 100 + " %"), c);
+		infoPanel.add(new JLabel("Bandwidth in use by local fixed stations:"), c);	
+		c.gridx = 1;
+		infoPanel.add(new JLabel("AIS1: " + (double) Math.round(10000 * slotmap.getBandwidthUsedByLocalA()) / 100 + " %"), c);
+		c.gridx = 2;
+		infoPanel.add(new JLabel("AIS2: " + (double) Math.round(10000 * slotmap.getBandwidthUsedByLocalB()) / 100 + " %"), c);
+		c.gridx = 0;
+		c.gridy = 2;	
+		infoPanel.add(new JLabel("Bandwidth free for selection:"), c);
+		c.gridx = 1;	
+		infoPanel.add(new JLabel("AIS1: " + (double) Math.round(10000 * (1-slotmap.getBandwidthReservationA())) / 100 + " %"), c);
+		c.gridx = 2;	
+		infoPanel.add(new JLabel("AIS2: " + (double) Math.round(10000 * (1-slotmap.getBandwidthReservationB())) / 100 + " %"), c);
+			
+		c.gridwidth = 9;		
+		c.gridx = 0;
+		c.gridy = 1;
+		panel.add(infoPanel, c);
 		
-		c.gridy = 2;
-		panel.add(new JLabel("Bandwidth in use by local fixed stations:   AIS1: " + (double) Math.round(10000 * slotmap.getBandwidthUsedByLocalA()) / 100 +
-			" %      AIS2: " + (double) Math.round(10000 * slotmap.getBandwidthUsedByLocalB()) / 100 + " %"), c);	
-
-		c.gridy = 3;
-		panel.add(new JLabel("Bandwidth free for selection:   AIS1: " + (double) Math.round(10000 * (1-slotmap.getBandwidthReservationA())) / 100 +
-			" %      AIS2: " + (double) Math.round(10000 * (1-slotmap.getBandwidthReservationB())) / 100 + " %"), c);
-		c.gridwidth = 1;
-		
+		c.gridwidth = 1;		
 		c.gridy = 0;
 		JPanel timeslotsChartPanel = new JPanel();
 		timeslotsChartPanel.setLayout(new GridBagLayout()); 
@@ -152,7 +168,7 @@ public class SlotMapDialog extends JDialog implements ActionListener {
 		}		
 
 		c.gridx = 0;
-		c.gridy = 4;
+		c.gridy = 2;
 		c.gridwidth = 9;
 		panel.add(timeslotsChartPanel, c);
 		
@@ -232,11 +248,11 @@ public class SlotMapDialog extends JDialog implements ActionListener {
 		slotsPanel.add(slots2001_2249LinkLabel, c);		
 
 		c.gridx = 0;
-		c.gridy = 5;		
+		c.gridy = 3;		
 		c.gridwidth = 9;
 		panel.add(slotsPanel, c);
 
-		c.gridy = 6;
+		c.gridy = 4;
 		c.gridwidth = 1;
 		c.fill = GridBagConstraints.BOTH;
 		c.insets = new Insets(0,0,0,0);
@@ -256,7 +272,7 @@ public class SlotMapDialog extends JDialog implements ActionListener {
 		ais2Label.setBorder(BorderFactory.createMatteBorder(1, 0, 1, 1, Color.BLACK));
 		panel.add(ais2Label, c);				
 		c.gridx = 0;                
-		c.gridy = 7;
+		c.gridy = 5;
 		c.gridwidth = 1;
 		JLabel slotnoLabel = new JLabel(" Slotno.  ");
 		slotnoLabel.setFont(new Font("Arial", Font.BOLD, 14));

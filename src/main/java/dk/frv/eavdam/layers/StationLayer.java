@@ -302,7 +302,7 @@ public class StationLayer extends OMGraphicHandlerLayer implements MapMouseListe
 					if (stationData.getInterferenceCoverage() != null && stationData.getInterferenceCoverage().getCoveragePoints() != null) {
 						base.setInterferenceCoverageArea(stationData.getInterferenceCoverage().getCoveragePoints());
 					} else {
-						ArrayList<double[]> points = (ArrayList<double[]>) RoundCoverage.getRoundInterferenceCoverage(stationData.getLat(), stationData.getLon(),
+						ArrayList<double[]> points = (ArrayList<double[]>) RoundCoverage.getRoundInterferenceCoverage(antenna.getAntennaHeight()+antenna.getTerrainHeight(), 4, stationData.getLat(), stationData.getLon(),
 							(double) antenna.getHeading().intValue(), (double) antenna.getFieldOfViewAngle().intValue(), 25);
 						base.setInterferenceCoverageArea(points);
 						data = saveCoverage(data, base, points, interferenceCoverageLayer);
@@ -1122,8 +1122,9 @@ public class StationLayer extends OMGraphicHandlerLayer implements MapMouseListe
 					ArrayList<double[]> points = null;
 					if (antenna != null) {						
 						if (antenna.getAntennaType() == AntennaType.DIRECTIONAL) {
-							points = (ArrayList<double[]>) RoundCoverage.getRoundInterferenceCoverage(stationData.getLat(), stationData.getLon(),
-								(double) antenna.getHeading().intValue(), (double) antenna.getFieldOfViewAngle().intValue(), numberOfPoints);								
+							points = (ArrayList<double[]>) RoundCoverage.getRoundInterferenceCoverage(antenna.getAntennaHeight()+antenna.getTerrainHeight(), 4,
+								stationData.getLat(), stationData.getLon(), (double) antenna.getHeading().intValue(),
+								(double) antenna.getFieldOfViewAngle().intValue(), numberOfPoints);								
 						} else {
 							points = (ArrayList<double[]>) RoundCoverage.getRoundInterferenceCoverage(stationData.getLat(), stationData.getLon(), numberOfPoints);
 						}					
