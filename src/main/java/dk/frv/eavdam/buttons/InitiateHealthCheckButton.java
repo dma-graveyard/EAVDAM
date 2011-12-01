@@ -9,6 +9,8 @@ import com.bbn.openmap.gui.OpenMapFrame;
 import com.bbn.openmap.gui.Tool;
 import com.bbn.openmap.proj.Projection;
 import dk.frv.eavdam.app.SidePanel;
+import dk.frv.eavdam.data.AISDatalinkCheckArea;
+import dk.frv.eavdam.data.AISDatalinkCheckIssue;
 import dk.frv.eavdam.data.AISDatalinkCheckResult;
 import dk.frv.eavdam.data.EAVDAMData;
 import dk.frv.eavdam.data.Options;
@@ -40,6 +42,7 @@ import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.Hashtable;
 import java.util.List;
 import javax.mail.MessagingException;
@@ -354,14 +357,38 @@ public class InitiateHealthCheckButton extends OMToolComponent implements Action
 	public void completed(AISDatalinkCheckResult result) {	
 
 		if (data == null) {
-			data = DBHandler.getData();
+			data = DBHandler.getData();		
 		}
 		
-		if (result == null) {
-			data.setAISDatalinkCheckIssues(null);		
-		} else {			
-			data.setAISDatalinkCheckIssues(result.getIssues());
-			IssuesMenuItem.issues = result.getIssues();
+		data.setAISDatalinkCheckIssues(null);			
+		IssuesMenuItem.issues = null;
+		
+		if (result != null) {
+						
+			//data.setAISDatalinkCheckIssues(result.getIssues());  // UNCOMMENT WHEN HEALTH CHECK HANDLER WORKS LIKE THIS
+			//IssuesMenuItem.issues = result.getIssues();
+			
+			// FOR TESTING FOR NOW
+			if (result.getAreas() != null && !result.getAreas().isEmpty()) {
+				List<AISDatalinkCheckIssue> issues = new ArrayList<AISDatalinkCheckIssue>();
+				for (AISDatalinkCheckArea area : result.getAreas()) {
+					List<AISDatalinkCheckIssue> temp = area.getIssues();
+					if (temp != null) {
+						for (AISDatalinkCheckIssue issue : temp) {
+							if (!issues.contains(issue)) {
+								issues.add(issue);
+							}
+						}
+					}
+				}
+				data.setAISDatalinkCheckIssues(issues);
+				IssuesMenuItem.issues = issues;
+			}
+		}
+
+		int numberOfIssues = 0;
+		if (IssuesMenuItem.issues != null) {
+			numberOfIssues = IssuesMenuItem.issues.size();
 		}
 		
 		DBHandler.saveData(data);		
@@ -380,7 +407,7 @@ public class InitiateHealthCheckButton extends OMToolComponent implements Action
 			}
 		}		
 		if (aisDatalinkCheckIssueLayer != null) {
-			layerHandler.moveLayer(aisDatalinkCheckIssueLayer, 0);		
+			layerHandler.moveLayer(aisDatalinkCheckIssueLayer, 0);
 		}
 		layersMenu.setLayers(layers);
 
@@ -395,10 +422,6 @@ public class InitiateHealthCheckButton extends OMToolComponent implements Action
 		c.gridy = 0;
 		c.anchor = GridBagConstraints.LINE_START;
 		c.insets = new Insets(5,5,5,5);
-		int numberOfIssues = 0;
-		if (result != null && result.getIssues() != null) {
-			numberOfIssues = result.getIssues().size();
-		}
 		JLabel titleLabel = new JLabel("<html><body><p>The AIS VHF datalink health check is now completed. Found " + numberOfIssues +
 			" issues. View issues now or later through the Eavdam menu. The AIS VHF datalink issues and bandwidth areas layers are also activated.<p></body></html>");
 		titleLabel.setPreferredSize(new Dimension(330, 90));

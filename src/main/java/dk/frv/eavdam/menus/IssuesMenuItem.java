@@ -156,6 +156,14 @@ class IssuesMenuItemActionListener implements ActionListener {
 			c.anchor = GridBagConstraints.LINE_START;
 			
 			c.gridy = 1;
+			c.insets = new Insets(5,0,15,5);			
+			String numberOfIssuesLabel = "Number of issues: " + IssuesMenuItem.issues.size();
+			if (IssuesMenuItem.issues.size() > 100) {
+				numberOfIssuesLabel += " (displaying 100 first)";
+			}
+			panel.add(new JLabel(numberOfIssuesLabel), c);			
+			
+			c.gridy = 2;
 			c.gridwidth = 1;
 			c.fill = GridBagConstraints.BOTH;
 			c.insets = new Insets(0,0,0,0);
@@ -192,7 +200,15 @@ class IssuesMenuItemActionListener implements ActionListener {
 			deleteTitleLabel.setBorder(BorderFactory.createMatteBorder(1, 0, 1, 1, Color.BLACK));
 			panel.add(deleteTitleLabel, c);
 			
+			int count = 0;
+			
 			for (AISDatalinkCheckIssue issue : IssuesMenuItem.issues) {
+			
+				if (count == 100) {
+					break;
+				} else {
+					count++;
+				}
 			
 				int id = issue.getId();
 				AISDatalinkCheckRule ruleViolated = issue.getRuleViolated();
@@ -369,15 +385,14 @@ class IssuesMenuItemActionListener implements ActionListener {
 		}			
 		
 		JScrollPane scrollPane = new JScrollPane(panel);
-		
-		/*
-		scrollPane.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
 		scrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
 		scrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
-		scrollPane.setPreferredSize(new Dimension(SLOTMAP_WINDOW_WIDTH, SLOTMAP_WINDOW_HEIGHT));
-		scrollPane.setMaximumSize(new Dimension(SLOTMAP_WINDOW_WIDTH, SLOTMAP_WINDOW_HEIGHT));
-		
-		*/
+		//scrollPane.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+		if (scrollPane.getViewport().getViewSize().getHeight() > IssuesMenuItem.ISSUES_WINDOW_HEIGHT-60) {
+			scrollPane.setPreferredSize(new Dimension(IssuesMenuItem.ISSUES_WINDOW_WIDTH, IssuesMenuItem.ISSUES_WINDOW_HEIGHT-60));
+			scrollPane.setMaximumSize(new Dimension(IssuesMenuItem.ISSUES_WINDOW_WIDTH, IssuesMenuItem.ISSUES_WINDOW_HEIGHT-60));
+		}
+		scrollPane.validate();
 		
 		return scrollPane;
 	}
