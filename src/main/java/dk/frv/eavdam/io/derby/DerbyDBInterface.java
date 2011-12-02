@@ -1005,7 +1005,7 @@ import dk.frv.eavdam.utils.HealthCheckHandler;
 			    					for(AISStation s : issue.getInvolvedStations()){
 			    						boolean found = false;
 			    						for(AISStation cs : c.getInvolvedStations()){
-			    							System.out.println(s.getStationName()+"-"+s.getOrganizationName()+" vs "+cs.getStationName()+"-"+cs.getOrganizationName());
+//			    							System.out.println(s.getStationName()+"-"+s.getOrganizationName()+" vs "+cs.getStationName()+"-"+cs.getOrganizationName());
 			    							if((s.getStationName().replaceAll(" \\(P\\)", "")+"-"+s.getOrganizationName()).equals(cs.getStationName().replaceAll(" \\(P\\)", "")+"-"+cs.getOrganizationName())){
 //			    								System.out.println("Found a match!");
 			    								found = true;
@@ -1019,11 +1019,11 @@ import dk.frv.eavdam.utils.HealthCheckHandler;
 			    						}else{
 			    							++foundMatches;
 			    						}
-			    						System.out.println("\tFound "+foundMatches+" matches");
+//			    						System.out.println("\tFound "+foundMatches+" matches");
 			    					}
-		    						System.out.println("TOTAL: Found "+foundMatches+"/"+issue.getInvolvedStations().size()+" matches");
+//		    						System.out.println("TOTAL: Found "+foundMatches+"/"+issue.getInvolvedStations().size()+" matches");
 			    					if(foundMatches == issue.getInvolvedStations().size()){
-			    						System.out.println("ADDED!");
+//			    						System.out.println("ADDED!");
 			    						issue.setAcknowledged(c.isAcknowledged());
 			    						issue.setDeleted(c.isDeleted());
 			    						break;
@@ -1041,7 +1041,7 @@ import dk.frv.eavdam.utils.HealthCheckHandler;
 	    	while(drs.next()){
 	    		deleteIds.add(new Integer(drs.getInt(1)));
 	    	}
-	    	System.out.println("Found "+deleteIds.size()+" from issues to be deleted!");
+//	    	System.out.println("Found "+deleteIds.size()+" from issues to be deleted!");
 	    	findDelete.close();
 	    	drs.close();
 	    	
@@ -1062,7 +1062,7 @@ import dk.frv.eavdam.utils.HealthCheckHandler;
 	    	
 	    	for(AISDatalinkCheckIssue issue : issues){
 	    		if(issue.isAcknowledged() || issue.isDeleted()){
-	    			System.out.println("Not adding issue --> ack: "+issue.isAcknowledged()+" | del: "+issue.isDeleted());
+//	    			System.out.println("Not adding issue --> ack: "+issue.isAcknowledged()+" | del: "+issue.isDeleted());
 	    			continue; //Do not add this again
 	    		}
 	    		
@@ -1080,7 +1080,7 @@ import dk.frv.eavdam.utils.HealthCheckHandler;
 		    		
 		    		ps.executeUpdate();
 		    		if(issue.isAcknowledged()){
-		    			System.out.println("Added an acknowledge issue!");
+//		    			System.out.println("Added an acknowledge issue!");
 		    		}
 		    		
 		    		//Store stations for this issues.
@@ -1138,9 +1138,7 @@ import dk.frv.eavdam.utils.HealthCheckHandler;
 	    	
 	    	issues = temp;
 	    	
-	    	for(AISDatalinkCheckIssue i : issues){
-	    		System.out.println(i.isAcknowledged());
-	    	}
+
 	    }
 	    
 	    private List<AISDatalinkCheckIssue> retrieveAllIssues() throws Exception{
@@ -1600,6 +1598,10 @@ import dk.frv.eavdam.utils.HealthCheckHandler;
 	    	PreparedStatement ps = null;
 	    	
 	    	if(stationID <= 0) return;
+	    	
+	    	ps = conn.prepareStatement("delete from ISSUESSTATION where station = ?");
+	    	ps.setInt(1, stationID);
+	    	ps.executeUpdate();
 	    	
 	    	ps = conn.prepareStatement("delete from COVERAGEPOINTS where station = ?");
 	    	ps.setInt(1, stationID);
