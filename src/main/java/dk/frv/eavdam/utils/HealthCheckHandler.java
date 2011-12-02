@@ -259,26 +259,6 @@ public class HealthCheckHandler {
 				
 			}
 			
-			if(false){ //3. Rule
-				List<AISTimeslot> problems = this.checkRule4(station);
-				if(problems != null && problems.size() > 0){
-					
-					List<AISStation> stations = new ArrayList<AISStation>();
-					AISStation s1 = new AISStation(station.getOperator().getOrganizationName(), station.getStationName(), station.getLat(), station.getLon());
-					s1.setDbId(station.getStationDBID());
-					stations.add(s1);
-					
-					String problemName = "RULE3_"+s1.getOrganizationName()+"_"+s1.getStationName();
-					if(!foundProblems.contains(problemName)){
-						AISDatalinkCheckIssue issue = new AISDatalinkCheckIssue(-1,AISDatalinkCheckRule.RULE3,getRuleSeverity(AISDatalinkCheckRule.RULE3),stations,problems);
-						
-						foundProblems.add(problemName);
-						
-						issues.add(issue);
-					}
-				}
-			}
-			
 			if(checkRule4){
 				List<AISTimeslot> problems = this.checkRule4(station);
 				if(problems != null && problems.size() > 0){
@@ -297,11 +277,31 @@ public class HealthCheckHandler {
 						issues.add(issue);
 					}
 				}
-				
-				
 			}
 			
+			if(checkRule5){
+				
+				if(this.checkRule5(station)){
+					
+					List<AISStation> stations = new ArrayList<AISStation>();
+					AISStation s1 = new AISStation(station.getOperator().getOrganizationName(), station.getStationName(), station.getLat(), station.getLon());
+					s1.setDbId(station.getStationDBID());
+					stations.add(s1);
+					
+					String problemName = "RULE5_"+s1.getOrganizationName()+"_"+s1.getStationName();
+					if(!foundProblems.contains(problemName)){
+						AISDatalinkCheckIssue issue = new AISDatalinkCheckIssue(-1,AISDatalinkCheckRule.RULE4,getRuleSeverity(AISDatalinkCheckRule.RULE4),stations,null);
+						
+						foundProblems.add(problemName);
+						
+						issues.add(issue);
+					}
+				}
+			}
+			
+			
 			for(String v : overlappingStations.get(s).keySet()){
+				if(true) break;
 				if(false){ //1. rule
 					//Checking the first rule.
 					List<AISTimeslot> problems = this.checkRule1(station, overlappingStations.get(s).get(v));
@@ -403,6 +403,10 @@ public class HealthCheckHandler {
 	
 	
 	
+	private boolean checkRule5(AISFixedStationData station) {
+		return FATDMAUtils.areReservedBlocksAccordingToFATDMAScheme((float)station.getLat(), (float)station.getLon(), station.getReservedBlocksForChannelA(), station.getReservedBlocksForChannelB());
+	}
+
 	private List<AISFixedStationData> getLatitudeStopPoints() {
 		List<AISFixedStationData> latitudeStopPoints = new ArrayList<AISFixedStationData>();
 		

@@ -1037,7 +1037,7 @@ import dk.frv.eavdam.utils.HealthCheckHandler;
 	    	
     		//Delete stations that are not acknowledged!
 	    	for(Integer did : deleteIds){
-	    		PreparedStatement delete = conn.prepareStatement("delete from ISSUESSTATION where issue = "+did.intValue());
+	    		PreparedStatement delete = conn.prepareStatement("delete from ISSUESSTATION where ISSUESSTATION.issue = "+did.intValue());
 	    		delete.executeUpdate();
 	    		
 	    		delete = conn.prepareStatement("delete from ISSUESTIMESLOT where ISSUESTIMESLOT.issue = "+did.intValue());
