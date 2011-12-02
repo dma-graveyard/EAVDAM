@@ -1011,33 +1011,47 @@ import dk.frv.eavdam.utils.HealthCheckHandler;
 	    			}
 	    		}
 	    		
-	    		PreparedStatement check = conn.prepareStatement("select acknowledged from ISSUES, ISSUESSTATION, ISSUESTIMESLOT where "+whereClause);
+	    		PreparedStatement check = conn.prepareStatement("select acknowledged, deleted from ISSUES, ISSUESSTATION, ISSUESTIMESLOT where "+whereClause);
 			    ResultSet checkRS = check.executeQuery();
 	    		if(checkRS.next()){
 	    			if(!issue.isAcknowledged()){
 	    				issue.setAcknowledged((checkRS.getInt(1) == 1));
 	    			}
-	    			
+	    			if(!issue.isDeleted()){
+	    				issue.setDeleted((checkRS.getInt(2) == 1));
+	    			}
 	    		}
 	    		
 	    		checkRS.close();
 	    		check.close();
 	    	}
 	    	
+	    	List<Integer> deleteIds = new ArrayList<Integer>();
+	    	PreparedStatement findDelete =  conn.prepareStatement("select id from issues where acknowledged != 1 OR deleted != 1");
+	    	ResultSet drs = findDelete.executeQuery();
+	    	while(drs.next()){
+	    		deleteIds.add(new Integer(drs.getInt(1)));
+	    	}
+	    	findDelete.close();
+	    	drs.close();
+	    	
     		//Delete stations that are not acknowledged!
-    		PreparedStatement delete = conn.prepareStatement("delete from ISSUESSTATION where ISSUESSTATION.issue = ISSUES.id AND ISSUES.acknowledged = 0");
-    		delete.executeUpdate();
+	    	for(Integer did : deleteIds){
+	    		PreparedStatement delete = conn.prepareStatement("delete from ISSUESSTATION where issue = "+did.intValue());
+	    		delete.executeUpdate();
+	    		
+	    		delete = conn.prepareStatement("delete from ISSUESTIMESLOT where ISSUESTIMESLOT.issue = "+did.intValue());
+	    		delete.executeUpdate();
+	    		
+	    		delete = conn.prepareStatement("delete from ISSUES where id = "+did.intValue());
+	    		delete.executeUpdate();
+	    		
+	    		delete.close();
     		
-    		delete = conn.prepareStatement("delete from ISSUESTIMESLOT where ISSUESTIMESLOT.issue = ISSUES.id AND ISSUES.acknowledged = 0");
-    		delete.executeUpdate();
-    		
-    		delete = conn.prepareStatement("delete from ISSUES where acknowledged = 0");
-    		delete.executeUpdate();
-    		
-    		delete.close();
+	    	}
 	    	
 	    	for(AISDatalinkCheckIssue issue : issues){
-
+	    		if(issue.isAcknowledged() || issue.isDeleted()) continue; //Do not add this again
 	    		
 	    		//Insert into database.
 		    		PreparedStatement ps = conn.prepareStatement("insert into ISSUES values(?,?,?,?)");
