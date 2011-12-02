@@ -196,6 +196,15 @@ public class DefaultFATDMAReader {
 				channelValues.add(cell);
 			}
 			
+			if(channelValues != null){ //Store the last values...
+				List<FATDMACell> dcl = new ArrayList<FATDMACell>();
+				for(FATDMACell dc : channelValues){
+					dcl.add(dc);
+				}
+//				System.out.println(currentCell);
+				values.put(currentCell, dcl);
+			}
+			
 		}catch(Exception e){
 			e.printStackTrace();
 		}
@@ -217,7 +226,8 @@ public class DefaultFATDMAReader {
 		for(String c : cells.keySet()){
 			
 			for(FATDMACell cell : cells.get(c)){
-				System.out.println(c+": "+cell.toString());
+				if(cell.getCell().equals("36-II"))
+					System.out.println(c+": "+cell.toString());
 			}
 			
 		}
