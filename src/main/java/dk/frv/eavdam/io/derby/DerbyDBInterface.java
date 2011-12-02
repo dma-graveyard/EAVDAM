@@ -1027,11 +1027,12 @@ import dk.frv.eavdam.utils.HealthCheckHandler;
 	    	}
 	    	
 	    	List<Integer> deleteIds = new ArrayList<Integer>();
-	    	PreparedStatement findDelete =  conn.prepareStatement("select id from issues where acknowledged != 1 OR deleted != 1");
+	    	PreparedStatement findDelete =  conn.prepareStatement("select id from issues where acknowledged = 0 AND deleted = 0");
 	    	ResultSet drs = findDelete.executeQuery();
 	    	while(drs.next()){
 	    		deleteIds.add(new Integer(drs.getInt(1)));
 	    	}
+	    	System.out.println("Found "+deleteIds.size()+" from issues to be deleted!");
 	    	findDelete.close();
 	    	drs.close();
 	    	
@@ -1051,7 +1052,10 @@ import dk.frv.eavdam.utils.HealthCheckHandler;
 	    	}
 	    	
 	    	for(AISDatalinkCheckIssue issue : issues){
-	    		if(issue.isAcknowledged() || issue.isDeleted()) continue; //Do not add this again
+	    		if(issue.isAcknowledged() || issue.isDeleted()){
+	    			System.out.println("Not adding issue --> ack: "+issue.isAcknowledged()+" | del: "+issue.isDeleted());
+	    			continue; //Do not add this again
+	    		}
 	    		
 	    		//Insert into database.
 		    		PreparedStatement ps = conn.prepareStatement("insert into ISSUES values(?,?,?,?)");
