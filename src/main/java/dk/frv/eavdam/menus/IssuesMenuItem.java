@@ -428,9 +428,11 @@ class AcknowledgeAction extends AbstractAction {
     public void actionPerformed(ActionEvent e) {
 		EAVDAMData data = DBHandler.getData();
 		HealthCheckHandler hch = new HealthCheckHandler(data);
-		//data = hch.acknowledgeIssue(id);  // NOT YET IMPLEMENTED
-		DBHandler.saveData(data);
-		issuesMenuItemActionListener.updateScrollPane();
+		//List<AISDatalinkCheckIssue> issues = hch.acknowledgeIssue(id);  // NOT YET IMPLEMENTED
+		//IssuesMenuItem.issues = issues;
+		//data.setAISDatalinkCheckIssues(issues);
+		//DBHandler.saveData(data);
+		//issuesMenuItemActionListener.updateScrollPane();
     }
 }
 
@@ -450,8 +452,10 @@ class DeleteAction extends AbstractAction {
     public void actionPerformed(ActionEvent e) {
 		EAVDAMData data = DBHandler.getData();
 		HealthCheckHandler hch = new HealthCheckHandler(data);
-		//data = hch.deleteIssue(id);  // NOT YET IMPLEMENTED
-		DBHandler.saveData(data);
-		issuesMenuItemActionListener.updateScrollPane();
+		//List<AISDatalinkCheckIssue> issues = hch.deleteIssue(id);  // NOT YET IMPLEMENTED
+		//IssuesMenuItem.issues = issues;
+		//data.setAISDatalinkCheckIssues(issues);
+		//DBHandler.saveData(data);
+		//issuesMenuItemActionListener.updateScrollPane();
     }
 }
