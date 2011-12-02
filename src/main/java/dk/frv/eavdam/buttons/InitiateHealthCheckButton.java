@@ -386,9 +386,16 @@ public class InitiateHealthCheckButton extends OMToolComponent implements Action
 			}
 		}
 
-		int numberOfIssues = 0;
+		int numberOfOldIssues = 0;		
+		int numberOfNewIssues = 0;
 		if (IssuesMenuItem.issues != null) {
-			numberOfIssues = IssuesMenuItem.issues.size();
+			for (AISDatalinkCheckIssue issue : IssuesMenuItem.issues) {
+				if (issue.isAcknowledged()) {
+					numberOfOldIssues++;
+				} else {
+					numberOfNewIssues++;
+				}
+			}
 		}
 		
 		DBHandler.saveData(data);		
@@ -408,6 +415,8 @@ public class InitiateHealthCheckButton extends OMToolComponent implements Action
 		}		
 		if (aisDatalinkCheckIssueLayer != null) {
 			layerHandler.moveLayer(aisDatalinkCheckIssueLayer, 0);
+			aisDatalinkCheckIssueLayer.repaint();
+			aisDatalinkCheckIssueLayer.validate();
 		}
 		layersMenu.setLayers(layers);
 
@@ -422,8 +431,9 @@ public class InitiateHealthCheckButton extends OMToolComponent implements Action
 		c.gridy = 0;
 		c.anchor = GridBagConstraints.LINE_START;
 		c.insets = new Insets(5,5,5,5);
-		JLabel titleLabel = new JLabel("<html><body><p>The AIS VHF datalink health check is now completed. Found " + numberOfIssues +
-			" issues. View issues now or later through the Eavdam menu. The AIS VHF datalink issues and bandwidth areas layers are also activated.<p></body></html>");
+		JLabel titleLabel = new JLabel("<html><body><p>The AIS VHF datalink health check is now completed. Found " + numberOfNewIssues +
+			" new issues and " + numberOfOldIssues + " acknowledged issues. View issues now or later through the Eavdam menu. The AIS "+
+			"VHF datalink issues and bandwidth areas layers are also activated.<p></body></html>");
 		titleLabel.setPreferredSize(new Dimension(330, 90));
 		titleLabel.setMaximumSize(new Dimension(330, 90));
 		titleLabel.setMinimumSize(new Dimension(330, 90));
