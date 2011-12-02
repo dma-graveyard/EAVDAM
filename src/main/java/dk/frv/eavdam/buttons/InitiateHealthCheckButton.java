@@ -365,10 +365,11 @@ public class InitiateHealthCheckButton extends OMToolComponent implements Action
 		
 		if (result != null) {
 						
-			//data.setAISDatalinkCheckIssues(result.getIssues());  // UNCOMMENT WHEN HEALTH CHECK HANDLER WORKS LIKE THIS
-			//IssuesMenuItem.issues = result.getIssues();
+			data.setAISDatalinkCheckIssues(result.getIssues());
+			IssuesMenuItem.issues = result.getIssues();
 			
 			// FOR TESTING FOR NOW
+			/*
 			if (result.getAreas() != null && !result.getAreas().isEmpty()) {
 				List<AISDatalinkCheckIssue> issues = new ArrayList<AISDatalinkCheckIssue>();
 				for (AISDatalinkCheckArea area : result.getAreas()) {
@@ -384,6 +385,7 @@ public class InitiateHealthCheckButton extends OMToolComponent implements Action
 				data.setAISDatalinkCheckIssues(issues);
 				IssuesMenuItem.issues = issues;
 			}
+			*/
 		}
 
 		int numberOfOldIssues = 0;		
