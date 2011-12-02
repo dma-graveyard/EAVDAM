@@ -351,7 +351,7 @@ class IssuesMenuItemActionListener implements ActionListener {
 				acknowledgeButton.setMargin(new Insets(1,1,1,1));  					
 				acknowledgeButton.setFont(new Font("Arial", Font.PLAIN, 12));
 				acknowledgeButton.setFocusPainted(false);
-				acknowledgeButton.setAction(new AcknowledgeAction("Acknowledge", this, dialog, id));
+				acknowledgeButton.setAction(new AcknowledgeAction("Acknowledge", this, dialog, issue));
 				if (acknowledged) {
 					acknowledgeButton.setEnabled(false);
 				}
@@ -373,7 +373,7 @@ class IssuesMenuItemActionListener implements ActionListener {
 				deleteButton.setMargin(new Insets(1,1,1,1));  				
 				deleteButton.setFont(new Font("Arial", Font.PLAIN, 12));							
 				deleteButton.setFocusPainted(false);				
-				deleteButton.setAction(new DeleteAction("Delete", this, dialog, id));				
+				deleteButton.setAction(new DeleteAction("Delete", this, dialog, issue));				
 				Box verticalBox2 = Box.createVerticalBox();			
 				verticalBox2.add(Box.createVerticalGlue());
 				verticalBox2.add(deleteButton);
@@ -419,25 +419,25 @@ class AcknowledgeAction extends AbstractAction {
     public static final long serialVersionUID = 1L;
 
 	private IssuesMenuItemActionListener issuesMenuItemActionListener;
-	private int id;
+	private AISDatalinkCheckIssue issue;
 	private JDialog dialog;
 
-    public AcknowledgeAction(String name, IssuesMenuItemActionListener issuesMenuItemActionListener, JDialog dialog, int id) {
+    public AcknowledgeAction(String name, IssuesMenuItemActionListener issuesMenuItemActionListener, JDialog dialog, AISDatalinkCheckIssue issue) {
         super(name);
 		this.issuesMenuItemActionListener = issuesMenuItemActionListener;
-		this.id = id;
+		this.issue = issue;
 		this.dialog = dialog;
     }
     public void actionPerformed(ActionEvent e) {
         int response = JOptionPane.showConfirmDialog(dialog, "Are you sure you want to acknowledge this issue?", "Confirm action", JOptionPane.YES_NO_OPTION);	
 		if (response == JOptionPane.YES_OPTION) {
-			EAVDAMData data = DBHandler.getData();
-			HealthCheckHandler hch = new HealthCheckHandler(data);
-			//List<AISDatalinkCheckIssue> issues = hch.acknowledgeIssue(id);  // NOT YET IMPLEMENTED
-			//IssuesMenuItem.issues = issues;
-			//data.setAISDatalinkCheckIssues(issues);
-			//DBHandler.saveData(data);
-			//issuesMenuItemActionListener.updateScrollPane();                
+			List<AISDatalinkCheckIssue> issues = new ArrayList<AISDatalinkCheckIssue>();
+			issues.add(issue);			
+			DBHandler.acknowledgeIssues(issues);
+			IssuesMenuItem.issues.remove(issue);
+			issue.setAcknowledged(true);
+			IssuesMenuItem.issues.add(issue);
+			issuesMenuItemActionListener.updateScrollPane();           
         } else if (response == JOptionPane.NO_OPTION) {}
     }
 }
@@ -448,26 +448,23 @@ class DeleteAction extends AbstractAction {
     public static final long serialVersionUID = 1L;
 
 	private IssuesMenuItemActionListener issuesMenuItemActionListener;
-	private int id;
+	private AISDatalinkCheckIssue issue;
 	private JDialog dialog;
 
-    public DeleteAction(String name, IssuesMenuItemActionListener issuesMenuItemActionListener, JDialog dialog, int id) {
+    public DeleteAction(String name, IssuesMenuItemActionListener issuesMenuItemActionListener, JDialog dialog, AISDatalinkCheckIssue issue) {
         super(name);
 		this.issuesMenuItemActionListener = issuesMenuItemActionListener;
-		this.id = id;
+		this.issue = issue;
 		this.dialog = dialog;
     }
     public void actionPerformed(ActionEvent e) {
         int response = JOptionPane.showConfirmDialog(dialog, "Are you sure you want to delete this issue?", "Confirm action", JOptionPane.YES_NO_OPTION);
         if (response == JOptionPane.YES_OPTION) {
-			EAVDAMData data = DBHandler.getData();
-			HealthCheckHandler hch = new HealthCheckHandler(data);
-			//List<AISDatalinkCheckIssue> issues = hch.deleteIssue(id);  // NOT YET IMPLEMENTED
-			//IssuesMenuItem.issues = issues;
-			//data.setAISDatalinkCheckIssues(issues);
-			//DBHandler.saveData(data);
-			//issuesMenuItemActionListener.updateScrollPane();                
+			List<AISDatalinkCheckIssue> issues = new ArrayList<AISDatalinkCheckIssue>();
+			issues.add(issue);			
+			DBHandler.deleteIssues(issues);
+			IssuesMenuItem.issues.remove(issue);
+			issuesMenuItemActionListener.updateScrollPane();           
         } else if (response == JOptionPane.NO_OPTION) {}
-
     }
 }
