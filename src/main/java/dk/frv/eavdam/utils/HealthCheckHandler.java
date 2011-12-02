@@ -47,6 +47,8 @@ public class HealthCheckHandler {
 	private Map<String, AISSlotMap> stationSlotmap = null; //Stores slot map of each station combination.
 	private Map<String, AISFixedStationData> stations = null;
 	
+	public boolean useOptimization = false;
+	
 	public HealthCheckHandler(EAVDAMData data){
 		this.data = data;
 	}
@@ -58,7 +60,7 @@ public class HealthCheckHandler {
 		AISDatalinkCheckResult results = new AISDatalinkCheckResult();
 		
 		this.data = DBHandler.getData(topLeftLatitude + 2.5, topLeftLongitude - 4.5, lowerRightLatitude -2.5, lowerRightLongitude + 4.5);  
-		
+//		if(this.data == null) System.out.println("No DATA!");
 		
 		Map<String, Map<String,AISFixedStationData>> overlappingStations = this.findOverlappingStations(topLeftLatitude + 2.5, topLeftLongitude - 4.5, lowerRightLatitude -2.5, lowerRightLongitude + 4.5);
 		
@@ -74,7 +76,7 @@ public class HealthCheckHandler {
 		double lonIncrement = getIncrementedLongitude(resolution, topLeftLongitude) - topLeftLongitude;
 		if(lonIncrement < 0) lonIncrement *= -1;
 		
-		System.out.println("Starting area focused health check (Rules 1, 3, and 7).");
+		System.out.println("Starting area focused health check (Rules "+(checkRule1 ? "1" : "")+(checkRule3 ? ", 3" : "")+(checkRule7 ? ",7 " : "")+").");
 		List<AISDatalinkCheckArea> areas = new ArrayList<AISDatalinkCheckArea>();
 		//Loop through the area?
 		
@@ -94,66 +96,77 @@ public class HealthCheckHandler {
 		
 		int currentStopPoint = 0;
 		
-		double lon = lowerRightLongitude, maxLongitude = Double.MIN_VALUE;
+		double lon = topLeftLongitude, maxLongitude = lowerRightLongitude;
+		if(useOptimization){
+			lon = lowerRightLatitude;
+			maxLongitude = Double.MIN_VALUE;
+		}
+		
+//		System.out.println("LAT search area: "+topLeftLatitude+" > "+lowerRightLatitude+", increment: "+(-1*latIncrement) +" --> "+((int)(1.0*(topLeftLatitude-lowerRightLatitude)/latIncrement)));
+//		System.out.println("LON search area: "+lon+" < "+maxLongitude+", increment: "+lonIncrement +" --> "+((int)(1.0*(lowerRightLongitude-topLeftLongitude)/lonIncrement)));
 		for(double lat = topLeftLatitude ; lat > lowerRightLatitude; lat = lat - latIncrement){
-			
-			//Optimization: Skip cells that do not have any information.
-			if(currentStopPoint < latitudeStopPoints.size() && latitudeStopPoints.get(currentStopPoint).getNorthTransmitCoveragePoints()[0] < lat){ //No stop point
-				//We are between the stop points. No need to do anything?
-				
-			}else{ //We passed a stop point.
-				if(currentStopPoint < latitudeStopPoints.size()){
-				
-					System.out.println("Found stop point at "+lat+" ith stop point: "+currentStopPoint);
+
+			if(useOptimization){
+				//Optimization: Skip cells that do not have any information.
+				if(currentStopPoint < latitudeStopPoints.size() && latitudeStopPoints.get(currentStopPoint).getNorthTransmitCoveragePoints()[0] < lat){ //No stop point
+					//We are between the stop points. No need to do anything?
 					
-					//check if the old lon is smaller than the new one:
-					if(latitudeStopPoints.get(currentStopPoint).getWestTransmitCoveragePoints()[1] < lon)
-						lon = latitudeStopPoints.get(currentStopPoint).getWestTransmitCoveragePoints()[1];
+				}else{ //We passed a stop point.
+					if(currentStopPoint < latitudeStopPoints.size()){
 					
-					if(latitudeStopPoints.get(currentStopPoint).getEastTransmitCoveragePoints()[1] > maxLongitude)
-						maxLongitude = latitudeStopPoints.get(currentStopPoint).getEastTransmitCoveragePoints()[1];
-					
-					if(endStopPoints.size() == 0){ //Add new end point.
-						endStopPoints.add(latitudeStopPoints.get(currentStopPoint));
-					}else{
-						for(int i = 0; i < endStopPoints.size(); ++i){ //Add point to the list to indicate when it should be stopped.
-							if(endStopPoints.get(i).getSouthTransmitCoveragePoints()[0] < latitudeStopPoints.get(currentStopPoint).getSouthTransmitCoveragePoints()[0]){
-								endStopPoints.add(latitudeStopPoints.get(currentStopPoint));
-								break;
+						System.out.println("Found stop point at "+lat+" ith stop point: "+currentStopPoint);
+						
+						//check if the old lon is smaller than the new one:
+						if(latitudeStopPoints.get(currentStopPoint).getWestTransmitCoveragePoints()[1] < lon)
+							lon = latitudeStopPoints.get(currentStopPoint).getWestTransmitCoveragePoints()[1];
+						
+						if(latitudeStopPoints.get(currentStopPoint).getEastTransmitCoveragePoints()[1] > maxLongitude)
+							maxLongitude = latitudeStopPoints.get(currentStopPoint).getEastTransmitCoveragePoints()[1];
+						
+						
+						
+						if(endStopPoints.size() == 0){ //Add new end point.
+							endStopPoints.add(latitudeStopPoints.get(currentStopPoint));
+						}else{
+							for(int i = 0; i < endStopPoints.size(); ++i){ //Add point to the list to indicate when it should be stopped.
+								if(endStopPoints.get(i).getSouthTransmitCoveragePoints()[0] < latitudeStopPoints.get(currentStopPoint).getSouthTransmitCoveragePoints()[0]){
+									endStopPoints.add(latitudeStopPoints.get(currentStopPoint));
+									break;
+								}
+								
+								if(i == endStopPoints.size() - 1){
+									endStopPoints.add(latitudeStopPoints.get(currentStopPoint));
+									break;
+								}
 							}
 							
-							if(i == endStopPoints.size() - 1){
-								endStopPoints.add(latitudeStopPoints.get(currentStopPoint));
-								break;
-							}
 						}
 						
+						
+						++currentStopPoint; //Move stop point to the next point.
+					}
+				}
+				
+				//Check if we have reached an end point
+				if(endStopPoints.size() > 0){
+					if(endStopPoints.get(0).getSouthTransmitCoveragePoints()[0] > lat){
+						//We have passed an end point. 
+						
+						//Find a new longitude
+						lon = lowerRightLongitude;
+						maxLongitude = topLeftLongitude;
+						for(int i = 1; i < endStopPoints.size(); ++i){
+							if(endStopPoints.get(i).getWestTransmitCoveragePoints()[1] < lon) lon = endStopPoints.get(i).getWestTransmitCoveragePoints()[1];
+							if(endStopPoints.get(i).getEastTransmitCoveragePoints()[1] > maxLongitude) maxLongitude = endStopPoints.get(i).getEastTransmitCoveragePoints()[1];
+						}
+						
+						endStopPoints.remove(0); //Delete the top-most end point.
 					}
 					
 					
-					++currentStopPoint; //Move stop point to the next point.
+				}else if(currentStopPoint >= latitudeStopPoints.size()){
+					break;
 				}
-			}
-			
-			//Check if we have reached an end point
-			if(endStopPoints.size() > 0){
-				if(endStopPoints.get(0).getSouthTransmitCoveragePoints()[0] > lat){
-					//We have passed an end point. 
-					
-					//Find a new longitude
-					lon = lowerRightLongitude;
-					maxLongitude = topLeftLongitude;
-					for(int i = 1; i < endStopPoints.size(); ++i){
-						if(endStopPoints.get(i).getWestTransmitCoveragePoints()[1] < lon) lon = endStopPoints.get(i).getWestTransmitCoveragePoints()[1];
-						if(endStopPoints.get(i).getEastTransmitCoveragePoints()[1] > maxLongitude) maxLongitude = endStopPoints.get(i).getEastTransmitCoveragePoints()[1];
-					}
-					
-					endStopPoints.remove(0); //Delete the top-most end point.
-				}
-				
-				
-			}else if(currentStopPoint >= latitudeStopPoints.size()){
-				break;
 			}
 			
 			++ithLine;
@@ -162,6 +175,7 @@ public class HealthCheckHandler {
 			for(; lon < maxLongitude; lon = lon + lonIncrement){
 				++ithColumn;
 				
+//				System.out.println("ith Column: "+ithColumn+" lat: "+lat+", lon: "+lon);
 				//Get the issues
 				AISSlotMap sm = slotMapAtPoint(lat, lon);
 				
@@ -170,9 +184,22 @@ public class HealthCheckHandler {
 					this.areaIssueMap.put(prevLat+";"+prevLon+"-"+lat+";"+lon, this.areaIssueMap.get(lat+";"+lon));
 					foundAreas.add(prevLat+";"+prevLon+"-"+lat+";"+lon);
 					
+					AISDatalinkCheckArea area = new AISDatalinkCheckArea(prevLat,prevLon,lat,lon);
+					
+					area.setSlotmap(sm);
+					if(area.getSlotmap() != null){
+						area.setIssues(area.getSlotmap().getIssues());
+						area.setBandwithUsageLevel(area.getSlotmap().getBandwidthReservation());
+					}
+					
+					areas.add(area);
 				}
 				
 				prevLon = lon;
+			}
+			
+			if(!useOptimization){
+				lon = topLeftLongitude;
 			}
 			
 			ithTotal += 1.0*(lowerRightLongitude-topLeftLongitude)/lonIncrement;
@@ -189,7 +216,13 @@ public class HealthCheckHandler {
 			prevLat = lat;
 			
 		}
-		System.out.println("Area focused health check completed...\nStarting station focused health check (Rules 2, 4, 5, and 6)");
+		
+		
+		System.out.println("Area focused health check completed...");
+		
+		if(checkRule2 || checkRule4 || checkRule5 || checkRule6){
+			System.out.println("Starting station focused health check (Rules "+(checkRule2 ? "2, " : "")+(checkRule4 ? "4, " : "")+(checkRule5 ? "5, " : "")+(checkRule6 ? "6 " : "")+")");
+		}
 		
 		
 		for(String s : overlappingStations.keySet()){
@@ -304,27 +337,48 @@ public class HealthCheckHandler {
 			}
 		}
 		
+		if(areas.size() == 0){
+			for(String keys : foundAreas){
+				String key = this.areaIssueMap.get(keys);
+				String[] top = keys.split("\\-");
+				
+				AISDatalinkCheckArea area = new AISDatalinkCheckArea(Double.parseDouble(top[0].split(";")[0]),Double.parseDouble(top[0].split(";")[1]),Double.parseDouble(top[1].split(";")[0]),Double.parseDouble(top[1].split(";")[1]));
+				area.setSlotmap(this.stationSlotmap.get(key));
+				if(area.getSlotmap() != null){
+					area.setIssues(area.getSlotmap().getIssues());
+					area.setBandwithUsageLevel(area.getSlotmap().getBandwidthReservation());
+				}
+				
+				areas.add(area);
+			}
+		}
+		
+		List<AISDatalinkCheckIssue> issueList = new ArrayList<AISDatalinkCheckIssue>();
+		if(areas != null){
+			for(AISDatalinkCheckArea a : areas){
+				if(a != null){
+					issueList.addAll(a.getSlotmap().getIssues());
+				}
+			}
+			
+			issueList.addAll(issues);
+			
+//			System.out.println("IssueList: "+issueList.size());
+			issues = this.trimIssueList(issueList);
+			
+			
+		}
+		
 		System.out.println("Health checks completed...");
 
 		
-		for(String keys : foundAreas){
-			String key = this.areaIssueMap.get(keys);
-			String[] top = keys.split("\\-");
-			
-			AISDatalinkCheckArea area = new AISDatalinkCheckArea(Double.parseDouble(top[0].split(";")[0]),Double.parseDouble(top[0].split(";")[1]),Double.parseDouble(top[1].split(";")[0]),Double.parseDouble(top[1].split(";")[1]));
-			area.setSlotmap(this.stationSlotmap.get(key));
-			if(area.getSlotmap() != null){
-				area.setIssues(area.getSlotmap().getIssues());
-				area.setBandwithUsageLevel(area.getSlotmap().getBandwidthReservation());
-			}
-			
-			areas.add(area);
-		}
-		
+
 		System.out.println("Found "+issues.size()+" station issues: ");
-		for(AISDatalinkCheckIssue i : issues){
-			System.out.println("\t"+i.toString());
-		}
+//		for(AISDatalinkCheckIssue i : issues){
+//			System.out.println("\t"+i.toString());
+//		}
+		
+
 		
 		results.setIssues(issues);
 		results.setAreas(areas);
@@ -1005,7 +1059,7 @@ public class HealthCheckHandler {
 		slotmap.setBandwidthUsedByLocalB(1.0*usedB/numberOfSlotsPerFrequency);
 		slotmap.setBandwidthReservation((1.0*notFreeA+notFreeB)/(numberOfSlotsPerFrequency*numberOfFrequencies));
 		
-		this.trimIssueList(issues);
+//		this.trimIssueList(issues);
 		slotmap.setIssues(issues);
 
 		
@@ -1023,9 +1077,14 @@ public class HealthCheckHandler {
 		return slotmap;
 	}
 	
-	private void trimIssueList(List<AISDatalinkCheckIssue> issues){
+	private List<AISDatalinkCheckIssue> trimIssueList(List<AISDatalinkCheckIssue> issues){
+		if(issues == null || issues.size() == 0){
+			System.out.println("No issues to trim...");
+			return issues;
+		}
+		
 		Map<String, List<AISDatalinkCheckIssue>> rules = new HashMap<String, List<AISDatalinkCheckIssue>>();
-		for(AISDatalinkCheckIssue i : issues){
+		for(AISDatalinkCheckIssue i : issues){ //Store all issues of the single rule in a list
 			List<AISDatalinkCheckIssue> ri = rules.get(i.getRuleViolated().toString());
 			if(ri == null) ri = new ArrayList<AISDatalinkCheckIssue>();
 			
@@ -1034,37 +1093,45 @@ public class HealthCheckHandler {
 			rules.put(i.getRuleViolated().toString(), ri);
 		}
 		
+//		System.out.println("Found "+rules.size()+" rules..");
+		
+		Map<String,AISDatalinkCheckIssue> stationIssues = new HashMap<String, AISDatalinkCheckIssue>();
 		List<AISDatalinkCheckIssue> r = new ArrayList<AISDatalinkCheckIssue>();
 		for(String rule : rules.keySet()){
 			Map<String, AISStation> stations = new HashMap<String, AISStation>();
-			List<AISTimeslot> timeslots = new ArrayList<AISTimeslot>();
-			AISDatalinkCheckRule rl = null;
-			AISDatalinkCheckSeverity sev = null;
 			for(AISDatalinkCheckIssue i : rules.get(rule)){
-				rl = i.getRuleViolated();
-				sev = i.getSeverity();
 
 				if(i == null || i.getInvolvedStations() == null) continue;
 				
+				String stationInvolved = "";
 				for(AISStation s : i.getInvolvedStations()){
 					stations.put(s.getOrganizationName()+"-"+s.getStationName(), s);
+					
+					stationInvolved += s.getOrganizationName()+"-"+s.getStationName()+";--;";
 				}
 				
-				for(AISTimeslot t : i.getInvolvedTimeslots()){
-					timeslots.add(t);
+				AISDatalinkCheckIssue iss = stationIssues.get(stationInvolved);
+				if(iss == null){ //Store this only once per rule
+					stationIssues.put(stationInvolved, i);
+					System.out.println("ADDED "+stationInvolved);
 				}
+				
 			}
 			
-			List<AISStation> st = new ArrayList<AISStation>();
-			for(String s : stations.keySet()){
-				st.add(stations.get(s));
-			}
+			for(String si : stationIssues.keySet()){
+//				System.out.println("");
+
+				if(si != null && si.length() > 0 && stationIssues.get(si) != null){
+					r.add(stationIssues.get(si));
+				}
 			
-			AISDatalinkCheckIssue newIssue = new AISDatalinkCheckIssue(-1, rl, sev, st, timeslots);
-			r.add(newIssue);
+			}
 		}
 		
-		issues = r;
+		
+		System.out.println("Trimmed issue list from "+issues.size()+" to " +r.size());
+		
+		return r;
 	}
 	
 	/**
