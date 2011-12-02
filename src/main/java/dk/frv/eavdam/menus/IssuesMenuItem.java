@@ -33,6 +33,7 @@ import javax.swing.JButton;
 import javax.swing.JDialog;
 import javax.swing.JLabel;
 import javax.swing.JMenuItem;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 
@@ -350,7 +351,7 @@ class IssuesMenuItemActionListener implements ActionListener {
 				acknowledgeButton.setMargin(new Insets(1,1,1,1));  					
 				acknowledgeButton.setFont(new Font("Arial", Font.PLAIN, 12));
 				acknowledgeButton.setFocusPainted(false);
-				acknowledgeButton.setAction(new AcknowledgeAction("Acknowledge", this, id));
+				acknowledgeButton.setAction(new AcknowledgeAction("Acknowledge", this, dialog, id));
 				if (acknowledged) {
 					acknowledgeButton.setEnabled(false);
 				}
@@ -372,7 +373,7 @@ class IssuesMenuItemActionListener implements ActionListener {
 				deleteButton.setMargin(new Insets(1,1,1,1));  				
 				deleteButton.setFont(new Font("Arial", Font.PLAIN, 12));							
 				deleteButton.setFocusPainted(false);				
-				deleteButton.setAction(new DeleteAction("Delete", this, id));				
+				deleteButton.setAction(new DeleteAction("Delete", this, dialog, id));				
 				Box verticalBox2 = Box.createVerticalBox();			
 				verticalBox2.add(Box.createVerticalGlue());
 				verticalBox2.add(deleteButton);
@@ -419,20 +420,25 @@ class AcknowledgeAction extends AbstractAction {
 
 	private IssuesMenuItemActionListener issuesMenuItemActionListener;
 	private int id;
+	private JDialog dialog;
 
-    public AcknowledgeAction(String name, IssuesMenuItemActionListener issuesMenuItemActionListener, int id) {
+    public AcknowledgeAction(String name, IssuesMenuItemActionListener issuesMenuItemActionListener, JDialog dialog, int id) {
         super(name);
 		this.issuesMenuItemActionListener = issuesMenuItemActionListener;
 		this.id = id;
+		this.dialog = dialog;
     }
     public void actionPerformed(ActionEvent e) {
-		EAVDAMData data = DBHandler.getData();
-		HealthCheckHandler hch = new HealthCheckHandler(data);
-		//List<AISDatalinkCheckIssue> issues = hch.acknowledgeIssue(id);  // NOT YET IMPLEMENTED
-		//IssuesMenuItem.issues = issues;
-		//data.setAISDatalinkCheckIssues(issues);
-		//DBHandler.saveData(data);
-		//issuesMenuItemActionListener.updateScrollPane();
+        int response = JOptionPane.showConfirmDialog(dialog, "Are you sure you want to acknowledge this issue?", "Confirm action", JOptionPane.YES_NO_OPTION);	
+		if (response == JOptionPane.YES_OPTION) {
+			EAVDAMData data = DBHandler.getData();
+			HealthCheckHandler hch = new HealthCheckHandler(data);
+			//List<AISDatalinkCheckIssue> issues = hch.acknowledgeIssue(id);  // NOT YET IMPLEMENTED
+			//IssuesMenuItem.issues = issues;
+			//data.setAISDatalinkCheckIssues(issues);
+			//DBHandler.saveData(data);
+			//issuesMenuItemActionListener.updateScrollPane();                
+        } else if (response == JOptionPane.NO_OPTION) {}
     }
 }
 
@@ -443,19 +449,25 @@ class DeleteAction extends AbstractAction {
 
 	private IssuesMenuItemActionListener issuesMenuItemActionListener;
 	private int id;
+	private JDialog dialog;
 
-    public DeleteAction(String name, IssuesMenuItemActionListener issuesMenuItemActionListener, int id) {
+    public DeleteAction(String name, IssuesMenuItemActionListener issuesMenuItemActionListener, JDialog dialog, int id) {
         super(name);
 		this.issuesMenuItemActionListener = issuesMenuItemActionListener;
 		this.id = id;
+		this.dialog = dialog;
     }
     public void actionPerformed(ActionEvent e) {
-		EAVDAMData data = DBHandler.getData();
-		HealthCheckHandler hch = new HealthCheckHandler(data);
-		//List<AISDatalinkCheckIssue> issues = hch.deleteIssue(id);  // NOT YET IMPLEMENTED
-		//IssuesMenuItem.issues = issues;
-		//data.setAISDatalinkCheckIssues(issues);
-		//DBHandler.saveData(data);
-		//issuesMenuItemActionListener.updateScrollPane();
+        int response = JOptionPane.showConfirmDialog(dialog, "Are you sure you want to delete this issue?", "Confirm action", JOptionPane.YES_NO_OPTION);
+        if (response == JOptionPane.YES_OPTION) {
+			EAVDAMData data = DBHandler.getData();
+			HealthCheckHandler hch = new HealthCheckHandler(data);
+			//List<AISDatalinkCheckIssue> issues = hch.deleteIssue(id);  // NOT YET IMPLEMENTED
+			//IssuesMenuItem.issues = issues;
+			//data.setAISDatalinkCheckIssues(issues);
+			//DBHandler.saveData(data);
+			//issuesMenuItemActionListener.updateScrollPane();                
+        } else if (response == JOptionPane.NO_OPTION) {}
+
     }
 }
