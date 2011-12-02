@@ -946,7 +946,8 @@ import dk.frv.eavdam.utils.HealthCheckHandler;
 	    			continue;
 	    		}
 	    		PreparedStatement ps = conn.prepareStatement("update ISSUES set acknowledged = 1 where id = "+issue.getId());
-	    		ps.executeUpdate();
+	    		int n = ps.executeUpdate();
+	    		System.out.println(n+" acknowledged...");
 	    		ps.close();
 	    		
 	    		issue.setAcknowledged(true);
@@ -961,7 +962,10 @@ import dk.frv.eavdam.utils.HealthCheckHandler;
 	    			continue;
 	    		}
 	    		PreparedStatement ps = conn.prepareStatement("update ISSUES set deleted = 1 where id = "+issue.getId());
-	    		ps.executeUpdate();
+	    		
+	    		int n = ps.executeUpdate();
+//	    		System.out.println(n+" deleted...");
+	    		
 	    		ps.close();
 	    		
 	    		issue.setDeleted(true);
@@ -992,13 +996,13 @@ import dk.frv.eavdam.utils.HealthCheckHandler;
   		
 	    		
 	    		//Check if the issue exists already
-	    		
+//	    		sql = "select id from ISSUES, ISSUESSTATION where ISSUES.id = ISSUESSTATION.issue AND AND ISSUES.id IN (select issue from ISSUESSTATION where ISSUESSTATION.station = 1)";
 	    		String whereClause = "ruleviolated = "+HealthCheckHandler.getRuleInt(issue.getRuleViolated())+"";
 	    		if(issue.getInvolvedStations() != null){
 	    			whereClause += " AND ISSUES.id = ISSUESSTATION.issue ";
 	    			for(AISStation s : issue.getInvolvedStations()){
 	    				if(s.getDbId() <= 0) s.setDbId(this.getStationID(s.getStationName(), s.getOrganizationName()));
-	    				whereClause += " AND ISSUESSTATION.station = "+s.getDbId();
+	    				whereClause += " AND ISSUES.id IN (select issue from ISSUESSTATION where ISSUESSTATION.station = "+s.getDbId()+")";
 	    			}
 	    		}
 	    		
@@ -1006,12 +1010,15 @@ import dk.frv.eavdam.utils.HealthCheckHandler;
 	    			if(issue.getInvolvedTimeslots() != null){
 	    				whereClause += " AND ISSUE.id = ISSUESTIMESLOT.issue ";
 	    				for(AISTimeslot t : issue.getInvolvedTimeslots()){
-	    					whereClause += " AND ISSUESTIMESLOT.timeslot = "+t.getSlotNumber()+" AND ISSUESTIMESLOT.frequency = "+(t.getFrequency().equals(AISFrequency.AIS2) ? 2 : 1);
+	    					whereClause += " AND ISSUES.id IN (ISSUESTIMESLOT.timeslot = "+t.getSlotNumber()+" AND ISSUESTIMESLOT.frequency = "+(t.getFrequency().equals(AISFrequency.AIS2) ? 2 : 1)+")";
 	    				}
 	    			}
 	    		}
 	    		
-	    		PreparedStatement check = conn.prepareStatement("select acknowledged, deleted from ISSUES, ISSUESSTATION, ISSUESTIMESLOT where "+whereClause);
+	    		String sql = "select distinct acknowledged, deleted from ISSUES, ISSUESSTATION, ISSUESTIMESLOT where "+whereClause;
+	    		System.out.println(sql);
+	    		
+	    		PreparedStatement check = conn.prepareStatement(sql);
 			    ResultSet checkRS = check.executeQuery();
 	    		if(checkRS.next()){
 	    			if(!issue.isAcknowledged()){
@@ -1021,6 +1028,8 @@ import dk.frv.eavdam.utils.HealthCheckHandler;
 	    				issue.setDeleted((checkRS.getInt(2) == 1));
 	    			}
 	    		}
+	    		
+	    		if(issue.isAcknowledged() || issue.isDeleted()) System.out.println("ACK!");
 	    		
 	    		checkRS.close();
 	    		check.close();
@@ -1125,6 +1134,8 @@ import dk.frv.eavdam.utils.HealthCheckHandler;
 	    		}
 	    	}
 	    	
+	    	
+	    	
 	    	issues = temp;
 	    }
 	    
@@ -1189,6 +1200,28 @@ import dk.frv.eavdam.utils.HealthCheckHandler;
 	    	
 	    	ps.close();
 	    	
+	    	List<AISDatalinkCheckIssue> temp = new ArrayList<AISDatalinkCheckIssue>();
+	    	for(AISDatalinkCheckIssue issue : issues){
+	    		if(temp.size() == 0){
+	    			temp.add(issue);
+	    		}else{
+	    			for(int i = 0 ; i < temp.size(); ++i){
+	    				if(!issue.isAcknowledged() && temp.get(i).isAcknowledged()){
+	    					temp.add(i, issue);
+	    					break;
+	    				}
+	    				
+	    				if(i == temp.size() - 1){
+	    					temp.add(issue);
+	    					break;
+	    				}
+	    			}
+	    		}
+	    	}
+	    	
+	    	
+	    	issues = temp;
+
 	    	return issues;
 	    }
 	    
@@ -3909,13 +3942,17 @@ import dk.frv.eavdam.utils.HealthCheckHandler;
 		    		sql = "select FIXEDSTATION.id, FIXEDSTATION.name, STATUS.statustype, FIXEDSTATION.owner, FIXEDSTATION.lat, FIXEDSTATION.lon from FIXEDSTATION, STATUS where STATUS.station = FIXEDSTATION.id";
 //		    		sql = "select id, name, email from PERSON";
 		    		
+		    		sql = "select acknowledged, deleted from ISSUES, ISSUESSTATION, ISSUESTIMESLOT where ruleviolated = 1 AND ISSUES.id = ISSUESSTATION.issue AND ISSUESSTATION.station = 8 AND ISSUESSTATION.station = 1";
+
+		    		sql = "select distinct id from ISSUES, ISSUESSTATION where ISSUES.id = ISSUESSTATION.issue AND ISSUES.id IN (select issue from ISSUESSTATION where ISSUESSTATION.station = 9) AND ISSUES.id IN (select issue from ISSUESSTATION where ISSUESSTATION.station = 1)";
 		    		
 		    		PreparedStatement ps = conn.prepareStatement(sql);
 		    		ResultSet rs = ps.executeQuery();
 		    		
 		    		System.out.println("Table holds:\nID\tName\tStatus\tOwner");
 		    		while(rs.next()){
-		    			System.out.println(rs.getInt(1)+"\t"+rs.getString(2)+"\t"+rs.getInt(3)+"\t"+rs.getInt(4)+"\t"+rs.getDouble(5)+"\t"+rs.getDouble(6));
+//		    			System.out.println(rs.getInt(1)+"\t"+rs.getString(2)+"\t"+rs.getInt(3)+"\t"+rs.getInt(4)+"\t"+rs.getDouble(5)+"\t"+rs.getDouble(6));
+		    			System.out.println(rs.getInt(1));
 		    		}
 		    		rs.close();
 		    		ps.close();
