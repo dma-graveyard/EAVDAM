@@ -393,6 +393,9 @@ public class InitiateHealthCheckButton extends OMToolComponent implements Action
 			*/
 		}
 
+		DBHandler.saveData(data); //Do this before calculating the number of old issues...
+	
+		
 		int numberOfOldIssues = 0;		
 		int numberOfNewIssues = 0;
 		if (IssuesMenuItem.issues != null) {
@@ -405,7 +408,7 @@ public class InitiateHealthCheckButton extends OMToolComponent implements Action
 			}
 		}
 		
-		DBHandler.saveData(data);		
+	
 				
 		Layer[] layers = layerHandler.getLayers();
 		Layer aisDatalinkCheckIssueLayer = null;

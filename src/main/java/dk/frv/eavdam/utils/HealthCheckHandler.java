@@ -1094,6 +1094,8 @@ public class HealthCheckHandler {
 			return issues;
 		}
 		
+		Set<String> issueNames = new HashSet<String>();
+		
 		Map<String, List<AISDatalinkCheckIssue>> rules = new HashMap<String, List<AISDatalinkCheckIssue>>();
 		for(AISDatalinkCheckIssue i : issues){ //Store all issues of the single rule in a list
 			AISDatalinkCheckRule rv = i.getRuleViolated();
@@ -1124,10 +1126,21 @@ public class HealthCheckHandler {
 				if(i == null || i.getInvolvedStations() == null) continue;
 				
 				String stationInvolved = "";
+				List<String> invStationNames = new ArrayList<String>();
 				for(AISStation s : i.getInvolvedStations()){
 					stations.put(s.getOrganizationName()+"-"+s.getStationName(), s);
 					
-					stationInvolved += s.getOrganizationName()+"-"+s.getStationName()+";--;";
+					invStationNames.add(s.getOrganizationName()+"-"+s.getStationName());
+				}
+				
+				Collections.sort(invStationNames);
+				
+				for(int j = 0; j < invStationNames.size(); ++j){
+					String isn = invStationNames.get(j);
+					
+					stationInvolved += isn;
+					if(j < invStationNames.size() - 1)
+						stationInvolved += ";--;"; 
 				}
 				
 				AISDatalinkCheckIssue iss = stationIssues.get(stationInvolved);
@@ -1339,10 +1352,16 @@ public class HealthCheckHandler {
 					if(a.getInterferedBy() != null)
 						ps.addAll(a.getInterferedBy());
 					
-					AISDatalinkCheckIssue issue = new AISDatalinkCheckIssue(-1,AISDatalinkCheckRule.RULE1,getRuleSeverity(AISDatalinkCheckRule.RULE1),ps,slots);
 					
-					issues.add(issue);
-					addRule1 = true;
+					
+					
+					
+					if(ps.size() > 1){
+						AISDatalinkCheckIssue issue = new AISDatalinkCheckIssue(-1,AISDatalinkCheckRule.RULE1,getRuleSeverity(AISDatalinkCheckRule.RULE1),ps,slots);
+					
+						issues.add(issue);
+						addRule1 = true;
+					}
 				}
 				
 			}else if(used.size() > 1){ //Several stations use the slot
@@ -1359,6 +1378,7 @@ public class HealthCheckHandler {
 					if(a.getInterferedBy() != null)
 						ps.addAll(a.getInterferedBy());
 					
+//					if(ps.size() < 2) System.out.println("Too few stations 2: "+used.size()+" + "+a.getInterferedBy().size());
 					AISDatalinkCheckIssue issue = new AISDatalinkCheckIssue(-1,AISDatalinkCheckRule.RULE1,getRuleSeverity(AISDatalinkCheckRule.RULE1),ps,slots);
 									
 					issues.add(issue);

@@ -110,6 +110,28 @@ class IssuesMenuItemActionListener implements ActionListener {
 			EAVDAMData data = DBHandler.getData();
 			IssuesMenuItem.issues = data.getAISDatalinkCheckIssues();
 		}
+		
+		//Put them into the correct order.
+		//TODO Change this as you will; the list should be ordered when it is returned from DBHandler but for some reason it isn't
+    	List<AISDatalinkCheckIssue> tempList = new ArrayList<AISDatalinkCheckIssue>();
+    	for(AISDatalinkCheckIssue issue : IssuesMenuItem.issues){
+    		if(tempList.size() == 0){
+    			tempList.add(issue);
+    		}else{
+    			for(int i = 0 ; i < tempList.size(); ++i){
+    				if(!issue.isAcknowledged() && tempList.get(i).isAcknowledged()){
+    					tempList.add(i, issue);
+    					break;
+    				}
+    				
+    				if(i == tempList.size() - 1){
+    					tempList.add(issue);
+    					break;
+    				}
+    			}
+    		}
+    	}
+    	IssuesMenuItem.issues = tempList;
 				
 		// XXX: FOR TESTING
 		/*
