@@ -1,6 +1,7 @@
 package dk.frv.eavdam.utils;
 
 import dk.frv.eavdam.data.AISBaseAndReceiverStationFATDMAChannel;
+import dk.frv.eavdam.data.AISDatalinkCheckIssue;
 import dk.frv.eavdam.data.AISDatalinkCheckResult;
 import dk.frv.eavdam.data.AISFixedStationData;
 import dk.frv.eavdam.data.AISSlotMap;
@@ -212,6 +213,29 @@ public class DBHandler {
     	}catch (Exception e) {
 			e.printStackTrace();
 		}
+    }
+    
+    public static void acknowledgeIssues(List<AISDatalinkCheckIssue> issues){
+    	
+    	try{
+    		DerbyDBInterface db = new DerbyDBInterface();
+    		db.acknowledgeIssues(issues);
+    	}catch(Exception e){
+    		e.printStackTrace();
+    	}
+    	
+    }
+    
+    
+    public static void deleteIssues(List<AISDatalinkCheckIssue> issues){
+    	
+    	try{
+    		DerbyDBInterface db = new DerbyDBInterface();
+    		db.deleteIssues(issues);
+    	}catch(Exception e){
+    		e.printStackTrace();
+    	}
+    	
     }
 }
 

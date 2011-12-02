@@ -939,8 +939,46 @@ import dk.frv.eavdam.utils.HealthCheckHandler;
 	    	
 	    }
 	    
+	    public void acknowledgeIssues(List<AISDatalinkCheckIssue> issues) throws Exception{
+	    	for(AISDatalinkCheckIssue issue : issues){
+	    		if(issue.getId() <= 0){
+	    			System.err.println("Cannot acknowledge issue! Issue not found from DB!");
+	    			continue;
+	    		}
+	    		PreparedStatement ps = conn.prepareStatement("update ISSUES set acknowledged = 1 where id = "+issue.getId());
+	    		ps.executeUpdate();
+	    		ps.close();
+	    		
+	    		issue.setAcknowledged(true);
+	    	}
+	    	
+	    }
+	    
+	    public void deleteIssues(List<AISDatalinkCheckIssue> issues) throws Exception{
+	    	for(AISDatalinkCheckIssue issue : issues){
+	    		if(issue.getId() <= 0){
+	    			System.err.println("Cannot acknowledge issue! Issue not found from DB!");
+	    			continue;
+	    		}
+	    		PreparedStatement ps = conn.prepareStatement("update ISSUES set deleted = 1 where id = "+issue.getId());
+	    		ps.executeUpdate();
+	    		ps.close();
+	    		
+	    		issue.setDeleted(true);
+	    	}
+	    	
+	    }
+	    
+	    /**
+	     * Inserts the issues to the database.
+	     * 
+	     * @param issues
+	     * @throws Exception
+	     */
 	    private void insertIssues(List<AISDatalinkCheckIssue> issues) throws Exception{
 	    	if(issues == null || issues.size() == 0) return;
+	    	
+	    	
 	    	
 	    	int maxId = 0;
 	    	PreparedStatement id = this.conn.prepareStatement("select max(id) from ISSUES");
@@ -952,8 +990,6 @@ import dk.frv.eavdam.utils.HealthCheckHandler;
 	    	
 	    	for(AISDatalinkCheckIssue issue : issues){
   		
-
-	    		
 	    		
 	    		//Check if the issue exists already
 	    		
@@ -988,14 +1024,14 @@ import dk.frv.eavdam.utils.HealthCheckHandler;
 	    		check.close();
 	    	}
 	    	
-    		//Delete all.
-    		PreparedStatement delete = conn.prepareStatement("delete from ISSUESSTATION");
+    		//Delete stations that are not acknowledged!
+    		PreparedStatement delete = conn.prepareStatement("delete from ISSUESSTATION where ISSUESSTATION.issue = ISSUES.id AND ISSUES.acknowledged = 0");
     		delete.executeUpdate();
     		
-    		delete = conn.prepareStatement("delete from ISSUESTIMESLOT");
+    		delete = conn.prepareStatement("delete from ISSUESTIMESLOT where ISSUESTIMESLOT.issue = ISSUES.id AND ISSUES.acknowledged = 0");
     		delete.executeUpdate();
     		
-    		delete = conn.prepareStatement("delete from ISSUES");
+    		delete = conn.prepareStatement("delete from ISSUES where acknowledged = 0");
     		delete.executeUpdate();
     		
     		delete.close();
@@ -1058,7 +1094,7 @@ import dk.frv.eavdam.utils.HealthCheckHandler;
 	    			temp.add(issue);
 	    		}else{
 	    			for(int i = 0 ; i < temp.size(); ++i){
-	    				if(issue.isAcknowledged() && !temp.get(i).isAcknowledged()){
+	    				if(!issue.isAcknowledged() && temp.get(i).isAcknowledged()){
 	    					temp.add(i, issue);
 	    					break;
 	    				}
