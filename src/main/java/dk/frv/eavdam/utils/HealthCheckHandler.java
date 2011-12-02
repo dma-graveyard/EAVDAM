@@ -1113,7 +1113,7 @@ public class HealthCheckHandler {
 				AISDatalinkCheckIssue iss = stationIssues.get(stationInvolved);
 				if(iss == null){ //Store this only once per rule
 					stationIssues.put(stationInvolved, i);
-					System.out.println("ADDED "+stationInvolved);
+//					System.out.println("ADDED "+stationInvolved);
 				}
 				
 			}
