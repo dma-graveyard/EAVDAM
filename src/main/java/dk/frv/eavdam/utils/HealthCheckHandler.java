@@ -364,7 +364,7 @@ public class HealthCheckHandler {
 			issueList.addAll(issues);
 			
 //			System.out.println("IssueList: "+issueList.size());
-			issues = this.trimIssueList(issueList);
+			issues = this.trimIssueList(issueList, checkRule1, checkRule2, checkRule3, checkRule4, checkRule5, checkRule6, checkRule7);
 			
 			
 		}
@@ -384,12 +384,19 @@ public class HealthCheckHandler {
 		results.setAreas(areas);
 		
 		System.out.println("Found "+areas.size()+" area issues: ");
-		for(AISDatalinkCheckArea i : areas){
-			if(Math.random() < 0.001)
-				System.out.println("\t"+i.toString());
-		}
+//		for(AISDatalinkCheckArea i : areas){
+//			if(Math.random() < 0.001)
+//				System.out.println("\t"+i.toString());
+//		}
 		
 		if(listener != null) listener.completed(results);
+		
+		this.areaIssueMap = null;
+		this.stations = null;
+		this.stationSlotmap = null;
+		
+		System.gc(); //Garbage Collection...
+				
 		
 		return results;
 	}
@@ -1077,7 +1084,7 @@ public class HealthCheckHandler {
 		return slotmap;
 	}
 	
-	private List<AISDatalinkCheckIssue> trimIssueList(List<AISDatalinkCheckIssue> issues){
+	private List<AISDatalinkCheckIssue> trimIssueList(List<AISDatalinkCheckIssue> issues, boolean checkRule1, boolean checkRule2, boolean checkRule3, boolean checkRule4, boolean checkRule5, boolean checkRule6, boolean checkRule7){
 		if(issues == null || issues.size() == 0){
 			System.out.println("No issues to trim...");
 			return issues;
@@ -1085,6 +1092,15 @@ public class HealthCheckHandler {
 		
 		Map<String, List<AISDatalinkCheckIssue>> rules = new HashMap<String, List<AISDatalinkCheckIssue>>();
 		for(AISDatalinkCheckIssue i : issues){ //Store all issues of the single rule in a list
+			AISDatalinkCheckRule rv = i.getRuleViolated();
+			if(!checkRule1 && rv.equals(AISDatalinkCheckRule.RULE1)) continue;
+			if(!checkRule2 && rv.equals(AISDatalinkCheckRule.RULE2)) continue;
+			if(!checkRule3 && rv.equals(AISDatalinkCheckRule.RULE3)) continue;
+			if(!checkRule4 && rv.equals(AISDatalinkCheckRule.RULE4)) continue;
+			if(!checkRule5 && rv.equals(AISDatalinkCheckRule.RULE5)) continue;
+			if(!checkRule6 && rv.equals(AISDatalinkCheckRule.RULE6)) continue;
+			if(!checkRule7 && rv.equals(AISDatalinkCheckRule.RULE7)) continue;
+			
 			List<AISDatalinkCheckIssue> ri = rules.get(i.getRuleViolated().toString());
 			if(ri == null) ri = new ArrayList<AISDatalinkCheckIssue>();
 			
@@ -1148,6 +1164,8 @@ public class HealthCheckHandler {
 			List<AISDatalinkCheckIssue> issues){
 		AISTimeslot a = new AISTimeslot();
 		a.setSlotNumber(slot);
+		a.setFrequency((channel.equals("B") ? AISFrequency.AIS2 : AISFrequency.AIS1));
+		
 		
 		if(issues == null) issues = new ArrayList<AISDatalinkCheckIssue>();
 		

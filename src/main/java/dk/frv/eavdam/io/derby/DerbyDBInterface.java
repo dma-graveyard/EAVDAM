@@ -80,6 +80,7 @@ import dk.frv.eavdam.utils.HealthCheckHandler;
 	    Connection conn = null;
 	    
 	    private boolean log = false;
+	    private boolean issueCheckTimeslotChange = false;
 	    
 	    public DerbyDBInterface(String driver, String protocol){
 	    	this.driver = driver;
@@ -245,7 +246,7 @@ import dk.frv.eavdam.utils.HealthCheckHandler;
 	        	}
 	        	
             	if(data.getAISDatalinkCheckIssues() != null && data.getAISDatalinkCheckIssues().size() > 0){
-//            		this.insertIssues(data.getAISDatalinkCheckIssues());
+            		this.insertIssues(data.getAISDatalinkCheckIssues());
             	}
 	        	
 	        }catch(Exception e){
@@ -941,9 +942,6 @@ import dk.frv.eavdam.utils.HealthCheckHandler;
 	    private void insertIssues(List<AISDatalinkCheckIssue> issues) throws Exception{
 	    	if(issues == null || issues.size() == 0) return;
 	    	
-	    	
-	    	
-	    	
 	    	int maxId = 0;
 	    	PreparedStatement id = this.conn.prepareStatement("select max(id) from ISSUES");
 	    	ResultSet rs = id.executeQuery();
@@ -953,53 +951,97 @@ import dk.frv.eavdam.utils.HealthCheckHandler;
 
 	    	
 	    	for(AISDatalinkCheckIssue issue : issues){
-	    		//Check if this issue exists.
-	    		if(issue.getId() > 0){
-	    		
-	    			
-	    			
-	    			
-	    			
-	    		}else{
+  		
+
 	    		
 	    		
-			    	
+	    		//Check if the issue exists already
+	    		
+	    		String whereClause = "ruleviolated = "+HealthCheckHandler.getRuleInt(issue.getRuleViolated())+"";
+	    		if(issue.getInvolvedStations() != null){
+	    			whereClause += " AND ISSUES.id = ISSUESSTATION.issue ";
+	    			for(AISStation s : issue.getInvolvedStations()){
+	    				if(s.getDbId() <= 0) s.setDbId(this.getStationID(s.getStationName(), s.getOrganizationName()));
+	    				whereClause += " AND ISSUESSTATION.station = "+s.getDbId();
+	    			}
+	    		}
+	    		
+	    		if(this.issueCheckTimeslotChange){
+	    			if(issue.getInvolvedTimeslots() != null){
+	    				whereClause += " AND ISSUE.id = ISSUESTIMESLOT.issue ";
+	    				for(AISTimeslot t : issue.getInvolvedTimeslots()){
+	    					whereClause += " AND ISSUESTIMESLOT.timeslot = "+t.getSlotNumber()+" AND ISSUESTIMESLOT.frequency = "+(t.getFrequency().equals(AISFrequency.AIS2) ? 2 : 1);
+	    				}
+	    			}
+	    		}
+	    		
+	    		PreparedStatement check = conn.prepareStatement("select acknowledged from ISSUES, ISSUESSTATION, ISSUESTIMESLOT where "+whereClause);
+			    ResultSet checkRS = check.executeQuery();
+	    		if(checkRS.next()){
+	    			if(!issue.isAcknowledged()){
+	    				issue.setAcknowledged((checkRS.getInt(1) == 1));
+	    			}
+	    			
+	    		}
+	    		
+	    		checkRS.close();
+	    		check.close();
+	    	}
+	    	
+    		//Delete all.
+    		PreparedStatement delete = conn.prepareStatement("delete from ISSUESSTATION");
+    		delete.executeUpdate();
+    		
+    		delete = conn.prepareStatement("delete from ISSUESTIMESLOT");
+    		delete.executeUpdate();
+    		
+    		delete = conn.prepareStatement("delete from ISSUES");
+    		delete.executeUpdate();
+    		
+    		delete.close();
+	    	
+	    	for(AISDatalinkCheckIssue issue : issues){
+
+	    		
+	    		//Insert into database.
 		    		PreparedStatement ps = conn.prepareStatement("insert into ISSUES values(?,?,?,?)");
-		    		int rule = 0;
-		    		
-		    		if(issue.getRuleViolated().equals(AISDatalinkCheckRule.RULE1)) rule = 1;
-		    		else if(issue.getRuleViolated().equals(AISDatalinkCheckRule.RULE2)) rule = 2;
-		    		else if(issue.getRuleViolated().equals(AISDatalinkCheckRule.RULE3)) rule = 3;
-		    		else if(issue.getRuleViolated().equals(AISDatalinkCheckRule.RULE4)) rule = 4;
-		    		else if(issue.getRuleViolated().equals(AISDatalinkCheckRule.RULE5)) rule = 5;
-		    		else if(issue.getRuleViolated().equals(AISDatalinkCheckRule.RULE6)) rule = 6;
-		    		else if(issue.getRuleViolated().equals(AISDatalinkCheckRule.RULE7)) rule = 7;
+		    		int rule = HealthCheckHandler.getRuleInt(issue.getRuleViolated());
+
+		    		maxId++;
+		    		issue.setId(maxId);
 		    				
-		    		ps.setInt(1, (issue.getId() > 0 ? issue.getId() : ++maxId));
+		    		ps.setInt(1, issue.getId());
 		    		ps.setInt(2, rule);
 		    		ps.setInt(3, (issue.isAcknowledged() ? 1 : 0));
 		    		ps.setInt(4, (issue.isDeleted() ? 1 : 0));
 		    		
 		    		ps.executeUpdate();
+		    		if(issue.isAcknowledged()){
+		    			System.out.println("Added an acknowledge issue!");
+		    		}
 		    		
 		    		//Store stations for this issues.
 		    		if(issue.getInvolvedStations() != null && issue.getInvolvedStations().size() > 0){
 		    			for(AISStation s : issue.getInvolvedStations()){
 		    				if(s.getDbId() <= 0){
 		    					s.setDbId(this.getStationID(s.getStationName(), s.getOrganizationName()));
+//		    					System.out.println("Got Station id "+s.getDbId()+" for station "+s.getStationName()+", "+s.getOrganizationName()+"");
+		    				}else{
+//		    					System.out.println("Station id "+s.getDbId()+" for station "+s.getStationName()+", "+s.getOrganizationName()+"");
 		    				}
 		    				
-		    				PreparedStatement station = this.conn.prepareStatement("insert into ISSUESTATION VALUES(?,?)");
+		    				PreparedStatement station = this.conn.prepareStatement("insert into ISSUESSTATION VALUES(?,?)");
 		    				station.setInt(1, maxId);
 		    				station.setInt(2, s.getDbId());
 		    				
 		    				station.executeUpdate();
+		    				station.close();
 		    			}
 		    		}
 		    		
 		    		if(issue.getInvolvedTimeslots() != null && issue.getInvolvedTimeslots().size() > 0){
 		    			for(AISTimeslot ts : issue.getInvolvedTimeslots()){
-		    				PreparedStatement timeslot = this.conn.prepareStatement("Insert into ISSUETIMESLOT values (?,?,?)");
+		    				PreparedStatement timeslot = this.conn.prepareStatement("Insert into ISSUESTIMESLOT values (?,?,?)");
 		    				timeslot.setInt(1, maxId);
 		    				timeslot.setInt(2, ts.getSlotNumber());
 		    				timeslot.setInt(3, (ts.getFrequency().equals(AISFrequency.AIS2) ? 2 : 1));
@@ -1009,7 +1051,27 @@ import dk.frv.eavdam.utils.HealthCheckHandler;
 		    			
 		    		}
 	    		}
+	    	
+	    	List<AISDatalinkCheckIssue> temp = new ArrayList<AISDatalinkCheckIssue>();
+	    	for(AISDatalinkCheckIssue issue : issues){
+	    		if(temp.size() == 0){
+	    			temp.add(issue);
+	    		}else{
+	    			for(int i = 0 ; i < temp.size(); ++i){
+	    				if(issue.isAcknowledged() && !temp.get(i).isAcknowledged()){
+	    					temp.add(i, issue);
+	    					break;
+	    				}
+	    				
+	    				if(i == temp.size() - 1){
+	    					temp.add(issue);
+	    					break;
+	    				}
+	    			}
+	    		}
 	    	}
+	    	
+	    	issues = temp;
 	    }
 	    
 	    private List<AISDatalinkCheckIssue> retrieveAllIssues() throws Exception{
@@ -1028,14 +1090,14 @@ import dk.frv.eavdam.utils.HealthCheckHandler;
 	    		
 	    		PreparedStatement stations = conn.prepareStatement("select ORGANIZATION.organizationName, FIXEDSTATION.name, FIXEDSTATION.lat, FIXEDSTATION.lon, FIXEDSTATION.id " +
 	    				"from FIXEDSTATION, ORGANIZATION, ISSUESSTATION " +
-	    				"where ISSUESSTATION.issue = ? AND ISSUESSTATION.station = FIXEDSTATION.id AND FIXEDSTATION.owner = ORGANIZATION.name");
+	    				"where ISSUESSTATION.issue = ? AND ISSUESSTATION.station = FIXEDSTATION.id AND FIXEDSTATION.owner = ORGANIZATION.id");
 	    		stations.setInt(1, issue.getId());
 	    		ResultSet stationsRS = stations.executeQuery();
 	    		
 	    		List<AISStation> sta = new ArrayList<AISStation>();
 	    		while(stationsRS.next()){
-	    			AISStation as = new AISStation(rs.getString(1), rs.getString(2), rs.getDouble(3), rs.getDouble(4));
-	    			as.setDbId(rs.getInt(5));
+	    			AISStation as = new AISStation(stationsRS.getString(1), stationsRS.getString(2), stationsRS.getDouble(3), stationsRS.getDouble(4));
+	    			as.setDbId(stationsRS.getInt(5));
 	    			sta.add(as);
 	    		}
 	    		
@@ -1905,7 +1967,7 @@ import dk.frv.eavdam.utils.HealthCheckHandler;
 	    	}
 	    	
 	    	//Get the issues.
-//	    	data.setAISDatalinkCheckIssues(this.retrieveAllIssues());
+	    	data.setAISDatalinkCheckIssues(this.retrieveAllIssues());
 	    	
 	    	return data;
 	    }
@@ -3589,7 +3651,7 @@ import dk.frv.eavdam.utils.HealthCheckHandler;
 			}catch(Exception e){
 //				e.printStackTrace();
 				try{
-					System.out.print("No ISSUES table found. Creating it to match the latest version...");
+					System.out.println("No ISSUES table found. Creating it to match the latest version...");
 					Statement s = conn.createStatement();
 					try {
 						s.execute("CREATE TABLE ISSUES"
