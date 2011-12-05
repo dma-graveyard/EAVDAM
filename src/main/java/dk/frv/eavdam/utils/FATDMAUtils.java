@@ -38,10 +38,10 @@ public class FATDMAUtils {
 		
 		List<FATDMACell> fatdmaICells = fatdmaCellsMap.get(String.valueOf(cellNumber) + "-I");
 		acceptedFATDMABlocksForChannelA = processFATDMACellsChannelA(fatdmaICells, acceptedFATDMABlocksForChannelA);
-		acceptedFATDMABlocksForChannelB = processFATDMACellsChannelA(fatdmaICells, acceptedFATDMABlocksForChannelB);
+		acceptedFATDMABlocksForChannelB = processFATDMACellsChannelB(fatdmaICells, acceptedFATDMABlocksForChannelB);
 		List<FATDMACell> fatdmaIICells = fatdmaCellsMap.get(String.valueOf(cellNumber) + "-II");
 		acceptedFATDMABlocksForChannelA = processFATDMACellsChannelA(fatdmaIICells, acceptedFATDMABlocksForChannelA);
-		acceptedFATDMABlocksForChannelB = processFATDMACellsChannelA(fatdmaIICells, acceptedFATDMABlocksForChannelB);
+		acceptedFATDMABlocksForChannelB = processFATDMACellsChannelB(fatdmaIICells, acceptedFATDMABlocksForChannelB);
 		
 		if (reservedBlocksForChannelA != null) {
 			for (Integer block : reservedBlocksForChannelA) {
@@ -63,7 +63,9 @@ public class FATDMAUtils {
 	}
 	
 	private static List<Integer> processFATDMACellsChannelA(List<FATDMACell> fatdmaCells, List<Integer> acceptedFATDMABlocks) {
-	
+		if(fatdmaCells == null) return new ArrayList<Integer>();
+		if(acceptedFATDMABlocks == null) acceptedFATDMABlocks = new ArrayList<Integer>();
+		
 		for (FATDMACell fatdmaCell : fatdmaCells) {
 			
 			FATDMADefaultChannel channelA = fatdmaCell.getChannelA();
@@ -94,6 +96,9 @@ public class FATDMAUtils {
 			
 	private static List<Integer> processFATDMACellsChannelB(List<FATDMACell> fatdmaCells, List<Integer> acceptedFATDMABlocks) {
 	
+		if(fatdmaCells == null) return new ArrayList<Integer>();
+		if(acceptedFATDMABlocks == null) acceptedFATDMABlocks = new ArrayList<Integer>();
+		
 		for (FATDMACell fatdmaCell : fatdmaCells) {	
 	
 			FATDMADefaultChannel channelB = fatdmaCell.getChannelB();		

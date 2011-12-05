@@ -48,6 +48,8 @@ public class HealthCheckHandler {
 	private Map<String, AISFixedStationData> stations = null;
 	
 	public boolean useOptimization = false;
+
+	
 	
 	public HealthCheckHandler(EAVDAMData data){
 		this.data = data;
@@ -72,20 +74,24 @@ public class HealthCheckHandler {
 		
 		
 		//AREA FOCUSED HEALTH CHECK
-		double latIncrement = getIncrementedLatitude(resolution, topLeftLatitude)-topLeftLatitude;
+		double latIncrement = getLatitudeIncrement(resolution, topLeftLatitude, topLeftLongitude, lowerRightLatitude, lowerRightLongitude);
 		if(latIncrement < 0) latIncrement *= -1;
 		
-		double lonIncrement = getIncrementedLongitude(resolution, topLeftLongitude) - topLeftLongitude;
+		double lonIncrement = getLongitudeIncrement(resolution, topLeftLatitude, topLeftLongitude, lowerRightLatitude, lowerRightLongitude);
 		if(lonIncrement < 0) lonIncrement *= -1;
 		
-		System.out.println("Starting area focused health check (Rules "+(checkRule1 ? "1" : "")+(checkRule3 ? ", 3" : "")+(checkRule7 ? ",7 " : "")+").");
+		double numberOfCells = 1.0*(topLeftLatitude-lowerRightLatitude)/latIncrement * 1.0*(lowerRightLongitude-topLeftLongitude)/lonIncrement;
+		System.out.println("Health Check started with resolution "+resolution+"nm. There are "+((int)numberOfCells)+" number of coordinates to be checked!");
+		
+		
+		System.out.println("Starting area focused health check (Rules "+(checkRule1 ? "1" : "")+(checkRule3 ? ", 3" : "")+(checkRule7 ? ", 7" : "")+").");
 		List<AISDatalinkCheckArea> areas = new ArrayList<AISDatalinkCheckArea>();
 		//Loop through the area?
 		
 		int ithLine = 0, ithTotal = 0;
 		double prevLat = 0, prevLon = 0;
 		Set<String> foundAreas = new HashSet<String>();
-		double numberOfCells = 1.0*(topLeftLatitude-lowerRightLatitude)/latIncrement * 1.0*(lowerRightLongitude-topLeftLongitude)/lonIncrement;
+		
 		
 		List<AISFixedStationData> latitudeStopPoints = this.getLatitudeStopPoints();
 		List<AISFixedStationData> endStopPoints = new ArrayList<AISFixedStationData>();
@@ -104,10 +110,12 @@ public class HealthCheckHandler {
 			maxLongitude = Double.MIN_VALUE;
 		}
 		
-//		System.out.println("LAT search area: "+topLeftLatitude+" > "+lowerRightLatitude+", increment: "+(-1*latIncrement) +" --> "+((int)(1.0*(topLeftLatitude-lowerRightLatitude)/latIncrement)));
-//		System.out.println("LON search area: "+lon+" < "+maxLongitude+", increment: "+lonIncrement +" --> "+((int)(1.0*(lowerRightLongitude-topLeftLongitude)/lonIncrement)));
+		System.out.println("LAT search area: "+topLeftLatitude+" > "+lowerRightLatitude+", increment: "+(-1*latIncrement) +" --> "+((int)(1.0*(topLeftLatitude-lowerRightLatitude)/latIncrement)));
+		System.out.println("LON search area: "+lon+" < "+maxLongitude+", increment: "+lonIncrement +" --> "+((int)(1.0*(lowerRightLongitude-topLeftLongitude)/lonIncrement)));
 		for(double lat = topLeftLatitude ; lat > lowerRightLatitude; lat = lat - latIncrement){
 
+			if(!checkRule1 && !checkRule3 && !checkRule7) break;
+			
 			if(useOptimization){
 				//Optimization: Skip cells that do not have any information.
 				if(currentStopPoint < latitudeStopPoints.size() && latitudeStopPoints.get(currentStopPoint).getNorthTransmitCoveragePoints()[0] < lat){ //No stop point
@@ -211,7 +219,9 @@ public class HealthCheckHandler {
 //			System.out.println("Total "+ithTotal+"/"+((int)numberOfCells)+"");
 			
 			if(listener != null){
-				listener.progressed(1.0*ithTotal/((int) numberOfCells));
+				double progress = 1.0*ithTotal/((int) numberOfCells);
+				if(progress > 0.9) progress = 0.9;
+				listener.progressed(progress);
 			}
 			
 			
@@ -261,6 +271,8 @@ public class HealthCheckHandler {
 				
 			}
 			
+			listener.progressed(0.93);
+			
 			if(checkRule4){
 				List<AISTimeslot> problems = this.checkRule4(station);
 				if(problems != null && problems.size() > 0){
@@ -281,6 +293,8 @@ public class HealthCheckHandler {
 				}
 			}
 			
+			listener.progressed(0.95);
+			
 			if(checkRule5){
 				
 				if(this.checkRule5(station)){
@@ -292,7 +306,7 @@ public class HealthCheckHandler {
 					
 					String problemName = "RULE5_"+s1.getOrganizationName()+"_"+s1.getStationName();
 					if(!foundProblems.contains(problemName)){
-						AISDatalinkCheckIssue issue = new AISDatalinkCheckIssue(-1,AISDatalinkCheckRule.RULE4,getRuleSeverity(AISDatalinkCheckRule.RULE4),stations,null);
+						AISDatalinkCheckIssue issue = new AISDatalinkCheckIssue(-1,AISDatalinkCheckRule.RULE5,getRuleSeverity(AISDatalinkCheckRule.RULE4),stations,null);
 						
 						foundProblems.add(problemName);
 						
@@ -300,7 +314,7 @@ public class HealthCheckHandler {
 					}
 				}
 			}
-			
+			listener.progressed(0.97);
 			
 			for(String v : overlappingStations.get(s).keySet()){
 				if(true) break;
@@ -372,7 +386,7 @@ public class HealthCheckHandler {
 		}
 		
 		System.out.println("Health checks completed...");
-
+		listener.progressed(1.0);
 		
 
 		System.out.println("Found "+issues.size()+" station issues: ");
@@ -1023,12 +1037,16 @@ public class HealthCheckHandler {
 		Collections.sort(listOfTransmitStations);
 		Collections.sort(listOfInterferenceStations);
 		
+		String smKey = listOfTransmitStations.toString()+"-"+listOfInterferenceStations.toString();
+		
 		if(this.stationSlotmap == null) this.stationSlotmap = new HashMap<String, AISSlotMap>();
-		else if(this.stationSlotmap.get(listOfTransmitStations.toString()+"-"+listOfInterferenceStations.toString()) != null){
-			this.areaIssueMap.put(lat+";"+lon, listOfTransmitStations.toString()+"-"+listOfInterferenceStations.toString());
+		else if(this.stationSlotmap.get(smKey) != null){
+			this.areaIssueMap.put(lat+";"+lon, smKey);
 			
-			return this.stationSlotmap.get(listOfTransmitStations.toString()+"-"+listOfInterferenceStations.toString());
+			return this.stationSlotmap.get(smKey);
 		}
+		
+//		System.out.println(smKey+" NOT FOUND! Calculating SlotMap");
 		
 		
 		//Create slot map
@@ -1085,7 +1103,7 @@ public class HealthCheckHandler {
 		if(this.areaIssueMap == null) this.areaIssueMap = new HashMap<String, String>();
 		
 		this.areaIssueMap.put(lat+";"+lon, listOfTransmitStations.toString()+"-"+listOfInterferenceStations.toString());
-		this.stationSlotmap.put(listOfTransmitStations.toString()+"-"+listOfInterferenceStations.toString(),slotmap);
+		this.stationSlotmap.put(smKey,slotmap);
 		
 		return slotmap;
 	}
@@ -1096,11 +1114,11 @@ public class HealthCheckHandler {
 			return issues;
 		}
 		
-		Set<String> issueNames = new HashSet<String>();
-		
 		Map<String, List<AISDatalinkCheckIssue>> rules = new HashMap<String, List<AISDatalinkCheckIssue>>();
 		for(AISDatalinkCheckIssue i : issues){ //Store all issues of the single rule in a list
 			AISDatalinkCheckRule rv = i.getRuleViolated();
+//			System.out.println(rv.toString());
+			
 			if(!checkRule1 && rv.equals(AISDatalinkCheckRule.RULE1)) continue;
 			if(!checkRule2 && rv.equals(AISDatalinkCheckRule.RULE2)) continue;
 			if(!checkRule3 && rv.equals(AISDatalinkCheckRule.RULE3)) continue;
@@ -1114,7 +1132,9 @@ public class HealthCheckHandler {
 			
 			ri.add(i);
 			
-			rules.put(i.getRuleViolated().toString(), ri);
+			rules.put(rv.toString(), ri);
+			
+//			System.out.println(rules.size());
 		}
 		
 //		System.out.println("Found "+rules.size()+" rules..");
@@ -1436,7 +1456,7 @@ public class HealthCheckHandler {
 	 * @param lon TOP LEFT Lon point of the area
 	 * @return
 	 */
-	public AISDatalinkCheckResult checkRulesAtPoint(double lat, double lon, double resolution){
+	public AISDatalinkCheckResult checkRulesAtPoint(double lat, double lon, double endLat, double endLon, double resolution){
 		if(this.data == null){
 			
 			this.data = DBHandler.getData(); 
@@ -1622,7 +1642,7 @@ public class HealthCheckHandler {
 		
 		
 		
-		AISDatalinkCheckArea area = new AISDatalinkCheckArea(lat, lon, getIncrementedLatitude(resolution, lat), getIncrementedLongitude(resolution, lon), percentage);
+		AISDatalinkCheckArea area = new AISDatalinkCheckArea(lat, lon, endLat, endLon, percentage);
 		List<AISDatalinkCheckArea> areas = new ArrayList<AISDatalinkCheckArea>();
 		areas.add(area);
 		result.setAreas(areas);
@@ -1936,12 +1956,7 @@ public class HealthCheckHandler {
 		return null;
 	}
 	
-	private static double getIncrementedLongitude(double resolution, double startLon){
-// 		 System.out.println(startLon+" | "+resolution+"/(60/"+Math.cos(startLon)+") + "+startLon+" = "+(1.0*resolution/(60.0/Math.cos(startLon)) + startLon));
-		 double dres = 1.0*resolution/(60.0/Math.cos(startLon));
-		 
-		 return startLon + dres;
-	}
+
 	
 	private static double getLatituteChangeForResolution(double resolution, double lat){
 		return 1.0*resolution/(60.0/Math.cos(lat));
@@ -1951,10 +1966,51 @@ public class HealthCheckHandler {
 		return 1.0*resolution/(60.0/Math.cos(lon));
 	}
 	
+	/**
+	 * Distance between two points
+	 * 
+	 * @param lat1
+	 * @param lon1
+	 * @param lat2
+	 * @param lon2
+	 * @param unit
+	 * @return
+	 */
+	private static double distanceBetweenPoints(double lat1, double lon1, double lat2, double lon2) {
+		  double lonDiff = lon1 - lon2;
+		  double dist = Math.sin(deg2rad(lat1)) * Math.sin(deg2rad(lat2)) + Math.cos(deg2rad(lat1)) * Math.cos(deg2rad(lat2)) * Math.cos(deg2rad(lonDiff));
+		  dist = Math.acos(dist);
+		  dist = rad2deg(dist);
+		  dist = dist * 60 * 1.1515 * 0.8684; //To Nautical Miles
+		  
+		  return dist;
+		}
+
+	private static double deg2rad(double deg) {
+	  return (deg * Math.PI / 180.0);
+	}
+
+	private static double rad2deg(double rad) {
+	  return (rad * 180.0 / Math.PI);
+	}
 	
-	private static double getIncrementedLatitude(double resolution, double startLat){
-//		System.out.println(startLat+" | "+resolution+"/(60/"+Math.cos(startLat)+") + "+startLat+" = "+(1.0*resolution/(60.0/Math.cos(startLat)) + startLat));
-		return 1.0*resolution/(60.0/Math.cos(startLat)) + startLat;
+
+	
+	private static double getLatitudeIncrement(double resolution, double startLat, double startLon, double endLat, double endLon){
+		double distanceInLatitude = distanceBetweenPoints(startLat, startLon, endLat, startLon); //Keep the longitude the same
+		
+		double nCells = distanceInLatitude/resolution;
+		
+		return 1.0*(startLat-endLat)/nCells;
+		
+	}
+	
+	private static double getLongitudeIncrement(double resolution, double startLat, double startLon, double endLat, double endLon){
+		double distanceInLatitude = distanceBetweenPoints(startLat, startLon, startLat, endLon); //Keep the latitude the same
+		
+		double nCells = distanceInLatitude/resolution;
+		
+		return 1.0*(startLon-endLon)/nCells;
 	}
 	
 	public static void isPolygonIntersection(){
