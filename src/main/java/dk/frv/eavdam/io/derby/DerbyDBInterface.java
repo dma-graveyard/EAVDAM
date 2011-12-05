@@ -402,10 +402,14 @@ import dk.frv.eavdam.utils.HealthCheckHandler;
 	    			
 	    	if(user == null) return 0;
 	    	
+	    	String sql = "select ORGANIZATION.id from ORGANIZATION, ADDRESS where (ORGANIZATION.visitingaddress = ADDRESS.id OR ORGANIZATION.postaladdress = ADDRESS.id) AND (organizationname = ? OR addressline1 = ? OR ORGANIZATION.id = ?)";
 	    	
-        	PreparedStatement ps = conn.prepareStatement("select id from ORGANIZATION where ORGANIZATION.organizationname = ? OR ORGANIZATION.id = ?");
+	    	//sql = "select id from ORGANIZATION where ORGANIZATION.organizationname = ? OR ORGANIZATION.id = ?" //OLD
+	    	
+        	PreparedStatement ps = conn.prepareStatement(sql);
         	ps.setString(1, user.getOrganizationName());
-        	ps.setInt(2, user.getUserDBID());
+	    	ps.setString(2, user.getPostalAddress() != null ? user.getPostalAddress().getAddressline1() : "NO ADDRESS GIVEN FOR DELETION");
+        	ps.setInt(3, user.getUserDBID());
         	ResultSet res = ps.executeQuery();
         	
         	int orgID = -1;
@@ -1557,33 +1561,39 @@ import dk.frv.eavdam.utils.HealthCheckHandler;
 	    public void deleteUser(EAVDAMUser user) throws Exception{
 	    	if(user == null) return;
 	    	
-			if(log) System.out.println("Deleting user "+user.getOrganizationName());
+			System.out.println("Updating user information on user "+user.getOrganizationName());
 	    	
-	    	PreparedStatement ps = null;
+//	    	PreparedStatement ps = null;
 	    	
-	    	ps = conn.prepareStatement("select ORGANIZATION.id from ORGANIZATION, ADDRESS where (ORGANIZATION.visitingaddress = ADDRESS.id OR ORGANIZATION.postaladdress = ADDRESS.id) AND (organizationname = ? OR addressline1 = ?)");
-	    	ps.setString(1, user.getOrganizationName());
-	    	ps.setString(2, user.getPostalAddress() != null ? user.getPostalAddress().getAddressline1() : "NO ADDRESS GIVEN FOR DELETION");
-	    	ResultSet rs = ps.executeQuery();
-	    	int id = -1;
-	    	if(rs.next()){
-	    		id = rs.getInt(1);
-	    	}
+	    	int id = this.getOrganizationID(user, false);
+	    	
+	    	
+	    	
+//	    	ps = conn.prepareStatement("select ORGANIZATION.id from ORGANIZATION, ADDRESS where (ORGANIZATION.visitingaddress = ADDRESS.id OR ORGANIZATION.postaladdress = ADDRESS.id) AND (organizationname = ? OR addressline1 = ?)");
+//	    	ps.setString(1, user.getOrganizationName());
+//	    	ps.setString(2, user.getPostalAddress() != null ? user.getPostalAddress().getAddressline1() : "NO ADDRESS GIVEN FOR DELETION");
+//	    	ResultSet rs = ps.executeQuery();
+//	    	int id = -1;
+//	    	if(rs.next()){
+//	    		id = rs.getInt(1);
+//	    	}
 	    	
 	    	if(id <= 0) return;
 	    	
-	    	  
+	    	
 	    	List<AISFixedStationData> stations = this.retrieveAISStations(-1, id);
-	    	for(AISFixedStationData s : stations){
-	    		this.deleteStation(s.getStationDBID());
+	    	if(stations != null){
+		    	System.out.println("Found "+stations.size()+" stations for the user. "+(stations.size() > 0 ? "Deleting them..." : ""));
+		    	for(AISFixedStationData s : stations){
+		    		this.deleteStation(s.getStationDBID());
+		    	}
 	    	}
-	    	 
-	    	ps = conn.prepareStatement("delete from ORGANIZATION where id = ?");
-	    	ps.setInt(1, id);
-	    	int n = ps.executeUpdate();
-	    	if(n <= 0){
-	    		System.err.println("Delete organization "+user.getOrganizationName()+" ("+id+") FAILED!");
-	    	}
+//	    	ps = conn.prepareStatement("delete from ORGANIZATION where id = ?");
+//	    	ps.setInt(1, id);
+//	    	int n = ps.executeUpdate();
+//	    	if(n <= 0){
+//	    		System.err.println("Delete organization "+user.getOrganizationName()+" ("+id+") FAILED!");
+//	    	}
 	    	
 	    }
 	    

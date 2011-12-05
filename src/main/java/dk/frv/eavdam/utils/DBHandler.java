@@ -28,14 +28,18 @@ import org.apache.commons.net.ftp.FTPClient;
 
 public class DBHandler {
         
-    private static EAVDAMData data = new EAVDAMData();  // for testing before the database works        
+    private static EAVDAMData data = null;  // for testing before the database works        
     private static boolean initialized = false;    
     private static boolean updatedXML = false;
-	
+	public static boolean changes = false;
+    
 	public static boolean importDataUpdated = false;
     
     public static EAVDAMData getData() {        
 
+//    	System.out.println("Getting data from database!");
+//    	if(data != null && !changes) return data;
+    	
     	EAVDAMData dat = new EAVDAMData();
     	if(!initialized){
     		//Check if the database exists. It does the check in the constructor.
@@ -115,6 +119,9 @@ public class DBHandler {
 //    		e.printStackTrace();
 //    	}
     		
+    	data = dat;
+    	changes = false;
+    	
         return dat;
 
     }
@@ -139,6 +146,8 @@ public class DBHandler {
     		e.printStackTrace();
     	}
 
+    	
+    	
     	return dat;
     }
     
@@ -150,6 +159,7 @@ public class DBHandler {
         
 		d.insertEAVDAMData(data);
 
+		changes = true;
 
 //        if(!updatedXML){
 //			System.out.println("Writing the xml to file...");
@@ -170,7 +180,8 @@ public class DBHandler {
         //d.createDatabase(null);
     	try{
     		int id = d.insertEAVDAMUser(user, defaultUser);
-    		System.out.println("Added user under id "+id+" (default: "+defaultUser+")");
+//    		System.out.println("Added user under id "+id+" (default: "+defaultUser+")");
+    		changes = true;
     	}catch(Exception e){
     		e.printStackTrace();
     	}
@@ -195,12 +206,14 @@ public class DBHandler {
     public static void saveOptions(Options options){
     	DerbyDBInterface db = new DerbyDBInterface();
     	db.insertOptions(options);
+    	changes = true;
     }
     
     public static void deleteSimulation(String simulationName){
     	try{
     		DerbyDBInterface db = new DerbyDBInterface();
     		db.deleteSimulation(simulationName);
+    		changes = true;
     	}catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -210,6 +223,7 @@ public class DBHandler {
     	try{
     		DerbyDBInterface db = new DerbyDBInterface();
     		db.deleteStation(stationID);
+    		changes = true;
     	}catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -220,6 +234,7 @@ public class DBHandler {
     	try{
     		DerbyDBInterface db = new DerbyDBInterface();
     		db.acknowledgeIssues(issues);
+    		changes = true;
     	}catch(Exception e){
     		e.printStackTrace();
     	}
@@ -228,10 +243,12 @@ public class DBHandler {
     
     
     public static void deleteIssues(List<AISDatalinkCheckIssue> issues){
+    	if(true) return;
     	
     	try{
     		DerbyDBInterface db = new DerbyDBInterface();
     		db.deleteIssues(issues);
+    		changes = true;
     	}catch(Exception e){
     		e.printStackTrace();
     	}
@@ -270,6 +287,8 @@ class LoadXMLsFromFTPsThread extends Thread {
 	//  	System.out.println(e.getMessage());
 	    }
 		DBHandler.importDataUpdated = true;		
+		
+		DBHandler.changes = true;
 	}
 
 }
