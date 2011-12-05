@@ -59,6 +59,8 @@ public class HealthCheckHandler {
 		
 		AISDatalinkCheckResult results = new AISDatalinkCheckResult();
 		
+//		System.out.println("Resolution for health check: "+resolution);
+		
 		this.data = DBHandler.getData(topLeftLatitude + 2.5, topLeftLongitude - 4.5, lowerRightLatitude -2.5, lowerRightLongitude + 4.5);  
 //		if(this.data == null) System.out.println("No DATA!");
 		
