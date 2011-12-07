@@ -875,7 +875,8 @@ public class HealthCheckHandler {
 		List<Integer> listOfInterferenceStations = new ArrayList<Integer>();
 		
 		//Check all active stations
-		if(transmission.getActiveStations() != null){
+		
+		if(transmission != null && transmission.getActiveStations() != null){
 			if(transmission.getActiveStations() != null)
 			for(ActiveStation as : transmission.getActiveStations()){
 				if(as.getStations() != null){
