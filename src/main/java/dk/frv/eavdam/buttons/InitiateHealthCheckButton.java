@@ -93,6 +93,8 @@ public class InitiateHealthCheckButton extends OMToolComponent implements Action
 	private JButton viewIssuesButton;
 	private JButton cancelViewIssuesButton;
 	
+	public static boolean cancelled = false;
+	
 	private EAVDAMData data;
 	
 	public InitiateHealthCheckButton() {
@@ -364,13 +366,21 @@ public class InitiateHealthCheckButton extends OMToolComponent implements Action
 		}
 	}
 	
+	public boolean isCancelled() {
+		return cancelled;
+	}
+	
 	public void completed(AISDatalinkCheckResult result) {	
 
+		if (result == null) {
+			return;
+		}
+	
 		if (data == null) {
 			data = DBHandler.getData();		
 		}
 		
-		data.setAISDatalinkCheckIssues(null);			
+		data.setAISDatalinkCheckIssues(null);
 		IssuesMenuItem.issues = null;
 		
 		if (result != null) {
@@ -536,6 +546,7 @@ class InitiateHealthCheckThread extends Thread {
 	public void run() {
 		  
 		try {
+			InitiateHealthCheckButton.cancelled = false;
 			hch.startAISDatalinkCheck(listener, checkRule1, checkRule2, checkRule3, checkRule4, checkRule5, checkRule6,
 				checkRule7, includePlanned, topLeftLatitude, topLeftLongitude, lowerRightLatitude, lowerRightLongitude, resolution);				
 		} catch (OutOfMemoryError e) {
