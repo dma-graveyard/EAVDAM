@@ -2924,7 +2924,7 @@ import dk.frv.eavdam.utils.HealthCheckHandler;
 		    		}
 		    		antenna.setFieldOfViewAngle(rs.getInt(4));
 		    		antenna.setGain(rs.getDouble(5));
-		    		antenna.setHeading(3);
+		    		antenna.setHeading(rs.getInt(3));
 		    		antenna.setTerrainHeight(rs.getDouble(2));
 		    		ais.setAntenna(antenna);
 		    	}
