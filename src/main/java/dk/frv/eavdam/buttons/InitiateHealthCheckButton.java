@@ -533,6 +533,10 @@ class InitiateHealthCheckThread extends Thread {
 	}
 	
 	public void run() {
+	
+		long temp = Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory();
+		System.out.println("Memory in use: "  + temp);
+	  
 		try {		
 			hch.startAISDatalinkCheck(listener, checkRule1, checkRule2, checkRule3, checkRule4, checkRule5, checkRule6,
 				checkRule7, includePlanned, topLeftLatitude, topLeftLongitude, lowerRightLatitude, lowerRightLongitude, resolution);		

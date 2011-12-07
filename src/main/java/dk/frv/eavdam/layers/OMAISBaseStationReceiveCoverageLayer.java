@@ -17,44 +17,38 @@ import com.bbn.openmap.proj.Length;
 import java.awt.Color;
 import java.awt.event.MouseEvent;
 import java.awt.geom.Point2D;
+import java.util.ArrayList;
+import java.util.List;
 
-public class OMAISBaseStationReceiveCoverageLayer extends OMGraphicHandlerLayer implements MapMouseListener {
+public class OMAISBaseStationReceiveCoverageLayer extends OMGraphicHandlerLayer {
 
 	private static final long serialVersionUID = 1L;
 
 	private OMGraphicList graphics = new OMGraphicList();
 	private InformationDelegator infoDelegator;
 	
-	public OMAISBaseStationReceiveCoverageLayer() {
-		// TODO Auto-generated constructor stub
-	}
+	private List<OMGraphic> coverages = new ArrayList<OMGraphic>();	
+	
+	public OMAISBaseStationReceiveCoverageLayer() {}
 
-	/*
-	public void addReceiveCoverageArea(OMBaseStation base) {	
-		this.addReceiveCoverageArea(base);		
-	}
-	*/
+	public void init() {
+		coverages = new ArrayList<OMGraphic>();
+	}	
 	
 	public OMGraphicList getGraphicsList() {
 	    return graphics;
 	}
 
-	// public void addRect(double latN, double lonW, double latS, double lonE) {
-	// OMRect r = new OMRect(latN, lonW, latS, lonE, OMGraphic.LINETYPE_RHUMB);
-	// r.setFillPaint(Color.blue);
-	// graphics.add(r);
-	// graphics.project(getProjection(), true);
-	// this.repaint();
-	// }
-
 	@Override
 	public synchronized OMGraphicList prepare() {
+		graphics.clear();
+		for (OMGraphic omg : coverages) {
+			graphics.add(omg);
+		}
 		graphics.project(getProjection(), true);
+		this.repaint();
+		this.validate();
 		return graphics;
-	}
-
-	public MapMouseListener getMapMouseListener() {
-		return this;
 	}
 	
 	public Object addReceiveCoverageArea(OMBaseStation bs) {
@@ -75,10 +69,7 @@ public class OMAISBaseStationReceiveCoverageLayer extends OMGraphicHandlerLayer 
 			
 			Color c = new Color(0, 0, 255, 100);
 			baseCircle.setFillPaint(c);
-			graphics.add(baseCircle);
-			graphics.project(getProjection(), true);
-			this.repaint();
-			this.validate();
+			coverages.add(baseCircle);	
 			return baseCircle;
 			
 		} else if (bs.getReceiveCoverageArea().size() == 2) {
@@ -100,131 +91,12 @@ public class OMAISBaseStationReceiveCoverageLayer extends OMGraphicHandlerLayer 
 
 			OMPoly baseReach = new OMPoly(latlon, OMGraphic.DECIMAL_DEGREES, OMGraphic.LINETYPE_GREATCIRCLE);
 
-			System.out.println("Drawing reach area. There are "+latlon.length+" coordinates...");
-
 			Color c = new Color(0, 0, 255, 100);
 			baseReach.setFillPaint(c);
-			graphics.add(baseReach);
-			graphics.project(getProjection(), true);
-			this.repaint();
+			coverages.add(baseReach);	
 			return baseReach;
 
 		}
-	}
-
-	@Override
-	public String[] getMouseModeServiceList() {
-		String[] ret = new String[2];
-		ret[0] = NavMouseMode.modeID;
-		ret[1] = SelectMouseMode.modeID;
-		return ret;
-	}
-
-	@Override
-	public boolean mouseClicked(MouseEvent e) {
-	/*
-		//if (this.sidePanel != null) {
-		//	this.sidePanel.setText(null);
-		//}
-		OMList<OMGraphic> allClosest = graphics.findAll(e.getX(), e.getY(), 5.0f);
-		for (OMGraphic omGraphic : allClosest) {
-			if (omGraphic instanceof OMBaseStation) {
-				System.out.println("Mouse clicked on omGraphic: " + omGraphic);               
-				if (this.sidePanel != null) {
-					OMBaseStation r = (OMBaseStation) omGraphic;
-					String text = 
-							"<html>Base station at<br>"
-									+ r.getLatLon().getLatitude()
-									+ (r.getLatLon().getLatitude() > 0 ? "N" : "S")
-									+ "," + r.getLatLon().getLongitude()
-									+ (r.getLatLon().getLongitude() > 0 ? "E" : "W")
-									+ "<br><br>Name:" + r.getName() + "<br>Antenna height:"
-									+ r.getAntennaHeight()+"<br>" 
-									+"<br>"
-									+"Coverage Area:"+"<br>";
-
-					for(double[] latlon : r.getReachArea()){
-						text += latlon[0]+";"+latlon[1]+"<br>";
-					}
-
-					text+= "</html>";
-					this.sidePanel.setText(text);
-				}
-				*/
-				// Consumed by this
-				/*
-				return true;
-			}
-		}
-		*/
-		return false;
-	}
-
-	@Override
-	public boolean mouseDragged(MouseEvent e) {
-	/*
-		OMList<OMGraphic> allClosest = graphics.findAll(e.getX(), e.getY(),
-				5.0f);
-		for (OMGraphic omGraphic : allClosest) {
-			if (omGraphic instanceof OMBaseStation) {
-				System.out.println("Mouse dragged on omGraphic: " + omGraphic);
-				OMBaseStation r = (OMBaseStation) omGraphic;
-				Point2D p = ((MapMouseEvent) e).getLatLon();
-				r.setLocation(p.getY(), p.getX());
-				r.generate(getProjection());
-				this.repaint();
-
-				// if (this.infoDelegator != null) {
-				// this.infoDelegator.setLabel("FOO");
-				// }
-
-				// Consumed by this
-				return true;
-			}
-		}
-		*/
-		return false;
-	}
-
-	@Override
-	public void mouseEntered(MouseEvent e) {
-		// TODO Auto-generated method stub
-	}
-
-	@Override
-	public void mouseExited(MouseEvent e) {
-		// TODO Auto-generated method stub
-	}
-
-	@Override
-	public void mouseMoved() {
-
-	}
-
-	@Override
-	public boolean mouseMoved(MouseEvent e) {
-		// OMList<OMGraphic> allClosest = graphics.findAll(e.getX(), e.getY(),
-		// 5.0f);
-		// for (OMGraphic omGraphic : allClosest) {
-		// if (omGraphic instanceof OMRect) {
-		// System.out.println("Mouse over omGraphic: " + omGraphic);
-		// // Consumed by this
-		// return true;
-		// }
-		// }
-		return false;
-	}
-
-	@Override
-	public boolean mousePressed(MouseEvent e) {
-		// TODO Auto-generated method stub
-		return false;
-	}
-
-	@Override
-	public boolean mouseReleased(MouseEvent e) {
-		// TODO Auto-generated method stub
-		return false;
 	}
 
 	@Override

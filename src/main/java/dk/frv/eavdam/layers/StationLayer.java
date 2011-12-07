@@ -155,6 +155,8 @@ public class StationLayer extends OMGraphicHandlerLayer implements MapMouseListe
 	
 	private OMGraphicHandlerLayer currentlyEditingLayer;
 	
+	private List<OMBaseStation> omBaseStations;
+	
 	private Map<OMBaseStation, OMGraphic> transmitCoverageAreas = new HashMap<OMBaseStation, OMGraphic>();
 	private Map<OMBaseStation, OMGraphic> receiveCoverageAreas = new HashMap<OMBaseStation, OMGraphic>();
 	private Map<OMBaseStation, OMGraphic> interferenceCoverageAreas = new HashMap<OMBaseStation, OMGraphic>();
@@ -218,6 +220,10 @@ public class StationLayer extends OMGraphicHandlerLayer implements MapMouseListe
 	}
 	
     public void addBaseStation(Object datasetSource, EAVDAMUser owner, AISFixedStationData stationData) {
+	
+		if (omBaseStations == null) {
+			omBaseStations = new ArrayList<OMBaseStation>();
+		}
 	
 	    byte[] bytearr = null;		
 		
@@ -355,63 +361,86 @@ public class StationLayer extends OMGraphicHandlerLayer implements MapMouseListe
 			DBHandler.saveData(data);
 		}
 		
-		graphics.add(base);
+		omBaseStations.add(base);
+		
+	}
+		
+	private void renderBaseStations() {
+	
+		if (omBaseStations == null) {
+			return;
+		}
+		
+		transmitCoverageLayer.init();
+		interferenceCoverageLayer.init();
+		receiveCoverageLayer.init();
+		
+		for (OMBaseStation base : omBaseStations) {
+		
+			graphics.add(base);
+			
+			AISFixedStationData stationData = base.getStationData();
 
-		if (showStationNamesOnMapCheckBox.isSelected() || showMMSINumbersOnMapCheckBox.isSelected()) {
-			String text = "";
-			if (showStationNamesOnMapCheckBox.isSelected() && !showMMSINumbersOnMapCheckBox.isSelected()) {
-				text = stationData.getStationName();
-			} else if (showMMSINumbersOnMapCheckBox.isSelected() && !showStationNamesOnMapCheckBox.isSelected()) {
-				if (stationData.getMmsi() != null) {
-					text = stationData.getMmsi();
-				}
-			} else if (showMMSINumbersOnMapCheckBox.isSelected() && showStationNamesOnMapCheckBox.isSelected()) {
-				if (stationData.getMmsi() == null) {
+			if (showStationNamesOnMapCheckBox.isSelected() || showMMSINumbersOnMapCheckBox.isSelected()) {
+				String text = "";
+				if (showStationNamesOnMapCheckBox.isSelected() && !showMMSINumbersOnMapCheckBox.isSelected()) {
 					text = stationData.getStationName();
-				} else {
-					text = stationData.getStationName() + " (" + stationData.getMmsi() + ")";					
+				} else if (showMMSINumbersOnMapCheckBox.isSelected() && !showStationNamesOnMapCheckBox.isSelected()) {
+					if (stationData.getMmsi() != null) {
+						text = stationData.getMmsi();
+					}
+				} else if (showMMSINumbersOnMapCheckBox.isSelected() && showStationNamesOnMapCheckBox.isSelected()) {
+					if (stationData.getMmsi() == null) {
+						text = stationData.getStationName();
+					} else {
+						text = stationData.getStationName() + " (" + stationData.getMmsi() + ")";					
+					}
+				}
+				if (!text.equals("")) {
+					OMText omText = new OMText(stationData.getLat()-0.2, stationData.getLon(), text, OMText.JUSTIFY_CENTER);
+					omText.setBaseline(OMText.BASELINE_MIDDLE);
+					Color c = new Color(0, 0, 0, 255);
+					omText.setLinePaint(c);		
+					graphics.add(omText);
 				}
 			}
-			if (!text.equals("")) {
-				OMText omText = new OMText(stationData.getLat()-0.2, stationData.getLon(), text, OMText.JUSTIFY_CENTER);
-				omText.setBaseline(OMText.BASELINE_MIDDLE);
-				Color c = new Color(0, 0, 0, 255);
-				omText.setLinePaint(c);		
-				graphics.add(omText);
+			
+			if (stationData.getStationType() != AISFixedStationType.RECEIVER) {	
+				Object transmitCoverageAreaGraphics = transmitCoverageLayer.addTransmitCoverageArea(base);
+				if (transmitCoverageAreaGraphics != null) {
+					if (transmitCoverageAreaGraphics instanceof OMCircle) {
+						transmitCoverageAreas.put(base, (OMCircle) transmitCoverageAreaGraphics);
+					} else if (transmitCoverageAreaGraphics instanceof OMPoly) {
+						transmitCoverageAreas.put(base, (OMPoly) transmitCoverageAreaGraphics);
+					}		
+				}
+				Object interferenceCoverageAreaGraphics = interferenceCoverageLayer.addInterferenceCoverageArea(base);
+				if (interferenceCoverageAreaGraphics != null) {
+					if (interferenceCoverageAreaGraphics instanceof OMCircle) {
+						interferenceCoverageAreas.put(base, (OMCircle) interferenceCoverageAreaGraphics);
+					} else if (interferenceCoverageAreaGraphics instanceof OMPoly) {
+						interferenceCoverageAreas.put(base, (OMPoly) interferenceCoverageAreaGraphics);
+					}		
+				}			
 			}
+			Object receiveCoverageAreaGraphics = receiveCoverageLayer.addReceiveCoverageArea(base);
+			if (receiveCoverageAreaGraphics != null) {
+				if (receiveCoverageAreaGraphics instanceof OMCircle) {
+					receiveCoverageAreas.put(base, (OMCircle) receiveCoverageAreaGraphics);
+				} else if (receiveCoverageAreaGraphics instanceof OMPoly) {
+					receiveCoverageAreas.put(base, (OMPoly) receiveCoverageAreaGraphics);
+				}		
+			}			
+		
 		}
 		
 		graphics.project(getProjection(), true);
 		this.repaint();
 		this.validate();
 
-		if (stationData.getStationType() != AISFixedStationType.RECEIVER) {	
-			Object transmitCoverageAreaGraphics = transmitCoverageLayer.addTransmitCoverageArea(base);
-			if (transmitCoverageAreaGraphics != null) {
-				if (transmitCoverageAreaGraphics instanceof OMCircle) {
-					transmitCoverageAreas.put(base, (OMCircle) transmitCoverageAreaGraphics);
-				} else if (transmitCoverageAreaGraphics instanceof OMPoly) {
-					transmitCoverageAreas.put(base, (OMPoly) transmitCoverageAreaGraphics);
-				}		
-			}
-			Object interferenceCoverageAreaGraphics = interferenceCoverageLayer.addInterferenceCoverageArea(base);
-			if (interferenceCoverageAreaGraphics != null) {
-				if (interferenceCoverageAreaGraphics instanceof OMCircle) {
-					interferenceCoverageAreas.put(base, (OMCircle) interferenceCoverageAreaGraphics);
-				} else if (interferenceCoverageAreaGraphics instanceof OMPoly) {
-					interferenceCoverageAreas.put(base, (OMPoly) interferenceCoverageAreaGraphics);
-				}		
-			}			
-		}
-		Object receiveCoverageAreaGraphics = receiveCoverageLayer.addReceiveCoverageArea(base);
-		if (receiveCoverageAreaGraphics != null) {
-			if (receiveCoverageAreaGraphics instanceof OMCircle) {
-				receiveCoverageAreas.put(base, (OMCircle) receiveCoverageAreaGraphics);
-			} else if (receiveCoverageAreaGraphics instanceof OMPoly) {
-				receiveCoverageAreas.put(base, (OMPoly) receiveCoverageAreaGraphics);
-			}		
-		}
-
+		transmitCoverageLayer.doPrepare();
+		interferenceCoverageLayer.doPrepare();
+		receiveCoverageLayer.doPrepare();
 	}
 
 	@Override
@@ -1786,6 +1815,9 @@ public class StationLayer extends OMGraphicHandlerLayer implements MapMouseListe
 		}
 	    if (obj instanceof MapBean) {
 			this.mapBean = (MapBean) obj;
+			if (mapBean instanceof com.bbn.openmap.BufferedLayerMapBean) {
+				System.out.println("MapBean is BufferedLayerMapBean!");
+			}
 		} else if (obj instanceof InformationDelegator) {
 			this.infoDelegator = (InformationDelegator) obj;
 		} else if (obj instanceof OpenMapFrame) {
@@ -2012,7 +2044,10 @@ public class StationLayer extends OMGraphicHandlerLayer implements MapMouseListe
 					}
 				}
 			}
-                         
+               
+			renderBaseStations();
+
+			/*
             this.repaint();
 		    this.validate();
             transmitCoverageLayer.repaint();
@@ -2021,6 +2056,7 @@ public class StationLayer extends OMGraphicHandlerLayer implements MapMouseListe
 		    receiveCoverageLayer.validate();
 	        interferenceCoverageLayer.repaint();
 		    interferenceCoverageLayer.validate();		
+			*/
         }
     }
 
