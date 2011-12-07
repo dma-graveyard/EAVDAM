@@ -2045,7 +2045,7 @@ class GetSlotMapDialogThread extends Thread {
 	
 	public void run() {
 		HealthCheckHandler hch = new HealthCheckHandler(data);
-		AISSlotMap slotmap = hch.slotMapAtPoint(latitude, longitude);
+		AISSlotMap slotmap = hch.slotMapAtPoint(latitude, longitude, true);
 		stationLayer.setSlotMapDialog(new SlotMapDialog(openMapFrame, latitude, longitude, slotmap));
 	}
 

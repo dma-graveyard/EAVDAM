@@ -59,7 +59,13 @@ public class HealthCheckHandler {
 			boolean checkRule4, boolean checkRule5, boolean checkRule6, boolean checkRule7, boolean includePlanned,
 			double topLeftLatitude, double topLeftLongitude, double lowerRightLatitude, double lowerRightLongitude, double resolution){
 		
-	
+		listener.progressed(0);
+		this.areaIssueMap = new HashMap<String, String>();
+		this.stationSlotmap = new HashMap<String, AISSlotMap>();
+		this.stations = new HashMap<String, AISFixedStationData>();
+		
+		System.gc();
+		
 		AISDatalinkCheckResult results = new AISDatalinkCheckResult();
 
 		if(!checkRule1 && !checkRule2 && !checkRule3 && !checkRule4 && !checkRule5 && !checkRule6 && !checkRule7){
@@ -74,7 +80,7 @@ public class HealthCheckHandler {
 		this.data = DBHandler.getData(topLeftLatitude + 2.5, topLeftLongitude - 4.5, lowerRightLatitude -2.5, lowerRightLongitude + 4.5);  
 //		if(this.data == null) System.out.println("No DATA!");
 		
-		Map<String, Map<String,AISFixedStationData>> overlappingStations = this.findOverlappingStations(topLeftLatitude + 2.5, topLeftLongitude - 4.5, lowerRightLatitude -2.5, lowerRightLongitude + 4.5);
+		Map<String, Map<String,AISFixedStationData>> overlappingStations = this.findOverlappingStations(topLeftLatitude + 2.5, topLeftLongitude - 4.5, lowerRightLatitude -2.5, lowerRightLongitude + 4.5, includePlanned);
 		
 		List<AISDatalinkCheckIssue> issues = new ArrayList<AISDatalinkCheckIssue>();
 		Set<String> foundProblems = new HashSet<String>();
@@ -196,7 +202,7 @@ public class HealthCheckHandler {
 				
 //				System.out.println("ith Column: "+ithColumn+" lat: "+lat+", lon: "+lon);
 				//Get the issues
-				AISSlotMap sm = slotMapAtPoint(lat, lon);
+				AISSlotMap sm = slotMapAtPoint(lat, lon, includePlanned);
 				
 				if(ithLine > 1 && ithColumn > 1 && sm != null){
 					
@@ -215,8 +221,10 @@ public class HealthCheckHandler {
 				}
 				
 				prevLon = lon;
+				
+				
 			}
-			
+			System.gc();
 			if(!useOptimization){
 				lon = topLeftLongitude;
 			}
@@ -703,7 +711,8 @@ public class HealthCheckHandler {
 	private Map<String, Map<String,AISFixedStationData>> findOverlappingStations(double topLeftLatitude,
 			double topLeftLongitude, 
 			double lowerRightLatitude,
-			double lowerRightLongitude) {
+			double lowerRightLongitude, 
+			boolean includePlanned) {
 	
 		if(this.data == null) this.data = DBHandler.getData(topLeftLatitude + 2.5, topLeftLongitude - 4.5, lowerRightLatitude -2.5, lowerRightLongitude + 4.5);
 
@@ -715,6 +724,8 @@ public class HealthCheckHandler {
 			for(ActiveStation as : data.getActiveStations()){
 				if(as.getStations() != null){
 					for(AISFixedStationData s1 : as.getStations()){
+						if(s1.getStatus().getStatusID() == DerbyDBInterface.STATUS_PLANNED && !includePlanned) continue;
+						
 						String s1Name = s1.getOperator().getOrganizationName()+"-"+s1.getStationName();
 						stations.put(s1Name, s1);
 						Map<String,AISFixedStationData> overlaps = overlappingStations.get(s1Name);
@@ -722,6 +733,7 @@ public class HealthCheckHandler {
 								
 						
 						for(AISFixedStationData s2 : as.getStations()){
+							if(s2.getStatus().getStatusID() == DerbyDBInterface.STATUS_PLANNED && !includePlanned) continue;
 							if(s1 == s2 || s1Name.equals(s2.getOperator().getOrganizationName()+"-"+s2.getStationName())) continue;
 							
 //							System.out.println("Comparing: "+s1Name+" vs. "+s2.getStationName());
@@ -738,6 +750,7 @@ public class HealthCheckHandler {
 							if(as == as1) continue;
 							if(as1.getStations() != null){
 								for(AISFixedStationData s2 : as1.getStations()){
+									if(s2.getStatus().getStatusID() == DerbyDBInterface.STATUS_PLANNED && !includePlanned) continue;
 									if(s1 == s2) continue;
 									
 //									System.out.println("Comparing: "+s1Name+" vs. "+s2.getStationName());
@@ -760,30 +773,32 @@ public class HealthCheckHandler {
 									for(ActiveStation acs : other.getStations()){
 										if(acs.getStations() != null){
 											for(AISFixedStationData o2 : acs.getStations()){
-													if(s1 == o2) continue;
+												if(o2.getStatus().getStatusID() == DerbyDBInterface.STATUS_PLANNED && !includePlanned) continue;
+												
+												if(s1 == o2) continue;
 													
-													//Compare transmit coverage against interference coverage.
-													if(PointInPolygon.isPolygonIntersection(s1.getTransmissionCoverage().getCoveragePoints(), o2.getInterferenceCoverage().getCoveragePoints())){
-														overlaps.put(o2.getOperator().getOrganizationName()+"-"+o2.getStationName(), o2);
-													}
-													
+												//Compare transmit coverage against interference coverage.
+												if(PointInPolygon.isPolygonIntersection(s1.getTransmissionCoverage().getCoveragePoints(), o2.getInterferenceCoverage().getCoveragePoints())){
+													overlaps.put(o2.getOperator().getOrganizationName()+"-"+o2.getStationName(), o2);
 												}
-											
-												overlappingStations.put(s1Name, overlaps);
-											
+													
 											}
+											
+											overlappingStations.put(s1Name, overlaps);
+											
 										}
 									}
 								}
 							}
-						
-							overlappingStations.put(s1Name, overlaps);
 						}
 						
-						
+						overlappingStations.put(s1Name, overlaps);
 					}
+						
+						
 				}
 			}
+		}
 		
 		
 		if(data.getOtherUsersStations() != null){
@@ -792,12 +807,14 @@ public class HealthCheckHandler {
 					for(ActiveStation as : other.getStations()){
 						if(as.getStations() != null){
 							for(AISFixedStationData o1 : as.getStations()){
+								if(o1.getStatus().getStatusID() == DerbyDBInterface.STATUS_PLANNED && !includePlanned) continue;
 								String o1Name = o1.getOperator().getOrganizationName()+"-"+o1.getStationName();
 								stations.put(o1Name, o1);
 								
 								Map<String,AISFixedStationData> overlaps = overlappingStations.get(o1Name);
 								if(overlaps == null) overlaps = new HashMap<String, AISFixedStationData>();
 								for(AISFixedStationData s2 : as.getStations()){
+									if(s2.getStatus().getStatusID() == DerbyDBInterface.STATUS_PLANNED && !includePlanned) continue;
 									if(o1 == s2) continue;
 									
 									//Compare transmit coverage against interference coverage.
@@ -817,6 +834,7 @@ public class HealthCheckHandler {
 										for(ActiveStation acs : other.getStations()){
 											if(acs.getStations() != null){
 												for(AISFixedStationData o2 : acs.getStations()){
+													if(o2.getStatus().getStatusID() == DerbyDBInterface.STATUS_PLANNED && !includePlanned) continue;
 													if(o1 == o2) continue;
 														
 													//Compare transmit coverage against interference coverage.
@@ -853,7 +871,7 @@ public class HealthCheckHandler {
 	 * @param lon TOP LEFT Lon point of the area
 	 * @return
 	 */
-	public AISSlotMap slotMapAtPoint(double lat, double lon){
+	public AISSlotMap slotMapAtPoint(double lat, double lon, boolean includePlanned){
 		if(this.data == null){
 			
 			this.data = DBHandler.getData(); 
@@ -882,6 +900,8 @@ public class HealthCheckHandler {
 				if(as.getStations() != null){
 					
 					for(AISFixedStationData s : as.getStations()){
+						if(s.getStatus().getStatusID() == DerbyDBInterface.STATUS_PLANNED && !includePlanned) continue;
+						
 						listOfTransmitStations.add(new Integer(s.getStationDBID()));
 //						if(s.getStatus().getStatusID() == DerbyDBInterface.STATUS_PLANNED) continue; //TODO Include the PLANNED stations to the check also?
 //						
@@ -922,6 +942,8 @@ public class HealthCheckHandler {
 					for(ActiveStation as : other.getStations()){
 						if(as.getStations() != null){
 							for(AISFixedStationData s : as.getStations()){
+								if(s.getStatus().getStatusID() == DerbyDBInterface.STATUS_PLANNED && !includePlanned) continue;
+								
 								listOfTransmitStations.add(new Integer(s.getStationDBID()));
 								
 //								if(s.getStatus().getStatusID() == DerbyDBInterface.STATUS_PLANNED) continue;
@@ -967,6 +989,7 @@ public class HealthCheckHandler {
 			for(ActiveStation as : interference.getActiveStations()){
 				if(as.getStations() != null){
 					for(AISFixedStationData s : as.getStations()){
+						if(s.getStatus().getStatusID() == DerbyDBInterface.STATUS_PLANNED && !includePlanned) continue;
 						listOfInterferenceStations.add(new Integer(s.getStationDBID()));
 						
 //						if(s.getStatus().getStatusID() == DerbyDBInterface.STATUS_PLANNED) continue; //TODO Include the PLANNED stations to the check also?
@@ -1010,6 +1033,7 @@ public class HealthCheckHandler {
 					for(ActiveStation as : other.getStations()){
 						if(as.getStations() != null){
 							for(AISFixedStationData s : as.getStations()){
+								if(s.getStatus().getStatusID() == DerbyDBInterface.STATUS_PLANNED && !includePlanned) continue;
 								listOfInterferenceStations.add(s.getStationDBID());
 //								if(s.getStatus().getStatusID() == DerbyDBInterface.STATUS_PLANNED) continue;
 //								if(interferenceStations.contains(s.getStationName()+"_"+s.getOperator().getOrganizationName())) continue;
@@ -1121,6 +1145,8 @@ public class HealthCheckHandler {
 		this.areaIssueMap.put(lat+";"+lon, listOfTransmitStations.toString()+"-"+listOfInterferenceStations.toString());
 		this.stationSlotmap.put(smKey,slotmap);
 		
+		System.gc();
+		
 		return slotmap;
 	}
 	
@@ -1161,7 +1187,13 @@ public class HealthCheckHandler {
 			Map<String, AISStation> stations = new HashMap<String, AISStation>();
 			for(AISDatalinkCheckIssue i : rules.get(rule)){
 
-				if(i == null || i.getInvolvedStations() == null) continue;
+				if(i == null || i.getInvolvedStations() == null){
+					if(i.getRuleViolated().equals(AISDatalinkCheckRule.RULE7) && stationIssues.get("RULE7") == null){
+						stationIssues.put("RULE7",i);
+					}
+					
+					continue;
+				}
 				
 				String stationInvolved = "";
 				List<String> invStationNames = new ArrayList<String>();
