@@ -242,15 +242,13 @@ public class HealthCheckHandler {
 				
 			}
 			
-			if(this.cancelled){
+			if(this.cancelled || listener.isCancelled()){
 				listener.completed(null);
+				System.gc();
+				System.out.println("Health Check cancelled...");
 				return null;
 			}
 			
-			if(listener.isCancelled()){
-				listener.completed(null);
-				return null;
-			}
 			
 			System.gc();
 			if(!useOptimization){
@@ -283,13 +281,10 @@ public class HealthCheckHandler {
 		
 		
 		for(String s : overlappingStations.keySet()){
-			if(this.cancelled){
+			if(this.cancelled || listener.isCancelled()){
 				listener.completed(null);
-				return null;
-			}
-			
-			if(listener.isCancelled()){
-				listener.completed(null);
+				System.gc();
+				System.out.println("Health Check cancelled...");
 				return null;
 			}
 			
@@ -408,13 +403,10 @@ public class HealthCheckHandler {
 			}
 		}
 		
-		if(this.cancelled){
+		if(this.cancelled || listener.isCancelled()){
 			listener.completed(null);
-			return null;
-		}
-		
-		if(listener.isCancelled()){
-			listener.completed(null);
+			System.gc();
+			System.out.println("Health Check cancelled...");
 			return null;
 		}
 		
