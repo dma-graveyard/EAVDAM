@@ -101,10 +101,11 @@ public class HealthCheckHandler {
 		Set<String> foundAreas = new HashSet<String>();
 		
 		
-		List<AISFixedStationData> latitudeStopPoints = this.getLatitudeStopPoints();
+		List<AISFixedStationData> latitudeStopPoints = null;
+		if(this.useOptimization) latitudeStopPoints = this.getLatitudeStopPoints();
 		List<AISFixedStationData> endStopPoints = new ArrayList<AISFixedStationData>();
 		
-		if(latitudeStopPoints == null || latitudeStopPoints.size() <= 0){
+		if(useOptimization && (latitudeStopPoints == null || latitudeStopPoints.size() <= 0)){
 			System.out.println("Problem with latitude stop points...");
 			
 			return null;
@@ -462,7 +463,7 @@ public class HealthCheckHandler {
 		
 		if(this.data.getOtherUsersStations() != null){
 			for(OtherUserStations other : this.data.getOtherUsersStations()){
-				if(other.getStations() != null){
+				if(other != null && other.getStations() != null){
 					for(ActiveStation ao : other.getStations()){
 						if(ao.getStations() != null){
 							for(AISFixedStationData d : ao.getStations()){
@@ -1819,7 +1820,7 @@ public class HealthCheckHandler {
 			if(numberOfCells < 91000) return resolution;
 		}
 		
-		return 5.0;
+		return -1;
 	}
 	
 	/**
