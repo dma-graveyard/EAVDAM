@@ -1172,6 +1172,8 @@ import dk.frv.eavdam.utils.HealthCheckHandler;
 	    			sta.add(as);
 	    		}
 	    		
+	    		if(sta.size() == 0) System.out.println("No stations found for issue "+issue.getId()+" - "+issue.getRuleViolated());
+	    		
 	    		issue.setInvolvedStations(sta);
 	    		
 	    		stations.close();
@@ -1193,6 +1195,7 @@ import dk.frv.eavdam.utils.HealthCheckHandler;
 	    		
 	    			timeslots.add(s);
 	    		}	
+	    		
 	    		issue.setInvolvedTimeslots(timeslots);
 	    		
 	    		slotRS.close();

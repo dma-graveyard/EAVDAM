@@ -190,8 +190,8 @@ public class RoundCoverage {
 		}
 
 		//Line from the end point to the station
-		double[] p2 = {centerLat,centerLon};
-		points.add(p2);
+//		double[] p2 = {centerLat,centerLon};
+//		points.add(p2);
 
 		
 		double partStartAngle = heading-(fieldOfViewAngle/2);
@@ -217,7 +217,9 @@ public class RoundCoverage {
 			points.add(point);		
 		}
 
-		double[] point = {centerLat,centerLon};  // first point		
+//		double[] point = {centerLat,centerLon};  // first point
+		double[] point = getCoordinates(centerLat, centerLon, radius1, startAngle);
+		
 		points.add(point);
 		
 		return points;

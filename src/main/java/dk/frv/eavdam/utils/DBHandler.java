@@ -244,15 +244,15 @@ public class DBHandler {
     
     
     public static void deleteIssues(List<AISDatalinkCheckIssue> issues){
-    	if(true) return;
+    	return;
     	
-    	try{
-    		DerbyDBInterface db = new DerbyDBInterface();
-    		db.deleteIssues(issues);
-    		changes = true;
-    	}catch(Exception e){
-    		e.printStackTrace();
-    	}
+//    	try{
+//    		DerbyDBInterface db = new DerbyDBInterface();
+//    		db.deleteIssues(issues);
+//    		changes = true;
+//    	}catch(Exception e){
+//    		e.printStackTrace();
+//    	}
     	
     }
 }
