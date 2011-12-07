@@ -241,6 +241,12 @@ public class HealthCheckHandler {
 				
 				
 			}
+			
+//			if(listener.isCancelled()){
+//				listener.completed(null);
+//				return null;
+//			}
+			
 			System.gc();
 			if(!useOptimization){
 				lon = topLeftLongitude;
@@ -272,6 +278,11 @@ public class HealthCheckHandler {
 		
 		
 		for(String s : overlappingStations.keySet()){
+//			if(listener.isCancelled()){
+//				listener.completed(null);
+//				return null;
+//			}
+			
 			AISFixedStationData station = stations.get(s);
 			if(station == null){
 				System.err.println("Station "+s+" was not found when checking the rules!");
@@ -386,6 +397,11 @@ public class HealthCheckHandler {
 
 			}
 		}
+		
+//		if(listener.isCancelled()){
+//			listener.completed(null);
+//			return null;
+//		}
 		
 		if(areas.size() == 0){
 			for(String keys : foundAreas){
@@ -1228,9 +1244,11 @@ public class HealthCheckHandler {
 		Map<String,AISDatalinkCheckIssue> stationIssues = new HashMap<String, AISDatalinkCheckIssue>();
 		Map<String,Set<AISTimeslot>> stationTimeslots = new HashMap<String, Set<AISTimeslot>>();
 		
+		
 		List<AISDatalinkCheckIssue> r = new ArrayList<AISDatalinkCheckIssue>();
 		for(String rule : rules.keySet()){
 			Map<String, AISStation> stations = new HashMap<String, AISStation>();
+			
 			for(AISDatalinkCheckIssue i : rules.get(rule)){
 
 				if(i == null || i.getInvolvedStations() == null){
@@ -1319,7 +1337,7 @@ public class HealthCheckHandler {
 							}
 						}
 						
-						lts.addAll(ts);
+//						lts.addAll(ts);
 						
 						issue.setInvolvedTimeslots(lts);
 					}
