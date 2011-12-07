@@ -60,9 +60,9 @@ public class HealthCheckHandler {
 			double topLeftLatitude, double topLeftLongitude, double lowerRightLatitude, double lowerRightLongitude, double resolution){
 		
 		listener.progressed(0);
-		this.areaIssueMap = null;
-		this.stationSlotmap = null;
-		this.stations = null;
+		this.areaIssueMap = new HashMap<String, String>();
+		this.stationSlotmap = new HashMap<String, AISSlotMap>();
+		this.stations = new HashMap<String, AISFixedStationData>();
 		
 		System.gc();
 		
@@ -222,9 +222,9 @@ public class HealthCheckHandler {
 				
 				prevLon = lon;
 				
-				System.gc();
+				
 			}
-			
+			System.gc();
 			if(!useOptimization){
 				lon = topLeftLongitude;
 			}

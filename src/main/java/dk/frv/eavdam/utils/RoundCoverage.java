@@ -152,41 +152,72 @@ public class RoundCoverage {
 		if(numberOfPoints < 10) numberOfPoints = 10;
 		
 		double partOfCircleAngle = 180.0/Math.round(numberOfPoints/2);
+		double radius2 = 120*1.852;	
 		
-		double startAngle = heading -90;
-		if (startAngle < 0) {
-			startAngle = 360 + startAngle;
+		
+		double startAngle = heading + 90;
+		if (startAngle > 360) {
+			startAngle = startAngle - 360;
 		}
-		double endAngle = heading + 90;
+		double endAngle = heading - 90;
 		if (endAngle < 0) {
-			endAngle = 360 + endAngle;
+			endAngle = 360 + endAngle; //e.g., 360 + (-60)
 		}
 		
 		double temp = -1;
-		for (double angle = startAngle; angle <= endAngle; angle += partOfCircleAngle){			
-			double[] point = getCoordinates(centerLat, centerLon, radius1, angle);
+		//Add line from the station to the start point:
+		double[] p1 = {centerLat,centerLon};
+		points.add(p1);
+		
+		if(endAngle < startAngle) endAngle += 360;
+		
+		//First, do the half circle behind the heading
+		for (double angle = startAngle; angle <= endAngle; angle += partOfCircleAngle){	
+			double realAngle = angle;
+			if(realAngle > 360) realAngle -= 360;
+			
+			double[] point = getCoordinates(centerLat, centerLon, radius1, realAngle);
 			points.add(point);
-			temp = angle;
+			temp = realAngle;
 		}
-		if (temp != endAngle) {
+		
+		if(endAngle > 360) endAngle -= 360;
+		
+		if (temp != endAngle) { //Adds the last point if the points were not evenly distributed
+			
 			double[] point = getCoordinates(centerLat, centerLon, radius1, endAngle);
 			points.add(point);		
 		}
 
-		double radius2 = 120*1.852;	
-				
+		//Line from the end point to the station
+		double[] p2 = {centerLat,centerLon};
+		points.add(p2);
+
+		
+		double partStartAngle = heading-(fieldOfViewAngle/2);
+		double partEndAngle = heading+(fieldOfViewAngle/2);
+		
+		if(partStartAngle > partEndAngle) partEndAngle += 360;
+		
+		//Coverage to the front of the heading
 		partOfCircleAngle = fieldOfViewAngle/Math.round(numberOfPoints/2);
-		for(double angle = heading-(fieldOfViewAngle/2); angle <= heading+(fieldOfViewAngle/2); angle += partOfCircleAngle){			
-			double[] point = getCoordinates(centerLat, centerLon, radius2, angle);
+		for(double angle = partStartAngle; angle <= partEndAngle; angle += partOfCircleAngle){			
+			double realAngle = angle;
+			if(realAngle > 360) realAngle -= 360;
+			
+			double[] point = getCoordinates(centerLat, centerLon, radius2, realAngle);
 			points.add(point);
-			temp = angle;			
+			temp = realAngle;			
 		}
-		if (temp != heading+(fieldOfViewAngle/2)) {
-			double[] point = getCoordinates(centerLat, centerLon, radius2, heading+(fieldOfViewAngle/2));
+		
+		if(partEndAngle > 360) partEndAngle -= 360;
+		
+		if (temp != partEndAngle) {
+			double[] point = getCoordinates(centerLat, centerLon, radius2, partEndAngle);
 			points.add(point);		
 		}
 
-		double[] point = getCoordinates(centerLat, centerLon, radius1, startAngle);  // first point		
+		double[] point = {centerLat,centerLon};  // first point		
 		points.add(point);
 		
 		return points;
