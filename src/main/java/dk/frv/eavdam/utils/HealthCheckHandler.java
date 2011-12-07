@@ -1256,6 +1256,7 @@ public class HealthCheckHandler {
 										break;
 									}
 									
+//									if(lts.get(i).getFrequency())
 									
 									if(i == lts.size() - 1){
 										lts.add(t);
