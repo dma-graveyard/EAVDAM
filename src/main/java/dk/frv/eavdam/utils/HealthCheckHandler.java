@@ -46,6 +46,7 @@ public class HealthCheckHandler {
 	private Map<String, String> areaIssueMap = null; //Store the issues found from the area to this map. This is a pointer to the stationSlotmap
 	private Map<String, AISSlotMap> stationSlotmap = null; //Stores slot map of each station combination.
 	private Map<String, AISFixedStationData> stations = null;
+	boolean log = false;
 	
 	public boolean useOptimization = false;
 
@@ -744,9 +745,9 @@ public class HealthCheckHandler {
 	//								System.out.println("Added "+s2.getStationName()+" to "+s1Name);
 								}
 							}catch (Exception e) {
-								System.err.println("Problem with the polygons: Stations "+s1.getStationName()+" and "+s2.getStationName());
+								if(log) System.err.println("Problem with the polygons: Stations "+s1.getStationName()+" and "+s2.getStationName());
 								
-								e.printStackTrace();
+								if(log) e.printStackTrace();
 							}
 							
 						}
@@ -767,9 +768,9 @@ public class HealthCheckHandler {
 	//										System.out.println("Added "+s2.getStationName()+" to "+s1Name);
 										}
 									}catch (Exception e) {
-										System.err.println("Problem with the polygons: Stations "+s1.getStationName()+" and "+s2.getStationName());
+										if(log) System.err.println("Problem with the polygons: Stations "+s1.getStationName()+" and "+s2.getStationName());
 										
-										e.printStackTrace();
+										if(log) e.printStackTrace();
 									}
 								}
 								
@@ -794,9 +795,9 @@ public class HealthCheckHandler {
 														overlaps.put(o2.getOperator().getOrganizationName()+"-"+o2.getStationName(), o2);
 													}
 												}catch (Exception e) {
-													System.err.println("Problem with the polygons: Stations "+s1.getStationName()+" and "+o2.getStationName());
+													if(log) System.err.println("Problem with the polygons: Stations "+s1.getStationName()+" and "+o2.getStationName());
 													
-													e.printStackTrace();
+													if(log) e.printStackTrace();
 												}	
 											}
 											
@@ -839,9 +840,9 @@ public class HealthCheckHandler {
 											overlaps.put(s2.getOperator().getOrganizationName()+"-"+s2.getStationName(), s2);
 										}
 									}catch (Exception e) {
-										System.err.println("Problem with the polygons: Stations "+o1.getStationName()+" and "+s2.getStationName());
+										if(log) System.err.println("Problem with the polygons: Stations "+o1.getStationName()+" and "+s2.getStationName());
 										
-										e.printStackTrace();
+										if(log) e.printStackTrace();
 									}
 								}
 								
@@ -864,9 +865,10 @@ public class HealthCheckHandler {
 															overlaps.put(o2.getOperator().getOrganizationName()+"-"+o2.getStationName(), o2);
 														}
 													}catch (Exception e) {
-														System.err.println("Problem with the polygons: Stations "+o1.getStationName()+" and "+o2.getStationName());
+														if(log)
+															System.err.println("Problem with the polygons: Stations "+o1.getStationName()+" and "+o2.getStationName());
 														
-														e.printStackTrace();
+														if(log) e.printStackTrace();
 													}
 												}
 												
