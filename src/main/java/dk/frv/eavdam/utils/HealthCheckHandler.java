@@ -247,10 +247,10 @@ public class HealthCheckHandler {
 				return null;
 			}
 			
-//			if(listener.isCancelled()){
-//				listener.completed(null);
-//				return null;
-//			}
+			if(listener.isCancelled()){
+				listener.completed(null);
+				return null;
+			}
 			
 			System.gc();
 			if(!useOptimization){
@@ -288,10 +288,10 @@ public class HealthCheckHandler {
 				return null;
 			}
 			
-//			if(listener.isCancelled()){
-//				listener.completed(null);
-//				return null;
-//			}
+			if(listener.isCancelled()){
+				listener.completed(null);
+				return null;
+			}
 			
 			AISFixedStationData station = stations.get(s);
 			if(station == null){
@@ -413,10 +413,10 @@ public class HealthCheckHandler {
 			return null;
 		}
 		
-//		if(listener.isCancelled()){
-//			listener.completed(null);
-//			return null;
-//		}
+		if(listener.isCancelled()){
+			listener.completed(null);
+			return null;
+		}
 		
 		if(areas.size() == 0){
 			for(String keys : foundAreas){
