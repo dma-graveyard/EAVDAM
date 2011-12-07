@@ -52,7 +52,7 @@ public class HealthCheckHandler {
 	
 	public boolean useOptimization = false;
 
-	
+	private boolean cancelled = false;
 	
 	public HealthCheckHandler(EAVDAMData data){
 		this.data = data;
@@ -242,6 +242,11 @@ public class HealthCheckHandler {
 				
 			}
 			
+			if(this.cancelled){
+				listener.completed(null);
+				return null;
+			}
+			
 //			if(listener.isCancelled()){
 //				listener.completed(null);
 //				return null;
@@ -278,6 +283,11 @@ public class HealthCheckHandler {
 		
 		
 		for(String s : overlappingStations.keySet()){
+			if(this.cancelled){
+				listener.completed(null);
+				return null;
+			}
+			
 //			if(listener.isCancelled()){
 //				listener.completed(null);
 //				return null;
@@ -396,6 +406,11 @@ public class HealthCheckHandler {
 				
 
 			}
+		}
+		
+		if(this.cancelled){
+			listener.completed(null);
+			return null;
 		}
 		
 //		if(listener.isCancelled()){
@@ -2250,5 +2265,9 @@ public class HealthCheckHandler {
 		
 		
 		return 0;
+	}
+	
+	public void setCancelled(boolean cancelled){
+		this.cancelled = cancelled;
 	}
 }
