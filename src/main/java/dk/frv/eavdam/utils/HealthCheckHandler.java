@@ -738,9 +738,15 @@ public class HealthCheckHandler {
 							
 //							System.out.println("Comparing: "+s1Name+" vs. "+s2.getStationName());
 							//Compare transmit coverage against interference coverage.
-							if(PointInPolygon.isPolygonIntersection(s1.getTransmissionCoverage().getCoveragePoints(), s2.getInterferenceCoverage().getCoveragePoints())){
-								overlaps.put(s2.getOperator().getOrganizationName()+"-"+s2.getStationName(), s2);
-//								System.out.println("Added "+s2.getStationName()+" to "+s1Name);
+							try{
+								if(PointInPolygon.isPolygonIntersection(s1.getTransmissionCoverage().getCoveragePoints(), s2.getInterferenceCoverage().getCoveragePoints())){
+									overlaps.put(s2.getOperator().getOrganizationName()+"-"+s2.getStationName(), s2);
+	//								System.out.println("Added "+s2.getStationName()+" to "+s1Name);
+								}
+							}catch (Exception e) {
+								System.err.println("Problem with the polygons: Stations "+s1.getStationName()+" and "+s2.getStationName());
+								
+								e.printStackTrace();
 							}
 							
 						}
@@ -754,12 +760,17 @@ public class HealthCheckHandler {
 									if(s1 == s2) continue;
 									
 //									System.out.println("Comparing: "+s1Name+" vs. "+s2.getStationName());
-									//Compare transmit coverage against interference coverage.
-									if(PointInPolygon.isPolygonIntersection(s1.getTransmissionCoverage().getCoveragePoints(), s2.getInterferenceCoverage().getCoveragePoints())){
-										overlaps.put(s2.getOperator().getOrganizationName()+"-"+s2.getStationName(), s2);
-//										System.out.println("Added "+s2.getStationName()+" to "+s1Name);
+									try{
+											//Compare transmit coverage against interference coverage.
+										if(PointInPolygon.isPolygonIntersection(s1.getTransmissionCoverage().getCoveragePoints(), s2.getInterferenceCoverage().getCoveragePoints())){
+											overlaps.put(s2.getOperator().getOrganizationName()+"-"+s2.getStationName(), s2);
+	//										System.out.println("Added "+s2.getStationName()+" to "+s1Name);
+										}
+									}catch (Exception e) {
+										System.err.println("Problem with the polygons: Stations "+s1.getStationName()+" and "+s2.getStationName());
+										
+										e.printStackTrace();
 									}
-									
 								}
 								
 								
@@ -777,11 +788,16 @@ public class HealthCheckHandler {
 												
 												if(s1 == o2) continue;
 													
-												//Compare transmit coverage against interference coverage.
-												if(PointInPolygon.isPolygonIntersection(s1.getTransmissionCoverage().getCoveragePoints(), o2.getInterferenceCoverage().getCoveragePoints())){
-													overlaps.put(o2.getOperator().getOrganizationName()+"-"+o2.getStationName(), o2);
-												}
+												try{
+													//Compare transmit coverage against interference coverage.
+													if(PointInPolygon.isPolygonIntersection(s1.getTransmissionCoverage().getCoveragePoints(), o2.getInterferenceCoverage().getCoveragePoints())){
+														overlaps.put(o2.getOperator().getOrganizationName()+"-"+o2.getStationName(), o2);
+													}
+												}catch (Exception e) {
+													System.err.println("Problem with the polygons: Stations "+s1.getStationName()+" and "+o2.getStationName());
 													
+													e.printStackTrace();
+												}	
 											}
 											
 											overlappingStations.put(s1Name, overlaps);
@@ -817,11 +833,16 @@ public class HealthCheckHandler {
 									if(s2.getStatus().getStatusID() == DerbyDBInterface.STATUS_PLANNED && !includePlanned) continue;
 									if(o1 == s2) continue;
 									
-									//Compare transmit coverage against interference coverage.
-									if(PointInPolygon.isPolygonIntersection(o1.getTransmissionCoverage().getCoveragePoints(), s2.getInterferenceCoverage().getCoveragePoints())){
-										overlaps.put(s2.getOperator().getOrganizationName()+"-"+s2.getStationName(), s2);
+									try{
+										//Compare transmit coverage against interference coverage.
+										if(PointInPolygon.isPolygonIntersection(o1.getTransmissionCoverage().getCoveragePoints(), s2.getInterferenceCoverage().getCoveragePoints())){
+											overlaps.put(s2.getOperator().getOrganizationName()+"-"+s2.getStationName(), s2);
+										}
+									}catch (Exception e) {
+										System.err.println("Problem with the polygons: Stations "+o1.getStationName()+" and "+s2.getStationName());
+										
+										e.printStackTrace();
 									}
-									
 								}
 								
 								overlappingStations.put(o1Name, overlaps);
@@ -837,11 +858,16 @@ public class HealthCheckHandler {
 													if(o2.getStatus().getStatusID() == DerbyDBInterface.STATUS_PLANNED && !includePlanned) continue;
 													if(o1 == o2) continue;
 														
-													//Compare transmit coverage against interference coverage.
-													if(PointInPolygon.isPolygonIntersection(o1.getTransmissionCoverage().getCoveragePoints(), o2.getInterferenceCoverage().getCoveragePoints())){
-														overlaps.put(o2.getOperator().getOrganizationName()+"-"+o2.getStationName(), o2);
-													}
+													try{
+														//Compare transmit coverage against interference coverage.
+														if(PointInPolygon.isPolygonIntersection(o1.getTransmissionCoverage().getCoveragePoints(), o2.getInterferenceCoverage().getCoveragePoints())){
+															overlaps.put(o2.getOperator().getOrganizationName()+"-"+o2.getStationName(), o2);
+														}
+													}catch (Exception e) {
+														System.err.println("Problem with the polygons: Stations "+o1.getStationName()+" and "+o2.getStationName());
 														
+														e.printStackTrace();
+													}
 												}
 												
 												overlappingStations.put(o1Name, overlaps);

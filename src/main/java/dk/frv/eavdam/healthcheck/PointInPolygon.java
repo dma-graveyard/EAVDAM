@@ -29,15 +29,22 @@ public class PointInPolygon {
 		
 		List<Coordinate> coordinates = new ArrayList<Coordinate>();
 
+		double[] firstPoint = null;
 		for(int i = 0; i < polygon.size(); ++i){
 			double[] start = polygon.get(i);
-
-
+			
+			if(firstPoint == null) firstPoint = start;
+			
 			Coordinate c = new Coordinate(start[0],start[1]);
 		
-
-			
 			coordinates.add(c);
+			
+			if(i == polygon.size() - 1 && (firstPoint[0] != start[0] || firstPoint[1] != start[1])){
+				Coordinate cfp = new Coordinate(firstPoint[0],firstPoint[1]);
+				coordinates.add(cfp);
+				
+//				System.err.println("First and last point do not match!");
+			}
 		}
 		
 	
@@ -56,17 +63,29 @@ public class PointInPolygon {
 		if(polygon1 == null || polygon2 == null) return false;
 			
 		List<Coordinate> coordinates = new ArrayList<Coordinate>();
+		
+		double[] firstPoint1 = null; 
 		for(int i = 0; i < polygon1.size(); ++i){
 			double[] start = polygon1.get(i);
 
+			if(firstPoint1 == null) firstPoint1 = start;
+			
 			Coordinate c = new Coordinate(start[0],start[1]);
 		
 			coordinates.add(c);
+			
+			if(i == polygon1.size() - 1 && (firstPoint1[0] != start[0] || firstPoint1[1] != start[1])){
+				Coordinate cfp = new Coordinate(firstPoint1[0],firstPoint1[1]);
+				coordinates.add(cfp);
+				
+//				System.err.println("First and last point do not match!");
+			}
 		}
 		
 		LinearRing shell = new LinearRing(coordinates.toArray(new Coordinate[coordinates.size()]), new PrecisionModel(), 0);
 		Polygon poly1 = new Polygon(shell, null, new GeometryFactory());
 		
+		double[] firstPoint2 = null;
 		List<Coordinate> coordinates2 = new ArrayList<Coordinate>();
 		for(int i = 0; i < polygon2.size(); ++i){
 			double[] start = polygon2.get(i);
@@ -74,6 +93,17 @@ public class PointInPolygon {
 			Coordinate c = new Coordinate(start[0],start[1]);
 		
 			coordinates2.add(c);
+			
+			if(firstPoint2 == null) firstPoint2 = start;
+			
+			coordinates.add(c);
+			
+			if(i == polygon1.size() - 1 && (firstPoint2[0] != start[0] || firstPoint2[1] != start[1])){
+				Coordinate cfp = new Coordinate(firstPoint2[0],firstPoint2[1]);
+				coordinates.add(cfp);
+				
+//				System.err.println("First and last point do not match!");
+			}
 		}
 
 		LinearRing shell2 = new LinearRing(coordinates2.toArray(new Coordinate[coordinates2.size()]), new PrecisionModel(), 0);
