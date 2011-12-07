@@ -1844,11 +1844,11 @@ public class StationLayer extends OMGraphicHandlerLayer implements MapMouseListe
 		if (dimension.height-100 < SlotMapDialog.SLOTMAP_WINDOW_HEIGHT) {
 			SlotMapDialog.SLOTMAP_WINDOW_HEIGHT = dimension.height-100;
 		}
+		Layer aisDatalinkCheckIssueLayer = null;		
 		if (initiallySelectedLayers != null && initiallySelectedLayers.size() == layerHandler.getLayers().length) {
 			layersMenu.removeAll();
 			Layer[] inLayers = new Layer[initiallySelectedLayers.size()];
 			int i = 0;
-			Layer aisDatalinkCheckIssueLayer = null;
 			for (Layer layer : initiallySelectedLayers) {
 				if (layer.getClass().getCanonicalName().equals("dk.frv.eavdam.layers.AISDatalinkCheckIssueLayer")) {
 					aisDatalinkCheckIssueLayer = layer;
@@ -1873,8 +1873,11 @@ public class StationLayer extends OMGraphicHandlerLayer implements MapMouseListe
 			//eavdamMenu.getShowOnMapMenu().updateCoverageItems(receiveCoverageLayer.isVisible(), transmitCoverageLayer.isVisible(), interferenceCoverageLayer.isVisible());
 			updateStations();
 			stationsInitiallyUpdated = true;
-		}		
+		}
 		StationLayer.windowReady = true;
+		if (aisDatalinkCheckIssueLayer != null) {
+			((AISDatalinkCheckIssueLayer) aisDatalinkCheckIssueLayer).doPrepare();		
+		}
 	}
 
 	private byte[] getImage(String filename) {    

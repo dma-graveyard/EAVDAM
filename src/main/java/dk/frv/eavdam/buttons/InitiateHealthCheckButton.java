@@ -411,9 +411,7 @@ public class InitiateHealthCheckButton extends OMToolComponent implements Action
 				}
 			}
 		}
-		
-	
-				
+						
 		Layer[] layers = layerHandler.getLayers();
 		Layer aisDatalinkCheckIssueLayer = null;
 		for (Layer layer : layers) {
@@ -424,14 +422,13 @@ public class InitiateHealthCheckButton extends OMToolComponent implements Action
 				if (result != null && result.getAreas() != null && !result.getAreas().isEmpty()) {
 					((AISDatalinkCheckBandwidthAreasLayer) layer).setAreas(result.getAreas());				
 					layerHandler.turnLayerOn(true, layer);					
+					((AISDatalinkCheckBandwidthAreasLayer) layer).doPrepare();
 				}
 			}
 		}		
 		if (aisDatalinkCheckIssueLayer != null) {
 			layerHandler.moveLayer(aisDatalinkCheckIssueLayer, 0);
-			mapBean.repaint(aisDatalinkCheckIssueLayer);
-			//aisDatalinkCheckIssueLayer.repaint();
-			//aisDatalinkCheckIssueLayer.validate();
+			((AISDatalinkCheckIssueLayer) aisDatalinkCheckIssueLayer).doPrepare();
 		}
 		layersMenu.setLayers(layers);
 
