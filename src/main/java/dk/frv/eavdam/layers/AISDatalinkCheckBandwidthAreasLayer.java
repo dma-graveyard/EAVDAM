@@ -74,9 +74,11 @@ public class AISDatalinkCheckBandwidthAreasLayer extends OMGraphicHandlerLayer {
 				double lowerRightLongitude = area.getLowerRightLongitude();
 				double bandwithUsageLevel = area.getBandwithUsageLevel();
 		
+				/*
 				if (bandwithUsageLevel > 0.01) {
 					System.out.println("bandwithUsageLevel is " + bandwithUsageLevel);	
 				}
+				*/
 		
 				OMRect omRect = new OMRect(topLeftLatitude, topLeftLongitude, lowerRightLatitude, lowerRightLongitude, OMGraphic.LINETYPE_RHUMB);
 				Color c = null;
