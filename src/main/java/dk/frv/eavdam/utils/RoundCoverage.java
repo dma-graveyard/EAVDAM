@@ -166,8 +166,8 @@ public class RoundCoverage {
 		
 		double temp = -1;
 		//Add line from the station to the start point:
-		double[] p1 = {centerLat,centerLon};
-		points.add(p1);
+//		double[] p1 = {centerLat,centerLon};
+//		points.add(p1);
 		
 		if(endAngle < startAngle) endAngle += 360;
 		
