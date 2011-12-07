@@ -48,6 +48,8 @@ public class HealthCheckHandler {
 	private Map<String, AISFixedStationData> stations = null;
 	boolean log = false;
 	
+	private static int maxNumberOfCells = 75000;
+	
 	public boolean useOptimization = false;
 
 	
@@ -96,6 +98,20 @@ public class HealthCheckHandler {
 		if(lonIncrement < 0) lonIncrement *= -1;
 		
 		double numberOfCells = 1.0*(topLeftLatitude-lowerRightLatitude)/latIncrement * 1.0*(lowerRightLongitude-topLeftLongitude)/lonIncrement;
+		if(numberOfCells > maxNumberOfCells){
+			resolution = getMinResolution(topLeftLatitude, topLeftLongitude, lowerRightLatitude, lowerRightLongitude);
+			
+			latIncrement = getLatitudeIncrement(resolution, topLeftLatitude, topLeftLongitude, lowerRightLatitude, lowerRightLongitude);
+			if(latIncrement < 0) latIncrement *= -1;
+			
+			lonIncrement = getLongitudeIncrement(resolution, topLeftLatitude, topLeftLongitude, lowerRightLatitude, lowerRightLongitude);
+			if(lonIncrement < 0) lonIncrement *= -1;
+			
+			numberOfCells = 1.0*(topLeftLatitude-lowerRightLatitude)/latIncrement * 1.0*(lowerRightLongitude-topLeftLongitude)/lonIncrement;
+			
+			System.out.println("Changing resolution to "+resolution+" to avoid memory issues...");
+		}
+		
 		System.out.println("Health Check started with resolution "+resolution+"nm. There are "+((int)numberOfCells)+" number of coordinates to be checked!");
 		
 		
@@ -126,8 +142,8 @@ public class HealthCheckHandler {
 			maxLongitude = Double.MIN_VALUE;
 		}
 		
-		System.out.println("LAT search area: "+topLeftLatitude+" > "+lowerRightLatitude+", increment: "+(-1*latIncrement) +" --> "+((int)(1.0*(topLeftLatitude-lowerRightLatitude)/latIncrement)));
-		System.out.println("LON search area: "+lon+" < "+maxLongitude+", increment: "+lonIncrement +" --> "+((int)(1.0*(lowerRightLongitude-topLeftLongitude)/lonIncrement)));
+//		System.out.println("LAT search area: "+topLeftLatitude+" > "+lowerRightLatitude+", increment: "+(-1*latIncrement) +" --> "+((int)(1.0*(topLeftLatitude-lowerRightLatitude)/latIncrement)));
+//		System.out.println("LON search area: "+lon+" < "+maxLongitude+", increment: "+lonIncrement +" --> "+((int)(1.0*(lowerRightLongitude-topLeftLongitude)/lonIncrement)));
 		for(double lat = topLeftLatitude ; lat > lowerRightLatitude; lat = lat - latIncrement){
 
 			if(!checkRule1 && !checkRule3 && !checkRule7) break;
@@ -1279,10 +1295,15 @@ public class HealthCheckHandler {
 								lts.add(t);
 							}else{
 								for(int i = 0; i < lts.size(); ++i){
+									if(lts.get(i).getFrequency().equals(t.getFrequency()) && lts.get(i).getSlotNumber() == t.getSlotNumber()){
+										break;
+									}
+									
 									if(lts.get(i).getFrequency().equals(AISFrequency.AIS2) && t.getFrequency().equals(AISFrequency.AIS1)){
 										lts.add(i,t);
 										break;
 									}
+									
 									
 									if(lts.get(i).getFrequency().equals(t.getFrequency()) && lts.get(i).getSlotNumber() > t.getSlotNumber()){
 										lts.add(i,t);
@@ -1934,7 +1955,7 @@ public class HealthCheckHandler {
 		
 			double numberOfCells = 1.0*(topLeftLatitude-lowerRightLatitude)/latIncrement * 1.0*(lowerRightLongitude-topLeftLongitude)/lonIncrement;
 			
-			if(numberOfCells < 91000) return resolution;
+			if(numberOfCells < maxNumberOfCells) return resolution;
 		}
 		
 		return -1;

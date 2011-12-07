@@ -156,7 +156,9 @@ public class XMLHandler {
      */
     public static EAVDAMData importData() {
     	System.out.println("Importing data...");
-		DerbyDBInterface db = new DerbyDBInterface();
+		DerbyDBInterface db = DBHandler.derby;
+		if(db == null) db = new DerbyDBInterface();
+		
     	try {
         	File importFolder = new File(importDataFolder);
         	String[] files = importFolder.list();
@@ -203,7 +205,9 @@ public class XMLHandler {
      */    
     public static void exportData() {
         try {
-			DerbyDBInterface db = new DerbyDBInterface();
+			DerbyDBInterface db = DBHandler.derby;
+			if(db == null) db = new DerbyDBInterface();
+			
     		EAVDAMData exportData = db.retrieveEAVDAMDataForXML();
         	
             File file = new File(exportDataFolder);

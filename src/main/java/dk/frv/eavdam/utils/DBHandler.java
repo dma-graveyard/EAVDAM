@@ -35,21 +35,23 @@ public class DBHandler {
 	public static boolean changes = false;
     
 	public static boolean importDataUpdated = false;
-    
+    public static DerbyDBInterface derby = null;
+	
     public static EAVDAMData getData() {        
-
+		if(derby == null) derby = new DerbyDBInterface();
+		
 //    	System.out.println("Getting data from database!");
 //    	if(data != null && !changes) return data;
     	
     	EAVDAMData dat = new EAVDAMData();
     	if(!initialized){
     		//Check if the database exists. It does the check in the constructor.
-    		DerbyDBInterface d = new DerbyDBInterface();
+
 	
 			new LoadXMLsFromFTPsThread().start();
 	
 	
-    		d.closeConnection();
+//    		d.closeConnection();
     		
     		dat = XMLHandler.importData();
     		initialized = true;
@@ -62,15 +64,14 @@ public class DBHandler {
 					importDataUpdated = false;
 					
 				} else {
-			
-					DerbyDBInterface d = new DerbyDBInterface();
-					EAVDAMUser user = d.retrieveDefaultUser();  
+
+					EAVDAMUser user = derby.retrieveDefaultUser();  
 					if(user != null){
-						System.out.println("Retrieved default user: "+user.getOrganizationName());
+//						System.out.println("Retrieved default user: "+user.getOrganizationName());
 					
 					}
 					
-					dat = d.retrieveAllEAVDAMData(user);
+					dat = derby.retrieveAllEAVDAMData(user);
 				
 				}
 	        	
@@ -131,14 +132,15 @@ public class DBHandler {
     	EAVDAMData dat = null;
     	
     	try {
-    		DerbyDBInterface d = new DerbyDBInterface();
-            EAVDAMUser user = d.retrieveDefaultUser();  
+    		if(derby == null) derby = new DerbyDBInterface();
+    		
+            EAVDAMUser user = derby.retrieveDefaultUser();  
             if(user != null){
             	System.out.println("Retrieved default user: "+user.getOrganizationName());
             
             }
             
-        	dat = d.retrieveAllEAVDAMData(user, topLeftLat, topLeftLon, lowRightLat, lowRightLon);
+        	dat = derby.retrieveAllEAVDAMData(user, topLeftLat, topLeftLon, lowRightLat, lowRightLon);
         	
                   
                 
@@ -154,11 +156,11 @@ public class DBHandler {
     
     public static void saveData(EAVDAMData data) {
         DBHandler.data = data;   // for testing before the database works
-        DerbyDBInterface d = new DerbyDBInterface();
+		if(derby == null) derby = new DerbyDBInterface();
         //d.createDatabase(null);        
         
         
-		d.insertEAVDAMData(data);
+		derby.insertEAVDAMData(data);
 
 		changes = true;
 
@@ -177,10 +179,10 @@ public class DBHandler {
     }
     
     public static void saveUserData(EAVDAMUser user, boolean defaultUser){
-    	DerbyDBInterface d = new DerbyDBInterface();
+		if(derby == null) derby = new DerbyDBInterface();
         //d.createDatabase(null);
     	try{
-    		int id = d.insertEAVDAMUser(user, defaultUser);
+    		int id = derby.insertEAVDAMUser(user, defaultUser);
 //    		System.out.println("Added user under id "+id+" (default: "+defaultUser+")");
     		changes = true;
     	}catch(Exception e){
@@ -196,24 +198,24 @@ public class DBHandler {
     public static Options getOptions() {
 		Options op = new Options();
     	
-		DerbyDBInterface db = new DerbyDBInterface();
+		if(derby == null) derby = new DerbyDBInterface();
 		
-    	op = db.getOptions();
+    	op = derby.getOptions();
 		
 		
 		return op;
 	}
     		
     public static void saveOptions(Options options){
-    	DerbyDBInterface db = new DerbyDBInterface();
-    	db.insertOptions(options);
+		if(derby == null) derby = new DerbyDBInterface();
+    	derby.insertOptions(options);
     	changes = true;
     }
     
     public static void deleteSimulation(String simulationName){
     	try{
-    		DerbyDBInterface db = new DerbyDBInterface();
-    		db.deleteSimulation(simulationName);
+    		if(derby == null) derby = new DerbyDBInterface();
+    		derby.deleteSimulation(simulationName);
     		changes = true;
     	}catch (Exception e) {
 			e.printStackTrace();
@@ -222,8 +224,8 @@ public class DBHandler {
     
     public static void deleteStation(int stationID){
     	try{
-    		DerbyDBInterface db = new DerbyDBInterface();
-    		db.deleteStation(stationID);
+    		if(derby == null) derby = new DerbyDBInterface();
+    		derby.deleteStation(stationID);
     		changes = true;
     	}catch (Exception e) {
 			e.printStackTrace();
@@ -233,8 +235,8 @@ public class DBHandler {
     public static void acknowledgeIssues(List<AISDatalinkCheckIssue> issues){
     	
     	try{
-    		DerbyDBInterface db = new DerbyDBInterface();
-    		db.acknowledgeIssues(issues);
+    		if(derby == null) derby = new DerbyDBInterface();
+    		derby.acknowledgeIssues(issues);
     		changes = true;
     	}catch(Exception e){
     		e.printStackTrace();

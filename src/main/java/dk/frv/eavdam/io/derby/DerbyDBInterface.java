@@ -122,9 +122,8 @@ import dk.frv.eavdam.utils.HealthCheckHandler;
 	     */
 	    private Connection getDBConnection(String dbName, boolean creatingDatabase) throws SQLException{
 	        /* load the desired JDBC driver */
-	        loadDriver();
-	        
-	        
+	        System.out.println("Getting DB Connection");
+	    	loadDriver();
 	        
 	        if(dbName == null) dbName = defaultDB;
 	        
@@ -398,7 +397,7 @@ import dk.frv.eavdam.utils.HealthCheckHandler;
 	    
 	    private int getOrganizationID(EAVDAMUser user, boolean defaultUser) throws Exception{
 	        
-	    	if(this.conn == null) this.getDBConnection(null, false);
+	    	if(this.conn == null) this.conn = this.getDBConnection(null, false);
 	    			
 	    	if(user == null) return 0;
 	    	
@@ -580,7 +579,7 @@ import dk.frv.eavdam.utils.HealthCheckHandler;
 	    private int insertStation(AISFixedStationData as, int refstation, int organizationID, int proposee) throws Exception{
 	    	if(as == null) return -1;
 	    	
-	    	if(this.conn == null) this.getDBConnection(null, false);
+	    	if(this.conn == null) this.conn = this.getDBConnection(null, false);
 	    	
 	    	//Check if the station exists.
 	    	
@@ -1481,7 +1480,7 @@ import dk.frv.eavdam.utils.HealthCheckHandler;
 	    }
 	    
 	    private void insertSimulationDataset(Simulation sim, int organizationID) throws Exception{
-	    	if(this.conn == null) this.getDBConnection(null, false);
+	    	if(this.conn == null) this.conn = this.getDBConnection(null, false);
 	    	
 	    	int simID = 0;
 	    	PreparedStatement ps = conn.prepareStatement("select ID from SIMULATION where name = ?");
@@ -1538,7 +1537,7 @@ import dk.frv.eavdam.utils.HealthCheckHandler;
 	     * @param simulation This should be the name of the simulation
 	     */
 	    public void deleteSimulation(String simulation) throws Exception{
-	    	if(this.conn == null) this.getDBConnection(null, false);
+	    	if(this.conn == null) this.conn =  this.getDBConnection(null, false);
 	    	
 	    	
 	    	int simID = 0;
@@ -1617,7 +1616,7 @@ import dk.frv.eavdam.utils.HealthCheckHandler;
 	     * @param stationID
 	     */
 		public void deleteStation(int stationID) throws Exception{
-	    	if(this.conn == null) this.getDBConnection(null, false);
+	    	if(this.conn == null) this.conn = this.getDBConnection(null, false);
 	    	
 	    	PreparedStatement ps = null;
 	    	
@@ -1693,7 +1692,7 @@ import dk.frv.eavdam.utils.HealthCheckHandler;
 	     * @throws Exception
 	     */
 	    private void updateOrganization(EAVDAMUser user) throws Exception{
-	    	if(this.conn == null) this.getDBConnection(null, false);
+	    	if(this.conn == null) this.conn =  this.getDBConnection(null, false);
 	    	
 	    	int cp = this.getPersonID(user.getContact());
 	    	int tp = this.getPersonID(user.getTechnicalContact());
@@ -1738,7 +1737,7 @@ import dk.frv.eavdam.utils.HealthCheckHandler;
 	     * @throws Exception
 	     */
 	    public void updatePerson(Person person) throws Exception{
-	    	if(this.conn == null) this.getDBConnection(null, false);
+	    	if(this.conn == null) this.conn = this.getDBConnection(null, false);
 	    	
 	    	int va = this.getAddressID(person.getVisitingAddress());
 	    	int pa = this.getAddressID(person.getVisitingAddress());
@@ -1771,7 +1770,7 @@ import dk.frv.eavdam.utils.HealthCheckHandler;
 	     * @param ais
 	     */
 	    public void updateAISStation(AISFixedStationData ais, int orgID, int refstation) throws Exception{
-	    	if(this.conn == null) this.getDBConnection(null, false);
+	    	if(this.conn == null) this.conn = this.getDBConnection(null, false);
 	    	
 	    	int owner = orgID; 
 	    	
@@ -2275,7 +2274,7 @@ import dk.frv.eavdam.utils.HealthCheckHandler;
 	    public EAVDAMUser retrieveDefaultUser() throws Exception{
 	    	int userID = 0;
 	    	
-	    	if(this.conn == null) this.getDBConnection(defaultDB, false);
+	    	if(this.conn == null) this.conn = this.getDBConnection(defaultDB, false);
 	    	
 	    	
 	    	PreparedStatement ps = conn.prepareStatement("select id from ORGANIZATION where defaultuser = 1");
@@ -2982,7 +2981,7 @@ import dk.frv.eavdam.utils.HealthCheckHandler;
 	    	List<Simulation> simulations = new ArrayList<Simulation>();
 	    	
 	    	
-	    	if(this.conn == null) this.getDBConnection(null, false);
+	    	if(this.conn == null) this.conn = this.getDBConnection(null, false);
 	    	 
 	    	PreparedStatement ps = conn.prepareStatement("select name from SIMULATION");
 	    	ResultSet rs = ps.executeQuery();
@@ -3241,7 +3240,7 @@ import dk.frv.eavdam.utils.HealthCheckHandler;
 	    	boolean log = false;
 	    	
 	    	try{
-	    		if(this.conn == null) this.getDBConnection(null, true);
+	    		if(this.conn == null) this.conn = this.getDBConnection(null, true);
 	    	
 	    		Statement s = conn.createStatement();
 
@@ -3869,7 +3868,7 @@ import dk.frv.eavdam.utils.HealthCheckHandler;
 		 */
 		private List<FTP> retrieveFTPSettings() {
 			try{
-				if(this.conn == null) this.getDBConnection(null, false);
+				if(this.conn == null) this.conn = this.getDBConnection(null, false);
 				
 				List<FTP> ftps = new ArrayList<FTP>();
 
@@ -3905,7 +3904,7 @@ import dk.frv.eavdam.utils.HealthCheckHandler;
 			try{
 				if(options == null) return;
 				
-				if(this.conn == null) this.getDBConnection(null, false);
+				if(this.conn == null) this.conn = this.getDBConnection(null, false);
 				
 				PreparedStatement ps = conn.prepareStatement("delete from SENDTOEMAIL"); //Delete the old values...
 				ps.executeUpdate();
