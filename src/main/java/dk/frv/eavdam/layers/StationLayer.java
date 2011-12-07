@@ -176,6 +176,8 @@ public class StationLayer extends OMGraphicHandlerLayer implements MapMouseListe
 	private int currentX = -1;
 	private int currentY = -1;
 	
+	public static boolean windowReady = false;
+	
     public StationLayer() {
 		showOnMapMenuItem = new JMenuItem("Show on map");
 		showOnMapMenuItem.addActionListener(this);
@@ -1872,6 +1874,7 @@ public class StationLayer extends OMGraphicHandlerLayer implements MapMouseListe
 			updateStations();
 			stationsInitiallyUpdated = true;
 		}		
+		StationLayer.windowReady = true;
 	}
 
 	private byte[] getImage(String filename) {    

@@ -15,6 +15,7 @@ import dk.frv.eavdam.data.Simulation;
 import dk.frv.eavdam.io.FTPHandler;
 import dk.frv.eavdam.io.XMLExporter;
 import dk.frv.eavdam.io.XMLImporter;
+import dk.frv.eavdam.layers.StationLayer;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -56,7 +57,7 @@ public class DBHandler {
     	
 	    	try {
 			
-				if (importDataUpdated) {
+				if (importDataUpdated && StationLayer.windowReady) {
 				    dat = XMLHandler.importData();
 					importDataUpdated = false;
 					
@@ -265,10 +266,13 @@ class LoadXMLsFromFTPsThread extends Thread {
 	public void run() {
 		try {
 			Options options = DBHandler.getOptions();
-			String ownFileName = XMLHandler.getLatestDataFileName();
+			String ownFileName = XMLHandler.getLatestDataFileName();			
 			if (ownFileName != null && ownFileName.indexOf("/") != -1) {
 				ownFileName = ownFileName.substring(ownFileName.lastIndexOf("/")+1);
-			}			
+			} else {
+				XMLHandler.exportData();
+				ownFileName = XMLHandler.getLatestDataFileName();
+			}
 			List<FTP> ftps = options.getFTPs();
 			if (ftps != null && !ftps.isEmpty()) {
 				for (FTP ftp : ftps) {
