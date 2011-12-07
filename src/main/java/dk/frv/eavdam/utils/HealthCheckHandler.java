@@ -1256,7 +1256,11 @@ public class HealthCheckHandler {
 										break;
 									}
 									
-//									if(lts.get(i).getFrequency())
+									if(lts.get(i).getFrequency().equals(t.getFrequency()) && lts.get(i).getSlotNumber() > t.getSlotNumber()){
+										lts.add(i,t);
+										
+										break;
+									}
 									
 									if(i == lts.size() - 1){
 										lts.add(t);
