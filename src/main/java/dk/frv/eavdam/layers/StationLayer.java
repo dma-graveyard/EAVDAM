@@ -171,6 +171,23 @@ public class StationLayer extends OMGraphicHandlerLayer implements MapMouseListe
 	private List<Layer> initiallySelectedLayers;
 	private Map<Layer, Boolean> initiallySelectedLayersVisibilities;
 	
+	private byte[] aisBaseStationOwnOperativeBytearr;
+	private byte[] aisRepeaterOwnOperativeBytearr;				
+	private byte[] aisReceiverOwnOperativeBytearr;
+	private byte[] aisAtonStationOwnOperativeBytearr;				
+	private byte[] aisBaseStationOwnPlannedBytearr;				
+	private byte[] aisRepeaterOwnPlannedBytearr;				
+	private byte[] aisReceiverOwnPlannedBytearr;
+	private byte[] aisAtonStationOwnPlannedBytearr;				
+	private byte[] aisBaseStationOtherOperativeBytearr;				
+	private byte[] aisRepeaterOtherOperativeBytearr;				
+	private byte[] aisReceiverOtherOperativeBytearr;				
+	private byte[] aisAtonStationOtherOperativeBytearr;
+	private byte[] aisBaseStationOtherPlannedBytearr;				
+	private byte[] aisRepeaterOtherPlannedBytearr;				
+	private byte[] aisReceiverOtherPlannedBytearr;				
+	private byte[] aisAtonStationOtherPlannedBytearr;		
+	
 	private boolean initiallySelectedShowStationNamesOnMap;
 	private boolean initiallySelectedShowMMSINumbersOnMap;
 	private Map<String, Boolean> initiallySelectedStations;
@@ -191,6 +208,10 @@ public class StationLayer extends OMGraphicHandlerLayer implements MapMouseListe
 		}
 	}
 
+	public OMGraphicList getGraphicsList() {
+		return graphics;
+	}
+	
     public OMAISBaseStationTransmitCoverageLayer getTransmitCoverageLayer() {
         return transmitCoverageLayer;
     }
@@ -233,26 +254,26 @@ public class StationLayer extends OMGraphicHandlerLayer implements MapMouseListe
 			if (stationData.getStatus().getStatusID() == DerbyDBInterface.STATUS_ACTIVE) {
 
 				if (stationData.getStationType() == AISFixedStationType.BASESTATION) {
-					bytearr = getImage("share/data/images/ais_base_station_own_operative.png");				
+					bytearr = aisBaseStationOwnOperativeBytearr;				
 				} else if (stationData.getStationType() == AISFixedStationType.REPEATER) {
-					bytearr = getImage("share/data/images/ais_repeater_own_operative.png");				
+					bytearr = aisRepeaterOwnOperativeBytearr;				
 				} else if (stationData.getStationType() == AISFixedStationType.RECEIVER) {
-					bytearr = getImage("share/data/images/ais_receiver_own_operative.png");				
+					bytearr = aisReceiverOwnOperativeBytearr;				
 				} else if (stationData.getStationType() == AISFixedStationType.ATON) {
-					bytearr = getImage("share/data/images/ais_aton_station_own_operative.png");				
+					bytearr = aisAtonStationOwnOperativeBytearr;				
 				}
 			
 			} else if (stationData.getStatus().getStatusID() == DerbyDBInterface.STATUS_PLANNED ||
 					stationData.getStatus().getStatusID() == DerbyDBInterface.STATUS_SIMULATED) {
 					
 				if (stationData.getStationType() == AISFixedStationType.BASESTATION) {
-					bytearr = getImage("share/data/images/ais_base_station_own_planned.png");				
+					bytearr = aisBaseStationOwnPlannedBytearr;				
 				} else if (stationData.getStationType() == AISFixedStationType.REPEATER) {
-					bytearr = getImage("share/data/images/ais_repeater_own_planned.png");				
+					bytearr = aisRepeaterOwnPlannedBytearr;				
 				} else if (stationData.getStationType() == AISFixedStationType.RECEIVER) {
-					bytearr = getImage("share/data/images/ais_receiver_own_planned.png");
+					bytearr = aisReceiverOwnPlannedBytearr;
 				} else if (stationData.getStationType() == AISFixedStationType.ATON) {
-					bytearr = getImage("share/data/images/ais_aton_station_own_planned.png");				
+					bytearr = aisAtonStationOwnPlannedBytearr;				
 				}					
 					
 			}
@@ -262,26 +283,26 @@ public class StationLayer extends OMGraphicHandlerLayer implements MapMouseListe
 			if (stationData.getStatus().getStatusID() == DerbyDBInterface.STATUS_ACTIVE) {
 
 				if (stationData.getStationType() == AISFixedStationType.BASESTATION) {
-					bytearr = getImage("share/data/images/ais_base_station_other_operative.png");				
+					bytearr = aisBaseStationOtherOperativeBytearr;				
 				} else if (stationData.getStationType() == AISFixedStationType.REPEATER) {
-					bytearr = getImage("share/data/images/ais_repeater_other_operative.png");				
+					bytearr = aisRepeaterOtherOperativeBytearr;				
 				} else if (stationData.getStationType() == AISFixedStationType.RECEIVER) {
-					bytearr = getImage("share/data/images/ais_receiver_other_operative.png");				
+					bytearr = aisReceiverOtherOperativeBytearr;				
 				} else if (stationData.getStationType() == AISFixedStationType.ATON) {
-					bytearr = getImage("share/data/images/ais_aton_station_other_operative.png");
+					bytearr = aisAtonStationOtherOperativeBytearr;
 				}
 			
 			} else if (stationData.getStatus().getStatusID() == DerbyDBInterface.STATUS_PLANNED ||
 					stationData.getStatus().getStatusID() == DerbyDBInterface.STATUS_SIMULATED) {
 					
 				if (stationData.getStationType() == AISFixedStationType.BASESTATION) {
-					bytearr = getImage("share/data/images/ais_base_station_other_planned.png");				
+					bytearr = aisBaseStationOtherPlannedBytearr;				
 				} else if (stationData.getStationType() == AISFixedStationType.REPEATER) {
-					bytearr = getImage("share/data/images/ais_repeater_other_planned.png");				
+					bytearr = aisRepeaterOtherPlannedBytearr;				
 				} else if (stationData.getStationType() == AISFixedStationType.RECEIVER) {
-					bytearr = getImage("share/data/images/ais_receiver_other_planned.png");				
+					bytearr = aisReceiverOtherPlannedBytearr;				
 				} else if (stationData.getStationType() == AISFixedStationType.ATON) {
-					bytearr = getImage("share/data/images/ais_aton_station_other_planned.png");				
+					bytearr = aisAtonStationOtherPlannedBytearr;				
 				}					
 					
 			}
@@ -360,12 +381,11 @@ public class StationLayer extends OMGraphicHandlerLayer implements MapMouseListe
 		if (needsSaving) {
 			DBHandler.saveData(data);
 		}
-		
+
 		omBaseStations.add(base);
-		
 	}
 		
-	private void renderBaseStations() {
+	public void renderBaseStations() {
 	
 		if (omBaseStations == null) {
 			return;
@@ -441,6 +461,7 @@ public class StationLayer extends OMGraphicHandlerLayer implements MapMouseListe
 		transmitCoverageLayer.doPrepare();
 		interferenceCoverageLayer.doPrepare();
 		receiveCoverageLayer.doPrepare();
+
 	}
 
 	@Override
@@ -1317,7 +1338,7 @@ public class StationLayer extends OMGraphicHandlerLayer implements MapMouseListe
 		return data;	
 	}
 	
-	private void createTree() {
+	public void createTree() {
 			
 		// loads earlier selections
 		Map<String, Boolean> currentSelections = getCurrentSelections();
@@ -1503,7 +1524,7 @@ public class StationLayer extends OMGraphicHandlerLayer implements MapMouseListe
 		}		
 	}
 
-	private Map<String, Boolean> getCurrentSelections() {
+	public Map<String, Boolean> getCurrentSelections() {
 	
 		Map<String, Boolean> currentSelections = new HashMap<String, Boolean>();
 		
@@ -1815,9 +1836,6 @@ public class StationLayer extends OMGraphicHandlerLayer implements MapMouseListe
 		}
 	    if (obj instanceof MapBean) {
 			this.mapBean = (MapBean) obj;
-			if (mapBean instanceof com.bbn.openmap.BufferedLayerMapBean) {
-				System.out.println("MapBean is BufferedLayerMapBean!");
-			}
 		} else if (obj instanceof InformationDelegator) {
 			this.infoDelegator = (InformationDelegator) obj;
 		} else if (obj instanceof OpenMapFrame) {
@@ -1876,6 +1894,24 @@ public class StationLayer extends OMGraphicHandlerLayer implements MapMouseListe
 		if (dimension.height-100 < SlotMapDialog.SLOTMAP_WINDOW_HEIGHT) {
 			SlotMapDialog.SLOTMAP_WINDOW_HEIGHT = dimension.height-100;
 		}
+		
+		aisBaseStationOwnOperativeBytearr = getImage("share/data/images/ais_base_station_own_operative.png");
+		aisRepeaterOwnOperativeBytearr = getImage("share/data/images/ais_repeater_own_operative.png");				
+		aisReceiverOwnOperativeBytearr = getImage("share/data/images/ais_receiver_own_operative.png");				
+		aisAtonStationOwnOperativeBytearr = getImage("share/data/images/ais_aton_station_own_operative.png");				
+		aisBaseStationOwnPlannedBytearr = getImage("share/data/images/ais_base_station_own_planned.png");				
+		aisRepeaterOwnPlannedBytearr = getImage("share/data/images/ais_repeater_own_planned.png");				
+		aisReceiverOwnPlannedBytearr = getImage("share/data/images/ais_receiver_own_planned.png");
+		aisAtonStationOwnPlannedBytearr = getImage("share/data/images/ais_aton_station_own_planned.png");				
+		aisBaseStationOtherOperativeBytearr = getImage("share/data/images/ais_base_station_other_operative.png");				
+		aisRepeaterOtherOperativeBytearr = getImage("share/data/images/ais_repeater_other_operative.png");				
+		aisReceiverOtherOperativeBytearr = getImage("share/data/images/ais_receiver_other_operative.png");				
+		aisAtonStationOtherOperativeBytearr = getImage("share/data/images/ais_aton_station_other_operative.png");
+		aisBaseStationOtherPlannedBytearr = getImage("share/data/images/ais_base_station_other_planned.png");				
+		aisRepeaterOtherPlannedBytearr = getImage("share/data/images/ais_repeater_other_planned.png");				
+		aisReceiverOtherPlannedBytearr = getImage("share/data/images/ais_receiver_other_planned.png");				
+		aisAtonStationOtherPlannedBytearr = getImage("share/data/images/ais_aton_station_other_planned.png");				
+		
 		Layer aisDatalinkCheckIssueLayer = null;		
 		if (initiallySelectedLayers != null && initiallySelectedLayers.size() == layerHandler.getLayers().length) {
 			layersMenu.removeAll();
@@ -1895,24 +1931,22 @@ public class StationLayer extends OMGraphicHandlerLayer implements MapMouseListe
 					inLayers[i] = layer;
 					i++;
 				}
-			}
-			if (aisDatalinkCheckIssueLayer != null) {
-				layerHandler.moveLayer(aisDatalinkCheckIssueLayer, 0);		
-			}			
-			layersMenu.setLayers(inLayers);
+			}		
+			layersMenu.setLayers(inLayers);			
 		}
 		if (eavdamMenu != null && transmitCoverageLayer != null && receiveCoverageLayer != null && interferenceCoverageLayer != null && sidePanel != null && !stationsInitiallyUpdated) {
 			//eavdamMenu.getShowOnMapMenu().updateCoverageItems(receiveCoverageLayer.isVisible(), transmitCoverageLayer.isVisible(), interferenceCoverageLayer.isVisible());
 			updateStations();
 			stationsInitiallyUpdated = true;
 		}
-		StationLayer.windowReady = true;
 		if (aisDatalinkCheckIssueLayer != null) {
+			layerHandler.moveLayer(aisDatalinkCheckIssueLayer, 0);	
 			((AISDatalinkCheckIssueLayer) aisDatalinkCheckIssueLayer).doPrepare();		
 		}
+		StationLayer.windowReady = true;
 	}
 
-	private byte[] getImage(String filename) {    
+	private byte[] getImage(String filename) {  
         try {
             File file = new File(filename); 
             int size = (int) file.length(); 
@@ -1942,122 +1976,46 @@ public class StationLayer extends OMGraphicHandlerLayer implements MapMouseListe
 	}
 	
     public void updateStations() {
-	
+
 		if (eavdamMenu == null) {
 			return;
+		}	
+	
+		if (data == null) {
+			data = DBHandler.getData();
 		}
+	
+		new UpdateStationsThread(this, data).start();
 
-		createTree();
+		waitDialog = new JDialog(openMapFrame, "Please wait...", true);
 
-        data = DBHandler.getData();                        
-        if (data != null) {
+		progressBar = new JProgressBar();
+		progressBar = new JProgressBar();
+		progressBar.setIndeterminate(true);		
+		progressBar.setPreferredSize(new Dimension(330, 20));
+		progressBar.setMaximumSize(new Dimension(330, 20));
+		progressBar.setMinimumSize(new Dimension(330, 20));					
 		
-            Options options = OptionsMenuItem.loadOptions();
-			graphics.clear();
-			transmitCoverageLayer.getGraphicsList().clear();
-			receiveCoverageLayer.getGraphicsList().clear();
-			interferenceCoverageLayer.getGraphicsList().clear();			 
-			
-			Map<String, Boolean> currentSelections = getCurrentSelections();
-			
-			boolean anyOwnStations = false;
-			for (Object key: currentSelections.keySet()) {			
-				if (((String) key).startsWith("Own")) {
-					anyOwnStations = true;
-					break;
-				}
-			}
-			boolean anySimulations = false;
-			for (Object key: currentSelections.keySet()) {			
-				if (((String) key).startsWith("Simulation")) {
-					anySimulations = true;
-					break;
-				}
-			}			
-			boolean anyOtherUsersStations = false;
-			for (Object key: currentSelections.keySet()) {			
-				if (((String) key).startsWith("Stations of organization")) {
-					anyOtherUsersStations = true;
-					break;
-				}
-			}			
-			
-			List<ActiveStation> activeStations = data.getActiveStations();
-            if (activeStations != null) {
-				for (ActiveStation as : activeStations) {
-					if (as.getStations() != null && anyOwnStations) {
-						for (AISFixedStationData stationData : as.getStations()) {
-							if (stationData.getStatus().getStatusID() == DerbyDBInterface.STATUS_ACTIVE) {
-								if (currentSelections.containsKey("Own operative stations /// " + stationData.getStationName())) {
-									if (currentSelections.get("Own operative stations /// " + stationData.getStationName()).booleanValue() == true) {
-										this.addBaseStation(null, data.getUser(), stationData);
-									}
-								} else {
-									this.addBaseStation(null, data.getUser(), stationData);								
-								}
-							} else if (stationData.getStatus().getStatusID() == DerbyDBInterface.STATUS_PLANNED) {
-								if (currentSelections.containsKey("Own planned stations /// " + stationData.getStationName())) {
-									if (currentSelections.get("Own planned stations /// " + stationData.getStationName()).booleanValue() == true) {
-										this.addBaseStation(null, data.getUser(), stationData);
-									}							
-								} else {
-									this.addBaseStation(null, data.getUser(), stationData);								
-								}
-							}
-						}
-					}
-				}
-			}
-
-			if (data.getSimulatedStations() != null && anySimulations) {
-				for (Simulation s : data.getSimulatedStations()) {
-					List<AISFixedStationData> stations = s.getStations();
-					for (AISFixedStationData stationData : stations) {
-						if (currentSelections.containsKey("Simulation: " + s.getName() + " /// " + stationData.getStationName())) {
-							if (currentSelections.get("Simulation: " + s.getName() + " /// " + stationData.getStationName()).booleanValue() == true) {
-								this.addBaseStation(s.getName(), data.getUser(), stationData);
-							}							
-						} else {
-							this.addBaseStation(s.getName(), data.getUser(), stationData);							
-						}
-					}
-				}
-			}   
-			
-			if (data.getOtherUsersStations() != null && anyOtherUsersStations) {
-				for (OtherUserStations ous : data.getOtherUsersStations()) {
-					EAVDAMUser user = ous.getUser();
-					List<ActiveStation> otherUsersActiveStations = ous.getStations();
-					for (ActiveStation as : otherUsersActiveStations) {
-						List<AISFixedStationData> stations = as.getStations();
-						for (AISFixedStationData station : stations) {
-							if (station.getStatus().getStatusID() == DerbyDBInterface.STATUS_ACTIVE) {
-								if (currentSelections.containsKey("Stations of organization: " + user.getOrganizationName() + " /// " + station.getStationName())) {
-									if (currentSelections.get("Stations of organization: " + user.getOrganizationName() + " /// " + station.getStationName()).booleanValue() == true) {
-										this.addBaseStation(user, user, station);
-									}							
-								} else {
-									this.addBaseStation(user, user, station);					
-								}		
-							}
-						}
-					}
-				}
-			}
-               
-			renderBaseStations();
-
-			/*
-            this.repaint();
-		    this.validate();
-            transmitCoverageLayer.repaint();
-		    transmitCoverageLayer.validate();
-            receiveCoverageLayer.repaint();
-		    receiveCoverageLayer.validate();
-	        interferenceCoverageLayer.repaint();
-		    interferenceCoverageLayer.validate();		
-			*/
-        }
+		JPanel panel = new JPanel();							
+		panel.setLayout(new GridBagLayout());
+		GridBagConstraints c = new GridBagConstraints();
+		c.gridx = 0;
+		c.gridy = 0;                   
+		c.anchor = GridBagConstraints.FIRST_LINE_START;
+		c.insets = new Insets(10,10,10,10);			
+		JLabel titleLabel = new JLabel("<html><body><p>Please wait, while the map is being updated...<p></body></html>");
+		titleLabel.setPreferredSize(new Dimension(330, 15));
+		titleLabel.setMaximumSize(new Dimension(330, 15));
+		titleLabel.setMinimumSize(new Dimension(330, 15));
+		panel.add(titleLabel, c);
+		c.gridy = 1;
+		c.anchor = GridBagConstraints.CENTER;
+		panel.add(progressBar, c);
+		waitDialog.getContentPane().add(panel);
+		Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
+		waitDialog.setBounds((int) screenSize.getWidth()/2 - 380/2, (int) screenSize.getHeight()/2 - 150/2, 380, 150);
+		new WaitThread(this).start();
+		waitDialog.setVisible(true);
     }
 
 }
@@ -2111,5 +2069,133 @@ class WaitThread extends Thread {
 	}
 
 }
+
+class UpdateStationsThread extends Thread {
+			
+	StationLayer stationLayer;
+	EAVDAMData data;
+	
+	UpdateStationsThread(StationLayer stationLayer, EAVDAMData data) {
+		this.stationLayer = stationLayer;
+		this.data = data;
+	}
+	
+	public void run() {	
 				
-				
+		stationLayer.createTree();
+		
+        if (data != null) {
+		
+            Options options = OptionsMenuItem.loadOptions();
+			stationLayer.getGraphicsList().clear();
+			stationLayer.getTransmitCoverageLayer().getGraphicsList().clear();
+			stationLayer.getReceiveCoverageLayer().getGraphicsList().clear();
+			stationLayer.getInterferenceCoverageLayer().getGraphicsList().clear();			 
+			
+			Map<String, Boolean> currentSelections = stationLayer.getCurrentSelections();
+			
+			boolean anyOwnStations = false;
+			for (Object key: currentSelections.keySet()) {			
+				if (((String) key).startsWith("Own")) {
+					anyOwnStations = true;
+					break;
+				}
+			}
+			boolean anySimulations = false;
+			for (Object key: currentSelections.keySet()) {			
+				if (((String) key).startsWith("Simulation")) {
+					anySimulations = true;
+					break;
+				}
+			}			
+			boolean anyOtherUsersStations = false;
+			for (Object key: currentSelections.keySet()) {			
+				if (((String) key).startsWith("Stations of organization")) {
+					anyOtherUsersStations = true;
+					break;
+				}
+			}			
+			
+			List<ActiveStation> activeStations = data.getActiveStations();
+            if (activeStations != null) {
+				for (ActiveStation as : activeStations) {
+					if (as.getStations() != null && anyOwnStations) {
+						for (AISFixedStationData stationData : as.getStations()) {
+							if (stationData.getStatus().getStatusID() == DerbyDBInterface.STATUS_ACTIVE) {
+								if (currentSelections.containsKey("Own operative stations /// " + stationData.getStationName())) {
+									if (currentSelections.get("Own operative stations /// " + stationData.getStationName()).booleanValue() == true) {
+										stationLayer.addBaseStation(null, data.getUser(), stationData);
+									}
+								} else {
+									stationLayer.addBaseStation(null, data.getUser(), stationData);								
+								}
+							} else if (stationData.getStatus().getStatusID() == DerbyDBInterface.STATUS_PLANNED) {
+								if (currentSelections.containsKey("Own planned stations /// " + stationData.getStationName())) {
+									if (currentSelections.get("Own planned stations /// " + stationData.getStationName()).booleanValue() == true) {
+										stationLayer.addBaseStation(null, data.getUser(), stationData);
+									}							
+								} else {
+									stationLayer.addBaseStation(null, data.getUser(), stationData);								
+								}
+							}
+						}
+					}
+				}
+			}
+
+			if (data.getSimulatedStations() != null && anySimulations) {
+				for (Simulation s : data.getSimulatedStations()) {
+					List<AISFixedStationData> stations = s.getStations();
+					for (AISFixedStationData stationData : stations) {
+						if (currentSelections.containsKey("Simulation: " + s.getName() + " /// " + stationData.getStationName())) {
+							if (currentSelections.get("Simulation: " + s.getName() + " /// " + stationData.getStationName()).booleanValue() == true) {
+								stationLayer.addBaseStation(s.getName(), data.getUser(), stationData);
+							}							
+						} else {
+							stationLayer.addBaseStation(s.getName(), data.getUser(), stationData);							
+						}
+					}
+				}
+			}   
+			
+			if (data.getOtherUsersStations() != null && anyOtherUsersStations) {
+				for (OtherUserStations ous : data.getOtherUsersStations()) {
+					EAVDAMUser user = ous.getUser();
+					List<ActiveStation> otherUsersActiveStations = ous.getStations();
+					for (ActiveStation as : otherUsersActiveStations) {
+						List<AISFixedStationData> stations = as.getStations();
+						for (AISFixedStationData station : stations) {
+							if (station.getStatus().getStatusID() == DerbyDBInterface.STATUS_ACTIVE) {
+								if (currentSelections.containsKey("Stations of organization: " + user.getOrganizationName() + " /// " + station.getStationName())) {
+									if (currentSelections.get("Stations of organization: " + user.getOrganizationName() + " /// " + station.getStationName()).booleanValue() == true) {
+										stationLayer.addBaseStation(user, user, station);
+									}							
+								} else {
+									stationLayer.addBaseStation(user, user, station);					
+								}		
+							}
+						}
+					}
+				}
+			}
+			
+			stationLayer.renderBaseStations();
+			
+			/*
+            this.repaint();
+		    this.validate();
+            transmitCoverageLayer.repaint();
+		    transmitCoverageLayer.validate();
+            receiveCoverageLayer.repaint();
+		    receiveCoverageLayer.validate();
+	        interferenceCoverageLayer.repaint();
+		    interferenceCoverageLayer.validate();		
+			*/			
+			
+		}
+		
+		stationLayer.getWaitDialog().dispose();
+		
+	}
+	
+}
