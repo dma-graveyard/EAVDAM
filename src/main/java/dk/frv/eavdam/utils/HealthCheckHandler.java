@@ -916,7 +916,7 @@ public class HealthCheckHandler {
 			}
 		}
 		
-		if(transmission.getOtherUsersStations() != null){
+		if(transmission != null && transmission.getOtherUsersStations() != null){
 			for(OtherUserStations other : transmission.getOtherUsersStations()){
 				if(other.getStations() != null){
 					for(ActiveStation as : other.getStations()){
@@ -963,7 +963,7 @@ public class HealthCheckHandler {
 		Set<String> interferenceStations = new HashSet<String>();
 		
 		//Check all active stations
-		if(interference.getActiveStations() != null){
+		if(interference != null && interference.getActiveStations() != null){
 			for(ActiveStation as : interference.getActiveStations()){
 				if(as.getStations() != null){
 					for(AISFixedStationData s : as.getStations()){
@@ -1004,7 +1004,7 @@ public class HealthCheckHandler {
 
 		//TODO Is there a need to check proposals also? What to do to the planned stations?
 		
-		if(interference.getOtherUsersStations() != null){
+		if(interference != null && interference.getOtherUsersStations() != null){
 			for(OtherUserStations other : interference.getOtherUsersStations()){
 				if(other.getStations() != null){
 					for(ActiveStation as : other.getStations()){
