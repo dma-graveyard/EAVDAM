@@ -92,7 +92,7 @@ public class InitiateHealthCheckButton extends OMToolComponent implements Action
 	private JButton cancelButton;
 	private JButton viewIssuesButton;
 	private JButton cancelViewIssuesButton;
-
+	
 	private EAVDAMData data;
 	
 	public InitiateHealthCheckButton() {
@@ -341,6 +341,7 @@ public class InitiateHealthCheckButton extends OMToolComponent implements Action
 				new InitiateHealthCheckThread(data, this, openMapFrame, sidePanel, hch, checkRule1, checkRule2,
 					checkRule3, checkRule4, checkRule5, checkRule6, checkRule7, includePlanned, topLeftLatitude,
 					topLeftLongitude, lowerRightLatitude, lowerRightLongitude, resolution).start();
+				sidePanel.setHealthCheckHandler(hch);
 				sidePanel.getProgressIndicatorPane().setVisible(true);				
 				dialog.dispose();
 			}
@@ -533,13 +534,10 @@ class InitiateHealthCheckThread extends Thread {
 	}
 	
 	public void run() {
-	
-		long temp = Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory();
-		System.out.println("Memory in use: "  + temp);
-	  
-		try {		
+		  
+		try {
 			hch.startAISDatalinkCheck(listener, checkRule1, checkRule2, checkRule3, checkRule4, checkRule5, checkRule6,
-				checkRule7, includePlanned, topLeftLatitude, topLeftLongitude, lowerRightLatitude, lowerRightLongitude, resolution);		
+				checkRule7, includePlanned, topLeftLatitude, topLeftLongitude, lowerRightLatitude, lowerRightLongitude, resolution);				
 		} catch (OutOfMemoryError e) {
 			sidePanel.getProgressIndicatorPane().setVisible(false);
 			JOptionPane.showMessageDialog(openMapFrame, "The health check process ran out of memory. Please, try again with a bigger resolution / smaller area.", "Error!", JOptionPane.ERROR_MESSAGE); 

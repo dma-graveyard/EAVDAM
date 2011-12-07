@@ -7,6 +7,7 @@ import dk.frv.eavdam.data.Antenna;
 import dk.frv.eavdam.data.AntennaType;
 import dk.frv.eavdam.data.EAVDAMUser;
 import dk.frv.eavdam.layers.OMBaseStation;
+import dk.frv.eavdam.utils.HealthCheckHandler;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
@@ -48,7 +49,10 @@ public class SidePanel extends JPanel implements MapPanelChild, ActionListener {
     private JEditorPane infoPane;
 	
 	private JPanel progressIndicatorPane;
+	private JButton cancelButton;
 	private JProgressBar progressBar;
+	
+	private HealthCheckHandler hch;
 
 	public JPanel getProgressIndicatorPane() {
 		return progressIndicatorPane;
@@ -56,6 +60,10 @@ public class SidePanel extends JPanel implements MapPanelChild, ActionListener {
 	
 	public JProgressBar getProgressBar() {
 		return progressBar;
+	}
+	
+	public void setHealthCheckHandler(HealthCheckHandler hch) {
+		this.hch = hch;
 	}
 	
 	public SidePanel() {
@@ -217,6 +225,10 @@ public class SidePanel extends JPanel implements MapPanelChild, ActionListener {
 		progressBar.setMinimumSize(new Dimension(230, 20));					
 		progressIndicatorPane.add(progressBar, c);
 		add(progressIndicatorPane);
+		c.gridy = 2;
+		cancelButton = new JButton("Cancel");
+		cancelButton.addActionListener(this);
+		progressIndicatorPane.add(cancelButton, c);
 		progressIndicatorPane.setVisible(false);
 		
         // efficiensea logo
@@ -271,7 +283,12 @@ public class SidePanel extends JPanel implements MapPanelChild, ActionListener {
 	}
 
 	@Override
-	public void actionPerformed(ActionEvent e) {}
+	public void actionPerformed(ActionEvent e) {
+		if (cancelButton != null && e.getSource() == cancelButton) {
+			//hch.cancel()...
+			progressIndicatorPane.setVisible(false);
+		}
+	}
 	
 	public void showInfo(OMBaseStation omBaseStation) {
 		EAVDAMUser owner = omBaseStation.getOwner();
@@ -410,7 +427,7 @@ public class SidePanel extends JPanel implements MapPanelChild, ActionListener {
 				infoText += "NULL";
 			}				 			 
 			infoText += "):</td><td valign=\"top\">...</td></tr>";
-		}			
+		}
 		infoText += "</table>";					
 					
         infoPane.setText(infoText);
