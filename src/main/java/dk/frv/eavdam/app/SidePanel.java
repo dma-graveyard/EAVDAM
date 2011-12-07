@@ -1,6 +1,7 @@
 package dk.frv.eavdam.app;
 
 import com.bbn.openmap.gui.MapPanelChild;
+import dk.frv.eavdam.buttons.InitiateHealthCheckButton;
 import dk.frv.eavdam.data.AISFixedStationData;
 import dk.frv.eavdam.data.AISFixedStationType;
 import dk.frv.eavdam.data.Antenna;
@@ -285,7 +286,7 @@ public class SidePanel extends JPanel implements MapPanelChild, ActionListener {
 	@Override
 	public void actionPerformed(ActionEvent e) {
 		if (cancelButton != null && e.getSource() == cancelButton) {
-			//hch.cancel()...
+			InitiateHealthCheckButton.cancelled = true;
 			progressIndicatorPane.setVisible(false);
 		}
 	}
