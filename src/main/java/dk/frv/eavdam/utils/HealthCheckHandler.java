@@ -59,7 +59,15 @@ public class HealthCheckHandler {
 			boolean checkRule4, boolean checkRule5, boolean checkRule6, boolean checkRule7, boolean includePlanned,
 			double topLeftLatitude, double topLeftLongitude, double lowerRightLatitude, double lowerRightLongitude, double resolution){
 		
+	
 		AISDatalinkCheckResult results = new AISDatalinkCheckResult();
+
+		if(!checkRule1 && !checkRule2 && !checkRule3 && !checkRule4 && !checkRule5 && !checkRule6 && !checkRule7){
+			listener.completed(results);
+			listener.progressed(1.0);
+			
+			return results;
+		}
 		
 //		System.out.println("Resolution for health check: "+resolution);
 		
@@ -189,7 +197,7 @@ public class HealthCheckHandler {
 				//Get the issues
 				AISSlotMap sm = slotMapAtPoint(lat, lon);
 				
-				if(ithLine > 1 && ithColumn > 1){
+				if(ithLine > 1 && ithColumn > 1 && sm != null){
 					
 					this.areaIssueMap.put(prevLat+";"+prevLon+"-"+lat+";"+lon, this.areaIssueMap.get(lat+";"+lon));
 					foundAreas.add(prevLat+";"+prevLon+"-"+lat+";"+lon);
@@ -1797,7 +1805,22 @@ public class HealthCheckHandler {
 		return filtered;
 	}
 	
-	
+	public static double getMinResolution(double topLeftLatitude, double topLeftLongitude, double lowerRightLatitude, double lowerRightLongitude){
+		
+		for(double resolution = 0.0 ; resolution <= 5.0; resolution = 0.25 + resolution){
+			double latIncrement = getLatitudeIncrement(resolution, topLeftLatitude, topLeftLongitude, lowerRightLatitude, lowerRightLongitude);
+			if(latIncrement < 0) latIncrement *= -1;
+		
+			double lonIncrement = getLongitudeIncrement(resolution, topLeftLatitude, topLeftLongitude, lowerRightLatitude, lowerRightLongitude);
+			if(lonIncrement < 0) lonIncrement *= -1;
+		
+			double numberOfCells = 1.0*(topLeftLatitude-lowerRightLatitude)/latIncrement * 1.0*(lowerRightLongitude-topLeftLongitude)/lonIncrement;
+			
+			if(numberOfCells < 91000) return resolution;
+		}
+		
+		return 5.0;
+	}
 	
 	/**
 	 * Gets the stations with the coverage at the given point. Both interference coverage and transmission coverage are checked. If only one of those is needed, use getStationsAtPoint(EAVDAMData data, double[] point, int coverageType).
@@ -1812,7 +1835,7 @@ public class HealthCheckHandler {
 		
 		if(data == null) return filtered;
 		
-		
+		int addedStations = 0;
 		if(data.getActiveStations() != null){
 			List<ActiveStation> activeStations = new ArrayList<ActiveStation>();
 			for(ActiveStation as : data.getActiveStations()){
@@ -1824,9 +1847,11 @@ public class HealthCheckHandler {
 					if(coverageType == INTERFERENCE_COVERAGE && PointInPolygon.isPointInPolygon(s.getInterferenceCoverage().getCoveragePoints(), point)){
 //						System.out.println("ADDED: (I)"+s.getLat()+";"+s.getLon());
 						stations.add(s);
+						++addedStations;
 					}else if(coverageType == TRANSMISSION_COVERAGE && PointInPolygon.isPointInPolygon(s.getTransmissionCoverage().getCoveragePoints(), point)){
 //						System.out.println("ADDED (T): "+s.getLat()+";"+s.getLon());
 						stations.add(s);
+						++addedStations;
 					}
 				}
 				
@@ -1881,9 +1906,11 @@ public class HealthCheckHandler {
 						if(coverageType == INTERFERENCE_COVERAGE && PointInPolygon.isPointInPolygon(s.getInterferenceCoverage().getCoveragePoints(), point)){
 //							System.out.println("ADDED OTHER (I): "+s.getLat()+";"+s.getLon());
 							stations.add(s);
+							++addedStations;
 						}else if(coverageType == TRANSMISSION_COVERAGE && PointInPolygon.isPointInPolygon(s.getTransmissionCoverage().getCoveragePoints(), point)){
 //							System.out.println("ADDED OTHER (T): "+s.getLat()+";"+s.getLon());
 							stations.add(s);
+							++addedStations;
 						}
 					}
 					
@@ -1920,8 +1947,10 @@ public class HealthCheckHandler {
 				for(AISFixedStationData s : sim.getStations()){
 					if(coverageType == INTERFERENCE_COVERAGE && PointInPolygon.isPointInPolygon(s.getInterferenceCoverage().getCoveragePoints(), point)){
 						stations.add(s);
+						++addedStations;
 					}else if(coverageType == TRANSMISSION_COVERAGE && PointInPolygon.isPointInPolygon(s.getTransmissionCoverage().getCoveragePoints(), point)){
 						stations.add(s);
+						++addedStations;
 					}
 				}
 				
@@ -1942,6 +1971,7 @@ public class HealthCheckHandler {
 			filtered.setSimulatedStations(simulations);
 		}
 
+		if(addedStations <= 0) return null;
 		
 		return filtered;
 	}
