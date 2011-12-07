@@ -864,7 +864,7 @@ public class HealthCheckHandler {
 		EAVDAMData transmission = getStationsAtPoint(data, point, HealthCheckHandler.TRANSMISSION_COVERAGE);
 		EAVDAMData interference = getStationsAtPoint(data, point, HealthCheckHandler.INTERFERENCE_COVERAGE);
 		
-		if(transmission == null) return null;
+		if(transmission == null && interference == null) return null;
 
 		Map<String,List<AISFixedStationData>> reservationsA = new HashMap<String, List<AISFixedStationData>>();
 		Map<String,List<AISFixedStationData>> reservationsB = new HashMap<String, List<AISFixedStationData>>();
@@ -1097,13 +1097,19 @@ public class HealthCheckHandler {
 		slotmap.setBandwidthReservationB(1.0*notFreeB/numberOfSlotsPerFrequency);
 		slotmap.setBandwidthUsedByLocalA(1.0*usedA/numberOfSlotsPerFrequency);
 		slotmap.setBandwidthUsedByLocalB(1.0*usedB/numberOfSlotsPerFrequency);
-		slotmap.setBandwidthReservation((1.0*notFreeA+notFreeB)/(numberOfSlotsPerFrequency*numberOfFrequencies));
+		slotmap.setBandwidthReservation((1.0*(notFreeA+notFreeB))/(numberOfSlotsPerFrequency*numberOfFrequencies));
 		
 //		this.trimIssueList(issues);
 		slotmap.setIssues(issues);
 
+//		System.out.println("Reservation: "+slotmap.getBandwidthReservation());
 		
-		if(slotmap.getBandwidthReservationA() > 0.5){
+		if(slotmap.getBandwidthReservationA() >= 0.5){
+			AISDatalinkCheckIssue issue = new AISDatalinkCheckIssue(-1,AISDatalinkCheckRule.RULE7,getRuleSeverity(AISDatalinkCheckRule.RULE7),null,null);
+			issues.add(issue);
+		}
+		
+		if(slotmap.getBandwidthReservationB() >= 0.5){
 			AISDatalinkCheckIssue issue = new AISDatalinkCheckIssue(-1,AISDatalinkCheckRule.RULE7,getRuleSeverity(AISDatalinkCheckRule.RULE7),null,null);
 			issues.add(issue);
 		}
