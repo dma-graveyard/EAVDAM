@@ -1182,6 +1182,8 @@ public class HealthCheckHandler {
 //		System.out.println("Found "+rules.size()+" rules..");
 		
 		Map<String,AISDatalinkCheckIssue> stationIssues = new HashMap<String, AISDatalinkCheckIssue>();
+		Map<String,Set<AISTimeslot>> stationTimeslots = new HashMap<String, Set<AISTimeslot>>();
+		
 		List<AISDatalinkCheckIssue> r = new ArrayList<AISDatalinkCheckIssue>();
 		for(String rule : rules.keySet()){
 			Map<String, AISStation> stations = new HashMap<String, AISStation>();
@@ -1216,7 +1218,21 @@ public class HealthCheckHandler {
 				AISDatalinkCheckIssue iss = stationIssues.get(stationInvolved);
 				if(iss == null){ //Store this only once per rule
 					stationIssues.put(stationInvolved, i);
-//					System.out.println("ADDED "+stationInvolved);
+					
+					if(i.getInvolvedTimeslots() != null){
+						Set<AISTimeslot> ts = new HashSet<AISTimeslot>();
+						ts.addAll(i.getInvolvedTimeslots());
+					
+						stationTimeslots.put(stationInvolved,ts);
+
+					}
+				}else if(i.getInvolvedTimeslots() != null){
+					Set<AISTimeslot> ts = stationTimeslots.get(stationInvolved);
+					if(ts == null) ts = new HashSet<AISTimeslot>();
+					
+					ts.addAll(i.getInvolvedTimeslots());
+					
+					stationTimeslots.put(stationInvolved,ts);
 				}
 				
 			}
@@ -1225,7 +1241,36 @@ public class HealthCheckHandler {
 //				System.out.println("");
 
 				if(si != null && si.length() > 0 && stationIssues.get(si) != null){
-					r.add(stationIssues.get(si));
+					AISDatalinkCheckIssue issue = stationIssues.get(si);
+					
+					if(stationTimeslots.get(si) != null){
+						Set<AISTimeslot> ts = stationTimeslots.get(si);
+						List<AISTimeslot> lts = new ArrayList<AISTimeslot>();
+						for(AISTimeslot t : ts){
+							if(lts.size() == 0){
+								lts.add(t);
+							}else{
+								for(int i = 0; i < lts.size(); ++i){
+									if(lts.get(i).getFrequency().equals(AISFrequency.AIS2) && t.getFrequency().equals(AISFrequency.AIS1)){
+										lts.add(i,t);
+										break;
+									}
+									
+									
+									if(i == lts.size() - 1){
+										lts.add(t);
+										break;
+									}
+								}
+							}
+						}
+						
+						lts.addAll(ts);
+						
+						issue.setInvolvedTimeslots(lts);
+					}
+					
+					r.add(issue);
 				}
 			
 			}

@@ -1002,8 +1002,16 @@ import dk.frv.eavdam.utils.HealthCheckHandler;
 		    		
 		    		//Check if the issue exists already by comparing the stations involved (not comparing timeslots at the moment.
 		    		for(AISDatalinkCheckIssue c : compIssues){
-		    			if(c.isAcknowledged() || c.isDeleted()){
+		    			if(issue.getRuleViolated().equals(c.getRuleViolated()) && issue.getRuleViolated().equals(AISDatalinkCheckRule.RULE7)){
+	    					issue.setAcknowledged(c.isAcknowledged());
+	    					
+	    					continue;
+	    				}
+		    			
+		    			if(c.isAcknowledged()){
 			    			if(issue.getRuleViolated().equals(c.getRuleViolated())){
+			    				
+			    				
 			    				if(issue.getInvolvedStations() != null && c.getInvolvedStations() != null && issue.getInvolvedStations().size() == c.getInvolvedStations().size()){
 			    					int foundMatches = 0;
 			    					for(AISStation s : issue.getInvolvedStations()){
@@ -1040,7 +1048,7 @@ import dk.frv.eavdam.utils.HealthCheckHandler;
 	    	}
 	    	
 	    	List<Integer> deleteIds = new ArrayList<Integer>();
-	    	PreparedStatement findDelete =  conn.prepareStatement("select id from issues where acknowledged = 0 AND deleted = 0");
+	    	PreparedStatement findDelete =  conn.prepareStatement("select id from issues where acknowledged = 0");
 	    	ResultSet drs = findDelete.executeQuery();
 	    	while(drs.next()){
 	    		deleteIds.add(new Integer(drs.getInt(1)));
@@ -1107,6 +1115,7 @@ import dk.frv.eavdam.utils.HealthCheckHandler;
 		    		}
 		    		
 		    		if(issue.getInvolvedTimeslots() != null && issue.getInvolvedTimeslots().size() > 0){
+//		    			System.out.println("There are "+issue.getInvolvedTimeslots().size()+" timeslots involved!");
 		    			for(AISTimeslot ts : issue.getInvolvedTimeslots()){
 		    				PreparedStatement timeslot = this.conn.prepareStatement("Insert into ISSUESTIMESLOT values (?,?,?)");
 		    				timeslot.setInt(1, maxId);
@@ -1114,6 +1123,8 @@ import dk.frv.eavdam.utils.HealthCheckHandler;
 		    				timeslot.setInt(3, (ts.getFrequency().equals(AISFrequency.AIS2) ? 2 : 1));
 		    				
 		    				timeslot.executeUpdate();
+		    				
+		    				timeslot.close();
 		    			}
 		    			
 		    		}
@@ -1172,7 +1183,7 @@ import dk.frv.eavdam.utils.HealthCheckHandler;
 	    			sta.add(as);
 	    		}
 	    		
-	    		if(sta.size() == 0) System.out.println("No stations found for issue "+issue.getId()+" - "+issue.getRuleViolated());
+//	    		if(sta.size() == 0) System.out.println("No stations found for issue "+issue.getId()+" - "+issue.getRuleViolated());
 	    		
 	    		issue.setInvolvedStations(sta);
 	    		
