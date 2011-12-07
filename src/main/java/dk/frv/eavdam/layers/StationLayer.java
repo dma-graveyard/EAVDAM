@@ -301,15 +301,15 @@ public class StationLayer extends OMGraphicHandlerLayer implements MapMouseListe
 						data = saveCoverage(data, base, points, transmitCoverageLayer);
 						needsSaving = true;
 					}
-					if (stationData.getInterferenceCoverage() != null && stationData.getInterferenceCoverage().getCoveragePoints() != null) {
-						base.setInterferenceCoverageArea(stationData.getInterferenceCoverage().getCoveragePoints());
-					} else {
+					//if (stationData.getInterferenceCoverage() != null && stationData.getInterferenceCoverage().getCoveragePoints() != null) {  // XXX: FOR TESTING
+				//		base.setInterferenceCoverageArea(stationData.getInterferenceCoverage().getCoveragePoints());
+					//} else {
 						ArrayList<double[]> points = (ArrayList<double[]>) RoundCoverage.getRoundInterferenceCoverage(antenna.getAntennaHeight()+antenna.getTerrainHeight(), 4, stationData.getLat(), stationData.getLon(),
 							(double) antenna.getHeading().intValue(), (double) antenna.getFieldOfViewAngle().intValue(), 25);
 						base.setInterferenceCoverageArea(points);
 						data = saveCoverage(data, base, points, interferenceCoverageLayer);
 						needsSaving = true;					
-					}
+					//}
 				}			
 				if (stationData.getReceiveCoverage() != null && stationData.getReceiveCoverage().getCoveragePoints() != null) {
 					base.setReceiveCoverageArea(stationData.getReceiveCoverage().getCoveragePoints());

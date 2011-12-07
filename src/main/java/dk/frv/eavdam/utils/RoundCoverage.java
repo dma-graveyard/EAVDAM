@@ -161,12 +161,7 @@ public class RoundCoverage {
 		if (endAngle < 0) {
 			endAngle = 360 + endAngle;
 		}
-		if (endAngle < startAngle) {
-			double temp = endAngle;
-			endAngle = startAngle;
-			startAngle = temp;
-		}
-
+		
 		double temp = -1;
 		for (double angle = startAngle; angle <= endAngle; angle += partOfCircleAngle){			
 			double[] point = getCoordinates(centerLat, centerLon, radius1, angle);
@@ -181,7 +176,7 @@ public class RoundCoverage {
 		double radius2 = 120*1.852;	
 				
 		partOfCircleAngle = fieldOfViewAngle/Math.round(numberOfPoints/2);
-		for(double angle = heading-(fieldOfViewAngle/2); angle <= heading+(fieldOfViewAngle/2); angle += partOfCircleAngle){	
+		for(double angle = heading-(fieldOfViewAngle/2); angle <= heading+(fieldOfViewAngle/2); angle += partOfCircleAngle){			
 			double[] point = getCoordinates(centerLat, centerLon, radius2, angle);
 			points.add(point);
 			temp = angle;			

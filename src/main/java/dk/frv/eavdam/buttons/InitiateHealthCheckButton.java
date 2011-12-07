@@ -214,7 +214,7 @@ public class InitiateHealthCheckButton extends OMToolComponent implements Action
 //				labelTable.put(new Integer(300), new JLabel("30"));	
 //				labelTable.put(new Integer(400), new JLabel("40"));					
 //				labelTable.put(new Integer(500), new JLabel("50"));	
-				resolutionSlider.setLabelTable( labelTable );
+				resolutionSlider.setLabelTable(labelTable);
 				resolutionSlider.setMajorTickSpacing(10);
 				resolutionSlider.setMinorTickSpacing(1);
 				resolutionSlider.setPaintTicks(true);
@@ -418,19 +418,20 @@ public class InitiateHealthCheckButton extends OMToolComponent implements Action
 		Layer aisDatalinkCheckIssueLayer = null;
 		for (Layer layer : layers) {
 			if (layer.getClass().getCanonicalName().equals("dk.frv.eavdam.layers.AISDatalinkCheckIssueLayer")) {
-				layerHandler.turnLayerOn(true, layer);
+				layerHandler.turnLayerOn(true, layer);				
 				aisDatalinkCheckIssueLayer = layer;
 			} else if (layer.getClass().getCanonicalName().equals("dk.frv.eavdam.layers.AISDatalinkCheckBandwidthAreasLayer")) {
 				if (result != null && result.getAreas() != null && !result.getAreas().isEmpty()) {
 					((AISDatalinkCheckBandwidthAreasLayer) layer).setAreas(result.getAreas());				
-					layerHandler.turnLayerOn(true, layer);
+					layerHandler.turnLayerOn(true, layer);					
 				}
 			}
 		}		
 		if (aisDatalinkCheckIssueLayer != null) {
 			layerHandler.moveLayer(aisDatalinkCheckIssueLayer, 0);
-			aisDatalinkCheckIssueLayer.repaint();
-			aisDatalinkCheckIssueLayer.validate();
+			mapBean.repaint(aisDatalinkCheckIssueLayer);
+			//aisDatalinkCheckIssueLayer.repaint();
+			//aisDatalinkCheckIssueLayer.validate();
 		}
 		layersMenu.setLayers(layers);
 
