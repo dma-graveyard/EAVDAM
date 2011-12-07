@@ -197,8 +197,8 @@ public class InitiateHealthCheckButton extends OMToolComponent implements Action
 				resolutionPanel.setMaximumSize(new Dimension(520, 100));
 				resolutionPanel.setMinimumSize(new Dimension(520, 100));					
 		
-				resolutionSlider = new JSlider(JSlider.HORIZONTAL, 1, 50, 20);
-				resolutionSlider.setToolTipText("Use small values for small areas and bigger values for larger areas to avoid excessive processing time");
+				resolutionSlider = new JSlider(JSlider.HORIZONTAL, 10, 50, 20);
+				//resolutionSlider.setToolTipText("Use small values for small areas and bigger values for larger areas to avoid excessive processing time");
 				resolutionSlider.setPreferredSize(new Dimension(480, 50));
 				resolutionSlider.setMaximumSize(new Dimension(480, 50));
 				resolutionSlider.setMinimumSize(new Dimension(480, 50));				
@@ -208,8 +208,8 @@ public class InitiateHealthCheckButton extends OMToolComponent implements Action
 				labelTable.put(new Integer(20), new JLabel("2"));
 				labelTable.put(new Integer(30), new JLabel("3"));
 				labelTable.put(new Integer(40), new JLabel("4"));
-				labelTable.put(new Integer(50), new JLabel("5"));				
-				labelTable.put(new Integer(100), new JLabel("10"));	
+				labelTable.put(new Integer(50), new JLabel("5"));
+//				labelTable.put(new Integer(100), new JLabel("10"));	
 //				labelTable.put(new Integer(200), new JLabel("20"));					
 //				labelTable.put(new Integer(300), new JLabel("30"));	
 //				labelTable.put(new Integer(400), new JLabel("40"));					

@@ -218,10 +218,12 @@ class IssuesMenuItemActionListener implements ActionListener {
 			JLabel acknowledgeButtonTitleLabel = new JLabel("  ");
 			acknowledgeButtonTitleLabel.setBorder(BorderFactory.createMatteBorder(1, 0, 1, 1, Color.BLACK));
 			panel.add(acknowledgeButtonTitleLabel, c);
+			/*
 			c.gridx = 6;   
 			JLabel deleteTitleLabel = new JLabel("  ");
 			deleteTitleLabel.setBorder(BorderFactory.createMatteBorder(1, 0, 1, 1, Color.BLACK));
 			panel.add(deleteTitleLabel, c);
+			*/
 			
 			int count = 0;
 			
@@ -386,6 +388,8 @@ class IssuesMenuItemActionListener implements ActionListener {
 				temp.setBorder(BorderFactory.createCompoundBorder(BorderFactory.createMatteBorder(0, 0, 1, 1, Color.BLACK), BorderFactory.createEmptyBorder(5, 5, 5, 5)));	
 				panel.add(temp, c);
 				
+				
+				/*
 				c.gridx = 6;
 			
 				JButton deleteButton = new JButton("Delete");
@@ -403,7 +407,8 @@ class IssuesMenuItemActionListener implements ActionListener {
 				JPanel temp2 = new JPanel(new BorderLayout());
 				temp2.add(verticalBox2, BorderLayout.CENTER);
 				temp2.setBorder(BorderFactory.createCompoundBorder(BorderFactory.createMatteBorder(0, 0, 1, 1, Color.BLACK), BorderFactory.createEmptyBorder(5, 5, 5, 5)));	
-				panel.add(temp2, c);	
+				panel.add(temp2, c)
+				*/
 			}	
 		}			
 		
@@ -456,15 +461,16 @@ class AcknowledgeAction extends AbstractAction {
 			List<AISDatalinkCheckIssue> issues = new ArrayList<AISDatalinkCheckIssue>();
 			issues.add(issue);			
 			DBHandler.acknowledgeIssues(issues);
-			IssuesMenuItem.issues.remove(issue);
-			issue.setAcknowledged(true);
-			IssuesMenuItem.issues.add(issue);
+			//IssuesMenuItem.issues.remove(issue);
+			//issue.setAcknowledged(true);
+			//IssuesMenuItem.issues.add(issue);
+			IssuesMenuItem.issues = null;
 			issuesMenuItemActionListener.updateScrollPane();           
         } else if (response == JOptionPane.NO_OPTION) {}
     }
 }
 
-
+/*
 class DeleteAction extends AbstractAction {
 
     public static final long serialVersionUID = 1L;
@@ -490,3 +496,4 @@ class DeleteAction extends AbstractAction {
         } else if (response == JOptionPane.NO_OPTION) {}
     }
 }
+*/

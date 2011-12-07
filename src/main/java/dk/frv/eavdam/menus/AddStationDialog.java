@@ -2084,13 +2084,17 @@ public class AddStationDialog extends JDialog implements ActionListener, ItemLis
 				stationData.setStatus(status);
 
 				if (menuItem.getData() != null && menuItem.getData().getSimulatedStations() != null) {                
-					for (Simulation s : menuItem.getData().getSimulatedStations()) {
+					for (int i=0; i<menuItem.getData().getSimulatedStations().size(); i++) {
+						Simulation s = menuItem.getData().getSimulatedStations().get(i);
 						if (((String) menuItem.getSelectDatasetComboBox().getSelectedItem()).endsWith(s.getName())) {
 							List<AISFixedStationData> stations = s.getStations();
 							if (stations == null) {
 								stations = new ArrayList<AISFixedStationData>();
 							}
 							stations.add(stationData);
+							s.setStations(stations);
+							menuItem.getData().getSimulatedStations().set(i, s);
+							break;
 						}
 					}
 				}
