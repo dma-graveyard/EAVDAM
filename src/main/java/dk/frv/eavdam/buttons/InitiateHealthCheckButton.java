@@ -333,13 +333,17 @@ public class InitiateHealthCheckButton extends OMToolComponent implements Action
 			
 			double resolution = (double) resolutionSlider.getValue() / 10;
 			
-			new InitiateHealthCheckThread(data, this, checkRule1, checkRule2, checkRule3, checkRule4, 
-				checkRule5, checkRule6, checkRule7, includePlanned, topLeftLatitude, topLeftLongitude,
-				lowerRightLatitude, lowerRightLongitude, resolution).start();
-			
-			sidePanel.getProgressIndicatorPane().setVisible(true);
-			
-			dialog.dispose();
+			HealthCheckHandler hch = new HealthCheckHandler(data);
+			double minResolution = HealthCheckHandler.getMinResolution(topLeftLatitude, topLeftLongitude, lowerRightLatitude, lowerRightLongitude);
+			if (resolution < minResolution) {
+				JOptionPane.showMessageDialog(openMapFrame, "The selected resolution is too small for the area in view. Please, choose a bigger resolution or a smaller area.", "Error!", JOptionPane.ERROR_MESSAGE); 			
+			} else {			
+				new InitiateHealthCheckThread(data, this, openMapFrame, sidePanel, hch, checkRule1, checkRule2,
+					checkRule3, checkRule4, checkRule5, checkRule6, checkRule7, includePlanned, topLeftLatitude,
+					topLeftLongitude, lowerRightLatitude, lowerRightLongitude, resolution).start();
+				sidePanel.getProgressIndicatorPane().setVisible(true);				
+				dialog.dispose();
+			}
 			
 		} else if (e.getSource() == cancelButton) {		
 			dialog.dispose();	
@@ -431,7 +435,6 @@ public class InitiateHealthCheckButton extends OMToolComponent implements Action
 		layersMenu.setLayers(layers);
 
 		sidePanel.getProgressIndicatorPane().setVisible(false);
-		dialog.dispose();
 		
 		completedDialog = new JDialog(openMapFrame, "AIS VHF datalink health check completed", true);
 		JPanel panel = new JPanel();
@@ -490,6 +493,9 @@ class InitiateHealthCheckThread extends Thread {
 	
 	EAVDAMData data;
 	AISDatalinkCheckListener listener;
+	OpenMapFrame openMapFrame;
+	SidePanel sidePanel;
+	HealthCheckHandler hch;
 	boolean checkRule1;
 	boolean checkRule2;
 	boolean checkRule3;
@@ -504,11 +510,15 @@ class InitiateHealthCheckThread extends Thread {
 	double lowerRightLongitude;
 	double resolution;
 	
-	InitiateHealthCheckThread(EAVDAMData data, AISDatalinkCheckListener listener, boolean checkRule1, boolean checkRule2,
-			boolean checkRule3, boolean checkRule4, boolean checkRule5, boolean checkRule6, boolean checkRule7, boolean includePlanned,
-			double topLeftLatitude, double topLeftLongitude, double lowerRightLatitude, double lowerRightLongitude, double resolution) {
+	InitiateHealthCheckThread(EAVDAMData data, AISDatalinkCheckListener listener, OpenMapFrame openMapFrame, SidePanel sidePanel,
+			HealthCheckHandler hch, boolean checkRule1,	boolean checkRule2, boolean checkRule3, boolean checkRule4, boolean checkRule5,
+			boolean checkRule6,	boolean checkRule7, boolean includePlanned,	double topLeftLatitude, double topLeftLongitude,
+			double lowerRightLatitude, double lowerRightLongitude,double resolution) {
 		this.data = data;
 		this.listener = listener;
+		this.openMapFrame = openMapFrame;
+		this.sidePanel = sidePanel;
+		this.hch = hch;
 		this.checkRule1 = checkRule1;
 		this.checkRule2 = checkRule2;
 		this.checkRule3 = checkRule3;
@@ -525,9 +535,13 @@ class InitiateHealthCheckThread extends Thread {
 	}
 	
 	public void run() {
-		HealthCheckHandler hch = new HealthCheckHandler(data);		
-		hch.startAISDatalinkCheck(listener, checkRule1, checkRule2, checkRule3, checkRule4, checkRule5, checkRule6,
-			checkRule7, includePlanned, topLeftLatitude, topLeftLongitude, lowerRightLatitude, lowerRightLongitude, resolution);		
+		try {		
+			hch.startAISDatalinkCheck(listener, checkRule1, checkRule2, checkRule3, checkRule4, checkRule5, checkRule6,
+				checkRule7, includePlanned, topLeftLatitude, topLeftLongitude, lowerRightLatitude, lowerRightLongitude, resolution);		
+		} catch (OutOfMemoryError e) {
+			sidePanel.getProgressIndicatorPane().setVisible(false);
+			JOptionPane.showMessageDialog(openMapFrame, "The health check process ran out of memory. Please, try again with a bigger resolution / smaller area.", "Error!", JOptionPane.ERROR_MESSAGE); 
+		}
 		
 		// XXX: for testing -->
 		/*
