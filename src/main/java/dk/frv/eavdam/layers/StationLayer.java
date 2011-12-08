@@ -150,6 +150,8 @@ public class StationLayer extends OMGraphicHandlerLayer implements MapMouseListe
 	
 	private EAVDAMData data;
 	//private int currentIcons = -1;
+
+	private boolean needsSaving = false;
 	
 	private boolean stationsInitiallyUpdated = false;
 	
@@ -240,6 +242,18 @@ public class StationLayer extends OMGraphicHandlerLayer implements MapMouseListe
 		return showOnMapMenuItem;
 	}
 	
+	public boolean isNeedsSaving() {
+		return needsSaving;
+	}
+	
+	public void setNeedsSaving(boolean needsSaving) {
+		this.needsSaving = needsSaving;
+	}
+	
+	public EAVDAMData getData() {
+		return data;
+	}
+	
     public void addBaseStation(Object datasetSource, EAVDAMUser owner, AISFixedStationData stationData) {
 	
 		if (omBaseStations == null) {
@@ -311,9 +325,7 @@ public class StationLayer extends OMGraphicHandlerLayer implements MapMouseListe
 		if (data == null) {
 			data = DBHandler.getData();
 		}
-		
-		boolean needsSaving = false;
-		
+				
         OMBaseStation base = new OMBaseStation(datasetSource, stationData, owner, bytearr);
 		Antenna antenna = stationData.getAntenna();
 		if (antenna != null) {
@@ -376,10 +388,6 @@ public class StationLayer extends OMGraphicHandlerLayer implements MapMouseListe
 				}
 			}
 						
-		}
-
-		if (needsSaving) {
-			DBHandler.saveData(data);
 		}
 
 		omBaseStations.add(base);
@@ -1210,7 +1218,7 @@ public class StationLayer extends OMGraphicHandlerLayer implements MapMouseListe
 					if (as.getStations() != null) {
 						for (int j=0; j<as.getStations().size(); j++) {
 							AISFixedStationData stationData = as.getStations().get(j);
-							if (stationData.getStationDBID() == baseStation.getStationData().getStationDBID()) {
+							if (stationData.getStationDBID() == baseStation.getStationData().getStationDBID()) {								
 								if (activeLayer == transmitCoverageLayer) {
 									AISFixedStationCoverage coverage = stationData.getTransmissionCoverage();
 									if (coverage == null) {
@@ -1294,9 +1302,9 @@ public class StationLayer extends OMGraphicHandlerLayer implements MapMouseListe
 								List<AISFixedStationData> stations = as.getStations();
 								if (stations != null) {
 									for (int k=0; k<stations.size(); k++) {
-									AISFixedStationData stationData = stations.get(k);								
-									if (stationData.getStationDBID() == baseStation.getStationData().getStationDBID()) {								
-										if (activeLayer == transmitCoverageLayer) {
+										AISFixedStationData stationData = stations.get(k);								
+										if (stationData.getStationDBID() == baseStation.getStationData().getStationDBID()) {								
+											if (activeLayer == transmitCoverageLayer) {
 												AISFixedStationCoverage coverage = stationData.getTransmissionCoverage();
 												if (coverage == null) {
 													coverage = new AISFixedStationCoverage();
@@ -1308,13 +1316,13 @@ public class StationLayer extends OMGraphicHandlerLayer implements MapMouseListe
 												if (coverage == null) {
 													coverage = new AISFixedStationCoverage();
 												}
-												coverage.setCoveragePoints(points);
+												coverage.setCoveragePoints(points);												
 												stationData.setReceiveCoverage(coverage);
 											} else if (activeLayer == interferenceCoverageLayer) {
 												AISFixedStationCoverage coverage = stationData.getInterferenceCoverage();
 												if (coverage == null) {
 													coverage = new AISFixedStationCoverage();
-												}
+												}											
 												coverage.setCoveragePoints(points);
 												stationData.setInterferenceCoverage(coverage);															
 											}							
@@ -1981,9 +1989,8 @@ public class StationLayer extends OMGraphicHandlerLayer implements MapMouseListe
 			return;
 		}	
 	
-		if (data == null) {
-			data = DBHandler.getData();
-		}
+		data = DBHandler.getData();
+		omBaseStations = new ArrayList<OMBaseStation>();
 	
 		new UpdateStationsThread(this, data).start();
 
@@ -2113,7 +2120,9 @@ class UpdateStationsThread extends Thread {
 					anyOtherUsersStations = true;
 					break;
 				}
-			}			
+			}
+			
+			stationLayer.setNeedsSaving(false);
 			
 			List<ActiveStation> activeStations = data.getActiveStations();
             if (activeStations != null) {
@@ -2179,6 +2188,10 @@ class UpdateStationsThread extends Thread {
 			}
 			
 			stationLayer.renderBaseStations();
+			
+			if (stationLayer.isNeedsSaving()) {
+				DBHandler.saveData(stationLayer.getData());
+			}
 			
 			/*
             this.repaint();

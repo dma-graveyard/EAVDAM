@@ -478,7 +478,10 @@ public class SlotMapDialog extends JDialog implements ActionListener {
 								html += "</body></html>";
 								ais1InterferedBy[timeslot.getSlotNumber()-start] = html;
 							}
-						}						
+						}
+						if (timeslot.getPossibleConflicts() != null) {
+							conflicts[timeslot.getSlotNumber()-start] = timeslot.getPossibleConflicts().booleanValue();
+						}							
 					}
 				}
 			}
@@ -539,7 +542,10 @@ public class SlotMapDialog extends JDialog implements ActionListener {
 								html += "</body></html>";
 								ais2InterferedBy[timeslot.getSlotNumber()-start] = html;
 							}
-						}						
+						}
+						if (timeslot.getPossibleConflicts() != null) {
+							conflicts[timeslot.getSlotNumber()-start] = timeslot.getPossibleConflicts().booleanValue();
+						}
 					}	
 				}			
 			}
