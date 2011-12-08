@@ -1,7 +1,7 @@
 package dk.frv.eavdam.utils;
 
 import java.util.ArrayList;
-import java.util.Collection;
+
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -9,7 +9,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import javax.lang.model.type.NullType;
 
 import dk.frv.eavdam.data.AISDatalinkCheckArea;
 import dk.frv.eavdam.data.AISDatalinkCheckIssue;
@@ -31,8 +30,7 @@ import dk.frv.eavdam.data.Simulation;
 import dk.frv.eavdam.healthcheck.PointInPolygon;
 import dk.frv.eavdam.io.AISDatalinkCheckListener;
 import dk.frv.eavdam.io.derby.DerbyDBInterface;
-import dk.frv.eavdam.io.jaxb.AisFixedStationStatus;
-import dk.frv.eavdam.io.jaxb.AisFixedStationType;
+
 
 public class HealthCheckHandler {
 
@@ -85,7 +83,7 @@ public class HealthCheckHandler {
 		for(OtherUserStations o : this.data.getOtherUsersStations()){
 			for(ActiveStation as : o.getStations()){
 				for(AISFixedStationData s : as.getStations()){
-					System.out.println(o.getUser().getOrganizationName()+": "+s.getStationName()+" --> "+s.getTransmissionCoverage()+" | "+s.getTransmissionCoverage().getCoveragePoints());
+//					System.out.println(o.getUser().getOrganizationName()+": "+s.getStationName()+" --> "+s.getTransmissionCoverage()+" | "+s.getTransmissionCoverage().getCoveragePoints());
 					coverages.put("T:"+o.getUser().getOrganizationName()+": "+s.getStationName(), s.getTransmissionCoverage());
 					coverages.put("I:"+o.getUser().getOrganizationName()+": "+s.getStationName(), s.getInterferenceCoverage());
 					coverages.put("R:"+o.getUser().getOrganizationName()+": "+s.getStationName(), s.getReceiveCoverage());

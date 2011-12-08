@@ -196,12 +196,17 @@ public class DBHandler {
      * @return
      */
     public static Options getOptions() {
-		Options op = new Options();
+    	Options op = null;
     	
-		if(derby == null) derby = new DerbyDBInterface();
+    	try{
+    		op = new Options();
+    	
+			if(derby == null) derby = new DerbyDBInterface();
 		
-    	op = derby.getOptions();
-		
+    		op = derby.getOptions();
+    	}catch(Exception e){
+    		e.printStackTrace();
+    	}
 		
 		return op;
 	}

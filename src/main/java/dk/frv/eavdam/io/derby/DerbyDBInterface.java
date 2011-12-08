@@ -3822,7 +3822,9 @@ import dk.frv.eavdam.utils.HealthCheckHandler;
 	     * 
 	     * @return
 	     */
-		public Options getOptions() {
+		public Options getOptions() throws Exception{
+			if(this.conn == null) this.conn = this.getDBConnection(null, false);
+			
 			Options op = new Options();
 			
 			op.setFTPs(this.retrieveFTPSettings());
