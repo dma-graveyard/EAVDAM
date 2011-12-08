@@ -1,7 +1,15 @@
 package dk.frv.eavdam.utils;
 
+import dk.frv.eavdam.data.ActiveStation;
+import dk.frv.eavdam.data.AISFixedStationCoverage;
+import dk.frv.eavdam.data.AISFixedStationData;
+import dk.frv.eavdam.data.AISFixedStationType;
+import dk.frv.eavdam.data.Antenna;
+import dk.frv.eavdam.data.AntennaType;
 import dk.frv.eavdam.data.EAVDAMData;
 import dk.frv.eavdam.data.EAVDAMUser;
+import dk.frv.eavdam.data.OtherUserStations;
+import dk.frv.eavdam.data.Simulation;
 import dk.frv.eavdam.io.derby.DerbyDBInterface;
 import dk.frv.eavdam.io.XMLExporter;
 import dk.frv.eavdam.io.XMLImporter;
@@ -9,8 +17,10 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.net.MalformedURLException;
 import java.sql.Timestamp;
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.GregorianCalendar;
+import java.util.List;
 import javax.xml.bind.JAXBException;
 
 public class XMLHandler {
@@ -181,6 +191,7 @@ public class XMLHandler {
         		}else{
         			db.deleteUser(d.getUser());
         			System.out.print(" ...Delete complete.\n");
+					//d = updateDefaultCoverages(d);
         			db.insertEAVDAMData(d);
         		}
         	}
@@ -235,6 +246,181 @@ public class XMLHandler {
         
         
     }
+	
+	private static EAVDAMData updateDefaultCoverages(EAVDAMData data) {
+	
+		if (data == null) {
+			return null;
+		}
+		
+		List<ActiveStation> activeStations = data.getActiveStations();
+		if (activeStations != null) {
+			for (int i=0; i< activeStations.size(); i++) {
+				ActiveStation as = activeStations.get(i);
+				if (as.getStations() != null) {
+					for (int j=0; j<as.getStations().size(); j++) {
+						AISFixedStationData stationData = as.getStations().get(j);							
+						AISFixedStationCoverage transmissionCoverage = stationData.getTransmissionCoverage();
+						if (transmissionCoverage == null || transmissionCoverage.getCoveragePoints() == null || transmissionCoverage.getCoveragePoints().isEmpty()) {
+							transmissionCoverage = getDefaultTransmissionCoverage(stationData);							
+							stationData.setTransmissionCoverage(transmissionCoverage);						
+						}
+						AISFixedStationCoverage receiveCoverage = stationData.getReceiveCoverage();
+						if (receiveCoverage == null || receiveCoverage.getCoveragePoints() == null || receiveCoverage.getCoveragePoints().isEmpty()) {
+							receiveCoverage = getDefaultReceiveCoverage(stationData);							
+							stationData.setReceiveCoverage(receiveCoverage);						
+						}
+						AISFixedStationCoverage interferenceCoverage = stationData.getInterferenceCoverage();
+						if (interferenceCoverage == null || interferenceCoverage.getCoveragePoints() == null || interferenceCoverage.getCoveragePoints().isEmpty()) {
+							interferenceCoverage = getDefaultInterferenceCoverage(stationData);								
+							stationData.setInterferenceCoverage(interferenceCoverage);						
+						}							
+						as.getStations().set(j, stationData);
+					}
+				}
+				data.getActiveStations().set(i, as);										
+			}
+		}			
+		
+		List<Simulation> simulatedStations = data.getSimulatedStations();
+		if (simulatedStations != null) {
+			for (int i=0; i< simulatedStations.size(); i++) {
+				Simulation s = simulatedStations.get(i);
+				if (s.getStations() != null) {
+					for (int j=0; j<s.getStations().size(); j++) {
+						AISFixedStationData stationData = s.getStations().get(j);										
+						AISFixedStationCoverage transmissionCoverage = stationData.getTransmissionCoverage();
+						if (transmissionCoverage == null || transmissionCoverage.getCoveragePoints() == null || transmissionCoverage.getCoveragePoints().isEmpty()) {
+							transmissionCoverage = getDefaultTransmissionCoverage(stationData);									
+							stationData.setTransmissionCoverage(transmissionCoverage);						
+						}
+						AISFixedStationCoverage receiveCoverage = stationData.getReceiveCoverage();
+						if (receiveCoverage == null || receiveCoverage.getCoveragePoints() == null || receiveCoverage.getCoveragePoints().isEmpty()) {
+							receiveCoverage = getDefaultReceiveCoverage(stationData);										
+							stationData.setReceiveCoverage(receiveCoverage);						
+						}
+						AISFixedStationCoverage interferenceCoverage = stationData.getInterferenceCoverage();
+						if (interferenceCoverage == null || interferenceCoverage.getCoveragePoints() == null || interferenceCoverage.getCoveragePoints().isEmpty()) {
+							interferenceCoverage = getDefaultInterferenceCoverage(stationData);									
+							stationData.setInterferenceCoverage(interferenceCoverage);						
+						}
+						s.getStations().set(j, stationData);
+					}					
+				}
+				data.getSimulatedStations().set(i, s);
+			}
+		}	
+        
+		List<OtherUserStations> otherUserStations = data.getOtherUsersStations();
+        if (otherUserStations != null) {
+			for (int i=0; i<otherUserStations.size(); i++) {
+				OtherUserStations ous = otherUserStations.get(i);
+                if (ous.getStations() != null) {
+					for (int j=0; j<ous.getStations().size(); j++) {
+						ActiveStation as = ous.getStations().get(j);
+						if (as.getStations() != null) {
+							for (int k=0; k<as.getStations().size(); k++) {
+								AISFixedStationData stationData = as.getStations().get(k);							
+								AISFixedStationCoverage transmissionCoverage = stationData.getTransmissionCoverage();
+								if (transmissionCoverage == null || transmissionCoverage.getCoveragePoints() == null || transmissionCoverage.getCoveragePoints().isEmpty()) {
+									transmissionCoverage = getDefaultTransmissionCoverage(stationData);							
+									stationData.setTransmissionCoverage(transmissionCoverage);						
+								}
+								AISFixedStationCoverage receiveCoverage = stationData.getReceiveCoverage();
+								if (receiveCoverage == null || receiveCoverage.getCoveragePoints() == null || receiveCoverage.getCoveragePoints().isEmpty()) {
+									receiveCoverage = getDefaultReceiveCoverage(stationData);							
+									stationData.setReceiveCoverage(receiveCoverage);						
+								}
+								AISFixedStationCoverage interferenceCoverage = stationData.getInterferenceCoverage();
+								if (interferenceCoverage == null || interferenceCoverage.getCoveragePoints() == null || interferenceCoverage.getCoveragePoints().isEmpty()) {
+									interferenceCoverage = getDefaultInterferenceCoverage(stationData);								
+									stationData.setInterferenceCoverage(interferenceCoverage);						
+								}							
+								as.getStations().set(k, stationData);
+							}
+						}
+						ous.getStations().set(j, as);
+					}
+				}
+				data.getOtherUsersStations().set(i, ous);				
+			}
+		}
+
+		return data;
+		
+	}
+					
+	private static AISFixedStationCoverage getDefaultTransmissionCoverage(AISFixedStationData stationData) {
+										
+		Antenna antenna = stationData.getAntenna();
+		if (antenna != null) {
+			if (antenna.getAntennaType() == AntennaType.DIRECTIONAL) {
+				if (stationData.getStationType() != AISFixedStationType.RECEIVER) {					
+					AISFixedStationCoverage coverage = new AISFixedStationCoverage();
+					coverage.setCoveragePoints((ArrayList<double[]>) RoundCoverage.getRoundCoverage(antenna.getAntennaHeight()+antenna.getTerrainHeight(), 4, stationData.getLat(),
+						stationData.getLon(), (double) antenna.getHeading().intValue(), (double) antenna.getFieldOfViewAngle().intValue(), 25));
+					coverage.setCoverageType(1);
+					return coverage;					
+				}
+			} else {
+				if (stationData.getStationType() != AISFixedStationType.RECEIVER) {
+					AISFixedStationCoverage coverage = new AISFixedStationCoverage();				
+					coverage.setCoveragePoints((ArrayList<double[]>) RoundCoverage.getRoundCoverage(antenna.getAntennaHeight()+antenna.getTerrainHeight(), 4, stationData.getLat(), stationData.getLon(), 25));
+					coverage.setCoverageType(1);
+					return coverage;					
+				}
+			}
+		}
+		return null;
+	}
+				
+	private static AISFixedStationCoverage getDefaultReceiveCoverage(AISFixedStationData stationData) {
+										
+		Antenna antenna = stationData.getAntenna();
+		if (antenna != null) {
+			if (antenna.getAntennaType() == AntennaType.DIRECTIONAL) {
+				if (stationData.getStationType() != AISFixedStationType.RECEIVER) {					
+					AISFixedStationCoverage coverage = new AISFixedStationCoverage();				
+					coverage.setCoveragePoints((ArrayList<double[]>) RoundCoverage.getRoundCoverage(antenna.getAntennaHeight()+antenna.getTerrainHeight(), 4, stationData.getLat(), stationData.getLon(),
+						(double) antenna.getHeading().intValue(), (double) antenna.getFieldOfViewAngle().intValue(),25));
+					coverage.setCoverageType(2);						
+					return coverage;					
+				}
+			} else {
+				if (stationData.getStationType() != AISFixedStationType.RECEIVER) {
+					AISFixedStationCoverage coverage = new AISFixedStationCoverage();				
+					coverage.setCoveragePoints((ArrayList<double[]>) RoundCoverage.getRoundCoverage(antenna.getAntennaHeight()+antenna.getTerrainHeight(), 4, stationData.getLat(), stationData.getLon(), 25));
+					coverage.setCoverageType(2);
+					return coverage;					
+				}
+			}
+		}
+		return null;
+	}
+				
+	private static AISFixedStationCoverage getDefaultInterferenceCoverage(AISFixedStationData stationData) {
+										
+		Antenna antenna = stationData.getAntenna();
+		if (antenna != null) {
+			if (antenna.getAntennaType() == AntennaType.DIRECTIONAL) {
+				if (stationData.getStationType() != AISFixedStationType.RECEIVER) {					
+					AISFixedStationCoverage coverage = new AISFixedStationCoverage();				
+					coverage.setCoveragePoints((ArrayList<double[]>) RoundCoverage.getRoundInterferenceCoverage(antenna.getAntennaHeight()+antenna.getTerrainHeight(), 4, stationData.getLat(), stationData.getLon(),
+						(double) antenna.getHeading().intValue(), (double) antenna.getFieldOfViewAngle().intValue(), 25));
+					coverage.setCoverageType(3);						
+					return coverage;
+				}
+			} else {
+				if (stationData.getStationType() != AISFixedStationType.RECEIVER) {
+					AISFixedStationCoverage coverage = new AISFixedStationCoverage();
+					coverage.setCoveragePoints((ArrayList<double[]>) RoundCoverage.getRoundInterferenceCoverage(stationData.getLat(), stationData.getLon(), 25));
+					coverage.setCoverageType(3);
+					return coverage;
+				}
+			}
+		}
+		return null;
+	}
     
 }
         
