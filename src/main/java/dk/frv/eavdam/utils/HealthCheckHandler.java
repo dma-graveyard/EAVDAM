@@ -1604,6 +1604,8 @@ public class HealthCheckHandler {
 					if(a.getInterferedBy() != null)
 						ps.addAll(a.getInterferedBy());
 					
+					a.setPossibleConflicts(new Boolean(true));
+					
 //					if(ps.size() < 2) System.out.println("Too few stations 2: "+used.size()+" + "+a.getInterferedBy().size());
 					AISDatalinkCheckIssue issue = new AISDatalinkCheckIssue(-1,AISDatalinkCheckRule.RULE1,getRuleSeverity(AISDatalinkCheckRule.RULE1),ps,slots);
 									
@@ -1636,6 +1638,8 @@ public class HealthCheckHandler {
 				
 					issue = new AISDatalinkCheckIssue(-1,AISDatalinkCheckRule.RULE3, getRuleSeverity(AISDatalinkCheckRule.RULE3),atonStations,slots);
 					
+					a.setPossibleConflicts(new Boolean(true));
+					
 					issues.add(issue);
 				}else{
 					//Reservation but no usage!
@@ -1653,14 +1657,14 @@ public class HealthCheckHandler {
 	
 	
 	/**
-	 * 
+	 * @deprecated
 	 * Gets the stations and checks the bandwith of the given point. The point is the top left corner of the area.
 	 * 
 	 * @param lat TOP LEFT Lat point of the area
 	 * @param lon TOP LEFT Lon point of the area
 	 * @return
 	 */
-	public AISDatalinkCheckResult checkRulesAtPoint(double lat, double lon, double endLat, double endLon, double resolution){
+	public AISDatalinkCheckResult _checkRulesAtPoint(double lat, double lon, double endLat, double endLon, double resolution){
 		if(this.data == null){
 			
 			this.data = DBHandler.getData(); 
