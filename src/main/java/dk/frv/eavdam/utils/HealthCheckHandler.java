@@ -1210,6 +1210,9 @@ public class HealthCheckHandler {
 			
 			slotA.add(a);
 			slotB.add(b);
+			
+//			if(i < 299)
+//				System.out.println(i+": A "+a.getPossibleConflicts().booleanValue()+", B "+a.getPossibleConflicts().booleanValue());
 		}
 		
 				
@@ -1538,8 +1541,11 @@ public class HealthCheckHandler {
 				
 				Set<String> infNames = new HashSet<String>();
 				for(AISFixedStationData station : interference.get(slot+"")){
+					
 					String planned = "";
 					if(station.getStatus().getStatusID() == DerbyDBInterface.STATUS_PLANNED) planned = plannedIndicator;
+					
+//					if(slot > 200 && slot < 250) System.out.println(station.getStationName()+planned);
 					
 					AISStation s = new AISStation(station.getOperator().getOrganizationName(), station.getStationName()+planned, station.getLat(), station.getLon());
 					s.setDbId(station.getStationDBID());
@@ -1560,6 +1566,8 @@ public class HealthCheckHandler {
 							
 							infs.add(s);
 						}
+					}else{
+//						if(slot > 200 && slot < 250) System.out.println("RES contains "+station.getStationName());
 					}
 					
 					
@@ -1568,7 +1576,7 @@ public class HealthCheckHandler {
 				}
 					
 				
-				if(infs.size() > 0){
+				if(infs.size() > 0){ //No inferences, only the used inference areas overlap.
 					a.setPossibleConflicts(new Boolean(true));
 					a.setInterferedBy(infs); //Store the interfering stations
 					
@@ -1588,11 +1596,35 @@ public class HealthCheckHandler {
 						issues.add(issue);
 						addRule1 = true;
 					}
+				}else if(used.size() > 1){
+					a.setPossibleConflicts(new Boolean(true));
+					
+					if(!addRule1){
+						//Create a new issue with Rule 1 if it has not been created yet.
+						List<AISTimeslot> slots = new ArrayList<AISTimeslot>();
+						slots.add(a);
+						
+						List<AISStation> ps = new ArrayList<AISStation>();
+						ps.addAll(used);
+						if(a.getInterferedBy() != null)
+							ps.addAll(a.getInterferedBy());
+						
+						a.setPossibleConflicts(new Boolean(true));
+						
+//						if(ps.size() < 2) System.out.println("Too few stations 2: "+used.size()+" + "+a.getInterferedBy().size());
+						AISDatalinkCheckIssue issue = new AISDatalinkCheckIssue(-1,AISDatalinkCheckRule.RULE1,getRuleSeverity(AISDatalinkCheckRule.RULE1),ps,slots);
+										
+						issues.add(issue);
+						
+						
+					}
 				}
 				
 			}else if(used.size() > 1){ //Several stations use the slot
 				
 				a.setPossibleConflicts(new Boolean(true));
+				
+//				if(slot < 250) System.out.println("Too many using...");
 				
 				if(!addRule1){
 					//Create a new issue with Rule 1 if it has not been created yet.
@@ -1610,6 +1642,8 @@ public class HealthCheckHandler {
 					AISDatalinkCheckIssue issue = new AISDatalinkCheckIssue(-1,AISDatalinkCheckRule.RULE1,getRuleSeverity(AISDatalinkCheckRule.RULE1),ps,slots);
 									
 					issues.add(issue);
+					
+//					if(slot < 250) System.out.println("Added issue");
 				}
 			}else{
 				
@@ -1651,11 +1685,16 @@ public class HealthCheckHandler {
 			}
 		}
 		
+//		if(slot < 299)
+//			System.out.println(issues.size() +" - "+startedIssues);
 		
 		if(issues.size() - startedIssues == 0){
 			a.setPossibleConflicts(new Boolean(false));
+			
 		}else if(issues.size() - startedIssues > 0){
 			a.setPossibleConflicts(new Boolean(true));
+			
+			
 		}
 		
 		return a;
