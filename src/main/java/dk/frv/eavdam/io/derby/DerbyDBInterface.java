@@ -124,6 +124,8 @@ import dk.frv.eavdam.utils.HealthCheckHandler;
 	        /* load the desired JDBC driver */
 	        System.out.println("Getting DB Connection");
 	    	loadDriver();
+	    	
+	    	
 	        
 	        if(dbName == null) dbName = defaultDB;
 	        
@@ -3638,7 +3640,7 @@ import dk.frv.eavdam.utils.HealthCheckHandler;
 							+ "RULEVIOLATED INT,"
 							+ "ACKNOWLEDGED INT,"
 							+ "DELETED INT,"
-							+ "CONSTRAINT pk_issue PRIMARY KEY (ID)");
+							+ "CONSTRAINT pk_issue PRIMARY KEY (ID))");
 				} catch (Exception e) {
 					if(log)
 						e.printStackTrace();
@@ -3719,7 +3721,7 @@ import dk.frv.eavdam.utils.HealthCheckHandler;
 	    		}
 				
 	    		rs.close();
-	    		conn.close();
+//	    		conn.close();
 	    	}catch(Exception e){
 	    		e.printStackTrace();
 	    	}
@@ -3765,8 +3767,9 @@ import dk.frv.eavdam.utils.HealthCheckHandler;
 				ps.executeUpdate();
 				ps.close();
 			}catch(Exception e){
-//				e.printStackTrace();
+				e.printStackTrace();
 				try{
+
 					System.out.println("No ISSUES table found. Creating it to match the latest version...");
 					Statement s = conn.createStatement();
 					try {
@@ -3778,8 +3781,9 @@ import dk.frv.eavdam.utils.HealthCheckHandler;
 								+ "CONSTRAINT pk_issue PRIMARY KEY (ID))");
 					} catch (Exception e1) {
 						if(log)
-							e.printStackTrace();
+							e1.printStackTrace();
 					}
+
 
 					try {
 						s.execute("CREATE TABLE ISSUESTIMESLOT"
@@ -3789,8 +3793,10 @@ import dk.frv.eavdam.utils.HealthCheckHandler;
 								+ "CONSTRAINT fk_iss_slot FOREIGN KEY (ISSUE) references ISSUES(ID))");
 					} catch (Exception e1) {
 						if(log)
-							e.printStackTrace();
+							e1.printStackTrace();
 					}
+					
+					
 
 					try {
 						s.execute("CREATE TABLE ISSUESSTATION"
@@ -3800,7 +3806,7 @@ import dk.frv.eavdam.utils.HealthCheckHandler;
 								+ "CONSTRAINT fk_station_iss FOREIGN KEY (STATION) references FIXEDSTATION(ID))");
 					} catch (Exception e1) {
 						if(log)
-							e.printStackTrace();
+							e1.printStackTrace();
 					}
 
 					
@@ -3830,7 +3836,9 @@ import dk.frv.eavdam.utils.HealthCheckHandler;
 			op.setFTPs(this.retrieveFTPSettings());
 			
 			try{
-				PreparedStatement ps = conn.prepareStatement("select EMAILTO, EMAILFROM, SUBJECT, SMTPSERVER, AUTHENTICATION, USERNAME, PASSWORD from SENDTOEMAIL");
+				if(this.conn == null) this.conn = this.getDBConnection(null, false);
+				
+				PreparedStatement ps = this.conn.prepareStatement("select EMAILTO, EMAILFROM, SUBJECT, SMTPSERVER, AUTHENTICATION, USERNAME, PASSWORD from SENDTOEMAIL");
 				ResultSet rs = ps.executeQuery();
 				if(rs.next()){
 					
@@ -3857,7 +3865,7 @@ import dk.frv.eavdam.utils.HealthCheckHandler;
 				rs.close();
 				
 			}catch(Exception e){
-				e.printStackTrace();
+//				e.printStackTrace();
 			}
 			
 			return op;

@@ -53,7 +53,7 @@ public class DBHandler {
 	
 //    		d.closeConnection();
     		
-    		dat = XMLHandler.importData();
+//    		dat = XMLHandler.importData();
     		initialized = true;
     	}else{
     	
@@ -159,23 +159,11 @@ public class DBHandler {
 		if(derby == null) derby = new DerbyDBInterface();
         //d.createDatabase(null);        
         
+//		System.out.println("Storing data to database...");
         
 		derby.insertEAVDAMData(data);
 
 		changes = true;
-
-//        if(!updatedXML){
-//			System.out.println("Writing the xml to file...");
-//			try {
-//
-//				XMLHandler.exportData();
-//	    		System.out.println("Writing finished!");
-//			} catch (Exception e) {
-//				e.printStackTrace();
-//			}
-//			
-//			updatedXML = true;
-//        }
     }
     
     public static void saveUserData(EAVDAMUser user, boolean defaultUser){
