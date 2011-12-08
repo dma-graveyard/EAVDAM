@@ -1348,6 +1348,7 @@ public class HealthCheckHandler {
 						Set<AISTimeslot> ts = stationTimeslots.get(si);
 						List<AISTimeslot> lts = new ArrayList<AISTimeslot>();
 						for(AISTimeslot t : ts){
+							t.setPossibleConflicts(new Boolean(true));
 							if(lts.size() == 0){
 								lts.add(t);
 							}else{
@@ -1579,9 +1580,6 @@ public class HealthCheckHandler {
 						ps.addAll(a.getInterferedBy());
 					
 					
-					
-					
-					
 					if(ps.size() > 1){
 						AISDatalinkCheckIssue issue = new AISDatalinkCheckIssue(-1,AISDatalinkCheckRule.RULE1,getRuleSeverity(AISDatalinkCheckRule.RULE1),ps,slots);
 					
@@ -1657,14 +1655,14 @@ public class HealthCheckHandler {
 	
 	
 	/**
-	 * @deprecated
+	 * 
 	 * Gets the stations and checks the bandwith of the given point. The point is the top left corner of the area.
 	 * 
 	 * @param lat TOP LEFT Lat point of the area
 	 * @param lon TOP LEFT Lon point of the area
 	 * @return
 	 */
-	public AISDatalinkCheckResult _checkRulesAtPoint(double lat, double lon, double endLat, double endLon, double resolution){
+	public AISDatalinkCheckResult checkRulesAtPoint(double lat, double lon, double endLat, double endLon, double resolution){
 		if(this.data == null){
 			
 			this.data = DBHandler.getData(); 
