@@ -37,15 +37,17 @@
 
 	<target name="init">
 		<mkdir dir="${build.classes.dir}" />
-	</target>
+    </target>		
 
 	<target name="compile" depends="init">
+		<replace file="${src.main.java.dir}/dk/frv/eavdam/menus/AboutEAVDAMMenuItem.java" token="xx.xx" value="${version}"/>	
 		<javac destdir="${build.classes.dir}" debug="on" encoding="UTF-8" includeantruntime="false">
 			<compilerarg value="-Xlint:all,-path" />
 			<includesfile />
 			<classpath refid="compile.class.path" />
 			<src path="${src.main.java.dir}" />
 		</javac>
+		<replace file="${src.main.java.dir}/dk/frv/eavdam/menus/AboutEAVDAMMenuItem.java" token="${version}" value="xx.xx"/>		
 	</target>
 
 	<target name="jar" depends="compile">

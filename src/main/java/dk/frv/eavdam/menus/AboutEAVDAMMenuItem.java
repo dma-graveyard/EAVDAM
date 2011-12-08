@@ -62,28 +62,7 @@ public class AboutEAVDAMMenuItem extends JMenuItem implements ActionListener, Li
         
 		if (ae.getSource() instanceof AboutEAVDAMMenuItem) {
 		
-			String version = "x.x";
-		
-			try {				
-				FileInputStream fstream = new FileInputStream("build.xml");
-				DataInputStream in = new DataInputStream(fstream);
-				BufferedReader br = new BufferedReader(new InputStreamReader(in));
-				String strLine;
-				while ((strLine = br.readLine()) != null) {		
-					if (strLine.indexOf("<property name=\"version\" value=\"") != -1) {
-						int start = strLine.indexOf("<property name=\"version\" value=\"") + "<property name=\"version\" value=\"".length();
-						int end = strLine.indexOf("\"", start);
-						version = strLine.substring(start, end);
-						break;
-					}
-				}
-			} catch (FileNotFoundException ex) {
-				System.out.println(ex.getMessage());
-				ex.printStackTrace();
-			} catch (IOException ex) {
-				System.out.println(ex.getMessage());
-				ex.printStackTrace();
-			}
+			String version = "xx.xx";
 			
 			JDialog dialog = new JDialog(openMapFrame, "About EAVDAM", true);
 
