@@ -132,6 +132,14 @@ public class HealthCheckHandler {
 			}
 		}
 		
+		if(resolution <= 0){
+			System.err.println("Zoom is too far! Memory consumption would be too high! Aborting health check");
+			listener.completed(null);
+			listener.progressed(1.0);
+			
+			return results;
+		}
+		
 		System.out.println("Health Check started with resolution "+resolution+"nm. There are "+((int)numberOfCells)+" number of coordinates to be checked!");
 		
 		
@@ -1995,7 +2003,7 @@ public class HealthCheckHandler {
 	
 	public static double getMinResolution(double topLeftLatitude, double topLeftLongitude, double lowerRightLatitude, double lowerRightLongitude){
 		
-		for(double resolution = 0.1 ; resolution <= 5.0; resolution = 0.25 + resolution){
+		for(double resolution = 0.1 ; resolution <= 10.0; resolution = 0.25 + resolution){
 			double latIncrement = getLatitudeIncrement(resolution, topLeftLatitude, topLeftLongitude, lowerRightLatitude, lowerRightLongitude);
 			if(latIncrement < 0) latIncrement *= -1;
 		
