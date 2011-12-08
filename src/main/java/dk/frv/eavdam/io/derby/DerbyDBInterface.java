@@ -917,6 +917,8 @@ import dk.frv.eavdam.utils.HealthCheckHandler;
 	    public void insertCoverage(AISFixedStationCoverage coverage, int stationID, int coverageType) throws Exception{
 	    	if(coverage == null || coverage.getCoveragePoints() == null) return;
 	    	
+	    	
+	    	
 	    	int ith = 1;
 	    	for(double[] c : coverage.getCoveragePoints()){
 	    		try{

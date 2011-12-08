@@ -83,7 +83,7 @@ public class HealthCheckHandler {
 //		for(OtherUserStations o : this.data.getOtherUsersStations()){
 //			for(ActiveStation as : o.getStations()){
 //				for(AISFixedStationData s : as.getStations()){
-////					System.out.println(o.getUser().getOrganizationName()+": "+s.getStationName()+" --> "+s.getTransmissionCoverage()+" | "+s.getTransmissionCoverage().getCoveragePoints());
+//					System.out.println(o.getUser().getOrganizationName()+": "+s.getStationName()+" --> "+s.getTransmissionCoverage()+" | "+s.getTransmissionCoverage().getCoveragePoints());
 //					coverages.put("T:"+o.getUser().getOrganizationName()+": "+s.getStationName(), s.getTransmissionCoverage());
 //					coverages.put("I:"+o.getUser().getOrganizationName()+": "+s.getStationName(), s.getInterferenceCoverage());
 //					coverages.put("R:"+o.getUser().getOrganizationName()+": "+s.getStationName(), s.getReceiveCoverage());
@@ -115,17 +115,21 @@ public class HealthCheckHandler {
 		
 		double numberOfCells = 1.0*(topLeftLatitude-lowerRightLatitude)/latIncrement * 1.0*(lowerRightLongitude-topLeftLongitude)/lonIncrement;
 		if(numberOfCells > maxNumberOfCells){
+			double oldRes = resolution;
 			resolution = getMinResolution(topLeftLatitude, topLeftLongitude, lowerRightLatitude, lowerRightLongitude);
 			
-			latIncrement = getLatitudeIncrement(resolution, topLeftLatitude, topLeftLongitude, lowerRightLatitude, lowerRightLongitude);
-			if(latIncrement < 0) latIncrement *= -1;
+			if(resolution > oldRes){
 			
-			lonIncrement = getLongitudeIncrement(resolution, topLeftLatitude, topLeftLongitude, lowerRightLatitude, lowerRightLongitude);
-			if(lonIncrement < 0) lonIncrement *= -1;
+				latIncrement = getLatitudeIncrement(resolution, topLeftLatitude, topLeftLongitude, lowerRightLatitude, lowerRightLongitude);
+				if(latIncrement < 0) latIncrement *= -1;
 			
-			numberOfCells = 1.0*(topLeftLatitude-lowerRightLatitude)/latIncrement * 1.0*(lowerRightLongitude-topLeftLongitude)/lonIncrement;
+				lonIncrement = getLongitudeIncrement(resolution, topLeftLatitude, topLeftLongitude, lowerRightLatitude, lowerRightLongitude);
+				if(lonIncrement < 0) lonIncrement *= -1;
 			
-			System.out.println("Changing resolution to "+resolution+" to avoid memory issues...");
+				numberOfCells = 1.0*(topLeftLatitude-lowerRightLatitude)/latIncrement * 1.0*(lowerRightLongitude-topLeftLongitude)/lonIncrement;
+			
+				System.out.println("Changing resolution to "+resolution+" to avoid memory issues...");
+			}
 		}
 		
 		System.out.println("Health Check started with resolution "+resolution+"nm. There are "+((int)numberOfCells)+" number of coordinates to be checked!");
@@ -472,7 +476,7 @@ public class HealthCheckHandler {
 		results.setIssues(issues);
 		results.setAreas(areas);
 		
-		System.out.println("Found "+areas.size()+" area issues: ");
+//		System.out.println("Found information regarding "+areas.size()+" areas. ");
 //		for(AISDatalinkCheckArea i : areas){
 //			if(Math.random() < 0.001)
 //				System.out.println("\t"+i.toString());
@@ -1029,7 +1033,7 @@ public class HealthCheckHandler {
 							for(AISFixedStationData s : as.getStations()){
 								if(s.getStatus().getStatusID() == DerbyDBInterface.STATUS_PLANNED && !includePlanned) continue;
 								
-								System.out.println(s.getStationName()+"-"+s.getOperator().getOrganizationName());
+//								System.out.println(s.getStationName()+"-"+s.getOperator().getOrganizationName());
 								
 								listOfTransmitStations.add(new Integer(s.getStationDBID()));
 								
@@ -1991,7 +1995,7 @@ public class HealthCheckHandler {
 	
 	public static double getMinResolution(double topLeftLatitude, double topLeftLongitude, double lowerRightLatitude, double lowerRightLongitude){
 		
-		for(double resolution = 0.0 ; resolution <= 5.0; resolution = 0.25 + resolution){
+		for(double resolution = 0.1 ; resolution <= 5.0; resolution = 0.25 + resolution){
 			double latIncrement = getLatitudeIncrement(resolution, topLeftLatitude, topLeftLongitude, lowerRightLatitude, lowerRightLongitude);
 			if(latIncrement < 0) latIncrement *= -1;
 		

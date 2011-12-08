@@ -191,7 +191,7 @@ public class XMLHandler {
         		}else{
         			db.deleteUser(d.getUser());
         			System.out.print(" ...Delete complete.\n");
-					//d = updateDefaultCoverages(d);
+					d = updateDefaultCoverages(d);
         			db.insertEAVDAMData(d);
         		}
         	}
@@ -247,18 +247,23 @@ public class XMLHandler {
         
     }
 	
-	private static EAVDAMData updateDefaultCoverages(EAVDAMData data) {
 	
+    private static EAVDAMData updateDefaultCoverages(EAVDAMData data) {
 		if (data == null) {
 			return null;
 		}
 		
+		System.out.println("Default Coverage: "+data.getUser().getOrganizationName());
+		
 		List<ActiveStation> activeStations = data.getActiveStations();
 		if (activeStations != null) {
+
 			for (int i=0; i< activeStations.size(); i++) {
 				ActiveStation as = activeStations.get(i);
 				if (as.getStations() != null) {
 					for (int j=0; j<as.getStations().size(); j++) {
+						
+						
 						AISFixedStationData stationData = as.getStations().get(j);							
 						AISFixedStationCoverage transmissionCoverage = stationData.getTransmissionCoverage();
 						if (transmissionCoverage == null || transmissionCoverage.getCoveragePoints() == null || transmissionCoverage.getCoveragePoints().isEmpty()) {
@@ -276,6 +281,7 @@ public class XMLHandler {
 							stationData.setInterferenceCoverage(interferenceCoverage);						
 						}							
 						as.getStations().set(j, stationData);
+						
 					}
 				}
 				data.getActiveStations().set(i, as);										
@@ -346,6 +352,39 @@ public class XMLHandler {
 			}
 		}
 
+		AISFixedStationData[] stations = data.getStations();
+		if (stations != null) {
+
+			for (int i=0; i< stations.length; i++) {
+				AISFixedStationData stationData = stations[i];							
+				AISFixedStationCoverage transmissionCoverage = stationData.getTransmissionCoverage();
+				if (transmissionCoverage == null || transmissionCoverage.getCoveragePoints() == null || transmissionCoverage.getCoveragePoints().isEmpty()) {
+					transmissionCoverage = getDefaultTransmissionCoverage(stationData);							
+					stationData.setTransmissionCoverage(transmissionCoverage);						
+				}
+				AISFixedStationCoverage receiveCoverage = stationData.getReceiveCoverage();
+				if (receiveCoverage == null || receiveCoverage.getCoveragePoints() == null || receiveCoverage.getCoveragePoints().isEmpty()) {
+					receiveCoverage = getDefaultReceiveCoverage(stationData);							
+					stationData.setReceiveCoverage(receiveCoverage);						
+				}
+				AISFixedStationCoverage interferenceCoverage = stationData.getInterferenceCoverage();
+				if (interferenceCoverage == null || interferenceCoverage.getCoveragePoints() == null || interferenceCoverage.getCoveragePoints().isEmpty()) {
+					interferenceCoverage = getDefaultInterferenceCoverage(stationData);								
+					stationData.setInterferenceCoverage(interferenceCoverage);						
+				}							
+
+				stations[i] = stationData;								
+			}
+			
+			List<AISFixedStationData> sts = new ArrayList<AISFixedStationData>();
+			for(AISFixedStationData s : stations){
+				sts.add(s);
+			}
+					
+			data.setStations(sts);
+					
+		}	
+        
 		return data;
 		
 	}
