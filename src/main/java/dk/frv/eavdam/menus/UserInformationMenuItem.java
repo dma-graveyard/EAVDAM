@@ -616,7 +616,8 @@ class UserInformationActionListener implements ActionListener, DocumentListener 
         if (user.getOrganizationName() != null && !user.getOrganizationName().equals(organizationNameTextField.getText())) {
             return true;
         } 
-		if (!user.getCountryID().equals(CountryHandler.getCountryCode((String) countryComboBox.getSelectedItem()))) {
+		if (user.getCountryID() != null && CountryHandler.getCountryCode((String) countryComboBox.getSelectedItem()) != null && 
+				!user.getCountryID().equals(CountryHandler.getCountryCode((String) countryComboBox.getSelectedItem()))) {
 			return true;
 		}
         

@@ -80,7 +80,7 @@ public class FTPHandler {
         } catch (IOException e) {}    
 	}
  
-	public static void importDataFromFTP(FTPClient ftpClient, String importDirectory, String ownFileName) throws IOException {
+	public static boolean importDataFromFTP(FTPClient ftpClient, String importDirectory, String ownFileName) throws IOException {
  
 		if (ftpClient == null || !ftpClient.isConnected()) {
 			throw new IOException("FTP Client not connected");
@@ -111,15 +111,18 @@ public class FTPHandler {
 						fos = new FileOutputStream(importedFile);
 						ftpClient.retrieveFile(file.getName(), fos);
 						fos.close();
+						return true;
 					}
 				} else {
 					fos = new FileOutputStream(importedFile);
 					ftpClient.retrieveFile(file.getName(), fos);
 					fos.close();
+					return true;
 				}
 				tempFile.delete();
 			}
 		}
+		return false;
     } 
  
 }

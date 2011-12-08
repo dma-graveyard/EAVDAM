@@ -53,7 +53,7 @@ public class DBHandler {
 	
 //    		d.closeConnection();
     		
-//    		dat = XMLHandler.importData();
+    		dat = XMLHandler.importData();
     		initialized = true;
     	}else{
     	
@@ -259,6 +259,9 @@ class LoadXMLsFromFTPsThread extends Thread {
 	LoadXMLsFromFTPsThread() {}
 	
 	public void run() {
+		
+		boolean updated = false;
+		
 		try {
 			Options options = DBHandler.getOptions();
 			String ownFileName = XMLHandler.getLatestDataFileName();			
@@ -273,7 +276,9 @@ class LoadXMLsFromFTPsThread extends Thread {
 				for (FTP ftp : ftps) {
 					try {
 						FTPClient ftpClient = FTPHandler.connect(ftp);
-						FTPHandler.importDataFromFTP(ftpClient, XMLHandler.importDataFolder, ownFileName);                                       
+						if (FTPHandler.importDataFromFTP(ftpClient, XMLHandler.importDataFolder, ownFileName)) {
+							updated = true;
+						}
 						FTPHandler.disconnect(ftpClient);
 					} catch (IOException ex) {
 						System.out.println(ex.getMessage());
@@ -285,7 +290,7 @@ class LoadXMLsFromFTPsThread extends Thread {
 	    	e.printStackTrace();
 	//  	System.out.println(e.getMessage());
 	    }
-		DBHandler.importDataUpdated = true;		
+		DBHandler.importDataUpdated = updated;		
 		
 		DBHandler.changes = true;
 	}
