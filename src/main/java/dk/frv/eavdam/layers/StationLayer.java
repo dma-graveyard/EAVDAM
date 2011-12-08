@@ -254,6 +254,14 @@ public class StationLayer extends OMGraphicHandlerLayer implements MapMouseListe
 		return data;
 	}
 	
+	public void setData(EAVDAMData data) {
+		this.data = data;
+	}
+	
+	public void setOMBaseStations(List<OMBaseStation> omBaseStations) {
+		this.omBaseStations = omBaseStations;
+	}
+	
     public void addBaseStation(Object datasetSource, EAVDAMUser owner, AISFixedStationData stationData) {
 	
 		if (omBaseStations == null) {
@@ -1988,11 +1996,8 @@ public class StationLayer extends OMGraphicHandlerLayer implements MapMouseListe
 		if (eavdamMenu == null) {
 			return;
 		}	
-	
-		data = DBHandler.getData();
-		omBaseStations = new ArrayList<OMBaseStation>();
-	
-		new UpdateStationsThread(this, data).start();
+		
+		new UpdateStationsThread(this).start();
 
 		waitDialog = new JDialog(openMapFrame, "Please wait...", true);
 
@@ -2079,14 +2084,16 @@ class WaitThread extends Thread {
 class UpdateStationsThread extends Thread {
 			
 	StationLayer stationLayer;
-	EAVDAMData data;
-	
-	UpdateStationsThread(StationLayer stationLayer, EAVDAMData data) {
+
+	UpdateStationsThread(StationLayer stationLayer) {
 		this.stationLayer = stationLayer;
-		this.data = data;
 	}
 	
 	public void run() {	
+				
+		EAVDAMData data = DBHandler.getData();
+		stationLayer.setData(data);
+		stationLayer.setOMBaseStations(new ArrayList<OMBaseStation>());
 				
 		stationLayer.createTree();
 		
