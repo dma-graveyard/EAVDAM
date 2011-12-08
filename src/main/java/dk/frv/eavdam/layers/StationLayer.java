@@ -2014,7 +2014,6 @@ public class StationLayer extends OMGraphicHandlerLayer implements MapMouseListe
 		waitDialog.getContentPane().add(panel);
 		Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
 		waitDialog.setBounds((int) screenSize.getWidth()/2 - 380/2, (int) screenSize.getHeight()/2 - 150/2, 380, 150);
-		new WaitThread(this).start();
 		waitDialog.setVisible(true);
     }
 
@@ -2064,7 +2063,7 @@ class WaitThread extends Thread {
 		Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
 		stationLayer.getSlotMapDialog().setBounds((int) screenSize.getWidth()/2 - SlotMapDialog.SLOTMAP_WINDOW_WIDTH/2,
 				(int) screenSize.getHeight()/2 - SlotMapDialog.SLOTMAP_WINDOW_HEIGHT/2,
-				SlotMapDialog.SLOTMAP_WINDOW_WIDTH, SlotMapDialog.SLOTMAP_WINDOW_HEIGHT);
+				SlotMapDialog.SLOTMAP_WINDOW_WIDTH, SlotMapDialog.SLOTMAP_WINDOW_HEIGHT);			
 		stationLayer.getSlotMapDialog().setVisible(true);		
 	}
 
