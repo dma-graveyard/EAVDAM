@@ -259,7 +259,7 @@ public class HealthCheckHandler {
 				
 			}
 			
-			if(this.cancelled || listener.isCancelled()){
+			if(this.cancelled){
 				listener.completed(null);
 				System.gc();
 				System.out.println("Health Check cancelled...");
@@ -298,7 +298,7 @@ public class HealthCheckHandler {
 		
 		
 		for(String s : overlappingStations.keySet()){
-			if(this.cancelled || listener.isCancelled()){
+			if(this.cancelled){
 				listener.completed(null);
 				System.gc();
 				System.out.println("Health Check cancelled...");
@@ -420,7 +420,7 @@ public class HealthCheckHandler {
 			}
 		}
 		
-		if(this.cancelled || listener.isCancelled()){
+		if(this.cancelled){
 			listener.completed(null);
 			System.gc();
 			System.out.println("Health Check cancelled...");

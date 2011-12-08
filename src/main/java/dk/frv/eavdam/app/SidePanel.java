@@ -286,7 +286,7 @@ public class SidePanel extends JPanel implements MapPanelChild, ActionListener {
 	@Override
 	public void actionPerformed(ActionEvent e) {
 		if (cancelButton != null && e.getSource() == cancelButton) {
-			InitiateHealthCheckButton.cancelled = true;
+			hch.setCancelled(true);
 			progressIndicatorPane.setVisible(false);
 		}
 	}
