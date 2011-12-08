@@ -466,7 +466,7 @@ public class HealthCheckHandler {
 		listener.progressed(1.0);
 		
 
-		System.out.println("Found "+issues.size()+" station issues: ");
+		System.out.println("Found "+issues.size()+" station issues and slot maps for "+areas.size()+" points.");
 //		for(AISDatalinkCheckIssue i : issues){
 //			System.out.println("\t"+i.toString());
 //		}
