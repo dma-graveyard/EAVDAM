@@ -1413,6 +1413,8 @@ public class HealthCheckHandler {
 		
 		if(issues == null) issues = new ArrayList<AISDatalinkCheckIssue>();
 		
+		int startedIssues = issues.size();
+		
 		if(reservations.get(slot+"") == null || reservations.get(slot+"").size() <= 0){
 			if(interference.get(slot+"") != null){ //First case: No reservation but there is an interference.
 				List<AISStation> infs = new ArrayList<AISStation>();
@@ -1610,9 +1612,9 @@ public class HealthCheckHandler {
 					issues.add(issue);
 				}
 			}else{
-				a.setPossibleConflicts(new Boolean(false));
+				
 			}
-			
+
 
 			
 			a.setReservedBy(res);
@@ -1647,6 +1649,13 @@ public class HealthCheckHandler {
 					
 				a.setPossibleConflicts(new Boolean(true));
 			}
+		}
+		
+		
+		if(issues.size() - startedIssues == 0){
+			a.setPossibleConflicts(new Boolean(false));
+		}else if(issues.size() - startedIssues > 0){
+			a.setPossibleConflicts(new Boolean(true));
 		}
 		
 		return a;
