@@ -16,6 +16,7 @@ import dk.frv.eavdam.data.AISDatalinkCheckIssue;
 import dk.frv.eavdam.data.AISDatalinkCheckResult;
 import dk.frv.eavdam.data.AISDatalinkCheckRule;
 import dk.frv.eavdam.data.AISDatalinkCheckSeverity;
+import dk.frv.eavdam.data.AISFixedStationCoverage;
 import dk.frv.eavdam.data.AISFixedStationData;
 import dk.frv.eavdam.data.AISFixedStationType;
 import dk.frv.eavdam.data.AISFrequency;
@@ -55,6 +56,7 @@ public class HealthCheckHandler {
 	private boolean cancelled = false;
 	
 	public HealthCheckHandler(EAVDAMData data){
+		if(data == null) System.out.println("Health Check started with null data...");
 		this.data = data;
 	}
 	
@@ -79,8 +81,23 @@ public class HealthCheckHandler {
 		}
 		
 //		System.out.println("Resolution for health check: "+resolution);
+		Map<String,AISFixedStationCoverage> coverages = new HashMap<String, AISFixedStationCoverage>();
+		for(OtherUserStations o : this.data.getOtherUsersStations()){
+			for(ActiveStation as : o.getStations()){
+				for(AISFixedStationData s : as.getStations()){
+					System.out.println(o.getUser().getOrganizationName()+": "+s.getStationName()+" --> "+s.getTransmissionCoverage()+" | "+s.getTransmissionCoverage().getCoveragePoints());
+					coverages.put("T:"+o.getUser().getOrganizationName()+": "+s.getStationName(), s.getTransmissionCoverage());
+					coverages.put("I:"+o.getUser().getOrganizationName()+": "+s.getStationName(), s.getInterferenceCoverage());
+					coverages.put("R:"+o.getUser().getOrganizationName()+": "+s.getStationName(), s.getReceiveCoverage());
+					
+				}
+			}
+		}
 		
 		this.data = DBHandler.getData(topLeftLatitude + 2.5, topLeftLongitude - 4.5, lowerRightLatitude -2.5, lowerRightLongitude + 4.5);  
+		//Copy the Coverage areas of other user stations
+		this.data = this.copyCoverageAreasToEAVDAMData(coverages);
+		
 //		if(this.data == null) System.out.println("No DATA!");
 		
 		Map<String, Map<String,AISFixedStationData>> overlappingStations = this.findOverlappingStations(topLeftLatitude + 2.5, topLeftLongitude - 4.5, lowerRightLatitude -2.5, lowerRightLongitude + 4.5, includePlanned);
@@ -941,6 +958,8 @@ public class HealthCheckHandler {
 	public AISSlotMap slotMapAtPoint(double lat, double lon, boolean includePlanned){
 		if(this.data == null){
 			
+			System.out.println("No data, getting it from the database");
+			
 			this.data = DBHandler.getData(); 
 		}
 		
@@ -1010,6 +1029,8 @@ public class HealthCheckHandler {
 						if(as.getStations() != null){
 							for(AISFixedStationData s : as.getStations()){
 								if(s.getStatus().getStatusID() == DerbyDBInterface.STATUS_PLANNED && !includePlanned) continue;
+								
+								System.out.println(s.getStationName()+"-"+s.getOperator().getOrganizationName());
 								
 								listOfTransmitStations.add(new Integer(s.getStationDBID()));
 								
@@ -2006,6 +2027,7 @@ public class HealthCheckHandler {
 				List<AISFixedStationData> stations = new ArrayList<AISFixedStationData>();
 
 				for(AISFixedStationData s : as.getStations()){
+					
 //					System.out.println("Checking: "+s.getLat()+";"+s.getLon());
 //					if(s.getLat() == 60 && s.getLon() == 24) System.out.println("\t"+s.getInterferenceCoverage().getCoveragePoints()+" | "+s.getTransmissionCoverage().getCoveragePoints());
 					if(coverageType == INTERFERENCE_COVERAGE && PointInPolygon.isPointInPolygon(s.getInterferenceCoverage().getCoveragePoints(), point)){
@@ -2067,12 +2089,15 @@ public class HealthCheckHandler {
 					List<AISFixedStationData> stations = new ArrayList<AISFixedStationData>();
 					
 					for(AISFixedStationData s : as.getStations()){
+//						System.out.println(s.getStationName()+"-"+s.getOperator().getOrganizationName()+". Coverage: "+s.getTransmissionCoverage().getCoveragePoints().size());
+						
 						if(coverageType == INTERFERENCE_COVERAGE && PointInPolygon.isPointInPolygon(s.getInterferenceCoverage().getCoveragePoints(), point)){
 //							System.out.println("ADDED OTHER (I): "+s.getLat()+";"+s.getLon());
 							stations.add(s);
 							++addedStations;
 						}else if(coverageType == TRANSMISSION_COVERAGE && PointInPolygon.isPointInPolygon(s.getTransmissionCoverage().getCoveragePoints(), point)){
 //							System.out.println("ADDED OTHER (T): "+s.getLat()+";"+s.getLon());
+
 							stations.add(s);
 							++addedStations;
 						}
@@ -2261,5 +2286,28 @@ public class HealthCheckHandler {
 	
 	public void setCancelled(boolean cancelled){
 		this.cancelled = cancelled;
+	}
+	
+	private EAVDAMData copyCoverageAreasToEAVDAMData(Map<String,AISFixedStationCoverage> cov){
+		if(this.data != null && this.data.getOtherUsersStations() != null && this.data.getOtherUsersStations().size() > 0){
+			for(OtherUserStations ous : this.data.getOtherUsersStations()){
+				EAVDAMUser user = ous.getUser();
+				
+				if(ous.getStations() != null){
+					for(ActiveStation as : ous.getStations()){
+						if(as.getStations() != null){
+							for(AISFixedStationData s : as.getStations()){
+								
+								s.setTransmissionCoverage(cov.get("T:"+user.getOrganizationName()+"-"+s.getStationName()));
+								s.setInterferenceCoverage(cov.get("I:"+user.getOrganizationName()+"-"+s.getStationName()));
+								s.setReceiveCoverage(cov.get("R:"+user.getOrganizationName()+"-"+s.getStationName()));
+							}
+						}
+					}
+				}
+			}
+		}
+		
+		return this.data;
 	}
 }

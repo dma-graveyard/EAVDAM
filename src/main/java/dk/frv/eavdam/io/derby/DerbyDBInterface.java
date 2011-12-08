@@ -1596,7 +1596,7 @@ import dk.frv.eavdam.utils.HealthCheckHandler;
 	    	
 	    	List<AISFixedStationData> stations = this.retrieveAISStations(-1, id);
 	    	if(stations != null){
-		    	System.out.println("Found "+stations.size()+" stations for the user. "+(stations.size() > 0 ? "Deleting them..." : ""));
+		    	System.out.print("Found "+stations.size()+" stations for the user. "+(stations.size() > 0 ? "Deleting them..." : ""));
 		    	for(AISFixedStationData s : stations){
 		    		this.deleteStation(s.getStationDBID());
 		    	}

@@ -180,7 +180,7 @@ public class XMLHandler {
         			continue;
         		}else{
         			db.deleteUser(d.getUser());
-        			System.out.println("Delete complete...");
+        			System.out.print(" ...Delete complete.\n");
         			db.insertEAVDAMData(d);
         		}
         	}
