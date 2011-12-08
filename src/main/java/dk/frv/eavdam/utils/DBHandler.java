@@ -53,7 +53,7 @@ public class DBHandler {
 	
 //    		d.closeConnection();
     		
-    		dat = XMLHandler.importData();
+    		dat = XMLHandler.importData();  // needed because initially the data is read from local xmls if it is not in the database !!
     		initialized = true;
     	}else{
     	
