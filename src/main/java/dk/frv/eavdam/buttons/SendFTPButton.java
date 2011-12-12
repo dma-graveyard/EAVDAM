@@ -93,7 +93,7 @@ public class SendFTPButton extends OMToolComponent implements ActionListener, To
                 if (errors.isEmpty()) {
                     JOptionPane.showMessageDialog(openMapFrame, "Data exhanged succesfully.");
                 } else {
-                    JOptionPane.showMessageDialog(openMapFrame, "The following errors occurred when exchanging data:\n" + errors, "Error", JOptionPane.ERROR_MESSAGE); 
+                    JOptionPane.showMessageDialog(openMapFrame, "The following ftp sites had problems when exchanging data:\n" + errors, "Error", JOptionPane.ERROR_MESSAGE); 
                 }
             } else {
                 JOptionPane.showMessageDialog(openMapFrame, "No FTP sites defined.", "Error", JOptionPane.ERROR_MESSAGE);         
@@ -107,9 +107,6 @@ public class SendFTPButton extends OMToolComponent implements ActionListener, To
 			//eavdamMenu.setShowOnMapMenu(new ShowOnMapMenu(eavdamMenu));
 			if (eavdamMenu.getStationInformationMenu() != null && eavdamMenu.getStationInformationMenu().getStationInformationMenuItem() != null) {
 				eavdamMenu.getStationInformationMenu().getStationInformationMenuItem().setData(data);
-			}
-			if (eavdamMenu.getUserInformationMenuItem() != null) {
-				eavdamMenu.getUserInformationMenuItem().setData(data);
 			}
 		}
 		if (stationLayer != null) {
