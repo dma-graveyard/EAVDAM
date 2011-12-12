@@ -64,8 +64,6 @@ public class AboutEAVDAMMenuItem extends JMenuItem implements ActionListener, Li
         
 		if (ae.getSource() instanceof AboutEAVDAMMenuItem) {
 		
-			
-			
 			JDialog dialog = new JDialog(openMapFrame, "About EAVDAM", true);
 
 			JPanel panel = new JPanel();
@@ -73,37 +71,54 @@ public class AboutEAVDAMMenuItem extends JMenuItem implements ActionListener, Li
 						
 			GridBagConstraints c = new GridBagConstraints();
 			c.gridx = 0;
-			c.gridy = 0;                   
+			c.gridy = 0;         
 			c.anchor = GridBagConstraints.FIRST_LINE_START;
 			c.insets = new Insets(5,5,5,5);
-			panel.add(new JLabel("EAVDAM - EfficienSea AIS VHF Datalink Manager"), c);
+			panel.add(new JLabel("<html><body><<h2>EAVDAM - EfficienSea AIS VHF Datalink Manager</h2></body></html>"), c);
 			c.gridy = 1;
-			panel.add(new JLabel("Version: " + version), c);
+			c.insets = new Insets(5,5,5,5);
+			panel.add(new JLabel("<html><body><em>Version: " + version + "</em></body></html>"), c);
 			c.gridy = 2;                   
-			panel.add(new JLabel("This application uses the following open source components:"), c);
-			c.gridy = 3;			
+			panel.add(new JLabel("<html><body><p width=600>" +
+				"The EAVDAM application is provided under the FreeBSD license:<br><br>" +
+				"Copyright 2011 Danish Maritime Authority. All rights reserved.<br><br>" +
+				"Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:<br><br>" +
+				"1. Redistributions of source code must retain the above copyright notice, this list of conditions and the following disclaimer.<br><br>" +
+				"2. Redistributions in binary form must reproduce the above copyright notice, this list of conditions and the following disclaimer in the documentation and/or other materials provided with the distribution.<br><br>" +
+				"THIS SOFTWARE IS PROVIDED BY THE DANISH MARITIME AUTHORITY ``AS IS'' AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE DANISH MARITIME AUTHORITY OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.<br><br>" +
+				"The views and conclusions contained in the software and documentation are those of the authors and should not be interpreted as representing official policies, either expressed or implied, of the Danish Maritime Authority.<br></p></body></html>"), c);
+			c.gridy = 3;
+			panel.add(new JLabel("The application uses the following open source components:"), c);
+			JPanel componentsPanel = new JPanel();
+			componentsPanel.setLayout(new GridBagLayout());
+			c.gridy = 0; 
+			c.insets = new Insets(0,0,0,30);			
 			commonsNetLabel = new LinkLabel("Apache Commons Net");
 			commonsNetLabel.addActionListener(this);
-			panel.add(commonsNetLabel, c);	    
-			c.gridy = 4;
+			componentsPanel.add(commonsNetLabel, c);	    
+			c.gridx = 1;
 			derbyLabel = new LinkLabel("Apache Derby");
 			derbyLabel.addActionListener(this);
-			panel.add(derbyLabel, c);
-			c.gridy = 5;
+			componentsPanel.add(derbyLabel, c);
+			c.gridx = 2;			
 			image4jLabel = new LinkLabel("Image4j");
 			image4jLabel.addActionListener(this);
-			panel.add(image4jLabel, c);			
-			c.gridy = 6;
+			componentsPanel.add(image4jLabel, c);			
+			c.gridx = 3;	
 			javamailLabel = new LinkLabel("JavaMail");
 			javamailLabel.addActionListener(this);
-			panel.add(javamailLabel, c);	
-			c.gridy = 7;
+			componentsPanel.add(javamailLabel, c);	
+			c.gridx = 4;			
 			openmapLabel = new LinkLabel("OpenMap");
 			openmapLabel.addActionListener(this);
-			panel.add(openmapLabel, c);				
+			componentsPanel.add(openmapLabel, c);				
+			c.gridx = 0;
+			c.gridy = 4;
+			c.insets = new Insets(5,5,5,5);
+			panel.add(componentsPanel, c);
 			dialog.getContentPane().add(panel);
-			int frameWidth = 400;
-			int frameHeight = 290;
+			int frameWidth = 680;
+			int frameHeight = 640;
 			Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
 			dialog.setBounds((int) screenSize.getWidth()/2 - frameWidth/2,
 				(int) screenSize.getHeight()/2 - frameHeight/2, frameWidth, frameHeight);
