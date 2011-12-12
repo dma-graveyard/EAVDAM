@@ -245,6 +245,7 @@ class OptionsActionListener implements ActionListener, ChangeListener, DocumentL
             Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
             dialog.setBounds((int) screenSize.getWidth()/2 - frameWidth/2,
                 (int) screenSize.getHeight()/2 - frameHeight/2, frameWidth, frameHeight);
+			dialog.pack();				
             dialog.setVisible(true);
         
         } else if (e.getSource() == emailAuthComboBox) {        
@@ -320,6 +321,7 @@ class OptionsActionListener implements ActionListener, ChangeListener, DocumentL
             Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
             ftpDialog.setBounds((int) screenSize.getWidth()/2 - frameWidth/2,
                 (int) screenSize.getHeight()/2 - frameHeight/2, frameWidth, frameHeight);
+			ftpDialog.pack();				
             ftpDialog.setVisible(true);
             
         } else if (e.getSource() == addNewFTPButton) {

@@ -382,6 +382,7 @@ class UserInformationActionListener implements ActionListener, DocumentListener 
             Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
             dialog.setBounds((int) screenSize.getWidth()/2 - frameWidth/2,
                 (int) screenSize.getHeight()/2 - frameHeight/2, frameWidth, frameHeight);
+			dialog.pack();
             dialog.setVisible(true);
         
         } else if (saveButton != null && e.getSource() == saveButton) {

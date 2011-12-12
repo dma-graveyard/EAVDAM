@@ -66,6 +66,8 @@ public class AISDatalinkCheckBandwidthAreasLayer extends OMGraphicHandlerLayer {
 		
 		if (areas != null) {
 		
+			//double maxBandwithUsageLevel = 0;
+		
 			for (AISDatalinkCheckArea area : areas) {
 		
 				double topLeftLatitude = area.getTopLeftLatitude();
@@ -77,6 +79,19 @@ public class AISDatalinkCheckBandwidthAreasLayer extends OMGraphicHandlerLayer {
 				/*
 				if (bandwithUsageLevel > 0.01) {
 					System.out.println("bandwithUsageLevel is " + bandwithUsageLevel);	
+				}
+				*/
+				/*
+				bandwithUsageLevel = 100*bandwithUsageLevel;
+				if (bandwithUsageLevel > 1) {
+					bandwithUsageLevel = 1;
+					System.out.println("hep");
+				}
+				*/
+				
+				/*
+				if (bandwithUsageLevel > maxBandwithUsageLevel) {
+					maxBandwithUsageLevel = bandwithUsageLevel;
 				}
 				*/
 		
@@ -96,14 +111,14 @@ public class AISDatalinkCheckBandwidthAreasLayer extends OMGraphicHandlerLayer {
 					c = new Color(204, 0, 0, (int) Math.round(2.55*40+(bandwithUsageLevel-0.5)*2*2.55*50));  // Above 50% BW loading: Dark red colors 60-10% transparency
 				}
 				if (c != null) {
-				
 					//c = new Color(255, 0, 0, 100);  // FOR TESTING
-				
 					omRect.setFillPaint(c);
 					omRect.setLinePaint(com.bbn.openmap.omGraphics.OMColor.clear);
 					graphics.add(omRect);
 				}		
 			}
+			
+			//System.out.println("maxBandwithUsageLevel is " + maxBandwithUsageLevel);
 		}
 		
 		graphics.project(getProjection(), true);
