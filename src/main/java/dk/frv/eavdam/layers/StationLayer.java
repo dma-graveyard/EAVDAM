@@ -47,6 +47,7 @@ import dk.frv.eavdam.menus.OptionsMenuItem;
 import dk.frv.eavdam.menus.SlotMapDialog;
 import dk.frv.eavdam.menus.StationInformationMenu;
 import dk.frv.eavdam.menus.StationInformationMenuItem;
+import dk.frv.eavdam.menus.UserInformationMenuItem;
 import dk.frv.eavdam.utils.DBHandler;
 import dk.frv.eavdam.utils.FATDMAUtils;
 import dk.frv.eavdam.utils.HealthCheckHandler;
@@ -230,6 +231,10 @@ public class StationLayer extends OMGraphicHandlerLayer implements MapMouseListe
 		return waitDialog;
 	}	
 
+	public EavdamMenu getEavdamMenu() {
+		return eavdamMenu;
+	}
+	
 	public JDialog getSlotMapDialog() {
 		return slotMapDialog;
 	}
@@ -260,6 +265,10 @@ public class StationLayer extends OMGraphicHandlerLayer implements MapMouseListe
 	
 	public void setOMBaseStations(List<OMBaseStation> omBaseStations) {
 		this.omBaseStations = omBaseStations;
+	}
+	
+	public boolean isStationsInitiallyUpdated() {
+		return stationsInitiallyUpdated;
 	}
 	
     public void addBaseStation(Object datasetSource, EAVDAMUser owner, AISFixedStationData stationData) {
@@ -1928,6 +1937,22 @@ public class StationLayer extends OMGraphicHandlerLayer implements MapMouseListe
 		aisReceiverOtherPlannedBytearr = getImage("share/data/images/ais_receiver_other_planned.png");				
 		aisAtonStationOtherPlannedBytearr = getImage("share/data/images/ais_aton_station_other_planned.png");				
 		
+		// opens the user information dialog if no user is defined
+		DerbyDBInterface derby = new DerbyDBInterface();		
+		try {
+			EAVDAMUser user = derby.retrieveDefaultUser();
+			if (user == null || user.getOrganizationName() == null || user.getOrganizationName().isEmpty()) {
+				UserInformationMenuItem userInformationMenuItem = new UserInformationMenuItem(eavdamMenu, true);
+				userInformationMenuItem.doClick();
+			}		
+		} catch (Exception ex) {}
+				
+		if (eavdamMenu != null && transmitCoverageLayer != null && receiveCoverageLayer != null && interferenceCoverageLayer != null && sidePanel != null && !stationsInitiallyUpdated) {
+			//eavdamMenu.getShowOnMapMenu().updateCoverageItems(receiveCoverageLayer.isVisible(), transmitCoverageLayer.isVisible(), interferenceCoverageLayer.isVisible());
+			updateStations();
+			stationsInitiallyUpdated = true;
+		}
+				
 		Layer aisDatalinkCheckIssueLayer = null;		
 		if (initiallySelectedLayers != null && initiallySelectedLayers.size() == layerHandler.getLayers().length) {
 			layersMenu.removeAll();
@@ -1950,11 +1975,7 @@ public class StationLayer extends OMGraphicHandlerLayer implements MapMouseListe
 			}		
 			layersMenu.setLayers(inLayers);			
 		}
-		if (eavdamMenu != null && transmitCoverageLayer != null && receiveCoverageLayer != null && interferenceCoverageLayer != null && sidePanel != null && !stationsInitiallyUpdated) {
-			//eavdamMenu.getShowOnMapMenu().updateCoverageItems(receiveCoverageLayer.isVisible(), transmitCoverageLayer.isVisible(), interferenceCoverageLayer.isVisible());
-			updateStations();
-			stationsInitiallyUpdated = true;
-		}
+		
 		if (aisDatalinkCheckIssueLayer != null) {
 			layerHandler.moveLayer(aisDatalinkCheckIssueLayer, 0);	
 			((AISDatalinkCheckIssueLayer) aisDatalinkCheckIssueLayer).doPrepare();		
@@ -2092,7 +2113,7 @@ class UpdateStationsThread extends Thread {
 	public void run() {	
 				
 		EAVDAMData data = DBHandler.getData();
-		stationLayer.setData(data);
+		stationLayer.setData(data);		
 		stationLayer.setOMBaseStations(new ArrayList<OMBaseStation>());
 				
 		stationLayer.createTree();
