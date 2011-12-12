@@ -32,6 +32,8 @@ public class AboutEAVDAMMenuItem extends JMenuItem implements ActionListener, Li
 
     public static final long serialVersionUID = 1L;
 
+	public static String version = "xx.xx";
+	
     protected InformationDelegator informationDelegator = null;
 	
 	private OpenMapFrame openMapFrame;
@@ -62,7 +64,7 @@ public class AboutEAVDAMMenuItem extends JMenuItem implements ActionListener, Li
         
 		if (ae.getSource() instanceof AboutEAVDAMMenuItem) {
 		
-			String version = "xx.xx";
+			
 			
 			JDialog dialog = new JDialog(openMapFrame, "About EAVDAM", true);
 

@@ -263,6 +263,10 @@ public class StationLayer extends OMGraphicHandlerLayer implements MapMouseListe
 		this.data = data;
 	}
 	
+	public OpenMapFrame getOpenMapFrame() {
+		return openMapFrame;
+	}
+	
 	public void setOMBaseStations(List<OMBaseStation> omBaseStations) {
 		this.omBaseStations = omBaseStations;
 	}
@@ -2112,7 +2116,7 @@ class UpdateStationsThread extends Thread {
 	
 	public void run() {	
 				
-		EAVDAMData data = DBHandler.getData();
+		EAVDAMData data = DBHandler.getData(stationLayer.getOpenMapFrame());
 		stationLayer.setData(data);		
 		stationLayer.setOMBaseStations(new ArrayList<OMBaseStation>());
 				
