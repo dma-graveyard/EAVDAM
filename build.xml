@@ -2,7 +2,7 @@
 	
 <project name="eavdam" default="compile">
 
-	<property name="version" value="1.5-BETA" />
+	<property name="version" value="1.5.1" />
 
 	<property name="libdir" value="${basedir}/lib" />
 
