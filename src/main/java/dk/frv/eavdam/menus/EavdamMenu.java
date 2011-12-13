@@ -39,9 +39,7 @@ public class EavdamMenu extends AbstractOpenMapMenu implements MenuListener {
     public EavdamMenu() {
         super();
         setText(defaultText);
-        setMnemonic(defaultMnemonic);
-		
-        EAVDAMData data = DBHandler.getData(); 		
+        setMnemonic(defaultMnemonic);		
 		
 		userInformationMenuItem = new UserInformationMenuItem(this, false);
         add(userInformationMenuItem);
@@ -59,18 +57,6 @@ public class EavdamMenu extends AbstractOpenMapMenu implements MenuListener {
         add(optionsMenuItem);
         // add(new JSeparator());
 		addMenuListener(this);
-		
-		// if user is not defined, open the edit user information dialog                                        
-        if (data != null) {
-			EAVDAMUser user = data.getUser();
-			if (user == null || user.getOrganizationName() == null || user.getOrganizationName().isEmpty()) {
-				userInformationMenuItem = new UserInformationMenuItem(this, true);
-				userInformationMenuItem.doClick();
-			}
-		} else {		
-			userInformationMenuItem = new UserInformationMenuItem(this, true);
-			userInformationMenuItem.doClick();
-		}			
     }
 		
 	/*

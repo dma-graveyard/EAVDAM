@@ -4,6 +4,7 @@ import dk.frv.eavdam.data.Address;
 import dk.frv.eavdam.data.EAVDAMData;
 import dk.frv.eavdam.data.EAVDAMUser;
 import dk.frv.eavdam.data.Person;
+import dk.frv.eavdam.io.derby.DerbyDBInterface;
 import dk.frv.eavdam.io.XMLExporter;
 import dk.frv.eavdam.io.XMLImporter;
 import dk.frv.eavdam.utils.CountryHandler;
@@ -62,10 +63,6 @@ public class UserInformationMenuItem extends JMenuItem {
 		this.userInformationActionListener = new UserInformationActionListener(eavdamMenu, expectNoUserDefined);
         addActionListener(userInformationActionListener);
     }
-
-	public void setData(EAVDAMData data) {
-		userInformationActionListener.setData(data);
-	}	
 	
 }
  
@@ -75,7 +72,9 @@ class UserInformationActionListener implements ActionListener, DocumentListener 
 	
 	private boolean expectNoUserDefined;  // needed because in the exe version data may be null initially even if it isn't
                                                          
-    private JDialog dialog;
+	private DerbyDBInterface derby;
+	
+	private JDialog dialog;
     
     private JTextField organizationNameTextField;
     private JTextField postalAddressTextField;
@@ -97,20 +96,14 @@ class UserInformationActionListener implements ActionListener, DocumentListener 
     private JTextArea additionalInformationJTextArea;
     
     private JButton saveButton;
-    private JButton cancelButton;
-    
-    private EAVDAMData data;                
+    private JButton cancelButton;            
               
     public UserInformationActionListener(EavdamMenu eavdamMenu, boolean expectNoUserDefined) {
         super();
         this.eavdamMenu = eavdamMenu;
 		this.expectNoUserDefined = expectNoUserDefined;
     }
-	
-	public void setData(EAVDAMData data) {
-		this.data = data;
-	}	
-                   		   
+           		   
     public void actionPerformed(ActionEvent e) {
         
         if (e.getSource() instanceof UserInformationMenuItem) {
@@ -153,12 +146,13 @@ class UserInformationActionListener implements ActionListener, DocumentListener 
             pointOfTechnicalContactEmailTextField.getDocument().addDocumentListener(this);
             additionalInformationJTextArea = new JTextArea("");                
             additionalInformationJTextArea.getDocument().addDocumentListener(this);
-
-            data = DBHandler.getData();            
-            EAVDAMUser user = null;                    
-            if (data != null) {
-                user = data.getUser();
-            }                                   
+			
+			derby = new DerbyDBInterface();		
+            EAVDAMUser user = null; 			
+			try {
+				user = derby.retrieveDefaultUser();
+			} catch (Exception ex) {}
+			                                
          
             if (user != null) {
 				if (expectNoUserDefined) {
@@ -350,7 +344,7 @@ class UserInformationActionListener implements ActionListener, DocumentListener 
             c.anchor = GridBagConstraints.FIRST_LINE_START;
             panel.add(p4, c);                   
             
-			if (data == null || user == null) {			
+			if (user == null) {			
 				saveButton = new JButton("Continue", null);        
 			} else {
 				saveButton = new JButton("Save and exit", null); 			
@@ -371,7 +365,7 @@ class UserInformationActionListener implements ActionListener, DocumentListener 
             JPanel buttonPanel = new JPanel();
             buttonPanel.add(saveButton);
             saveButton.setEnabled(false);                                        
-			if (data != null && user != null) {
+			if (user != null) {
 				buttonPanel.add(cancelButton); 
 			}
                               
@@ -388,6 +382,7 @@ class UserInformationActionListener implements ActionListener, DocumentListener 
             Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
             dialog.setBounds((int) screenSize.getWidth()/2 - frameWidth/2,
                 (int) screenSize.getHeight()/2 - frameHeight/2, frameWidth, frameHeight);
+			dialog.pack();
             dialog.setVisible(true);
         
         } else if (saveButton != null && e.getSource() == saveButton) {
@@ -462,16 +457,15 @@ class UserInformationActionListener implements ActionListener, DocumentListener 
 
 		boolean addingNew = false;
 	
-        if (data == null) {
-            data = new EAVDAMData();
-        }
-
-        EAVDAMUser user = data.getUser();
+		EAVDAMUser user = null; 			
+		try {
+			user = derby.retrieveDefaultUser();
+		} catch (Exception ex) {}  
         if (user == null) {
 			addingNew = true;
             user = new EAVDAMUser();
         }
-        
+
         try {
             String oldOrganizationName = user.getOrganizationName();            
             user.setOrganizationName(organizationNameTextField.getText().trim());
@@ -584,10 +578,6 @@ class UserInformationActionListener implements ActionListener, DocumentListener 
             return false;
         }
         
-        data.setUser(user);                                
-		
-		
-        
         DBHandler.saveUserData(user, addingNew);              
         
         return true;
@@ -601,11 +591,10 @@ class UserInformationActionListener implements ActionListener, DocumentListener 
      */    
     private boolean isChanged() {
         
-        if (data == null) {
-            return true;
-        }
-        
-        EAVDAMUser user = data.getUser();
+        EAVDAMUser user = null; 			
+		try {
+			user = derby.retrieveDefaultUser();
+		} catch (Exception ex) {}
         if (user == null) {
             user = new EAVDAMUser();
         }

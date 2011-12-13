@@ -726,9 +726,9 @@ public class AddStationDialog extends JDialog implements ActionListener, ItemLis
 						((JComboBox) component).setBorder(new EmptyBorder(0, 3, 0, 3));
 						((JComboBox) component).setSelectedItem("FATDMA");	
 						initialChannelAComponents.add(component);		
-						initialChannelAComponents.add(new JTextField("", 8));			
-						initialChannelAComponents.add(new JTextField("", 8));			
-						initialChannelAComponents.add(new JTextField("", 8));
+						initialChannelAComponents.add(new JTextField("0", 8));			
+						initialChannelAComponents.add(new JTextField("0", 8));			
+						initialChannelAComponents.add(new JTextField("0", 8));
 						initialChannelAComponents.add(new JTextField(channelAFATDMANode.getStartingSlot().toString(), 8));
 						initialChannelAComponents.add(new JTextField(channelAFATDMANode.getBlockSize().toString(), 8));
 						initialChannelAComponents.add(new JTextField(channelAFATDMANode.getIncrement().toString(), 8));
@@ -744,9 +744,9 @@ public class AddStationDialog extends JDialog implements ActionListener, ItemLis
 						((JComboBox) component3).setBorder(new EmptyBorder(0, 3, 0, 3));
 						((JComboBox) component3).setSelectedItem("FATDMA");	
 						initialChannelBComponents.add(component3);		
-						initialChannelBComponents.add(new JTextField("", 8));			
-						initialChannelBComponents.add(new JTextField("", 8));			
-						initialChannelBComponents.add(new JTextField("", 8));
+						initialChannelBComponents.add(new JTextField("0", 8));			
+						initialChannelBComponents.add(new JTextField("0", 8));			
+						initialChannelBComponents.add(new JTextField("0", 8));
 						initialChannelBComponents.add(new JTextField(channelBFATDMANode.getStartingSlot().toString(), 8));
 						initialChannelBComponents.add(new JTextField(channelBFATDMANode.getBlockSize().toString(), 8));
 						initialChannelBComponents.add(new JTextField(channelBFATDMANode.getIncrement().toString(), 8));
@@ -811,9 +811,9 @@ public class AddStationDialog extends JDialog implements ActionListener, ItemLis
 						((JComboBox) component).setBorder(new EmptyBorder(0, 3, 0, 3));
 						((JComboBox) component).setSelectedItem("FATDMA");	
 						initialChannelAComponents.add(component);		
-						initialChannelAComponents.add(new JTextField("", 8));			
-						initialChannelAComponents.add(new JTextField("", 8));			
-						initialChannelAComponents.add(new JTextField("", 8));
+						initialChannelAComponents.add(new JTextField("0", 8));			
+						initialChannelAComponents.add(new JTextField("0", 8));			
+						initialChannelAComponents.add(new JTextField("0", 8));
 						initialChannelAComponents.add(new JTextField(datalinkManagementChannelA.getSemaphoreNode().getStartingSlot().toString(), 8));
 						initialChannelAComponents.add(new JTextField(datalinkManagementChannelA.getSemaphoreNode().getBlockSize().toString(), 8));
 						if (!oneAdditionalTimeslotOnChACheckBox.isSelected()) {
@@ -835,9 +835,9 @@ public class AddStationDialog extends JDialog implements ActionListener, ItemLis
 						((JComboBox) component3).setBorder(new EmptyBorder(0, 3, 0, 3));
 						((JComboBox) component3).setSelectedItem("FATDMA");	
 						initialChannelBComponents.add(component3);		
-						initialChannelBComponents.add(new JTextField("", 8));			
-						initialChannelBComponents.add(new JTextField("", 8));
-						initialChannelBComponents.add(new JTextField("", 8));					
+						initialChannelBComponents.add(new JTextField("0", 8));			
+						initialChannelBComponents.add(new JTextField("0", 8));
+						initialChannelBComponents.add(new JTextField("0", 8));					
 						initialChannelBComponents.add(new JTextField(datalinkManagementChannelB.getSemaphoreNode().getStartingSlot().toString(), 8));
 						initialChannelBComponents.add(new JTextField(datalinkManagementChannelB.getSemaphoreNode().getBlockSize().toString(), 8));
 						if (!oneAdditionalTimeslotOnChBCheckBox.isSelected()) {
@@ -906,9 +906,9 @@ public class AddStationDialog extends JDialog implements ActionListener, ItemLis
 						((JComboBox) component).setBorder(new EmptyBorder(0, 3, 0, 3));
 						((JComboBox) component).setSelectedItem("FATDMA");	
 						initialChannelAComponents.add(component);		
-						initialChannelAComponents.add(new JTextField("", 8));			
-						initialChannelAComponents.add(new JTextField("", 8));			
-						initialChannelAComponents.add(new JTextField("", 8));
+						initialChannelAComponents.add(new JTextField("0", 8));			
+						initialChannelAComponents.add(new JTextField("0", 8));			
+						initialChannelAComponents.add(new JTextField("0", 8));
 						initialChannelAComponents.add(new JTextField(generalPurposeChannelA.getSemaphoreNode().getStartingSlot().toString(), 8));
 						initialChannelAComponents.add(new JTextField((String) additionalTimeslotsForChAComboBox.getSelectedItem(), 8));
 						if (Integer.parseInt((String) additionalBlocksForChAComboBox.getSelectedItem()) == 1) {
@@ -930,9 +930,9 @@ public class AddStationDialog extends JDialog implements ActionListener, ItemLis
 						((JComboBox) component3).setBorder(new EmptyBorder(0, 3, 0, 3));
 						((JComboBox) component3).setSelectedItem("FATDMA");	
 						initialChannelBComponents.add(component3);		
-						initialChannelBComponents.add(new JTextField("", 8));			
-						initialChannelBComponents.add(new JTextField("", 8));
-						initialChannelBComponents.add(new JTextField("", 8));	
+						initialChannelBComponents.add(new JTextField("0", 8));			
+						initialChannelBComponents.add(new JTextField("0", 8));
+						initialChannelBComponents.add(new JTextField("0", 8));	
 						initialChannelBComponents.add(new JTextField(generalPurposeChannelB.getSemaphoreNode().getStartingSlot().toString(), 8));
 						initialChannelBComponents.add(new JTextField((String) additionalTimeslotsForChBComboBox.getSelectedItem(), 8));
 						if (Integer.parseInt((String) additionalBlocksForChBComboBox.getSelectedItem()) == 1) {

@@ -1,5 +1,6 @@
 package dk.frv.eavdam.utils;
 
+import com.bbn.openmap.gui.OpenMapFrame;
 import dk.frv.eavdam.data.AISBaseAndReceiverStationFATDMAChannel;
 import dk.frv.eavdam.data.AISDatalinkCheckIssue;
 import dk.frv.eavdam.data.AISDatalinkCheckResult;
@@ -15,16 +16,17 @@ import dk.frv.eavdam.data.Simulation;
 import dk.frv.eavdam.io.FTPHandler;
 import dk.frv.eavdam.io.XMLExporter;
 import dk.frv.eavdam.io.XMLImporter;
+import dk.frv.eavdam.io.derby.DerbyDBInterface;
 import dk.frv.eavdam.layers.StationLayer;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.util.Calendar;
-import dk.frv.eavdam.io.derby.DerbyDBInterface;
 import java.util.ArrayList;
 import java.util.GregorianCalendar;
 import java.util.List;
+import javax.swing.JOptionPane;
 import org.apache.commons.net.ftp.FTPClient;
 
 public class DBHandler {
@@ -36,8 +38,12 @@ public class DBHandler {
     
 	public static boolean importDataUpdated = false;
     public static DerbyDBInterface derby = null;
+
+    public static EAVDAMData getData() {    
+		return getData(null);
+    }
 	
-    public static EAVDAMData getData() {        
+    public static EAVDAMData getData(OpenMapFrame openMapFrame) {        
 		if(derby == null) derby = new DerbyDBInterface();
 		
 //    	System.out.println("Getting data from database!");
@@ -47,8 +53,9 @@ public class DBHandler {
     	if(!initialized){
     		//Check if the database exists. It does the check in the constructor.
 
-	
-			new LoadXMLsFromFTPsThread().start();
+			if (openMapFrame != null) {
+				new LoadXMLsFromFTPsThread(openMapFrame).start();
+			}
 	
 	
 //    		d.closeConnection();
@@ -256,40 +263,53 @@ public class DBHandler {
 // loads other users xmls from ftps
 class LoadXMLsFromFTPsThread extends Thread {
 		
-	LoadXMLsFromFTPsThread() {}
+	OpenMapFrame openMapFrame;
+		
+	LoadXMLsFromFTPsThread(OpenMapFrame openMapFrame) {
+		this.openMapFrame = openMapFrame;
+	}
 	
 	public void run() {
 		
+		if (openMapFrame == null) {
+			return;
+		}
+		
 		boolean updated = false;
 		
-		try {
-			Options options = DBHandler.getOptions();
-			String ownFileName = XMLHandler.getLatestDataFileName();			
-			if (ownFileName != null && ownFileName.indexOf("/") != -1) {
-				ownFileName = ownFileName.substring(ownFileName.lastIndexOf("/")+1);
-			} else {
-				XMLHandler.exportData();
-				ownFileName = XMLHandler.getLatestDataFileName();
-			}
-			List<FTP> ftps = options.getFTPs();
-			if (ftps != null && !ftps.isEmpty()) {
-				for (FTP ftp : ftps) {
-					try {
-						FTPClient ftpClient = FTPHandler.connect(ftp);
-						if (FTPHandler.importDataFromFTP(ftpClient, XMLHandler.importDataFolder, ownFileName)) {
-							updated = true;
-						}
-						FTPHandler.disconnect(ftpClient);
-					} catch (IOException ex) {
-						System.out.println(ex.getMessage());
-						ex.printStackTrace();
+		Options options = DBHandler.getOptions();
+		String ownFileName = XMLHandler.getLatestDataFileName();			
+		if (ownFileName != null && ownFileName.indexOf("/") != -1) {
+			ownFileName = ownFileName.substring(ownFileName.lastIndexOf("/")+1);
+		} else {
+			XMLHandler.exportData();
+			ownFileName = XMLHandler.getLatestDataFileName();
+		}
+		List<FTP> ftps = options.getFTPs();
+		String errors = "";
+		if (ftps != null && !ftps.isEmpty()) {
+			for (FTP ftp : ftps) {
+				try {
+					FTPClient ftpClient = FTPHandler.connect(ftp);
+					if (FTPHandler.importDataFromFTP(ftpClient, XMLHandler.importDataFolder, ownFileName)) {
+						updated = true;
 					}
+					FTPHandler.disconnect(ftpClient);
+				} catch (IOException ex) {
+					System.out.println(ex.getMessage());
+					ex.printStackTrace();
+					 errors += "- " + ex.getMessage() + "\n";
+				} catch (Exception ex) {
+					System.out.println(ex.getMessage());
+					ex.printStackTrace();
+					errors += "- " + ex.getMessage() + "\n";
 				}
-			}	
-	    } catch (Exception e) {
-	    	e.printStackTrace();
-	//  	System.out.println(e.getMessage());
-	    }
+			}
+		}
+		if (!errors.isEmpty()) {
+			JOptionPane.showMessageDialog(openMapFrame, "The following ftp sites had problems when exchanging data:\n" + errors, "Error", JOptionPane.ERROR_MESSAGE); 
+		}	
+
 		DBHandler.importDataUpdated = updated;		
 		
 		DBHandler.changes = true;
