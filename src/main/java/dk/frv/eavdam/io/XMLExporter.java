@@ -76,6 +76,7 @@ public class XMLExporter {
 		ObjectFactory objFactory = new ObjectFactory();
 		// Root level
 		EavdamData xData = objFactory.createEavdamData();
+		xData.setVersion(new Double(0));
 		// User part
 		dk.frv.eavdam.data.EAVDAMUser user = data.getUser();
 		EavdamUser xUser = objFactory.createEavdamUser();

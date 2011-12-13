@@ -328,4 +328,21 @@ public class XMLImporter {
 		}
 	}
 
+	public static double getXMLVersion(File xml) throws JAXBException, MalformedURLException {
+		JAXBContext jc = JAXBContext.newInstance("dk.frv.eavdam.io.jaxb");
+		Unmarshaller unmarshaller = jc.createUnmarshaller();
+		JAXBElement o = (JAXBElement) unmarshaller.unmarshal(xml);
+		if (o != null && o.getValue() instanceof EavdamData) {
+			Double ts = ((EavdamData) o.getValue()).getVersion();
+			
+			if(ts != null){
+				return ts.doubleValue();
+			}
+			
+			return 0.0;
+		} else {
+			throw new RuntimeException("Invalid file");
+		}
+	}
+	
 }

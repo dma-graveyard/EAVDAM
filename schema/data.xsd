@@ -6,6 +6,7 @@
 			<xs:element name="user" type="ns:eavdamUser"/>
 			<xs:element name="station" type="ns:aisFixedStationData" minOccurs="0" maxOccurs="unbounded"/>
 			<xs:element name="timestamp" type="ns:timestamp" minOccurs="1" maxOccurs="1"/>
+			<xs:element name="version" type="ns:version" minOccurs="0" maxOccurs="1"/>
 		</xs:sequence>
 	</xs:complexType>
 	<xs:complexType name="eavdamUser">
@@ -141,6 +142,9 @@
 	</xs:simpleType>
 	<xs:simpleType name="timestamp">
 		<xs:restriction base="xs:dateTime"/>
+	</xs:simpleType>
+	<xs:simpleType name="version">
+		<xs:restriction base="xs:double"/>
 	</xs:simpleType>
 	<xs:simpleType name="lon">
 		<xs:restriction base="xs:double">
@@ -428,9 +432,8 @@
 			<xs:maxInclusive value="324000"/>
 		</xs:restriction>
 	</xs:simpleType>
-		<xs:simpleType name="usage">
-		<xs:restriction base="xs:string">
-		</xs:restriction>
+	<xs:simpleType name="usage">
+		<xs:restriction base="xs:string"/>
 	</xs:simpleType>
 	<xs:simpleType name="ownership">
 		<xs:restriction base="xs:string">
