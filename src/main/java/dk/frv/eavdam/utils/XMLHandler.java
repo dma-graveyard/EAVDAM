@@ -83,6 +83,10 @@ public class XMLHandler {
     	return false;
     }
     
+    public static String getXMLVersion(File xml) throws JAXBException, MalformedURLException{
+    	return XMLImporter.getXMLVersion(xml);
+    }
+    
     public static String getNewDataFileName(String organisationName) {
         
         if (organisationName == null || organisationName.isEmpty()) {
