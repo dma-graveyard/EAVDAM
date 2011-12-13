@@ -52,6 +52,7 @@ import dk.frv.eavdam.io.jaxb.OmnidirectionalAntenna;
 import dk.frv.eavdam.io.jaxb.Ownership;
 import dk.frv.eavdam.io.jaxb.Person;
 import dk.frv.eavdam.io.jaxb.Status;
+import dk.frv.eavdam.menus.AboutEAVDAMMenuItem;
 
 /**
  * Class that is responsible for converting AIS base station network data
@@ -76,7 +77,7 @@ public class XMLExporter {
 		ObjectFactory objFactory = new ObjectFactory();
 		// Root level
 		EavdamData xData = objFactory.createEavdamData();
-		xData.setVersion(new Double(0));
+		xData.setVersion(AboutEAVDAMMenuItem.version);
 		// User part
 		dk.frv.eavdam.data.EAVDAMUser user = data.getUser();
 		EavdamUser xUser = objFactory.createEavdamUser();

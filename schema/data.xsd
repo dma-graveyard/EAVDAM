@@ -144,7 +144,7 @@
 		<xs:restriction base="xs:dateTime"/>
 	</xs:simpleType>
 	<xs:simpleType name="version">
-		<xs:restriction base="xs:double"/>
+		<xs:restriction base="xs:string"/>
 	</xs:simpleType>
 	<xs:simpleType name="lon">
 		<xs:restriction base="xs:double">
