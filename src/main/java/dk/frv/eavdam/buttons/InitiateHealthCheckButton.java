@@ -430,7 +430,7 @@ public class InitiateHealthCheckButton extends OMToolComponent implements Action
 					((AISDatalinkCheckBandwidthAreasLayer) layer).doPrepare();
 				}
 			}
-		}		
+		}
 		if (aisDatalinkCheckIssueLayer != null) {
 			layerHandler.moveLayer(aisDatalinkCheckIssueLayer, 0);
 			((AISDatalinkCheckIssueLayer) aisDatalinkCheckIssueLayer).doPrepare();

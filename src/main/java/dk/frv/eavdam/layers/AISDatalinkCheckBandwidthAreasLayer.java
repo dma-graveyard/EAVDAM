@@ -66,59 +66,37 @@ public class AISDatalinkCheckBandwidthAreasLayer extends OMGraphicHandlerLayer {
 		
 		if (areas != null) {
 		
-			//double maxBandwithUsageLevel = 0;
-		
 			for (AISDatalinkCheckArea area : areas) {
 		
 				double topLeftLatitude = area.getTopLeftLatitude();
 				double topLeftLongitude = area.getTopLeftLongitude();
 				double lowerRightLatitude = area.getLowerRightLatitude();
 				double lowerRightLongitude = area.getLowerRightLongitude();
-				double bandwithUsageLevel = area.getBandwithUsageLevel();
-		
-				/*
-				if (bandwithUsageLevel > 0.01) {
-					System.out.println("bandwithUsageLevel is " + bandwithUsageLevel);	
-				}
-				*/
-				/*
-				bandwithUsageLevel = 100*bandwithUsageLevel;
-				if (bandwithUsageLevel > 1) {
-					bandwithUsageLevel = 1;
-					System.out.println("hep");
-				}
-				*/
+				//double bandwithUsageLevel = area.getBandwithUsageLevel();
+				double bandwithUsageLevel = area.getMaxChannelBandwithUsageLevel();
 				
-				/*
-				if (bandwithUsageLevel > maxBandwithUsageLevel) {
-					maxBandwithUsageLevel = bandwithUsageLevel;
-				}
-				*/
-		
 				OMRect omRect = new OMRect(topLeftLatitude, topLeftLongitude, lowerRightLatitude, lowerRightLongitude, OMGraphic.LINETYPE_RHUMB);
 				Color c = null;
 				if (bandwithUsageLevel >= 0 && bandwithUsageLevel <= 0.1) {
-					c = new Color(144, 238, 144, (int) Math.round(2.55*5+bandwithUsageLevel*10*2.55*5));  // 0-10% BW loading:   light green colors  95-90% transparency
+					c = new Color(0, 255, 0, (int) Math.round(2.55*10+bandwithUsageLevel*10*2.55*10));  // 0-10% BW loading: green color  90-80% transparency
 				} else if (bandwithUsageLevel > 0.1 && bandwithUsageLevel <= 0.2) {	
-					c = new Color(0, 128, 0, (int) Math.round(2.55*10+(bandwithUsageLevel-0.1)*10*2.55*5));  // 11-20% BW loading: medium green colors 90-85% transparency
+					c = new Color(0, 255, 0, (int) Math.round(2.55*21+(bandwithUsageLevel-0.1)*10*2.55*9));  // 11-20% BW loading: green color 79-70% transparency
 				} else if (bandwithUsageLevel > 0.2 && bandwithUsageLevel <= 0.3) {	
-					c = new Color(128, 128, 0, (int) Math.round(2.55*15+(bandwithUsageLevel-0.2)*10*2.55*5));  // 21-30% BW loading: dark yellow colors 85-80% transparency
+					c = new Color(0, 100, 0, (int) Math.round(2.55*31+(bandwithUsageLevel-0.2)*10*2.55*9));  // 21-30% BW loading: dark green color 69-60% transparency
 				} else if (bandwithUsageLevel > 0.3 && bandwithUsageLevel <= 0.4) {	
-					c = new Color(255, 51, 51, (int) Math.round(2.55*20+(bandwithUsageLevel-0.3)*10*2.55*10));  // 31-40% BW loading: light red colors 80-70% transparency
+					c = new Color(255, 0, 0, (int) Math.round(2.55*41+(bandwithUsageLevel-0.3)*10*2.55*9));  // 31-40% BW loading: red color 59-50% transparency
 				} else if (bandwithUsageLevel > 0.4 && bandwithUsageLevel <= 0.5) {	
-					c = new Color(255, 0, 0, (int) Math.round(2.55*30+(bandwithUsageLevel-0.4)*10*2.55*10));  // 41-50% BW loading: Medium red colors 70-60% transparency				
+					c = new Color(255, 0, 0, (int) Math.round(2.55*51+(bandwithUsageLevel-0.4)*10*2.55*9));  // 41-50% BW loading: red color 49-40% transparency			
 				} else if (bandwithUsageLevel > 0.5 && bandwithUsageLevel <= 1) {	
-					c = new Color(204, 0, 0, (int) Math.round(2.55*40+(bandwithUsageLevel-0.5)*2*2.55*50));  // Above 50% BW loading: Dark red colors 60-10% transparency
+					c = new Color(204, 0, 0, (int) Math.round(2.55*60+(bandwithUsageLevel-0.5)*2*2.55*40));  // Above 50% BW loading: dark red color 40-0% transparency
 				}
 				if (c != null) {
-					//c = new Color(255, 0, 0, 100);  // FOR TESTING
 					omRect.setFillPaint(c);
 					omRect.setLinePaint(com.bbn.openmap.omGraphics.OMColor.clear);
 					graphics.add(omRect);
 				}		
 			}
-			
-			//System.out.println("maxBandwithUsageLevel is " + maxBandwithUsageLevel);
+
 		}
 		
 		graphics.project(getProjection(), true);
