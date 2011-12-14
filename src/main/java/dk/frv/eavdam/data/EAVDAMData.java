@@ -7,7 +7,7 @@ public class EAVDAMData {
 
 	private EAVDAMUser user;
 	
-	private List<AISFixedStationData> stations = new ArrayList<AISFixedStationData>();  // TO BE REMOVED
+	private List<AISFixedStationData> stations = new ArrayList<AISFixedStationData>();
 
 	private List<ActiveStation> activeStations = new ArrayList<ActiveStation>();
     private List<OtherUserStations> otherUsersStations = new ArrayList<OtherUserStations>();

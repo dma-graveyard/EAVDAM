@@ -1,6 +1,8 @@
 2011-12-14 Version 1.5.1
 	* Version number added to XML
 	* Added maximum to bandwidth reservation between the channels (in addition to combined total bandwidth)
+	* Darker colors for bandwidth usage layer for better visibility
+	* Fixed slot number calculation from FATDMA information (also values below startslot are now included)
 
 2011-12-08 Version 1.5
 	* Beta release

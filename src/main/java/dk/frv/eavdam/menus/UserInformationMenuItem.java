@@ -344,11 +344,11 @@ class UserInformationActionListener implements ActionListener, DocumentListener 
             c.anchor = GridBagConstraints.FIRST_LINE_START;
             panel.add(p4, c);                   
             
-			if (user == null) {			
-				saveButton = new JButton("Continue", null);        
-			} else {
+			//if (user == null) {			
+			//	saveButton = new JButton("Continue", null);        
+			//} else {
 				saveButton = new JButton("Save and exit", null); 			
-			}
+			//}
             saveButton.setVerticalTextPosition(AbstractButton.BOTTOM);
             saveButton.setHorizontalTextPosition(AbstractButton.CENTER);
             saveButton.setPreferredSize(new Dimension(130, 20));
@@ -365,9 +365,9 @@ class UserInformationActionListener implements ActionListener, DocumentListener 
             JPanel buttonPanel = new JPanel();
             buttonPanel.add(saveButton);
             saveButton.setEnabled(false);                                        
-			if (user != null) {
+			//if (user != null) {
 				buttonPanel.add(cancelButton); 
-			}
+			//}
                               
             c.gridx = 0;
             c.gridy = 3;

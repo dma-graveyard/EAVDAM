@@ -61,10 +61,17 @@ public class SendFTPButton extends OMToolComponent implements ActionListener, To
 	
 	public void actionPerformed(ActionEvent e) {
 	    
-		XMLHandler.exportData();
+		EAVDAMData exportData = XMLHandler.exportData();
 		 
-	    int response = JOptionPane.showConfirmDialog(openMapFrame, "This will send your latest data file to all defined ftp directories and download\n" +
-		    "new data files of other users from them. Are you sure you want to do this?", "Confirm action", JOptionPane.YES_NO_OPTION);
+        String errors = "";			 
+		 
+		String infoText = "This will send your latest data file to all defined ftp directories and download\n" +
+			"new data files of other users from them. Are you sure you want to do this?";
+		if (exportData.getActiveStations() == null || exportData.getActiveStations().isEmpty()) {
+			infoText =  "You have no own stations, so this will only download new data files of other\n" +
+				"users from the defined ftp directories. Are you sure you want to do this?";
+		}
+	    int response = JOptionPane.showConfirmDialog(openMapFrame, infoText, "Confirm action", JOptionPane.YES_NO_OPTION);
         if (response == JOptionPane.YES_OPTION) {
             Options options = OptionsMenuItem.loadOptions();
 			String ownFileName = XMLHandler.getLatestDataFileName();
@@ -72,12 +79,15 @@ public class SendFTPButton extends OMToolComponent implements ActionListener, To
 				ownFileName = ownFileName.substring(ownFileName.lastIndexOf("/")+1);
 			}				
             List<FTP> ftps = options.getFTPs();
-            if (ftps != null && !ftps.isEmpty()) {
-                String errors = "";				
+            if (ftps != null && !ftps.isEmpty()) {			
                 for (FTP ftp : ftps) {
                     try {
                         FTPClient ftpClient = FTPHandler.connect(ftp);
-						FTPHandler.sendDataToFTP(ftpClient, XMLHandler.getLatestDataFileName());                                       
+						if (exportData.getActiveStations() == null || exportData.getActiveStations().isEmpty()) {
+							FTPHandler.deleteDataFromFTP(ftpClient, ownFileName);
+						} else {						
+							FTPHandler.sendDataToFTP(ftpClient, XMLHandler.getLatestDataFileName());                                       
+						}
 						FTPHandler.importDataFromFTP(ftpClient, XMLHandler.importDataFolder, ownFileName);
 						FTPHandler.disconnect(ftpClient);
                     } catch (IOException ex) {
@@ -90,11 +100,6 @@ public class SendFTPButton extends OMToolComponent implements ActionListener, To
                         errors += "- " + ex.getMessage() + "\n";						
 					}
 				}
-                if (errors.isEmpty()) {
-                    JOptionPane.showMessageDialog(openMapFrame, "Data exhanged succesfully.");
-                } else {
-                    JOptionPane.showMessageDialog(openMapFrame, "The following ftp sites had problems when exchanging data:\n" + errors, "Error", JOptionPane.ERROR_MESSAGE); 
-                }
             } else {
                 JOptionPane.showMessageDialog(openMapFrame, "No FTP sites defined.", "Error", JOptionPane.ERROR_MESSAGE);         
             } 
@@ -111,6 +116,12 @@ public class SendFTPButton extends OMToolComponent implements ActionListener, To
 		}
 		if (stationLayer != null) {
 			stationLayer.updateStations();
+		}
+
+		if (errors.isEmpty()) {
+			JOptionPane.showMessageDialog(openMapFrame, "Data exhanged succesfully.");
+		} else {
+			JOptionPane.showMessageDialog(openMapFrame, "The following ftp sites had problems when exchanging data:\n" + errors, "Error", JOptionPane.ERROR_MESSAGE); 
 		}		
 	}
 

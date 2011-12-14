@@ -218,7 +218,7 @@ public class XMLHandler {
      *
      * @param data  Data to be saved
      */    
-    public static void exportData() {
+    public static EAVDAMData exportData() {
         try {
 			DerbyDBInterface db = DBHandler.derby;
 			if(db == null) db = new DerbyDBInterface();
@@ -240,6 +240,7 @@ public class XMLHandler {
             //currentEAVDAMData = data;
             XMLExporter.writeXML(exportData, new File(getNewDataFileName(organisationName.replaceAll(" ", ""))));
 //            deleteOldDataFiles();
+			return exportData;
         } catch (FileNotFoundException ex) {
             System.out.println("FileNotFoundException: " + ex.getMessage());
             ex.printStackTrace();
@@ -248,7 +249,7 @@ public class XMLHandler {
             //ex.printStackTrace();
         }        
         
-        
+        return null;
     }
 	
 	

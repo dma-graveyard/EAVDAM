@@ -277,13 +277,12 @@ class LoadXMLsFromFTPsThread extends Thread {
 		
 		boolean updated = false;
 		
+		EAVDAMData exportData = XMLHandler.exportData();		
+		
 		Options options = DBHandler.getOptions();
-		String ownFileName = XMLHandler.getLatestDataFileName();			
+		String ownFileName = XMLHandler.getLatestDataFileName();
 		if (ownFileName != null && ownFileName.indexOf("/") != -1) {
 			ownFileName = ownFileName.substring(ownFileName.lastIndexOf("/")+1);
-		} else {
-			XMLHandler.exportData();
-			ownFileName = XMLHandler.getLatestDataFileName();
 		}
 		List<FTP> ftps = options.getFTPs();
 		String errors = "";
@@ -291,9 +290,14 @@ class LoadXMLsFromFTPsThread extends Thread {
 			for (FTP ftp : ftps) {
 				try {
 					FTPClient ftpClient = FTPHandler.connect(ftp);
+					if (exportData.getActiveStations() == null || exportData.getActiveStations().isEmpty()) {
+						FTPHandler.deleteDataFromFTP(ftpClient, ownFileName);
+					} else {
+						FTPHandler.sendDataToFTP(ftpClient, XMLHandler.getLatestDataFileName());
+					}
 					if (FTPHandler.importDataFromFTP(ftpClient, XMLHandler.importDataFolder, ownFileName)) {
 						updated = true;
-					}
+					}					
 					FTPHandler.disconnect(ftpClient);
 				} catch (IOException ex) {
 					System.out.println(ex.getMessage());

@@ -47,16 +47,12 @@ public class FTPHandler {
 		System.out.println("Sending " + filename + " to FTP server");
 
         // deletes old files that our organisation has sent
-        int i = 0;
-        if (filename.indexOf("/") != -1) {
-            i = filename.lastIndexOf("/")+1;
-        }
-        String prefix = filename; //.substring(i, filename.length()-18);  // parses the directory and the date + extension from the filename
         FTPFile[] files = ftpClient.listFiles();
         for (FTPFile file : files) {
-            if (file.getName().startsWith(prefix)) {
-                ftpClient.deleteFile(file.getName());
-            }
+			if ((filename.indexOf("/") != -1 && file.getName().startsWith(filename.substring(filename.lastIndexOf("/")+1))) ||
+					(filename.indexOf("/") == -1 && file.getName().startsWith(filename))) {
+				ftpClient.deleteFile(file.getName());
+			}
         }
 
         FileInputStream fis = new FileInputStream(filename);
@@ -89,18 +85,20 @@ public class FTPHandler {
         if (importDirectory == null) {
             throw new IOException("importDirectory is null");
         }
-
-        if (ownFileName == null) {
-            throw new IOException("ownFileName is null");
-        }
+		
+		if (ownFileName != null) {
+			if (ownFileName.indexOf("/") != -1) {
+				ownFileName = ownFileName.substring(ownFileName.lastIndexOf("/")+1);
+			}
+		}
 		
         File importDir = new File(importDirectory);
         if(!importDir.exists()) importDir.mkdirs();
         
 		FTPFile[] files = ftpClient.listFiles();
         for (FTPFile file : files) {		
-			if (!file.isDirectory() && !file.getName().equals(ownFileName) && (file.getName().substring(file.getName().length()-3).equalsIgnoreCase("xml"))) {
-				File tempFile = new File(importDirectory + File.separator + "temp_file_for_testing_timestamp.xml");
+			if (!file.isDirectory() && (ownFileName == null || !file.getName().equals(ownFileName)) && (file.getName().substring(file.getName().length()-3).equalsIgnoreCase("xml"))) {
+				File tempFile = new File("temp_file_for_testing_timestamp.xml");
 				FileOutputStream fos = new FileOutputStream(tempFile);
 				ftpClient.retrieveFile(file.getName(), fos);
 				fos.close();
@@ -124,5 +122,29 @@ public class FTPHandler {
 		}
 		return false;
     } 
+	
+	public static void deleteDataFromFTP(FTPClient ftpClient, String ownFileName) throws IOException {
  
+		if (ftpClient == null || !ftpClient.isConnected()) {
+			throw new IOException("FTP Client not connected");
+		}
+		
+		if (ownFileName != null) {
+			if (ownFileName.indexOf("/") != -1) {
+				ownFileName = ownFileName.substring(ownFileName.lastIndexOf("/")+1);
+			}
+		}		
+
+		System.out.println("Deleting " + ownFileName + " from FTP server");
+
+        // deletes old files that our organisation has sent
+        FTPFile[] files = ftpClient.listFiles();
+        for (FTPFile file : files) {
+            if (file.getName().startsWith(ownFileName)) {
+                ftpClient.deleteFile(file.getName());
+            }
+        }
+		
+    }
+	
 }
