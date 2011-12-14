@@ -260,6 +260,7 @@ public class HealthCheckHandler {
 					if(area.getSlotmap() != null){
 						area.setIssues(area.getSlotmap().getIssues());
 						area.setBandwithUsageLevel(area.getSlotmap().getBandwidthReservation());
+						area.setMaxChannelBandwithUsageLevel(Math.max(area.getSlotmap().getBandwidthReservationA(), area.getSlotmap().getBandwidthReservationB()));
 					}
 					
 					areas.add(area);
@@ -448,6 +449,7 @@ public class HealthCheckHandler {
 				if(area.getSlotmap() != null){
 					area.setIssues(area.getSlotmap().getIssues());
 					area.setBandwithUsageLevel(area.getSlotmap().getBandwidthReservation());
+					area.setMaxChannelBandwithUsageLevel(Math.max(area.getSlotmap().getBandwidthReservationA(), area.getSlotmap().getBandwidthReservationB()));
 				}
 				
 				areas.add(area);
@@ -1246,6 +1248,10 @@ public class HealthCheckHandler {
 		
 		this.areaIssueMap.put(lat+";"+lon, listOfTransmitStations.toString()+"-"+listOfInterferenceStations.toString());
 		this.stationSlotmap.put(smKey,slotmap);
+		
+		if(area.getSlotmap() != null){
+			area.setMaxChannelBandwithUsageLevel(Math.max(area.getSlotmap().getBandwidthReservationA(), area.getSlotmap().getBandwidthReservationB()));
+		}
 		
 		System.gc();
 		

@@ -13,6 +13,7 @@ public class AISDatalinkCheckArea {
 	private double lowerRightLatitude;
 	private double lowerRightLongitude;
 	private double bandwithUsageLevel;
+	private double maxChannelBandwithUsageLevel;
 	private List<AISDatalinkCheckIssue> issues;
 	private AISSlotMap slotmap;
 	
@@ -108,6 +109,14 @@ public class AISDatalinkCheckArea {
 
 	public void setSlotmap(AISSlotMap slotmap) {
 		this.slotmap = slotmap;
+	}
+
+	public double getMaxChannelBandwithUsageLevel() {
+		return maxChannelBandwithUsageLevel;
+	}
+
+	public void setMaxChannelBandwithUsageLevel(double maxChannelBandwithUsageLevel) {
+		this.maxChannelBandwithUsageLevel = maxChannelBandwithUsageLevel;
 	}
 	
 }
