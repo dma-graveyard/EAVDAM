@@ -3,6 +3,7 @@
 	* Added maximum to bandwidth reservation between the channels (in addition to combined total bandwidth)
 	* Darker colors for bandwidth usage layer for better visibility
 	* Fixed slot number calculation from FATDMA information (also values below startslot are now included)
+	* Station type selection to show on map menu
 
 2011-12-08 Version 1.5
 	* Beta release

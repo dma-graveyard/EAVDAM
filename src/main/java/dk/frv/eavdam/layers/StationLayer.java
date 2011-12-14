@@ -139,6 +139,11 @@ public class StationLayer extends OMGraphicHandlerLayer implements MapMouseListe
 	private JCheckBox showStationNamesOnMapCheckBox;
 	private JCheckBox showMMSINumbersOnMapCheckBox;
 	
+	private JCheckBox showAISBaseStationCheckBox;
+	private JCheckBox showAISRepeaterCheckBox;
+	private JCheckBox showAISReceiverStationCheckBox;
+	private JCheckBox showAISAtonStationCheckBox;
+	
 	private JDialog showOnMapDialog;
 	private JTree tree;
 	private CheckTreeManager checkTreeManager;
@@ -193,6 +198,10 @@ public class StationLayer extends OMGraphicHandlerLayer implements MapMouseListe
 	
 	private boolean initiallySelectedShowStationNamesOnMap;
 	private boolean initiallySelectedShowMMSINumbersOnMap;
+	private boolean initiallySelectedShowAISBaseStation;
+	private boolean initiallySelectedShowAISRepeater;
+	private boolean initiallySelectedShowAISReceiverStation;
+	private boolean initiallySelectedShowAISAtonStation;
 	private Map<String, Boolean> initiallySelectedStations;
 	
 	private int currentX = -1;
@@ -209,6 +218,22 @@ public class StationLayer extends OMGraphicHandlerLayer implements MapMouseListe
 		if (showMMSINumbersOnMapCheckBox == null) {
 			showMMSINumbersOnMapCheckBox = new JCheckBox("Show MMSI numbers on map");
 		}
+		if (showAISBaseStationCheckBox == null) {
+			showAISBaseStationCheckBox = new JCheckBox("Show AIS Base Stations on map");
+			showAISBaseStationCheckBox.setSelected(true);			
+		}
+		if (showAISRepeaterCheckBox == null) {
+			showAISRepeaterCheckBox = new JCheckBox("Show AIS Repeaters on map");
+			showAISRepeaterCheckBox.setSelected(true);		
+		}
+		if (showAISReceiverStationCheckBox == null) {
+			showAISReceiverStationCheckBox = new JCheckBox("Show AIS Receiver stations on map");
+			showAISReceiverStationCheckBox.setSelected(true);
+		}
+		if (showAISAtonStationCheckBox == null) {
+			showAISAtonStationCheckBox = new JCheckBox("Show AIS Aton stations on map");
+			showAISAtonStationCheckBox.setSelected(true);
+		}		
 	}
 
 	public OMGraphicList getGraphicsList() {
@@ -275,6 +300,22 @@ public class StationLayer extends OMGraphicHandlerLayer implements MapMouseListe
 		return stationsInitiallyUpdated;
 	}
 	
+	public JCheckBox getShowAISBaseStationCheckBox() {
+		return showAISBaseStationCheckBox;
+	}
+
+	public JCheckBox getShowAISRepeaterCheckBox() {
+		return showAISRepeaterCheckBox;
+	}
+	
+	public JCheckBox getShowAISReceiverStationCheckBox() {
+		return showAISReceiverStationCheckBox;
+	}	
+
+	public JCheckBox getShowAISAtonStationCheckBox() {
+		return showAISAtonStationCheckBox;
+	}
+
     public void addBaseStation(Object datasetSource, EAVDAMUser owner, AISFixedStationData stationData) {
 	
 		if (omBaseStations == null) {
@@ -820,6 +861,10 @@ public class StationLayer extends OMGraphicHandlerLayer implements MapMouseListe
 			initiallySelectedStations = getCurrentSelections();
 		    initiallySelectedShowStationNamesOnMap = showStationNamesOnMapCheckBox.isSelected();
 			initiallySelectedShowMMSINumbersOnMap = showMMSINumbersOnMapCheckBox.isSelected();
+			initiallySelectedShowAISBaseStation = showAISBaseStationCheckBox.isSelected();
+			initiallySelectedShowAISRepeater = showAISRepeaterCheckBox.isSelected();
+			initiallySelectedShowAISReceiverStation = showAISReceiverStationCheckBox.isSelected();
+			initiallySelectedShowAISAtonStation = showAISAtonStationCheckBox.isSelected();
 		
 			showOnMapDialog = new JDialog(openMapFrame, "Show on Map", false);				
 									
@@ -832,6 +877,17 @@ public class StationLayer extends OMGraphicHandlerLayer implements MapMouseListe
 			showStationNameMMSIOnMapPanel.add(showStationNamesOnMapCheckBox);
 			showStationNameMMSIOnMapPanel.add(showMMSINumbersOnMapCheckBox);	
 			
+			JPanel showStationTypesOnMapPanel = new JPanel();
+			showStationTypesOnMapPanel.setPreferredSize(new Dimension(640, 140));	
+			showStationTypesOnMapPanel.setMinimumSize(new Dimension(640, 140));
+			showStationTypesOnMapPanel.setMaximumSize(new Dimension(640, 140));			
+			showStationTypesOnMapPanel.setBorder(BorderFactory.createCompoundBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5), BorderFactory.createTitledBorder("Select station types to show on map")));
+			showStationTypesOnMapPanel.setLayout(new BoxLayout(showStationTypesOnMapPanel, BoxLayout.PAGE_AXIS));			
+			showStationTypesOnMapPanel.add(showAISBaseStationCheckBox);
+			showStationTypesOnMapPanel.add(showAISRepeaterCheckBox);	
+			showStationTypesOnMapPanel.add(showAISReceiverStationCheckBox);
+			showStationTypesOnMapPanel.add(showAISAtonStationCheckBox);			
+			
 			createTree();
 			
 			JScrollPane scrollPane = new JScrollPane(tree);
@@ -841,9 +897,13 @@ public class StationLayer extends OMGraphicHandlerLayer implements MapMouseListe
 			scrollPane.setMaximumSize(new Dimension(600, 540));				
 			scrollPane.setBorder(BorderFactory.createCompoundBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5), BorderFactory.createTitledBorder("Select stations to show on map")));
 			
+			JPanel temp = new JPanel();
+			temp.setLayout(new BorderLayout());
+			temp.add(showStationNameMMSIOnMapPanel, BorderLayout.NORTH);
+			temp.add(showStationTypesOnMapPanel, BorderLayout.CENTER);
 			JPanel containerPanel = new JPanel();
 			containerPanel.setLayout(new BorderLayout());
-			containerPanel.add(showStationNameMMSIOnMapPanel, BorderLayout.NORTH);
+			containerPanel.add(temp, BorderLayout.NORTH);
 			containerPanel.add(scrollPane, BorderLayout.CENTER);			
 			
 			showOnMapDialog.getContentPane().add(containerPanel, BorderLayout.CENTER);
@@ -871,6 +931,10 @@ public class StationLayer extends OMGraphicHandlerLayer implements MapMouseListe
 			restoreInitiallySelectedStations();
 		    showStationNamesOnMapCheckBox.setSelected(initiallySelectedShowStationNamesOnMap);
 			showMMSINumbersOnMapCheckBox.setSelected(initiallySelectedShowMMSINumbersOnMap);
+		    showAISBaseStationCheckBox.setSelected(initiallySelectedShowAISBaseStation);
+			showAISRepeaterCheckBox.setSelected(initiallySelectedShowAISRepeater);
+		    showAISReceiverStationCheckBox.setSelected(initiallySelectedShowAISReceiverStation);
+			showAISAtonStationCheckBox.setSelected(initiallySelectedShowAISAtonStation);
 			showOnMapDialog.dispose();			
 		
 		} else if (e.getSource() == hideStationMenuItem) {
@@ -2128,7 +2192,7 @@ class UpdateStationsThread extends Thread {
 			stationLayer.getGraphicsList().clear();
 			stationLayer.getTransmitCoverageLayer().getGraphicsList().clear();
 			stationLayer.getReceiveCoverageLayer().getGraphicsList().clear();
-			stationLayer.getInterferenceCoverageLayer().getGraphicsList().clear();			 
+			stationLayer.getInterferenceCoverageLayer().getGraphicsList().clear();
 			
 			Map<String, Boolean> currentSelections = stationLayer.getCurrentSelections();
 			
@@ -2154,6 +2218,11 @@ class UpdateStationsThread extends Thread {
 				}
 			}
 			
+			boolean showAISBaseStation = stationLayer.getShowAISBaseStationCheckBox().isSelected();
+			boolean showAISRepeater = stationLayer.getShowAISRepeaterCheckBox().isSelected();
+			boolean showAISReceiverStation = stationLayer.getShowAISReceiverStationCheckBox().isSelected();
+			boolean showAISAtonStation = stationLayer.getShowAISAtonStationCheckBox().isSelected();			
+			
 			stationLayer.setNeedsSaving(false);
 			
 			List<ActiveStation> activeStations = data.getActiveStations();
@@ -2161,21 +2230,26 @@ class UpdateStationsThread extends Thread {
 				for (ActiveStation as : activeStations) {
 					if (as.getStations() != null && anyOwnStations) {
 						for (AISFixedStationData stationData : as.getStations()) {
-							if (stationData.getStatus().getStatusID() == DerbyDBInterface.STATUS_ACTIVE) {
-								if (currentSelections.containsKey("Own operative stations /// " + stationData.getStationName())) {
-									if (currentSelections.get("Own operative stations /// " + stationData.getStationName()).booleanValue() == true) {
-										stationLayer.addBaseStation(null, data.getUser(), stationData);
+							if ((stationData.getStationType() == AISFixedStationType.BASESTATION && showAISBaseStation) ||
+									(stationData.getStationType() == AISFixedStationType.REPEATER && showAISRepeater) ||
+									(stationData.getStationType() == AISFixedStationType.RECEIVER && showAISReceiverStation) ||
+									(stationData.getStationType() == AISFixedStationType.ATON && showAISAtonStation)) {
+								if (stationData.getStatus().getStatusID() == DerbyDBInterface.STATUS_ACTIVE) {
+									if (currentSelections.containsKey("Own operative stations /// " + stationData.getStationName())) {
+										if (currentSelections.get("Own operative stations /// " + stationData.getStationName()).booleanValue() == true) {
+											stationLayer.addBaseStation(null, data.getUser(), stationData);
+										}
+									} else {
+										stationLayer.addBaseStation(null, data.getUser(), stationData);								
 									}
-								} else {
-									stationLayer.addBaseStation(null, data.getUser(), stationData);								
-								}
-							} else if (stationData.getStatus().getStatusID() == DerbyDBInterface.STATUS_PLANNED) {
-								if (currentSelections.containsKey("Own planned stations /// " + stationData.getStationName())) {
-									if (currentSelections.get("Own planned stations /// " + stationData.getStationName()).booleanValue() == true) {
-										stationLayer.addBaseStation(null, data.getUser(), stationData);
-									}							
-								} else {
-									stationLayer.addBaseStation(null, data.getUser(), stationData);								
+								} else if (stationData.getStatus().getStatusID() == DerbyDBInterface.STATUS_PLANNED) {
+									if (currentSelections.containsKey("Own planned stations /// " + stationData.getStationName())) {
+										if (currentSelections.get("Own planned stations /// " + stationData.getStationName()).booleanValue() == true) {
+											stationLayer.addBaseStation(null, data.getUser(), stationData);
+										}							
+									} else {
+										stationLayer.addBaseStation(null, data.getUser(), stationData);								
+									}
 								}
 							}
 						}
@@ -2187,12 +2261,17 @@ class UpdateStationsThread extends Thread {
 				for (Simulation s : data.getSimulatedStations()) {
 					List<AISFixedStationData> stations = s.getStations();
 					for (AISFixedStationData stationData : stations) {
-						if (currentSelections.containsKey("Simulation: " + s.getName() + " /// " + stationData.getStationName())) {
-							if (currentSelections.get("Simulation: " + s.getName() + " /// " + stationData.getStationName()).booleanValue() == true) {
-								stationLayer.addBaseStation(s.getName(), data.getUser(), stationData);
-							}							
-						} else {
-							stationLayer.addBaseStation(s.getName(), data.getUser(), stationData);							
+						if ((stationData.getStationType() == AISFixedStationType.BASESTATION && showAISBaseStation) ||
+								(stationData.getStationType() == AISFixedStationType.REPEATER && showAISRepeater) ||
+								(stationData.getStationType() == AISFixedStationType.RECEIVER && showAISReceiverStation) ||
+								(stationData.getStationType() == AISFixedStationType.ATON && showAISAtonStation)) {					
+							if (currentSelections.containsKey("Simulation: " + s.getName() + " /// " + stationData.getStationName())) {
+								if (currentSelections.get("Simulation: " + s.getName() + " /// " + stationData.getStationName()).booleanValue() == true) {
+									stationLayer.addBaseStation(s.getName(), data.getUser(), stationData);
+								}							
+							} else {
+								stationLayer.addBaseStation(s.getName(), data.getUser(), stationData);							
+							}
 						}
 					}
 				}
@@ -2205,14 +2284,19 @@ class UpdateStationsThread extends Thread {
 					for (ActiveStation as : otherUsersActiveStations) {
 						List<AISFixedStationData> stations = as.getStations();
 						for (AISFixedStationData station : stations) {
-							if (station.getStatus().getStatusID() == DerbyDBInterface.STATUS_ACTIVE) {
-								if (currentSelections.containsKey("Stations of organization: " + user.getOrganizationName() + " /// " + station.getStationName())) {
-									if (currentSelections.get("Stations of organization: " + user.getOrganizationName() + " /// " + station.getStationName()).booleanValue() == true) {
-										stationLayer.addBaseStation(user, user, station);
-									}							
-								} else {
-									stationLayer.addBaseStation(user, user, station);					
-								}		
+							if ((station.getStationType() == AISFixedStationType.BASESTATION && showAISBaseStation) ||
+									(station.getStationType() == AISFixedStationType.REPEATER && showAISRepeater) ||
+									(station.getStationType() == AISFixedStationType.RECEIVER && showAISReceiverStation) ||
+									(station.getStationType() == AISFixedStationType.ATON && showAISAtonStation)) {						
+								if (station.getStatus().getStatusID() == DerbyDBInterface.STATUS_ACTIVE) {
+									if (currentSelections.containsKey("Stations of organization: " + user.getOrganizationName() + " /// " + station.getStationName())) {
+										if (currentSelections.get("Stations of organization: " + user.getOrganizationName() + " /// " + station.getStationName()).booleanValue() == true) {
+											stationLayer.addBaseStation(user, user, station);
+										}							
+									} else {
+										stationLayer.addBaseStation(user, user, station);					
+									}		
+								}
 							}
 						}
 					}
