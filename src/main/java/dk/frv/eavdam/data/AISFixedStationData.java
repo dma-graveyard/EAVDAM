@@ -1,5 +1,7 @@
 package dk.frv.eavdam.data;
 
+import dk.frv.eavdam.utils.FATDMAUtils;
+
 import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -378,14 +380,11 @@ public class AISFixedStationData {
 				List<FATDMAReservation> fatdmaScheme = chA.getFATDMAScheme();
 				if (fatdmaScheme != null) {
 					for (FATDMAReservation fatdmaReservation : fatdmaScheme) {
-
 						Integer startslot = fatdmaReservation.getStartslot();
 				        Integer blockSize = fatdmaReservation.getBlockSize();
 				        Integer increment = fatdmaReservation.getIncrement();
-						if (startslot != null && blockSize != null && increment != null) {
-							int startslotInt = startslot.intValue();
-							int blockSizeInt = blockSize.intValue();
-							int incrementInt = increment.intValue();
+						List<Integer> blocks = FATDMAUtils.getBlocks(startslot, blockSize, increment);
+						if (blocks != null && !blocks.isEmpty()) {
 							if (reservedBlocksA == null) {
 								reservedBlocksA = new ArrayList<Integer>();
 
@@ -393,28 +392,9 @@ public class AISFixedStationData {
 							if(ownershipA == null){
 								ownershipA = new HashMap<Integer, String>();
 							}
-							
-							if (incrementInt == 0) {
-								for (int i=0; i<blockSizeInt; i++) {
-									Integer slot = new Integer(startslotInt+i);
-									if (!reservedBlocksA.contains(slot)) {
-										reservedBlocksA.add(slot);
-									}
-									ownershipA.put(slot, fatdmaReservation.getOwnership());
-								}								
-							} else if (incrementInt > 0) {
-								int i = 0;
-								while (i*incrementInt <= 2249) {							
-									for (int j=0; j<blockSizeInt; j++) {
-										Integer slot = new Integer(startslotInt+j+(i*incrementInt));
-										if (!reservedBlocksA.contains(slot)) {
-											reservedBlocksA.add(slot);
-										}
-										
-										ownershipA.put(slot, fatdmaReservation.getOwnership());
-									}
-									i++;
-								}
+							for (Integer block : blocks) {
+								reservedBlocksA.add(block);
+								ownershipA.put(block, fatdmaReservation.getOwnership());
 							}
 						}
 					}
@@ -427,33 +407,19 @@ public class AISFixedStationData {
 						Integer startslot = atonMessageBroadcastRate.getStartslot();
 				        Integer blockSize = atonMessageBroadcastRate.getBlockSize();
 				        Integer increment = atonMessageBroadcastRate.getIncrement();
-						if (startslot != null && blockSize != null && increment != null) {
-							int startslotInt = startslot.intValue();
-							int blockSizeInt = blockSize.intValue();
-							int incrementInt = increment.intValue();
+						List<Integer> blocks = FATDMAUtils.getBlocks(startslot, blockSize, increment);
+						if (blocks != null && !blocks.isEmpty()) {
 							if (reservedBlocksA == null) {
 								reservedBlocksA = new ArrayList<Integer>();
-							}							
-							if (incrementInt == 0) {
-								for (int i=0; i<blockSizeInt; i++) {
-									Integer slot = new Integer(startslotInt+i);
-									if (!reservedBlocksA.contains(slot)) {
-										reservedBlocksA.add(slot);
-									}									
-								}								
-							} else if (incrementInt > 0) {
-								int i = 0;
-								while (i*incrementInt <= 2249) {							
-									for (int j=0; j<blockSizeInt; j++) {
-										Integer slot = new Integer(startslotInt+j+(i*incrementInt));
-										if (!reservedBlocksA.contains(slot)) {
-											reservedBlocksA.add(slot);
-										}										
-									}
-									i++;
-								}
+
 							}
-						}
+							if(ownershipA == null){
+								ownershipA = new HashMap<Integer, String>();
+							}
+							for (Integer block : blocks) {
+								reservedBlocksA.add(block);
+							}
+						}						
 					}
 				}
 			}				
@@ -481,37 +447,18 @@ public class AISFixedStationData {
 						Integer startslot = fatdmaReservation.getStartslot();
 				        Integer blockSize = fatdmaReservation.getBlockSize();
 				        Integer increment = fatdmaReservation.getIncrement();
-						if (startslot != null && blockSize != null && increment != null) {
-							int startslotInt = startslot.intValue();
-							int blockSizeInt = blockSize.intValue();
-							int incrementInt = increment.intValue();
+						List<Integer> blocks = FATDMAUtils.getBlocks(startslot, blockSize, increment);
+						if (blocks != null && !blocks.isEmpty()) {
 							if (reservedBlocksB == null) {
 								reservedBlocksB = new ArrayList<Integer>();
-							}	
-							
+
+							}
 							if(ownershipB == null){
 								ownershipB = new HashMap<Integer, String>();
 							}
-							if (incrementInt == 0) {
-								for (int i=0; i<blockSizeInt; i++) {
-									Integer slot = new Integer(startslotInt+i);
-									if (!reservedBlocksB.contains(slot)) {
-										reservedBlocksB.add(slot);
-									}
-									ownershipB.put(slot, fatdmaReservation.getOwnership());
-								}								
-							} else if (incrementInt > 0) {
-								int i = 0;
-								while (i*incrementInt <= 2249) {							
-									for (int j=0; j<blockSizeInt; j++) {
-										Integer slot = new Integer(startslotInt+j+(i*incrementInt));
-										if (!reservedBlocksB.contains(slot)) {										
-											reservedBlocksB.add(slot);
-										}
-										ownershipB.put(slot, fatdmaReservation.getOwnership());
-									}
-									i++;
-								}
+							for (Integer block : blocks) {
+								reservedBlocksB.add(block);
+								ownershipB.put(block, fatdmaReservation.getOwnership());
 							}
 						}
 					}
@@ -524,31 +471,17 @@ public class AISFixedStationData {
 						Integer startslot = atonMessageBroadcastRate.getStartslot();
 				        Integer blockSize = atonMessageBroadcastRate.getBlockSize();
 				        Integer increment = atonMessageBroadcastRate.getIncrement();
-						if (startslot != null && blockSize != null && increment != null) {
-							int startslotInt = startslot.intValue();
-							int blockSizeInt = blockSize.intValue();
-							int incrementInt = increment.intValue();
+						List<Integer> blocks = FATDMAUtils.getBlocks(startslot, blockSize, increment);
+						if (blocks != null && !blocks.isEmpty()) {
 							if (reservedBlocksB == null) {
 								reservedBlocksB = new ArrayList<Integer>();
-							}							
-							if (incrementInt == 0) {
-								for (int i=0; i<blockSizeInt; i++) {
-									Integer slot = new Integer(startslotInt+i);
-									if (!reservedBlocksB.contains(slot)) {
-										reservedBlocksB.add(slot);
-									}
-								}								
-							} else if (incrementInt > 0) {
-								int i = 0;
-								while (i*incrementInt <= 2249) {							
-									for (int j=0; j<blockSizeInt; j++) {
-										Integer slot = new Integer(startslotInt+j+(i*incrementInt));
-										if (!reservedBlocksB.contains(slot)) {
-											reservedBlocksB.add(slot);
-										}									
-									}
-									i++;
-								}
+
+							}
+							if(ownershipA == null){
+								ownershipA = new HashMap<Integer, String>();
+							}
+							for (Integer block : blocks) {
+								reservedBlocksB.add(block);
 							}
 						}
 					}

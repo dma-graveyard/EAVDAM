@@ -26,24 +26,12 @@ public class ImageHandler {
 				int startslot = timeslotReservation.getStartslot();
 				int blockSize = timeslotReservation.getBlockSize();
 				int increment = timeslotReservation.getIncrement();
-				if (increment == 0) {
-					for (int i=0; i<blockSize; i++) {
-						g2d.drawLine((int) Math.round((startslot+i)/divider), 0, (int) Math.round((startslot+i)/divider), height);
-						if ((int) Math.round((startslot+i)/divider)+1 < width) {
-							g2d.drawLine((int) Math.round((startslot+i)/divider)+1, 0, (int) Math.round((startslot+i)/divider)+1, height);				
-						}
+				List<Integer> blocks = FATDMAUtils.getBlocks(new Integer(startslot), new Integer(blockSize), new Integer(increment));
+				for (Integer block : blocks) {
+					g2d.drawLine((int) Math.round(block.intValue()/divider), 0, (int) Math.round(block.intValue()/divider), height);
+					if ((int) Math.round(block.intValue()/divider)+1 < width) {
+						g2d.drawLine((int) Math.round(block.intValue()/divider)+1, 0, (int) Math.round(block.intValue()/divider)+1, height);
 					}
-				} else if (increment > 0) {
-					int i = 0;
-					while (i*increment <= 2249) {							
-						for (int j=0; j<blockSize; j++) {
-							g2d.drawLine((int) Math.round((startslot+j+(i*increment))/divider), 0, (int) Math.round((startslot+j+(i*increment))/divider), height);
-							if ((int) Math.round((startslot+j+(i*increment))/divider)+1 < width) {
-								g2d.drawLine((int) Math.round((startslot+j+(i*increment))/divider)+1, 0, (int) Math.round((startslot+j+(i*increment))/divider)+1, height);
-							}
-						}
-						i++;
-					}					
 				}
 			}
 		}	

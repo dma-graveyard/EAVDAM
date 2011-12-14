@@ -134,24 +134,28 @@ public class FATDMAUtils {
 			int startslotInt = startslot.intValue();
 			int blockSizeInt = blockSize.intValue();
 			int incrementInt = increment.intValue();
-			if (incrementInt == 0) {
-				for (int i=0; i<blockSizeInt; i++) {
-					Integer slot = new Integer(startslotInt+i);
-					if (!blocks.contains(slot)) {
-						blocks.add(slot);
-					};
-				}								
-			} else if (incrementInt > 0) {
-				int i = 0;
-				while (i*incrementInt <= 2249) {							
-					for (int j=0; j<blockSizeInt; j++) {
-						Integer slot = new Integer(startslotInt+j+(i*incrementInt));
-						if (!blocks.contains(slot)) {										
-							blocks.add(slot);
-						}
+			
+			int i = 0;
+			boolean goingAround = false;
+			while (i*incrementInt <= 2249) {							
+				Integer slot = null;
+				for (int j=0; j<blockSizeInt; j++) {
+					slot = new Integer(startslotInt+j+(i*incrementInt));
+					if (slot.intValue() > 2249) {
+						slot = new Integer(slot.intValue()-2250);
+						goingAround = true;
 					}
-					i++;
+					if (goingAround && slot.intValue() >= startslotInt) {
+						break;
+					}
+					if (!blocks.contains(slot)) {										
+						blocks.add(slot);
+					}
 				}
+				if (incrementInt == 0 || (goingAround && slot.intValue() >= startslotInt)) {
+					break;
+				}				
+				i++;
 			}
 		}
 		

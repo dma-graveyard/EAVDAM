@@ -21,6 +21,7 @@ import dk.frv.eavdam.io.DefaultFATDMAReader;
 import dk.frv.eavdam.io.derby.DerbyDBInterface;
 import dk.frv.eavdam.layers.FATDMAGridLayer;
 import dk.frv.eavdam.utils.DBHandler;
+import dk.frv.eavdam.utils.FATDMAUtils;
 import dk.frv.eavdam.utils.ImageHandler;
 import java.awt.BorderLayout;
 import java.awt.Color;
@@ -1117,21 +1118,12 @@ public class AddStationDialog extends JDialog implements ActionListener, ItemLis
 	}
 	
 	private int increaseTimeslotsReserved(int startslot, int blockSize, int increment, int timeslotsReserved) {
-		if (increment == 0) {
-			for (int i=0; i<blockSize; i++) {
-				timeslotsReserved++;
-			}	
-		} else if (increment > 0) {					
-			int i = 0;
-			while (i*increment <= 2249) {							
-				for (int j=0; j<blockSize; j++) {
-					timeslotsReserved++;
-				}
-				i++;
-			}		
+		List<Integer> blocks = FATDMAUtils.getBlocks(new Integer(startslot), new Integer(blockSize), new Integer(increment));
+		if (blocks != null) {
+			timeslotsReserved = timeslotsReserved + blocks.size();
 		}
 		return timeslotsReserved;
-	}	
+	}
 
     private void updateAntennaTypeComboBox() {
         if (addAntennaTypeComboBox.getSelectedIndex() == 0) {  // no antenna         
