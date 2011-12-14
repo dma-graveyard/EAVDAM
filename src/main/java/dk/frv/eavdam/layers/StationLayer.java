@@ -1942,7 +1942,6 @@ public class StationLayer extends OMGraphicHandlerLayer implements MapMouseListe
 		aisAtonStationOtherPlannedBytearr = getImage("share/data/images/ais_aton_station_other_planned.png");				
 		
 		// opens the user information dialog if no user is defined
-		/*
 		DerbyDBInterface derby = new DerbyDBInterface();		
 		try {
 			EAVDAMUser user = derby.retrieveDefaultUser();
@@ -1951,7 +1950,6 @@ public class StationLayer extends OMGraphicHandlerLayer implements MapMouseListe
 				userInformationMenuItem.doClick();
 			}		
 		} catch (Exception ex) {}
-		*/
 				
 		if (eavdamMenu != null && transmitCoverageLayer != null && receiveCoverageLayer != null && interferenceCoverageLayer != null && sidePanel != null && !stationsInitiallyUpdated) {
 			//eavdamMenu.getShowOnMapMenu().updateCoverageItems(receiveCoverageLayer.isVisible(), transmitCoverageLayer.isVisible(), interferenceCoverageLayer.isVisible());
