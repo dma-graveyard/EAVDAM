@@ -237,9 +237,11 @@ public class XMLHandler {
                     organisationName = user.getOrganizationName();
                 }
             }
+			if (!organisationName.startsWith("read_only_user_")) {
             //currentEAVDAMData = data;
-            XMLExporter.writeXML(exportData, new File(getNewDataFileName(organisationName.replaceAll(" ", ""))));
+				XMLExporter.writeXML(exportData, new File(getNewDataFileName(organisationName.replaceAll(" ", ""))));
 //            deleteOldDataFiles();
+			}
 			return exportData;
         } catch (FileNotFoundException ex) {
             System.out.println("FileNotFoundException: " + ex.getMessage());
