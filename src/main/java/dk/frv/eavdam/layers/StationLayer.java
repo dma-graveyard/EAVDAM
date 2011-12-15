@@ -43,6 +43,7 @@ import dk.frv.eavdam.data.Simulation;
 import dk.frv.eavdam.io.derby.DerbyDBInterface;
 import dk.frv.eavdam.io.XMLImporter;
 import dk.frv.eavdam.menus.EavdamMenu;
+import dk.frv.eavdam.menus.ExportToCSVDialog;
 import dk.frv.eavdam.menus.OptionsMenuItem;
 import dk.frv.eavdam.menus.SlotMapDialog;
 import dk.frv.eavdam.menus.StationInformationMenu;
@@ -76,6 +77,7 @@ import java.io.FileWriter;
 import java.io.InputStreamReader;
 import java.net.MalformedURLException;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -149,10 +151,13 @@ public class StationLayer extends OMGraphicHandlerLayer implements MapMouseListe
 	private CheckTreeManager checkTreeManager;
 	private JButton okShowOnMapMenuButton;
 	private JButton cancelShowOnMapMenuButton;
+	private JButton exportToCSVButton;
 	
 	private JDialog slotMapDialog;
 	private JDialog waitDialog;
 	private JProgressBar progressBar;
+	
+	private ExportToCSVDialog exportToCSVDialog;
 	
 	private EAVDAMData data;
 	//private int currentIcons = -1;
@@ -911,11 +916,15 @@ public class StationLayer extends OMGraphicHandlerLayer implements MapMouseListe
 			okShowOnMapMenuButton = new JButton("Ok");
 			okShowOnMapMenuButton.addActionListener(this);
 			cancelShowOnMapMenuButton = new JButton("Cancel");
-			cancelShowOnMapMenuButton.addActionListener(this);		
+			cancelShowOnMapMenuButton.addActionListener(this);
+			exportToCSVButton = new JButton("Export selected stations");
+			exportToCSVButton.setToolTipText("Exports selected stations to CSV file format");
+			exportToCSVButton.addActionListener(this);			
 			JPanel buttonPanel = new JPanel();
 			buttonPanel.setBorder(BorderFactory.createEmptyBorder(15, 0, 0, 0));
 			buttonPanel.add(okShowOnMapMenuButton);
 			buttonPanel.add(cancelShowOnMapMenuButton);
+			buttonPanel.add(exportToCSVButton);
 			showOnMapDialog.getContentPane().add(buttonPanel, BorderLayout.SOUTH);
 		
 			Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
@@ -935,7 +944,17 @@ public class StationLayer extends OMGraphicHandlerLayer implements MapMouseListe
 			showAISRepeaterCheckBox.setSelected(initiallySelectedShowAISRepeater);
 		    showAISReceiverStationCheckBox.setSelected(initiallySelectedShowAISReceiverStation);
 			showAISAtonStationCheckBox.setSelected(initiallySelectedShowAISAtonStation);
-			showOnMapDialog.dispose();			
+			showOnMapDialog.dispose();		
+
+		} else if (e.getSource() == exportToCSVButton) {
+
+            exportToCSVDialog = new ExportToCSVDialog(showOnMapDialog);
+			
+     		Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
+            exportToCSVDialog.setBounds((int) screenSize.getWidth()/2 - exportToCSVDialog.WINDOW_WIDTH/2,
+				(int) screenSize.getHeight()/2 - exportToCSVDialog.WINDOW_HEIGHT/2, exportToCSVDialog.WINDOW_WIDTH,
+				exportToCSVDialog.WINDOW_HEIGHT);
+            exportToCSVDialog.setVisible(true);		
 		
 		} else if (e.getSource() == hideStationMenuItem) {
 
@@ -2006,6 +2025,7 @@ public class StationLayer extends OMGraphicHandlerLayer implements MapMouseListe
 		aisAtonStationOtherPlannedBytearr = getImage("share/data/images/ais_aton_station_other_planned.png");				
 		
 		// opens the user information dialog if no user is defined
+		/*
 		DerbyDBInterface derby = new DerbyDBInterface();		
 		try {
 			EAVDAMUser user = derby.retrieveDefaultUser();
@@ -2014,6 +2034,19 @@ public class StationLayer extends OMGraphicHandlerLayer implements MapMouseListe
 				userInformationMenuItem.doClick();
 			}		
 		} catch (Exception ex) {}
+		*/
+		
+		// inserts a default read only user if no user is defined
+		DerbyDBInterface derby = new DerbyDBInterface();		
+		try {
+			EAVDAMUser user = derby.retrieveDefaultUser();
+			if (user == null || user.getOrganizationName() == null || user.getOrganizationName().isEmpty()) {
+				user = new EAVDAMUser();
+				user.setOrganizationName("read_only_user_" + String.valueOf(new Date().getTime()));
+				user.setCountryID("FI");
+				DBHandler.saveUserData(user, true);
+			}
+		} catch (Exception ex) {}		
 				
 		if (eavdamMenu != null && transmitCoverageLayer != null && receiveCoverageLayer != null && interferenceCoverageLayer != null && sidePanel != null && !stationsInitiallyUpdated) {
 			//eavdamMenu.getShowOnMapMenu().updateCoverageItems(receiveCoverageLayer.isVisible(), transmitCoverageLayer.isVisible(), interferenceCoverageLayer.isVisible());

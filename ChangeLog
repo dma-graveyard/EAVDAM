@@ -4,6 +4,7 @@
 	* Darker colors for bandwidth usage layer for better visibility
 	* Fixed slot number calculation from FATDMA information (also values below startslot are now included)
 	* Station type selection to show on map menu
+	* Default "read only user" so that user does not need to input organization name to view other users' stations
 
 2011-12-08 Version 1.5
 	* Beta release

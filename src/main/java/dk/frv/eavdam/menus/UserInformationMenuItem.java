@@ -158,7 +158,7 @@ class UserInformationActionListener implements ActionListener, DocumentListener 
 				if (expectNoUserDefined) {
 					return;
 				}	
-                if (user.getOrganizationName() != null) {
+                if (user.getOrganizationName() != null && !user.getOrganizationName().startsWith("read_only_user_")) {
                     organizationNameTextField.setText(user.getOrganizationName());
                 }
                 if (user.getCountryID() != null) {
@@ -344,11 +344,11 @@ class UserInformationActionListener implements ActionListener, DocumentListener 
             c.anchor = GridBagConstraints.FIRST_LINE_START;
             panel.add(p4, c);                   
             
-			if (user == null) {			
-				saveButton = new JButton("Continue", null);        
-			} else {
+			//if (user == null) {			
+			//	saveButton = new JButton("Continue", null);        
+			//} else {
 				saveButton = new JButton("Save and exit", null); 			
-			}
+			//}
             saveButton.setVerticalTextPosition(AbstractButton.BOTTOM);
             saveButton.setHorizontalTextPosition(AbstractButton.CENTER);
             saveButton.setPreferredSize(new Dimension(130, 20));
@@ -365,9 +365,9 @@ class UserInformationActionListener implements ActionListener, DocumentListener 
             JPanel buttonPanel = new JPanel();
             buttonPanel.add(saveButton);
             saveButton.setEnabled(false);                                        
-			if (user != null) {
+			//if (user != null) {
 				buttonPanel.add(cancelButton); 
-			}
+			//}
                               
             c.gridx = 0;
             c.gridy = 3;
@@ -466,9 +466,8 @@ class UserInformationActionListener implements ActionListener, DocumentListener 
             user = new EAVDAMUser();
         }
 
-        try {
-            String oldOrganizationName = user.getOrganizationName();            
-            user.setOrganizationName(organizationNameTextField.getText().trim());
+        try {          
+			user.setOrganizationName(organizationNameTextField.getText().trim());
 			user.setCountryID(CountryHandler.getCountryCode((String) countryComboBox.getSelectedItem()));
             Address address = user.getPostalAddress();
             if (address == null) {
@@ -599,10 +598,10 @@ class UserInformationActionListener implements ActionListener, DocumentListener 
             user = new EAVDAMUser();
         }
         
-        if (user.getOrganizationName() == null && !organizationNameTextField.getText().isEmpty()) {
+        if ((user.getOrganizationName() == null || user.getOrganizationName().startsWith("read_only_user_")) && !organizationNameTextField.getText().isEmpty()) {
             return true;
         }
-        if (user.getOrganizationName() != null && !user.getOrganizationName().equals(organizationNameTextField.getText())) {
+        if (user.getOrganizationName() != null && !user.getOrganizationName().startsWith("read_only_user_") && !user.getOrganizationName().equals(organizationNameTextField.getText())) {
             return true;
         } 
 		if (user.getCountryID() != null && CountryHandler.getCountryCode((String) countryComboBox.getSelectedItem()) != null && 

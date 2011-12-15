@@ -42,6 +42,7 @@ public class AboutEAVDAMMenuItem extends JMenuItem implements ActionListener, Li
 	private LinkLabel derbyLabel;
 	private LinkLabel image4jLabel;
 	private LinkLabel javamailLabel;
+	private LinkLabel openCSVLabel;
 	private LinkLabel openmapLabel;
 	
     public AboutEAVDAMMenuItem() {
@@ -92,7 +93,7 @@ public class AboutEAVDAMMenuItem extends JMenuItem implements ActionListener, Li
 			JPanel componentsPanel = new JPanel();
 			componentsPanel.setLayout(new GridBagLayout());
 			c.gridy = 0; 
-			c.insets = new Insets(0,0,0,30);			
+			c.insets = new Insets(0,0,0,20);			
 			commonsNetLabel = new LinkLabel("Apache Commons Net");
 			commonsNetLabel.addActionListener(this);
 			componentsPanel.add(commonsNetLabel, c);	    
@@ -109,6 +110,10 @@ public class AboutEAVDAMMenuItem extends JMenuItem implements ActionListener, Li
 			javamailLabel.addActionListener(this);
 			componentsPanel.add(javamailLabel, c);	
 			c.gridx = 4;			
+			openCSVLabel = new LinkLabel("opencsv");
+			openCSVLabel.addActionListener(this);
+			componentsPanel.add(openCSVLabel, c);				
+			c.gridx = 5;
 			openmapLabel = new LinkLabel("OpenMap");
 			openmapLabel.addActionListener(this);
 			componentsPanel.add(openmapLabel, c);				
@@ -132,6 +137,8 @@ public class AboutEAVDAMMenuItem extends JMenuItem implements ActionListener, Li
 			openURL("http://image4j.sourceforge.net/");				
 		} else if (ae.getSource() == javamailLabel) {
 			openURL("http://www.oracle.com/technetwork/java/javamail/index.html");	
+		} else if (ae.getSource() == openCSVLabel) {
+			openURL("http://opencsv.sourceforge.net/");	
 		} else if (ae.getSource() == openmapLabel) {
 			openURL("http://openmap.bbn.com/");	
 		}
