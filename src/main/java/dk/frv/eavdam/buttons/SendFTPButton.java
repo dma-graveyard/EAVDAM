@@ -83,7 +83,7 @@ public class SendFTPButton extends OMToolComponent implements ActionListener, To
                 for (FTP ftp : ftps) {
                     try {
                         FTPClient ftpClient = FTPHandler.connect(ftp);
-						if (exportData.getActiveStations() == null || exportData.getActiveStations().isEmpty()) {
+						if (exportData.getStations() == null || exportData.getStations().length == 0) {
 							FTPHandler.deleteDataFromFTP(ftpClient, ownFileName);
 						} else {						
 							FTPHandler.sendDataToFTP(ftpClient, XMLHandler.getLatestDataFileName());                                       
