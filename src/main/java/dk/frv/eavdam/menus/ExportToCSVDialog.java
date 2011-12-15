@@ -564,8 +564,8 @@ public class ExportToCSVDialog extends JDialog implements ActionListener {
 		}
 		
 		if (positionCheckBox.isSelected()) {
-			baseList.add(String.valueOf(stationData.getLat()));
-			baseList.add(String.valueOf(stationData.getLon()));
+			baseList.add(String.valueOf(stationData.getLat()).replace(".", ","));
+			baseList.add(String.valueOf(stationData.getLon()).replace(".", ","));
 		} else {
 			baseList.add("");
 			baseList.add("");
@@ -578,7 +578,7 @@ public class ExportToCSVDialog extends JDialog implements ActionListener {
 		}
 
 		if (transmissionPowerCheckBox.isSelected() && stationData.getTransmissionPower() != null) {
-			baseList.add(stationData.getTransmissionPower().toString());
+			baseList.add(stationData.getTransmissionPower().toString().replace(".", ","));
 		} else {
 			baseList.add("");
 		}
