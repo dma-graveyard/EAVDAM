@@ -42,7 +42,7 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.filechooser.FileFilter;
 
-public class ExportToCSVDialog extends JDialog implements ActionListener {
+public class ExportStationsToCSVDialog extends JDialog implements ActionListener {
 
     public static final long serialVersionUID = 1L;
 
@@ -71,7 +71,7 @@ public class ExportToCSVDialog extends JDialog implements ActionListener {
 	private JButton exportButton;
 	private JButton cancelButton;
 	
-	public ExportToCSVDialog(JDialog parent, StationLayer stationLayer) {
+	public ExportStationsToCSVDialog(JDialog parent, StationLayer stationLayer) {
 
 		super(parent, "Export to CSV", true);
 
@@ -178,7 +178,7 @@ public class ExportToCSVDialog extends JDialog implements ActionListener {
 				JOptionPane.showMessageDialog(parent, "No parameters selected for the file", "Error", JOptionPane.ERROR_MESSAGE); 				
 			} else {
 				JFileChooser fileChooser = new JFileChooser(System.getProperty("user.dir"));  
-				fileChooser.addChoosableFileFilter(new CSVFilter());
+				fileChooser.addChoosableFileFilter(new StationsCSVFilter());
 				int returnVal = fileChooser.showSaveDialog(this);
 				if (returnVal == JFileChooser.APPROVE_OPTION) {
 					if (fileChooser.getSelectedFile() != null) {  
@@ -644,7 +644,7 @@ public class ExportToCSVDialog extends JDialog implements ActionListener {
 }
 
 
-class CSVFilter extends FileFilter {
+class StationsCSVFilter extends FileFilter {
 
 	public boolean accept(File file) {
         String filename = file.getName();

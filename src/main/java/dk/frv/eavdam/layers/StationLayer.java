@@ -43,7 +43,7 @@ import dk.frv.eavdam.data.Simulation;
 import dk.frv.eavdam.io.derby.DerbyDBInterface;
 import dk.frv.eavdam.io.XMLImporter;
 import dk.frv.eavdam.menus.EavdamMenu;
-import dk.frv.eavdam.menus.ExportToCSVDialog;
+import dk.frv.eavdam.menus.ExportStationsToCSVDialog;
 import dk.frv.eavdam.menus.OptionsMenuItem;
 import dk.frv.eavdam.menus.SlotMapDialog;
 import dk.frv.eavdam.menus.StationInformationMenu;
@@ -157,7 +157,7 @@ public class StationLayer extends OMGraphicHandlerLayer implements MapMouseListe
 	private JDialog waitDialog;
 	private JProgressBar progressBar;
 	
-	private ExportToCSVDialog exportToCSVDialog;
+	private ExportStationsToCSVDialog exportStationsToCSVDialog;
 	
 	private EAVDAMData data;
 	//private int currentIcons = -1;
@@ -948,13 +948,13 @@ public class StationLayer extends OMGraphicHandlerLayer implements MapMouseListe
 
 		} else if (e.getSource() == exportToCSVButton) {
 
-            exportToCSVDialog = new ExportToCSVDialog(showOnMapDialog, this);
+            exportStationsToCSVDialog = new ExportStationsToCSVDialog(showOnMapDialog, this);
 			
      		Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
-            exportToCSVDialog.setBounds((int) screenSize.getWidth()/2 - exportToCSVDialog.WINDOW_WIDTH/2,
-				(int) screenSize.getHeight()/2 - exportToCSVDialog.WINDOW_HEIGHT/2, exportToCSVDialog.WINDOW_WIDTH,
-				exportToCSVDialog.WINDOW_HEIGHT);
-            exportToCSVDialog.setVisible(true);		
+            exportStationsToCSVDialog.setBounds((int) screenSize.getWidth()/2 - ExportStationsToCSVDialog.WINDOW_WIDTH/2,
+				(int) screenSize.getHeight()/2 - ExportStationsToCSVDialog.WINDOW_HEIGHT/2, ExportStationsToCSVDialog.WINDOW_WIDTH,
+				ExportStationsToCSVDialog.WINDOW_HEIGHT);
+            exportStationsToCSVDialog.setVisible(true);		
 		
 		} else if (e.getSource() == hideStationMenuItem) {
 
@@ -962,7 +962,7 @@ public class StationLayer extends OMGraphicHandlerLayer implements MapMouseListe
 				hiddenBaseStations = new ArrayList<OMGraphic>();
 			}
 			hiddenBaseStations.add(currentlySelectedOMBaseStation);
-			currentlySelectedOMBaseStation.setVisible(false);			
+			currentlySelectedOMBaseStation.setVisible(false);
 			if (hiddenTransmitCoverageAreas == null) {
 				hiddenTransmitCoverageAreas = new ArrayList<OMGraphic>();
 			}

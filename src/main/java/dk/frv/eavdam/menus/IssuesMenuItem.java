@@ -45,7 +45,7 @@ public class IssuesMenuItem extends JMenuItem {
 	public static int ISSUES_WINDOW_HEIGHT = 1000;	
 	
 	public static List<AISDatalinkCheckIssue> issues = null;
-	
+			
     public IssuesMenuItem(EavdamMenu eavdamMenu) {        
         super("AIS VHF Datalink Issues");                
         addActionListener(new IssuesMenuItemActionListener(eavdamMenu));
@@ -57,8 +57,11 @@ class IssuesMenuItemActionListener implements ActionListener {
 
     private EavdamMenu eavdamMenu;
     private JDialog dialog;
-		 
-    public IssuesMenuItemActionListener(EavdamMenu eavdamMenu) {
+		
+	private JButton exportToCSVButton;
+	private ExportIssuesToCSVDialog exportIssuesToCSVDialog;	
+    
+	public IssuesMenuItemActionListener(EavdamMenu eavdamMenu) {
         super();
         this.eavdamMenu = eavdamMenu;
     }
@@ -83,7 +86,7 @@ class IssuesMenuItemActionListener implements ActionListener {
 				IssuesMenuItem.ISSUES_WINDOW_HEIGHT = dimension.height-100;
 			}		
 		
-            dialog = new JDialog(eavdamMenu.getOpenMapFrame(), "AIS VHF Datalink Issues", false);			
+            dialog = new JDialog(eavdamMenu.getOpenMapFrame(), "AIS VHF Datalink Issues", false);
 			
 			JScrollPane scrollPane = getScrollPane();
 			scrollPane.setBorder(BorderFactory.createEmptyBorder());
@@ -92,14 +95,32 @@ class IssuesMenuItemActionListener implements ActionListener {
 			containerPane.setBorder(BorderFactory.createEmptyBorder());
 			containerPane.setLayout(new BorderLayout());		 
 			containerPane.add(scrollPane, BorderLayout.NORTH);			
+
+			exportToCSVButton = new JButton("Export issues");
+			exportToCSVButton.setToolTipText("Exports issues to CSV file format");
+			exportToCSVButton.addActionListener(this);			
+			JPanel buttonPanel = new JPanel();
+			buttonPanel.setBorder(BorderFactory.createEmptyBorder(15, 0, 0, 0));
+			buttonPanel.add(exportToCSVButton);
+			dialog.getContentPane().add(buttonPanel, BorderLayout.SOUTH);
 			
-			dialog.getContentPane().add(containerPane);
+			dialog.getContentPane().add(containerPane, BorderLayout.CENTER);
 
             Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
             dialog.setBounds((int) screenSize.getWidth()/2 - IssuesMenuItem.ISSUES_WINDOW_WIDTH/2,
                 (int) screenSize.getHeight()/2 - IssuesMenuItem.ISSUES_WINDOW_HEIGHT/2,
 				IssuesMenuItem.ISSUES_WINDOW_WIDTH, IssuesMenuItem.ISSUES_WINDOW_HEIGHT);
             dialog.setVisible(true);	
+		
+		} else if (e.getSource() == exportToCSVButton) {
+
+            exportIssuesToCSVDialog = new ExportIssuesToCSVDialog(dialog);
+			
+     		Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
+            exportIssuesToCSVDialog.setBounds((int) screenSize.getWidth()/2 - ExportIssuesToCSVDialog.WINDOW_WIDTH/2,
+				(int) screenSize.getHeight()/2 - ExportIssuesToCSVDialog.WINDOW_HEIGHT/2, ExportIssuesToCSVDialog.WINDOW_WIDTH,
+				ExportIssuesToCSVDialog.WINDOW_HEIGHT);
+            exportIssuesToCSVDialog.setVisible(true);	
 		}
 		
 	}
@@ -190,7 +211,7 @@ class IssuesMenuItemActionListener implements ActionListener {
 			c.gridwidth = 1;
 			c.fill = GridBagConstraints.BOTH;
 			c.insets = new Insets(0,0,0,0);
-			JLabel ruleViolatedTitleLabel = new JLabel(" Rule violated:  ");
+			JLabel ruleViolatedTitleLabel = new JLabel(" Rule violated  ");
 			ruleViolatedTitleLabel.setFont(new Font("Arial", Font.BOLD, 14));
 			ruleViolatedTitleLabel.setBorder(BorderFactory.createMatteBorder(1, 1, 1, 1, Color.BLACK));
 			panel.add(ruleViolatedTitleLabel, c);
@@ -226,6 +247,10 @@ class IssuesMenuItemActionListener implements ActionListener {
 			*/
 			
 			int count = 0;
+			
+			for (int i=0; i<10; i++) {
+				IssuesMenuItem.issues.add(new AISDatalinkCheckIssue(1, null, AISDatalinkCheckSeverity.MAJOR, null, null));
+			}
 			
 			for (AISDatalinkCheckIssue issue : IssuesMenuItem.issues) {
 			
@@ -274,11 +299,11 @@ class IssuesMenuItemActionListener implements ActionListener {
 				String severityStr = "";
 				if (severity != null) {
 					if (severity == AISDatalinkCheckSeverity.SEVERE) {
-						ruleViolatedStr = "  Severe  ";		
+						severityStr = "  Severe  ";		
 					} else if (severity == AISDatalinkCheckSeverity.MAJOR) {
-						ruleViolatedStr = "  Major  ";	
+						severityStr = "  Major  ";	
 					} else if (severity == AISDatalinkCheckSeverity.MAJOR) {
-						ruleViolatedStr = "  Minor  ";	
+						severityStr = "  Minor  ";	
 					}
 				}				
 				
@@ -416,9 +441,9 @@ class IssuesMenuItemActionListener implements ActionListener {
 		scrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
 		scrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
 		//scrollPane.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
-		if (scrollPane.getViewport().getViewSize().getHeight() > IssuesMenuItem.ISSUES_WINDOW_HEIGHT-60) {
-			scrollPane.setPreferredSize(new Dimension(IssuesMenuItem.ISSUES_WINDOW_WIDTH, IssuesMenuItem.ISSUES_WINDOW_HEIGHT-60));
-			scrollPane.setMaximumSize(new Dimension(IssuesMenuItem.ISSUES_WINDOW_WIDTH, IssuesMenuItem.ISSUES_WINDOW_HEIGHT-60));
+		if (scrollPane.getViewport().getViewSize().getHeight() > IssuesMenuItem.ISSUES_WINDOW_HEIGHT-90) {
+			scrollPane.setPreferredSize(new Dimension(IssuesMenuItem.ISSUES_WINDOW_WIDTH, IssuesMenuItem.ISSUES_WINDOW_HEIGHT-90));
+			scrollPane.setMaximumSize(new Dimension(IssuesMenuItem.ISSUES_WINDOW_WIDTH, IssuesMenuItem.ISSUES_WINDOW_HEIGHT-90));
 		}
 		scrollPane.validate();
 		
@@ -434,6 +459,14 @@ class IssuesMenuItemActionListener implements ActionListener {
 		containerPane.setLayout(new BorderLayout());		 
 		containerPane.add(scrollPane, BorderLayout.NORTH);			
 
+		exportToCSVButton = new JButton("Export issues");
+		exportToCSVButton.setToolTipText("Exports issues to CSV file format");
+		exportToCSVButton.addActionListener(this);
+		JPanel buttonPanel = new JPanel();
+		buttonPanel.setBorder(BorderFactory.createEmptyBorder(15, 0, 0, 0));
+		buttonPanel.add(exportToCSVButton);
+		dialog.getContentPane().add(buttonPanel, BorderLayout.SOUTH);		
+		
 		dialog.setContentPane(containerPane);
 		dialog.validate();
 	}
