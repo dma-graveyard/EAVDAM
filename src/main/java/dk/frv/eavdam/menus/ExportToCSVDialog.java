@@ -1,7 +1,21 @@
 package dk.frv.eavdam.menus;
 
 import au.com.bytecode.opencsv.CSVWriter;
+import dk.frv.eavdam.data.ActiveStation;
+import dk.frv.eavdam.data.AISAtonStationFATDMAChannel;
+import dk.frv.eavdam.data.AISBaseAndReceiverStationFATDMAChannel;
+import dk.frv.eavdam.data.AISFixedStationData;
+import dk.frv.eavdam.data.AISFixedStationType;
+import dk.frv.eavdam.data.Antenna;
+import dk.frv.eavdam.data.AntennaType;
+import dk.frv.eavdam.data.AtonMessageBroadcastRate;
 import dk.frv.eavdam.data.EAVDAMData;
+import dk.frv.eavdam.data.EAVDAMUser;
+import dk.frv.eavdam.data.FATDMAReservation;
+import dk.frv.eavdam.data.OtherUserStations;
+import dk.frv.eavdam.data.Simulation;
+import dk.frv.eavdam.io.derby.DerbyDBInterface;
+import dk.frv.eavdam.layers.StationLayer;
 import dk.frv.eavdam.utils.DBHandler;
 import java.awt.BorderLayout;
 import java.awt.Dimension;
@@ -15,6 +29,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import javax.swing.BorderFactory;
 import javax.swing.BoxLayout;
 import javax.swing.JButton;
@@ -35,6 +50,7 @@ public class ExportToCSVDialog extends JDialog implements ActionListener {
 	public static int WINDOW_HEIGHT = 525;		
 	
 	private JDialog parent;
+	private StationLayer stationLayer;
 	
 	private JCheckBox organizationCheckBox;
 	private JCheckBox stationNameCheckBox;
@@ -55,11 +71,12 @@ public class ExportToCSVDialog extends JDialog implements ActionListener {
 	private JButton exportButton;
 	private JButton cancelButton;
 	
-	public ExportToCSVDialog(JDialog parent) {
+	public ExportToCSVDialog(JDialog parent, StationLayer stationLayer) {
 
 		super(parent, "Export to CSV", true);
 
 		this.parent = parent;
+		this.stationLayer = stationLayer;
 		
 		JPanel parametersPanel = new JPanel();
 		parametersPanel.setPreferredSize(new Dimension(560, 355));	
@@ -185,7 +202,7 @@ public class ExportToCSVDialog extends JDialog implements ActionListener {
 	}	
 
 	private void exportToCSVFile(File file) {
-		System.out.println("exporting to " + file.toString());
+
 		try {
 		
 			char delimeter = ';';
@@ -254,7 +271,6 @@ public class ExportToCSVDialog extends JDialog implements ActionListener {
 			
 			EAVDAMData data = DBHandler.getData();		
 		
-			/*
 			if (data != null) {
 		
 				Map<String, Boolean> currentSelections = stationLayer.getCurrentSelections();
@@ -267,7 +283,7 @@ public class ExportToCSVDialog extends JDialog implements ActionListener {
 				List<ActiveStation> activeStations = data.getActiveStations();
 				if (activeStations != null) {
 					for (ActiveStation as : activeStations) {
-						if (as.getStations() != null && anyOwnStations) {
+						if (as.getStations() != null) {
 							for (AISFixedStationData stationData : as.getStations()) {
 								if ((stationData.getStationType() == AISFixedStationType.BASESTATION && showAISBaseStation) ||
 										(stationData.getStationType() == AISFixedStationType.REPEATER && showAISRepeater) ||
@@ -276,18 +292,30 @@ public class ExportToCSVDialog extends JDialog implements ActionListener {
 									if (stationData.getStatus().getStatusID() == DerbyDBInterface.STATUS_ACTIVE) {
 										if (currentSelections.containsKey("Own operative stations /// " + stationData.getStationName())) {
 											if (currentSelections.get("Own operative stations /// " + stationData.getStationName()).booleanValue() == true) {
-												stationLayer.addBaseStation(null, data.getUser(), stationData);
+												List<String[]> stationDataArrs = getStationDataArrs(stationData);
+												for (String[] stationDataArr : stationDataArrs) {
+													writer.writeNext(stationDataArr, false);
+												}		
 											}
 										} else {
-											stationLayer.addBaseStation(null, data.getUser(), stationData);								
+											List<String[]> stationDataArrs = getStationDataArrs(stationData);
+											for (String[] stationDataArr : stationDataArrs) {
+												writer.writeNext(stationDataArr, false);
+											}							
 										}
 									} else if (stationData.getStatus().getStatusID() == DerbyDBInterface.STATUS_PLANNED) {
 										if (currentSelections.containsKey("Own planned stations /// " + stationData.getStationName())) {
 											if (currentSelections.get("Own planned stations /// " + stationData.getStationName()).booleanValue() == true) {
-												stationLayer.addBaseStation(null, data.getUser(), stationData);
+												List<String[]> stationDataArrs = getStationDataArrs(stationData);
+												for (String[] stationDataArr : stationDataArrs) {
+													writer.writeNext(stationDataArr, false);
+												}													
 											}							
 										} else {
-											stationLayer.addBaseStation(null, data.getUser(), stationData);								
+											List<String[]> stationDataArrs = getStationDataArrs(stationData);
+											for (String[] stationDataArr : stationDataArrs) {
+												writer.writeNext(stationDataArr, false);
+											}									
 										}
 									}
 								}
@@ -296,7 +324,7 @@ public class ExportToCSVDialog extends JDialog implements ActionListener {
 					}
 				}
 
-				if (data.getSimulatedStations() != null && anySimulations) {
+				if (data.getSimulatedStations() != null) {
 					for (Simulation s : data.getSimulatedStations()) {
 						List<AISFixedStationData> stations = s.getStations();
 						for (AISFixedStationData stationData : stations) {
@@ -306,17 +334,23 @@ public class ExportToCSVDialog extends JDialog implements ActionListener {
 									(stationData.getStationType() == AISFixedStationType.ATON && showAISAtonStation)) {					
 								if (currentSelections.containsKey("Simulation: " + s.getName() + " /// " + stationData.getStationName())) {
 									if (currentSelections.get("Simulation: " + s.getName() + " /// " + stationData.getStationName()).booleanValue() == true) {
-										stationLayer.addBaseStation(s.getName(), data.getUser(), stationData);
+										List<String[]> stationDataArrs = getStationDataArrs(stationData);
+										for (String[] stationDataArr : stationDataArrs) {
+											writer.writeNext(stationDataArr, false);
+										}	
 									}							
 								} else {
-									stationLayer.addBaseStation(s.getName(), data.getUser(), stationData);							
+									List<String[]> stationDataArrs = getStationDataArrs(stationData);
+									for (String[] stationDataArr : stationDataArrs) {
+										writer.writeNext(stationDataArr, false);
+									}						
 								}
 							}
 						}
 					}
 				}   
 				
-				if (data.getOtherUsersStations() != null && anyOtherUsersStations) {
+				if (data.getOtherUsersStations() != null) {
 					for (OtherUserStations ous : data.getOtherUsersStations()) {
 						EAVDAMUser user = ous.getUser();
 						List<ActiveStation> otherUsersActiveStations = ous.getStations();
@@ -330,10 +364,16 @@ public class ExportToCSVDialog extends JDialog implements ActionListener {
 									if (station.getStatus().getStatusID() == DerbyDBInterface.STATUS_ACTIVE) {
 										if (currentSelections.containsKey("Stations of organization: " + user.getOrganizationName() + " /// " + station.getStationName())) {
 											if (currentSelections.get("Stations of organization: " + user.getOrganizationName() + " /// " + station.getStationName()).booleanValue() == true) {
-												stationLayer.addBaseStation(user, user, station);
+												List<String[]> stationDataArrs = getStationDataArrs(station);
+												for (String[] stationDataArr : stationDataArrs) {
+													writer.writeNext(stationDataArr, false);
+												}
 											}							
 										} else {
-											stationLayer.addBaseStation(user, user, station);					
+											List<String[]> stationDataArrs = getStationDataArrs(station);
+											for (String[] stationDataArr : stationDataArrs) {
+												writer.writeNext(stationDataArr, false);
+											}					
 										}		
 									}
 								}
@@ -343,7 +383,6 @@ public class ExportToCSVDialog extends JDialog implements ActionListener {
 				}
 			
 			}
-			*/
 
 			writer.close();
 			this.dispose();
@@ -352,6 +391,254 @@ public class ExportToCSVDialog extends JDialog implements ActionListener {
 			this.dispose();
 			JOptionPane.showMessageDialog(parent, "The following error occurred when exporting station data: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE); 					
 		}
+	}
+	
+	private List<String[]> getStationDataArrs(AISFixedStationData stationData) {
+	
+		List<String[]> stationArr = new ArrayList<String[]>();
+			
+		if (fatdmaParametersCheckBox.isSelected()) {
+			
+			if (stationData.getFATDMAChannelA() != null) {
+				
+				String frequency = stationData.getFATDMAChannelA().getChannelName();
+				
+				if (stationData.getFATDMAChannelA() instanceof AISBaseAndReceiverStationFATDMAChannel) {
+				
+					AISBaseAndReceiverStationFATDMAChannel fatdmaChannel = (AISBaseAndReceiverStationFATDMAChannel) stationData.getFATDMAChannelA();
+					List<FATDMAReservation> fatdmaScheme = fatdmaChannel.getFATDMAScheme();
+					
+					for (FATDMAReservation fatdmaReservation : fatdmaScheme) {											
+					
+						List<String> temp = getBaseList(stationData);
+						
+						temp.add(frequency);
+						temp.add(fatdmaReservation.getStartslot().toString());
+						temp.add(fatdmaReservation.getBlockSize().toString());
+						temp.add(fatdmaReservation.getIncrement().toString());
+						temp.add(fatdmaReservation.getUsage());
+						
+						String[] tempArray = new String[temp.size()];
+						temp.toArray(tempArray);
+						stationArr.add(tempArray);
+						
+					}
+				
+				} else if (stationData.getFATDMAChannelA() instanceof AISAtonStationFATDMAChannel) {
+				
+					AISAtonStationFATDMAChannel fatdmaChannel = (AISAtonStationFATDMAChannel) stationData.getFATDMAChannelA();
+					List<AtonMessageBroadcastRate> atonMessageBroadcastList = fatdmaChannel.getAtonMessageBroadcastList();
+					
+					for (AtonMessageBroadcastRate atonMessageBroadcastRate : atonMessageBroadcastList) {
+					
+						List<String> temp = getBaseList(stationData);
+						
+						temp.add(frequency);
+						temp.add(atonMessageBroadcastRate.getStartslot().toString());
+						temp.add(atonMessageBroadcastRate.getBlockSize().toString());
+						temp.add(atonMessageBroadcastRate.getIncrement().toString());
+						temp.add(atonMessageBroadcastRate.getUsage());
+						
+						String[] tempArray = new String[temp.size()];
+						temp.toArray(tempArray);
+						stationArr.add(tempArray);
+						
+					}
+					
+				}
+				
+			}
+					
+			if (stationData.getFATDMAChannelB() != null) {
+				
+				String frequency = stationData.getFATDMAChannelB().getChannelName();
+				
+				if (stationData.getFATDMAChannelB() instanceof AISBaseAndReceiverStationFATDMAChannel) {
+				
+					AISBaseAndReceiverStationFATDMAChannel fatdmaChannel = (AISBaseAndReceiverStationFATDMAChannel) stationData.getFATDMAChannelB();
+					List<FATDMAReservation> fatdmaScheme = fatdmaChannel.getFATDMAScheme();
+					
+					for (FATDMAReservation fatdmaReservation : fatdmaScheme) {											
+					
+						List<String> temp = getBaseList(stationData);
+						
+						temp.add(frequency);
+						temp.add(fatdmaReservation.getStartslot().toString());
+						temp.add(fatdmaReservation.getBlockSize().toString());
+						temp.add(fatdmaReservation.getIncrement().toString());
+						temp.add(fatdmaReservation.getUsage());
+						
+						String[] tempArray = new String[temp.size()];
+						temp.toArray(tempArray);
+						stationArr.add(tempArray);
+						
+					}
+				
+				} else if (stationData.getFATDMAChannelB() instanceof AISAtonStationFATDMAChannel) {
+				
+					AISAtonStationFATDMAChannel fatdmaChannel = (AISAtonStationFATDMAChannel) stationData.getFATDMAChannelB();
+					List<AtonMessageBroadcastRate> atonMessageBroadcastList = fatdmaChannel.getAtonMessageBroadcastList();
+					
+					for (AtonMessageBroadcastRate atonMessageBroadcastRate : atonMessageBroadcastList) {
+					
+						List<String> temp = getBaseList(stationData);
+						
+						temp.add(frequency);
+						temp.add(atonMessageBroadcastRate.getStartslot().toString());
+						temp.add(atonMessageBroadcastRate.getBlockSize().toString());
+						temp.add(atonMessageBroadcastRate.getIncrement().toString());
+						temp.add(atonMessageBroadcastRate.getUsage());
+						
+						String[] tempArray = new String[temp.size()];
+						temp.toArray(tempArray);
+						stationArr.add(tempArray);
+						
+					}
+					
+				}
+				
+			}					
+		
+		} else {
+		
+			List<String> temp = getBaseList(stationData);
+			temp.add("");
+			temp.add("");
+			temp.add("");
+			temp.add("");
+			temp.add("");
+			
+			String[] tempArray = new String[temp.size()];
+			temp.toArray(tempArray);
+			stationArr.add(tempArray);
+		
+		}
+					
+		return stationArr;
+	}
+
+	private List<String> getBaseList(AISFixedStationData stationData) {
+	
+		List<String> baseList = new ArrayList<String>();
+					
+		if (organizationCheckBox.isSelected() && stationData.getOperator() != null && stationData.getOperator().getOrganizationName() != null) {
+			baseList.add(stationData.getOperator().getOrganizationName());
+		} else {
+			baseList.add("");
+		}
+
+		if (stationNameCheckBox.isSelected() && stationData.getStationName() != null) {
+			baseList.add(stationData.getStationName());
+		} else {
+			baseList.add("");
+		}		
+		
+		if (stationTypeCheckBox.isSelected() && stationData.getStationType() != null) {
+			String stationType = "";
+			if (stationData.getStationType() == AISFixedStationType.BASESTATION) {
+				stationType = "AIS Base Station";
+			} else if (stationData.getStationType() == AISFixedStationType.REPEATER) {
+				stationType = "AIS Repeater";
+			} else if (stationData.getStationType() == AISFixedStationType.RECEIVER) {
+				stationType = "AIS Receiver Station";
+			} else if (stationData.getStationType() == AISFixedStationType.ATON) {
+				stationType = "AIS Aton Station";
+			}
+			baseList.add(stationType);
+		} else {
+			baseList.add("");
+		}
+		
+		if (stationData.getStatus() != null) {
+			String stationStatus = "";
+			if (stationData.getStatus().getStatusID() == DerbyDBInterface.STATUS_ACTIVE) {
+				stationStatus = "Operative";
+			} else if (stationData.getStatus().getStatusID() == DerbyDBInterface.STATUS_PLANNED) {
+				stationStatus = "Planned";				
+			} else if (stationData.getStatus().getStatusID() == DerbyDBInterface.STATUS_SIMULATED) {
+				stationStatus = "Simulated";	
+			}
+			baseList.add(stationStatus);
+		} else {
+			baseList.add("");
+		}
+		
+		if (positionCheckBox.isSelected()) {
+			baseList.add(String.valueOf(stationData.getLat()));
+			baseList.add(String.valueOf(stationData.getLon()));
+		} else {
+			baseList.add("");
+			baseList.add("");
+		}
+		
+		if (mmsiNumberCheckBox.isSelected() && stationData.getMmsi() != null) {
+			baseList.add(stationData.getMmsi());
+		} else {
+			baseList.add("");
+		}
+
+		if (transmissionPowerCheckBox.isSelected() && stationData.getTransmissionPower() != null) {
+			baseList.add(stationData.getTransmissionPower().toString());
+		} else {
+			baseList.add("");
+		}
+		
+		if (stationData.getAntenna() != null) {
+			
+			Antenna antenna = stationData.getAntenna();
+			
+			if (antennaTypeCheckBox.isSelected() && antenna.getAntennaType() != null) {
+				String antennaType = "";
+				if (antenna.getAntennaType() == AntennaType.OMNIDIRECTIONAL) {
+					antennaType = "Omnidirectional";
+				} else if (antenna.getAntennaType() == AntennaType.DIRECTIONAL) {
+					antennaType = "Directional";
+				}
+				baseList.add(antennaType);
+			} else {
+				baseList.add("");
+			}
+			
+			if (antennaHeightCheckBox.isSelected()) {
+				baseList.add(String.valueOf(antenna.getAntennaHeight()));
+			} else {
+				baseList.add("");
+			}
+
+			if (terrainHeightCheckBox.isSelected()) {
+				baseList.add(String.valueOf(antenna.getTerrainHeight()));
+			} else {
+				baseList.add("");
+			}			
+			
+			if (antennaHeadingCheckBox.isSelected() && antenna.getHeading() != null) {
+				baseList.add(antenna.getHeading().toString());
+			} else {
+				baseList.add("");
+			}	
+		
+			if (antennaFieldOfViewAngleCheckBox.isSelected() && antenna.getFieldOfViewAngle() != null) {
+				baseList.add(antenna.getFieldOfViewAngle().toString());
+			} else {
+				baseList.add("");
+			}	
+			
+			if (antennaGainCheckBox.isSelected() && antenna.getGain() != null) {
+				baseList.add(antenna.getGain().toString());
+			} else {
+				baseList.add("");
+			}	
+			
+		} else {						
+			baseList.add("");
+			baseList.add("");
+			baseList.add("");						
+			baseList.add("");
+			baseList.add("");
+			baseList.add("");
+		}
+	
+		return baseList;
 	}
 	
 }

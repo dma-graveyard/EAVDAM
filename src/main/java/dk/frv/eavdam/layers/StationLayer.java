@@ -948,7 +948,7 @@ public class StationLayer extends OMGraphicHandlerLayer implements MapMouseListe
 
 		} else if (e.getSource() == exportToCSVButton) {
 
-            exportToCSVDialog = new ExportToCSVDialog(showOnMapDialog);
+            exportToCSVDialog = new ExportToCSVDialog(showOnMapDialog, this);
 			
      		Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
             exportToCSVDialog.setBounds((int) screenSize.getWidth()/2 - exportToCSVDialog.WINDOW_WIDTH/2,
