@@ -100,29 +100,31 @@ public class SendFTPButton extends OMToolComponent implements ActionListener, To
                         errors += "- " + ex.getMessage() + "\n";						
 					}
 				}
+				
+				EAVDAMData data = XMLHandler.importData();
+				if (eavdamMenu != null) {
+					//eavdamMenu.setShowOnMapMenu(new ShowOnMapMenu(eavdamMenu));
+					if (eavdamMenu.getStationInformationMenu() != null && eavdamMenu.getStationInformationMenu().getStationInformationMenuItem() != null) {
+						eavdamMenu.getStationInformationMenu().getStationInformationMenuItem().setData(data);
+					}
+				}
+				if (stationLayer != null) {
+					stationLayer.updateStations();
+				}
+
+				if (errors.isEmpty()) {
+					JOptionPane.showMessageDialog(openMapFrame, "Data exhanged succesfully.");
+				} else {
+					JOptionPane.showMessageDialog(openMapFrame, "The following ftp sites had problems when exchanging data:\n" + errors, "Error", JOptionPane.ERROR_MESSAGE); 
+				}
+				
             } else {
                 JOptionPane.showMessageDialog(openMapFrame, "No FTP sites defined.", "Error", JOptionPane.ERROR_MESSAGE);         
             } 
         } else if (response == JOptionPane.NO_OPTION) { 
             // ignore        
-        }
-		 
-		EAVDAMData data = XMLHandler.importData();
-		if (eavdamMenu != null) {
-			//eavdamMenu.setShowOnMapMenu(new ShowOnMapMenu(eavdamMenu));
-			if (eavdamMenu.getStationInformationMenu() != null && eavdamMenu.getStationInformationMenu().getStationInformationMenuItem() != null) {
-				eavdamMenu.getStationInformationMenu().getStationInformationMenuItem().setData(data);
-			}
-		}
-		if (stationLayer != null) {
-			stationLayer.updateStations();
-		}
-
-		if (errors.isEmpty()) {
-			JOptionPane.showMessageDialog(openMapFrame, "Data exhanged succesfully.");
-		} else {
-			JOptionPane.showMessageDialog(openMapFrame, "The following ftp sites had problems when exchanging data:\n" + errors, "Error", JOptionPane.ERROR_MESSAGE); 
-		}		
+        }		 
+		
 	}
 
 	@Override
