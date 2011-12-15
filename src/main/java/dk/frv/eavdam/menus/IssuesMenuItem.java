@@ -248,10 +248,6 @@ class IssuesMenuItemActionListener implements ActionListener {
 			
 			int count = 0;
 			
-			for (int i=0; i<10; i++) {
-				IssuesMenuItem.issues.add(new AISDatalinkCheckIssue(1, null, AISDatalinkCheckSeverity.MAJOR, null, null));
-			}
-			
 			for (AISDatalinkCheckIssue issue : IssuesMenuItem.issues) {
 			
 				if (count == 100) {
