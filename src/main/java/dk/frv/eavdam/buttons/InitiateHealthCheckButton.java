@@ -12,6 +12,7 @@ import dk.frv.eavdam.app.SidePanel;
 import dk.frv.eavdam.data.AISDatalinkCheckArea;
 import dk.frv.eavdam.data.AISDatalinkCheckIssue;
 import dk.frv.eavdam.data.AISDatalinkCheckResult;
+import dk.frv.eavdam.data.AISDatalinkCheckRule;
 import dk.frv.eavdam.data.EAVDAMData;
 import dk.frv.eavdam.data.Options;
 import dk.frv.eavdam.io.AISDatalinkCheckListener;
@@ -43,6 +44,7 @@ import java.io.File;
 import java.io.IOException;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.GregorianCalendar;
 import java.util.Hashtable;
 import java.util.List;
 import javax.mail.MessagingException;
@@ -94,6 +96,11 @@ public class InitiateHealthCheckButton extends OMToolComponent implements Action
 	private JButton cancelViewIssuesButton;
 		
 	private EAVDAMData data;
+	
+	private Double topLeftLatitude = null;
+	private Double topLeftLongitude = null;
+	private Double lowerRightLatitude = null;
+	private Double lowerRightLongitude = null;
 	
 	public InitiateHealthCheckButton() {
 		super();
@@ -291,10 +298,10 @@ public class InitiateHealthCheckButton extends OMToolComponent implements Action
 			Point2D topLeft = projection.getUpperLeft();
 			Point2D lowerRight = projection.getLowerRight();
 			
-			double topLeftLatitude = topLeft.getY();
-			double topLeftLongitude = topLeft.getX();
-			double lowerRightLatitude = lowerRight.getY();
-			double lowerRightLongitude = lowerRight.getX();
+			topLeftLatitude = new Double(topLeft.getY());
+			topLeftLongitude = new Double(topLeft.getX());
+			lowerRightLatitude = new Double(lowerRight.getY());
+			lowerRightLongitude = new Double(lowerRight.getX());
 			
 			data = DBHandler.getData();
 			
@@ -334,13 +341,14 @@ public class InitiateHealthCheckButton extends OMToolComponent implements Action
 			double resolution = (double) resolutionSlider.getValue() / 10;
 			
 			HealthCheckHandler hch = new HealthCheckHandler(data);
-			double minResolution = HealthCheckHandler.getMinResolution(topLeftLatitude, topLeftLongitude, lowerRightLatitude, lowerRightLongitude);
+			double minResolution = HealthCheckHandler.getMinResolution(topLeftLatitude.doubleValue(),
+				topLeftLongitude.doubleValue(), lowerRightLatitude.doubleValue(), lowerRightLongitude.doubleValue());
 			if (resolution < minResolution) {
 				JOptionPane.showMessageDialog(openMapFrame, "The selected resolution is too small for the area in view. Please, choose a bigger resolution or a smaller area.", "Error!", JOptionPane.ERROR_MESSAGE); 			
 			} else {			
-				new InitiateHealthCheckThread(data, this, openMapFrame, sidePanel, hch, checkRule1, checkRule2,
-					checkRule3, checkRule4, checkRule5, checkRule6, checkRule7, includePlanned, topLeftLatitude,
-					topLeftLongitude, lowerRightLatitude, lowerRightLongitude, resolution).start();
+				new InitiateHealthCheckThread(data, this, openMapFrame, sidePanel, hch, checkRule1, checkRule2, checkRule3, checkRule4,
+				checkRule5, checkRule6, checkRule7, includePlanned, topLeftLatitude.doubleValue(), topLeftLongitude.doubleValue(),
+				lowerRightLatitude.doubleValue(), lowerRightLongitude.doubleValue(), resolution).start();
 				sidePanel.setHealthCheckHandler(hch);
 				sidePanel.getProgressIndicatorPane().setVisible(true);				
 				dialog.dispose();
@@ -468,7 +476,36 @@ public class InitiateHealthCheckButton extends OMToolComponent implements Action
 		completedDialog.getContentPane().add(panel);
 		Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
 		completedDialog.setBounds((int) screenSize.getWidth()/2 - 380/2, (int) screenSize.getHeight()/2 - 200/2, 380, 200);
-		completedDialog.setVisible(true);				
+		completedDialog.setVisible(true);
+
+		IssuesMenuItem.lastHealthCheckDoneAt = new GregorianCalendar();
+		List<AISDatalinkCheckRule> rules = new ArrayList<AISDatalinkCheckRule>();
+		if (rule1CheckBox.isSelected()) {
+			rules.add(AISDatalinkCheckRule.RULE1);
+		}
+		if (rule2CheckBox.isSelected()) {
+			rules.add(AISDatalinkCheckRule.RULE2);
+		}
+		if (rule3CheckBox.isSelected()) {
+			rules.add(AISDatalinkCheckRule.RULE3);
+		}
+		if (rule4CheckBox.isSelected()) {
+			rules.add(AISDatalinkCheckRule.RULE4);
+		}
+		if (rule5CheckBox.isSelected()) {
+			rules.add(AISDatalinkCheckRule.RULE5);
+		}
+		if (rule6CheckBox.isSelected()) {
+			rules.add(AISDatalinkCheckRule.RULE6);
+		}
+		if (rule7CheckBox.isSelected()) {
+			rules.add(AISDatalinkCheckRule.RULE7);
+		}		
+		IssuesMenuItem.lastHealthCheckRules = rules;
+		IssuesMenuItem.lastHealthCheckTopLeftLatitude = topLeftLatitude;
+		IssuesMenuItem.lastHealthCheckTopLeftLongitude = topLeftLongitude;
+		IssuesMenuItem.lastHealthCheckLowerRightLatitude = lowerRightLatitude;
+		IssuesMenuItem.lastHealthCheckLowerRightLongitude = lowerRightLongitude;
 	}
 	
 	public void findAndInit(Object obj) {

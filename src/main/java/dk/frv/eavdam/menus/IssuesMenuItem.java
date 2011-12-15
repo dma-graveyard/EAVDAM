@@ -23,6 +23,7 @@ import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.ArrayList;
+import java.util.GregorianCalendar;
 import java.util.List;
 import javax.swing.AbstractAction;
 import javax.swing.BorderFactory;
@@ -45,7 +46,14 @@ public class IssuesMenuItem extends JMenuItem {
 	public static int ISSUES_WINDOW_HEIGHT = 1000;	
 	
 	public static List<AISDatalinkCheckIssue> issues = null;
-			
+	
+	public static GregorianCalendar lastHealthCheckDoneAt = null;
+	public static List<AISDatalinkCheckRule> lastHealthCheckRules = null;
+	public static Double lastHealthCheckTopLeftLatitude = null;
+	public static Double lastHealthCheckTopLeftLongitude = null;
+	public static Double lastHealthCheckLowerRightLatitude = null;
+	public static Double lastHealthCheckLowerRightLongitude = null;
+
     public IssuesMenuItem(EavdamMenu eavdamMenu) {        
         super("AIS VHF Datalink Issues");                
         addActionListener(new IssuesMenuItemActionListener(eavdamMenu));
@@ -279,7 +287,7 @@ class IssuesMenuItemActionListener implements ActionListener {
 					} else if (ruleViolated == AISDatalinkCheckRule.RULE5) {
 						ruleViolatedStr = "<html><body>&nbsp;&nbsp;Slots reserved outside IALA A-124&nbsp;&nbsp;<br>&nbsp;&nbsp;recommended default FATDMA schemes&nbsp;&nbsp;</html></body>";
 					} else if (ruleViolated == AISDatalinkCheckRule.RULE6) {
-						ruleViolatedStr = "<html><body>&nbsp;&nbsp;Slots reserved outside overall slot&nbsp;&nbsp;<br>&nbsp;&nbsp;pattern for fixed statons (IALA A-124)&nbsp;&nbsp;</html></body>";
+						ruleViolatedStr = "<html><body>&nbsp;&nbsp;Slots reserved outside overall slot&nbsp;&nbsp;<br>&nbsp;&nbsp;pattern for fixed stations (IALA A-124)&nbsp;&nbsp;</html></body>";
 					} else if (ruleViolated == AISDatalinkCheckRule.RULE7) {					
 						ruleViolatedStr = "<html><body>&nbsp;&nbsp;Free Bandwith below 50%&nbsp;&nbsp;</html></body>";
 					}

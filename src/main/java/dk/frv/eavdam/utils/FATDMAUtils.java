@@ -14,20 +14,26 @@ public class FATDMAUtils {
 	public static Map<String,List<FATDMACell>> fatdmaCellsMap = null;
 	
 	public static boolean areReservedBlocksAccordingToFATDMAScheme(float lat, float lon, List<Integer> reservedBlocksForChannelA, List<Integer> reservedBlocksForChannelB) {
-
+	
 		int singleCellSizeInNauticalMiles = 30;
 		int noOfSingleCellsAlongOneSideOfMasterCell = 6;
 		int masterCellSizeInNauticalMiles = singleCellSizeInNauticalMiles * noOfSingleCellsAlongOneSideOfMasterCell;		
 		int noOfMasterCellsAroundEquator = (int) (360.0d * 60.0d / masterCellSizeInNauticalMiles);
-		float masterCellSizeInDegreesLatitude = (float) masterCellSizeInNauticalMiles / 60;  	
-		float singleCellHeightInDegrees = masterCellSizeInDegreesLatitude / noOfSingleCellsAlongOneSideOfMasterCell;
-
-		int masterCellRowNo = (int) (Math.abs(lat + (float) 0.5*singleCellHeightInDegrees) / masterCellSizeInDegreesLatitude);
-		double masterCellMeanLatitude = (masterCellRowNo + 0.5) * masterCellSizeInDegreesLatitude;
+		double masterCellSizeInDegreesLatitude = masterCellSizeInNauticalMiles / 60;  	
+		double singleCellHeightInDegrees = masterCellSizeInDegreesLatitude / noOfSingleCellsAlongOneSideOfMasterCell;
+		
+		int masterCellRowNo = (int) (Math.abs(lat + 0.5*singleCellHeightInDegrees) / masterCellSizeInDegreesLatitude);
+		double masterCellMeanLatitude = (masterCellRowNo + 0.5) * masterCellSizeInDegreesLatitude;					
 		int noOfMasterCellsAroundMasterCellRow = (int) (noOfMasterCellsAroundEquator * Math.cos(2*Math.PI*masterCellMeanLatitude/360.0));
-		float singleCellWidthInDegrees = (float) 360/(noOfSingleCellsAlongOneSideOfMasterCell*noOfMasterCellsAroundMasterCellRow);	
+		double singleCellWidthInDegrees = (double) 360/(noOfSingleCellsAlongOneSideOfMasterCell*noOfMasterCellsAroundMasterCellRow);
 									
 		int cellNumber = FATDMAGridLayer.getCellNo(lat, lon, singleCellSizeInNauticalMiles, noOfSingleCellsAlongOneSideOfMasterCell, masterCellRowNo, singleCellWidthInDegrees);
+		
+		/*
+		if (cellNumber > 36) {
+			System.out.println("CELL NUMBER WAS OVER 36 FOR lat: " + lat + ";lon: " + lon + "; singleCellSizeInNauticalMiles: " + singleCellSizeInNauticalMiles + "; noOfSingleCellsAlongOneSideOfMasterCell: " + noOfSingleCellsAlongOneSideOfMasterCell + "; masterCellRowNo:" + masterCellRowNo + "; singleCellWidthInDegrees: " + singleCellWidthInDegrees);
+		}
+		*/
 		
 		if (fatdmaCellsMap == null) {
 			fatdmaCellsMap = DefaultFATDMAReader.readDefaultValues(null, null);
@@ -37,12 +43,12 @@ public class FATDMAUtils {
 		List<Integer> acceptedFATDMABlocksForChannelB = new ArrayList<Integer>();
 		
 		List<FATDMACell> fatdmaICells = fatdmaCellsMap.get(String.valueOf(cellNumber) + "-I");
-		acceptedFATDMABlocksForChannelA = processFATDMACellsChannelA(fatdmaICells, acceptedFATDMABlocksForChannelA);
+		acceptedFATDMABlocksForChannelA = processFATDMACellsChannelA(fatdmaICells, acceptedFATDMABlocksForChannelA);		
 		acceptedFATDMABlocksForChannelB = processFATDMACellsChannelB(fatdmaICells, acceptedFATDMABlocksForChannelB);
-		List<FATDMACell> fatdmaIICells = fatdmaCellsMap.get(String.valueOf(cellNumber) + "-II");
+		List<FATDMACell> fatdmaIICells = fatdmaCellsMap.get(String.valueOf(cellNumber) + "-II");		
 		acceptedFATDMABlocksForChannelA = processFATDMACellsChannelA(fatdmaIICells, acceptedFATDMABlocksForChannelA);
 		acceptedFATDMABlocksForChannelB = processFATDMACellsChannelB(fatdmaIICells, acceptedFATDMABlocksForChannelB);
-		
+
 		if (reservedBlocksForChannelA != null) {
 			for (Integer block : reservedBlocksForChannelA) {
 				if (!acceptedFATDMABlocksForChannelA.contains(block)) {
@@ -127,7 +133,7 @@ public class FATDMAUtils {
 	}
 	
 	public static List<Integer> getBlocks(Integer startslot, Integer blockSize, Integer increment) {
-
+	
 		List<Integer> blocks = new ArrayList<Integer>();
 	
 		if (startslot != null && blockSize != null && increment != null) {

@@ -246,7 +246,15 @@ public class FATDMAGridLayer extends OMGraphicHandlerLayer {
 		if (lon < 0) {  // In case of Negative longitude - west of Greenwich      
 			columnNumberInsideMasterCell = (noOfSingleCellsAlongOneSideOfMasterCell-1)-columnNumberInsideMasterCell;
 		}
-      
+
+		/*
+		if (rowNumberInsideMasterCell*noOfSingleCellsAlongOneSideOfMasterCell+columnNumberInsideMasterCell+1 >  36) {
+			System.out.println("rowNumberInsideMasterCell: " + rowNumberInsideMasterCell);
+			System.out.println("columnNumberInsideMasterCell: " + columnNumberInsideMasterCell);
+			System.out.println("noOfSingleCellsAlongOneSideOfMasterCell: " + noOfSingleCellsAlongOneSideOfMasterCell);			
+		}
+		*/
+		
 		return rowNumberInsideMasterCell*noOfSingleCellsAlongOneSideOfMasterCell+columnNumberInsideMasterCell+1;           
 	}
 
