@@ -1,3 +1,32 @@
+/*
+* Copyright 2011 Danish Maritime Safety Administration. All rights reserved.
+*
+* Redistribution and use in source and binary forms, with or without
+* modification, are permitted provided that the following conditions are met:
+*
+* 1. Redistributions of source code must retain the above copyright notice,
+* this list of conditions and the following disclaimer.
+*
+* 2. Redistributions in binary form must reproduce the above copyright notice,
+* this list of conditions and the following disclaimer in the documentation and/or
+* other materials provided with the distribution.
+*
+* THIS SOFTWARE IS PROVIDED BY Danish Maritime Safety Administration ``AS IS''
+* AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+* IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+* DISCLAIMED. IN NO EVENT SHALL <COPYRIGHT HOLDER> OR CONTRIBUTORS BE LIABLE FOR
+* ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+* (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+* LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+* ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+* (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+* SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+* The views and conclusions contained in the software and documentation are those
+* of the authors and should not be interpreted as representing official policies,
+* either expressed or implied, of Danish Maritime Safety Administration.
+*
+*/
 package dk.frv.eavdam.buttons;
 
 import com.bbn.openmap.Layer;
@@ -63,11 +92,15 @@ import javax.swing.JSlider;
 import javax.swing.JToolBar;
 import net.sf.image4j.codec.ico.ICODecoder;
 
+/**
+ * Class for the button in the toolbar that starts the AIS VHF Datalink Health Check.
+ */
 public class InitiateHealthCheckButton extends OMToolComponent implements ActionListener, Tool, AISDatalinkCheckListener {
 
 	private static final long serialVersionUID = 6706092036947101L;
-	protected JButton initiateHealthCheckButton = null;
-	protected JToolBar jToolBar;
+	
+	private JButton initiateHealthCheckButton = null;
+	private JToolBar jToolBar;
     private OpenMapFrame openMapFrame;
 	private MapBean mapBean;
 	private LayerHandler layerHandler;
@@ -102,6 +135,9 @@ public class InitiateHealthCheckButton extends OMToolComponent implements Action
 	private Double lowerRightLatitude = null;
 	private Double lowerRightLongitude = null;
 	
+	/**
+	 * Creates the button.
+	 */
 	public InitiateHealthCheckButton() {
 		super();
 		boolean foundIcon = false;
@@ -130,136 +166,121 @@ public class InitiateHealthCheckButton extends OMToolComponent implements Action
 	 public void actionPerformed(ActionEvent e) {
 	 
 		if (e.getSource() == initiateHealthCheckButton) {
-	    
-			//int response = JOptionPane.showConfirmDialog(openMapFrame, "This will initiate the AIS VHF datalink health check process,\nwhich may take some time. Are you sure you want to do this?", "Confirm action", JOptionPane.YES_NO_OPTION);
-         
-			//if (response == JOptionPane.YES_OPTION) {
-         
-				dialog = new JDialog(openMapFrame, "AIS VHF Datalink Health Check", false);  // true for modal dialog
-			
-				JPanel panel = new JPanel();
-				panel.setLayout(new GridBagLayout());                  
-			
-				GridBagConstraints c = new GridBagConstraints();
-				c.gridx = 0;
-				c.gridy = 0;                   
-				c.anchor = GridBagConstraints.LINE_START;
-				c.insets = new Insets(5,5,5,5);
-				
-				JPanel rulesPanel = new JPanel(new GridBagLayout());
-				rulesPanel.setPreferredSize(new Dimension(520, 330));
-				rulesPanel.setMaximumSize(new Dimension(520, 330));
-				rulesPanel.setMinimumSize(new Dimension(520, 330));					
-				rulesPanel.setBorder(BorderFactory.createTitledBorder("Which rules and stations to process"));
-
-				rule1CheckBox = new JCheckBox("Rule 1: Conflicting stations");
-				rule1CheckBox.setSelected(true);
-				rulesPanel.add(rule1CheckBox, c);
-				
-				c.gridy = 1;
-				rule2CheckBox = new JCheckBox("Rule 2: Reservation, but no intended use");
-				//rule2CheckBox.setSelected(true);
-				rulesPanel.add(rule2CheckBox, c);				
-
-				c.gridy = 2;
-				rule3CheckBox = new JCheckBox("Rule 3: Intended FATDMA use, but no reservation");
-				//rule3CheckBox.setSelected(true);
-				rulesPanel.add(rule3CheckBox, c);		
-
-				c.gridy = 3;
-				rule4CheckBox = new JCheckBox("Rule 4: Simultaneous use of several frequencies");
-				//rule4CheckBox.setSelected(true);
-				rulesPanel.add(rule4CheckBox, c);		
-
-				c.gridy = 4;
-				rule5CheckBox = new JCheckBox("Rule 5: Slots reserved outside IALA A-124 recommended default FATDMA schemes");
-				//rule5CheckBox.setSelected(true);
-				rulesPanel.add(rule5CheckBox, c);		
-
-				c.gridy = 5;
-				rule6CheckBox = new JCheckBox("Rule 6: Slots reserved outside overall slot pattern for fixed statons (IALA A-124)");
-				//rule6CheckBox.setSelected(true);
-				rulesPanel.add(rule6CheckBox, c);					
-
-				c.gridy = 6;
-				rule7CheckBox = new JCheckBox("Rule 7: Free Bandwith below 50%");
-				//rule7CheckBox.setSelected(true);
-				rulesPanel.add(rule7CheckBox, c);
-				
-				c.gridy = 7;
-				rulesHelpLabel = new LinkLabel("View detailed descriptions of rules");
-				rulesHelpLabel.addActionListener(this);
-				rulesPanel.add(rulesHelpLabel, c);
-				
-				c.gridy = 8;
-				includePlannedCheckBox = new JCheckBox("Process also planned stations");
-				rulesPanel.add(includePlannedCheckBox, c);				
-				
-				c.gridy = 0;
-				panel.add(rulesPanel, c);		
-				
-				JPanel resolutionPanel = new JPanel(new GridBagLayout());
-				resolutionPanel.setBorder(BorderFactory.createTitledBorder("Resolution for area based check in nautical miles"));
-				resolutionPanel.setPreferredSize(new Dimension(520, 100));
-				resolutionPanel.setMaximumSize(new Dimension(520, 100));
-				resolutionPanel.setMinimumSize(new Dimension(520, 100));					
+	             
+			dialog = new JDialog(openMapFrame, "AIS VHF Datalink Health Check", false);
 		
-				resolutionSlider = new JSlider(JSlider.HORIZONTAL, 10, 50, 20);
-				//resolutionSlider.setToolTipText("Use small values for small areas and bigger values for larger areas to avoid excessive processing time");
-				resolutionSlider.setPreferredSize(new Dimension(480, 50));
-				resolutionSlider.setMaximumSize(new Dimension(480, 50));
-				resolutionSlider.setMinimumSize(new Dimension(480, 50));				
-                Hashtable<Integer, JLabel> labelTable = new Hashtable<Integer, JLabel>();
-//				labelTable.put(new Integer(1), new JLabel("0.1"));
-				labelTable.put(new Integer(10), new JLabel("1"));
-				labelTable.put(new Integer(20), new JLabel("2"));
-				labelTable.put(new Integer(30), new JLabel("3"));
-				labelTable.put(new Integer(40), new JLabel("4"));
-				labelTable.put(new Integer(50), new JLabel("5"));
-//				labelTable.put(new Integer(100), new JLabel("10"));	
-//				labelTable.put(new Integer(200), new JLabel("20"));					
-//				labelTable.put(new Integer(300), new JLabel("30"));	
-//				labelTable.put(new Integer(400), new JLabel("40"));					
-//				labelTable.put(new Integer(500), new JLabel("50"));	
-				resolutionSlider.setLabelTable(labelTable);
-				resolutionSlider.setMajorTickSpacing(10);
-				resolutionSlider.setMinorTickSpacing(1);
-				resolutionSlider.setPaintTicks(true);
-				resolutionSlider.setPaintLabels(true);
-				resolutionPanel.add(resolutionSlider, c);
-				
-				c.gridx = 0;
-				c.gridy = 1;
-				panel.add(resolutionPanel, c);
-				
-				JPanel buttonPanel = new JPanel(new GridBagLayout());        
-				buttonPanel.setBorder(BorderFactory.createEmptyBorder(10, 0, 0, 0));
-				c.gridx = 0;
-				c.gridy = 0;
-				c.gridwidth = 1;
-				goButton = new JButton("Go");
-				goButton.addActionListener(this);
-				buttonPanel.add(goButton, c);
-				c.gridx = 1;
-				cancelButton = new JButton("Cancel");
-				cancelButton.addActionListener(this);
-				buttonPanel.add(cancelButton, c);			
-
-				c.gridx = 0;
-				c.gridy = 2;
-				c.anchor = GridBagConstraints.CENTER;
-				panel.add(buttonPanel, c);			
-				
-				dialog.getContentPane().add(panel);
-			
-				Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
-				dialog.setBounds((int) screenSize.getWidth()/2 - 560/2, (int) screenSize.getHeight()/2 - 600/2, 600, 560);
-				dialog.setVisible(true);
-
-			 //} else if (response == JOptionPane.NO_OPTION) { 
-				// ignore        
-			 //}
+			JPanel panel = new JPanel();
+			panel.setLayout(new GridBagLayout());                  
 		
+			GridBagConstraints c = new GridBagConstraints();
+			c.gridx = 0;
+			c.gridy = 0;                   
+			c.anchor = GridBagConstraints.LINE_START;
+			c.insets = new Insets(5,5,5,5);
+			
+			JPanel rulesPanel = new JPanel(new GridBagLayout());
+			rulesPanel.setPreferredSize(new Dimension(520, 330));
+			rulesPanel.setMaximumSize(new Dimension(520, 330));
+			rulesPanel.setMinimumSize(new Dimension(520, 330));					
+			rulesPanel.setBorder(BorderFactory.createTitledBorder("Which rules and stations to process"));
+
+			rule1CheckBox = new JCheckBox("Rule 1: Conflicting stations");
+			rule1CheckBox.setSelected(true);
+			rulesPanel.add(rule1CheckBox, c);
+			
+			c.gridy = 1;
+			rule2CheckBox = new JCheckBox("Rule 2: Reservation, but no intended use");
+			//rule2CheckBox.setSelected(true);
+			rulesPanel.add(rule2CheckBox, c);				
+
+			c.gridy = 2;
+			rule3CheckBox = new JCheckBox("Rule 3: Intended FATDMA use, but no reservation");
+			//rule3CheckBox.setSelected(true);
+			rulesPanel.add(rule3CheckBox, c);		
+
+			c.gridy = 3;
+			rule4CheckBox = new JCheckBox("Rule 4: Simultaneous use of several frequencies");
+			//rule4CheckBox.setSelected(true);
+			rulesPanel.add(rule4CheckBox, c);		
+
+			c.gridy = 4;
+			rule5CheckBox = new JCheckBox("Rule 5: Slots reserved outside IALA A-124 recommended default FATDMA schemes");
+			//rule5CheckBox.setSelected(true);
+			rulesPanel.add(rule5CheckBox, c);		
+
+			c.gridy = 5;
+			rule6CheckBox = new JCheckBox("Rule 6: Slots reserved outside overall slot pattern for fixed statons (IALA A-124)");
+			//rule6CheckBox.setSelected(true);
+			rulesPanel.add(rule6CheckBox, c);					
+
+			c.gridy = 6;
+			rule7CheckBox = new JCheckBox("Rule 7: Free Bandwith below 50%");
+			//rule7CheckBox.setSelected(true);
+			rulesPanel.add(rule7CheckBox, c);
+			
+			c.gridy = 7;
+			rulesHelpLabel = new LinkLabel("View detailed descriptions of rules");
+			rulesHelpLabel.addActionListener(this);
+			rulesPanel.add(rulesHelpLabel, c);
+			
+			c.gridy = 8;
+			includePlannedCheckBox = new JCheckBox("Process also planned stations");
+			rulesPanel.add(includePlannedCheckBox, c);				
+			
+			c.gridy = 0;
+			panel.add(rulesPanel, c);		
+			
+			JPanel resolutionPanel = new JPanel(new GridBagLayout());
+			resolutionPanel.setBorder(BorderFactory.createTitledBorder("Resolution for area based check in nautical miles"));
+			resolutionPanel.setPreferredSize(new Dimension(520, 100));
+			resolutionPanel.setMaximumSize(new Dimension(520, 100));
+			resolutionPanel.setMinimumSize(new Dimension(520, 100));					
+	
+			resolutionSlider = new JSlider(JSlider.HORIZONTAL, 10, 50, 20);
+			resolutionSlider.setPreferredSize(new Dimension(480, 50));
+			resolutionSlider.setMaximumSize(new Dimension(480, 50));
+			resolutionSlider.setMinimumSize(new Dimension(480, 50));				
+			Hashtable<Integer, JLabel> labelTable = new Hashtable<Integer, JLabel>();
+			labelTable.put(new Integer(10), new JLabel("1"));
+			labelTable.put(new Integer(20), new JLabel("2"));
+			labelTable.put(new Integer(30), new JLabel("3"));
+			labelTable.put(new Integer(40), new JLabel("4"));
+			labelTable.put(new Integer(50), new JLabel("5"));
+			resolutionSlider.setLabelTable(labelTable);
+			resolutionSlider.setMajorTickSpacing(10);
+			resolutionSlider.setMinorTickSpacing(1);
+			resolutionSlider.setPaintTicks(true);
+			resolutionSlider.setPaintLabels(true);
+			resolutionPanel.add(resolutionSlider, c);
+			
+			c.gridx = 0;
+			c.gridy = 1;
+			panel.add(resolutionPanel, c);
+			
+			JPanel buttonPanel = new JPanel(new GridBagLayout());        
+			buttonPanel.setBorder(BorderFactory.createEmptyBorder(10, 0, 0, 0));
+			c.gridx = 0;
+			c.gridy = 0;
+			c.gridwidth = 1;
+			goButton = new JButton("Go");
+			goButton.addActionListener(this);
+			buttonPanel.add(goButton, c);
+			c.gridx = 1;
+			cancelButton = new JButton("Cancel");
+			cancelButton.addActionListener(this);
+			buttonPanel.add(cancelButton, c);			
+
+			c.gridx = 0;
+			c.gridy = 2;
+			c.anchor = GridBagConstraints.CENTER;
+			panel.add(buttonPanel, c);			
+			
+			dialog.getContentPane().add(panel);
+		
+			Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
+			dialog.setBounds((int) screenSize.getWidth()/2 - 560/2, (int) screenSize.getHeight()/2 - 600/2, 600, 560);
+			dialog.setVisible(true);
+	
 		} else if (e.getSource() == rulesHelpLabel) {
 		
 			JDialog rulesDialog = new JDialog(openMapFrame, "AIS VHF Datalink Rules", false);
@@ -366,12 +387,24 @@ public class InitiateHealthCheckButton extends OMToolComponent implements Action
 		}
 	}
 
+	/**
+	 * AISDatalinkCheckListener method. Updates the progress bar in the side panel.
+	 *
+	 * @param progress  How much of the health check process is done. Value between 0-1, 0 meaning that
+	 *                  the process is just started and 1 meaning that the process is completed.
+	 */
 	public void progressed(double progress) {
 		if (sidePanel.getProgressBar() != null) {
 			sidePanel.getProgressBar().setValue((int) Math.round(100*progress));
 		}
 	}
-		
+
+	/**
+	 * AISDatalinkCheckListener method. Displays the health check results in the issues menu and layer and
+	 * bandwidth areas layer.
+	 *
+	 * @param result  Health check results.
+	 */
 	public void completed(AISDatalinkCheckResult result) {	
 
 		if (result == null) {
@@ -386,31 +419,11 @@ public class InitiateHealthCheckButton extends OMToolComponent implements Action
 		IssuesMenuItem.issues = null;
 		
 		if (result != null) {
-						
 			data.setAISDatalinkCheckIssues(result.getIssues());
 			IssuesMenuItem.issues = result.getIssues();
-			
-			// FOR TESTING FOR NOW
-			/*
-			if (result.getAreas() != null && !result.getAreas().isEmpty()) {
-				List<AISDatalinkCheckIssue> issues = new ArrayList<AISDatalinkCheckIssue>();
-				for (AISDatalinkCheckArea area : result.getAreas()) {
-					List<AISDatalinkCheckIssue> temp = area.getIssues();
-					if (temp != null) {
-						for (AISDatalinkCheckIssue issue : temp) {
-							if (!issues.contains(issue)) {
-								issues.add(issue);
-							}
-						}
-					}
-				}
-				data.setAISDatalinkCheckIssues(issues);
-				IssuesMenuItem.issues = issues;
-			}
-			*/
 		}
 
-		DBHandler.saveData(data); //Do this before calculating the number of old issues...
+		DBHandler.saveData(data);
 	
 		IssuesMenuItem.healthCheckMayBeOutdated = new Boolean(false);
 		IssuesMenuItem.ignoreHealthCheckMayBeOutdated = new Boolean(false);
@@ -532,26 +545,29 @@ public class InitiateHealthCheckButton extends OMToolComponent implements Action
 }
 
 
+/**
+ * Class for executing the health check in a separate thread.
+ */
 class InitiateHealthCheckThread extends Thread {
 	
-	EAVDAMData data;
-	AISDatalinkCheckListener listener;
-	OpenMapFrame openMapFrame;
-	SidePanel sidePanel;
-	HealthCheckHandler hch;
-	boolean checkRule1;
-	boolean checkRule2;
-	boolean checkRule3;
-	boolean checkRule4;
-	boolean checkRule5;
-	boolean checkRule6;
-	boolean checkRule7;
-	boolean includePlanned;
-	double topLeftLatitude;
-	double topLeftLongitude;
-	double lowerRightLatitude;
-	double lowerRightLongitude;
-	double resolution;
+	private EAVDAMData data;
+	private AISDatalinkCheckListener listener;
+	private OpenMapFrame openMapFrame;
+	private SidePanel sidePanel;
+	private HealthCheckHandler hch;
+	private boolean checkRule1;
+	private boolean checkRule2;
+	private boolean checkRule3;
+	private boolean checkRule4;
+	private boolean checkRule5;
+	private boolean checkRule6;
+	private boolean checkRule7;
+	private boolean includePlanned;
+	private double topLeftLatitude;
+	private double topLeftLongitude;
+	private double lowerRightLatitude;
+	private double lowerRightLongitude;
+	private double resolution;
 	
 	InitiateHealthCheckThread(EAVDAMData data, AISDatalinkCheckListener listener, OpenMapFrame openMapFrame, SidePanel sidePanel,
 			HealthCheckHandler hch, boolean checkRule1,	boolean checkRule2, boolean checkRule3, boolean checkRule4, boolean checkRule5,
@@ -577,8 +593,10 @@ class InitiateHealthCheckThread extends Thread {
 		this.resolution = resolution;
 	}
 	
+	/**
+	 * Starts the health check process.
+	 */
 	public void run() {
-		  
 		try {
 			hch.startAISDatalinkCheck(listener, checkRule1, checkRule2, checkRule3, checkRule4, checkRule5, checkRule6,
 				checkRule7, includePlanned, topLeftLatitude, topLeftLongitude, lowerRightLatitude, lowerRightLongitude, resolution);				
@@ -586,20 +604,6 @@ class InitiateHealthCheckThread extends Thread {
 			sidePanel.getProgressIndicatorPane().setVisible(false);
 			JOptionPane.showMessageDialog(openMapFrame, "The health check process ran out of memory. Please, try again with a bigger resolution / smaller area.", "Error!", JOptionPane.ERROR_MESSAGE); 
 		}
-		
-		// XXX: for testing -->
-		/*
-		for (int i=1; i<=5; i++) {
-			listener.progressed(0.2*i);
-			try {
-				Thread.sleep(1000);							
-			} catch (InterruptedException ex) {}
-		}
-		AISDatalinkCheckResult result = null;
-		*/
-		// XXX: <-- for testing
-		
-		//listener.completed(result);
 	}
 
 }

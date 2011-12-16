@@ -823,8 +823,8 @@ public class StationLayer extends OMGraphicHandlerLayer implements MapMouseListe
 				String text = 
 					"Base station '" + stationData.getStationName() + "' at "
 				    + stationData.getLat()
-					+ (stationData.getLon() > 0 ? "N" : "S")
-					+ ", " + stationData.getLat()
+					+ (stationData.getLat() > 0 ? "N" : "S")
+					+ ", " + stationData.getLon()
 					+ (stationData.getLon() > 0 ? "E" : "W");
 				this.infoDelegator.requestShowToolTip(new InfoDisplayEvent(this, text));					
 				return true;

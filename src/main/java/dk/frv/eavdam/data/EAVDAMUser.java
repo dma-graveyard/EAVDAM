@@ -1,21 +1,46 @@
+/*
+* Copyright 2011 Danish Maritime Safety Administration. All rights reserved.
+*
+* Redistribution and use in source and binary forms, with or without
+* modification, are permitted provided that the following conditions are met:
+*
+* 1. Redistributions of source code must retain the above copyright notice,
+* this list of conditions and the following disclaimer.
+*
+* 2. Redistributions in binary form must reproduce the above copyright notice,
+* this list of conditions and the following disclaimer in the documentation and/or
+* other materials provided with the distribution.
+*
+* THIS SOFTWARE IS PROVIDED BY Danish Maritime Safety Administration ``AS IS''
+* AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+* IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+* DISCLAIMED. IN NO EVENT SHALL <COPYRIGHT HOLDER> OR CONTRIBUTORS BE LIABLE FOR
+* ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+* (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+* LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+* ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+* (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+* SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+* The views and conclusions contained in the software and documentation are those
+* of the authors and should not be interpreted as representing official policies,
+* either expressed or implied, of Danish Maritime Safety Administration.
+*
+*/
 package dk.frv.eavdam.data;
 
+import java.net.URL;
 import java.util.List;
-
 import org.w3c.dom.Element;
 
 /**
- * A class for storing EAVDAM user specific data.
- * 
- * @author ttesei
- * @version 1.0
- * @created 26-elo-2011 13:27:25
+ * Class for storing EAVDAM user specific data.
  */
 public class EAVDAMUser {
 
 	private String organizationName;
 	/**
-	 * E.g. DK for Denmark
+	 * E.g., DK for Denmark
 	 */
 	private String countryID;
 	private String phone;
@@ -27,16 +52,13 @@ public class EAVDAMUser {
 	private Address visitingAddress;
 	private Address postalAddress;
 	/**
-	 * Anything can go in here. The schema allows unknown XML content in the
-	 * end.
+	 * Anything can go in here. The schema allows unknown XML content in the end.
 	 */
 	private List<Element> anything;
 
 	private int userDBID = -1;
 
-
-	public EAVDAMUser() {
-	}
+	public EAVDAMUser() {}
 	
 	public int getUserDBID() {
 		return userDBID;
@@ -50,6 +72,11 @@ public class EAVDAMUser {
 		return organizationName;
 	}
 
+	/**
+	 * Also validates the organization name. Throws IllegalArgumentException if organization name is empty.
+	 *
+	 * @param organizationName  Organization name
+	 */	
 	public void setOrganizationName(String organizationName) {
 		if (organizationName == null || organizationName.trim().length() == 0) {
 			throw new IllegalArgumentException(
@@ -62,6 +89,11 @@ public class EAVDAMUser {
 		return countryID;
 	}
 
+	/**
+	 * Also validates the country id. Throws IllegalArgumentException if country id does not consist of two capital letters.
+	 *
+	 * @param countryID  Country ID
+	 */		
 	public void setCountryID(String countryID) {
 		if (countryID == null || !countryID.matches("\\p{Lu}\\p{Lu}")) {
 			throw new IllegalArgumentException(
@@ -74,6 +106,11 @@ public class EAVDAMUser {
 		return phone;
 	}
 
+	/**
+	 * Also validates the phone number. Throws IllegalArgumentException if phone number does not start with + followed by digits, space and dashes allowed.
+	 *
+	 * @param phone  Phone number of the person
+	 */		
 	public void setPhone(String phone) {
 		if (phone != null && phone.length() > 0 && !phone.matches("\\+[0-9 -]+")) {
 			throw new IllegalArgumentException(
@@ -89,6 +126,11 @@ public class EAVDAMUser {
 		return fax;
 	}
 
+	/**
+	 * Also validates the phone number. Throws IllegalArgumentException if phone number does not start with + followed by digits, space and dashes allowed.
+	 *
+	 * @param phone  Phone number of the person
+	 */		
 	public void setFax(String fax) {
 		if (fax != null && fax.length() > 0 && !fax.matches("\\+[0-9 -]+")) {
 			throw new IllegalArgumentException(
@@ -101,11 +143,11 @@ public class EAVDAMUser {
 			this.fax = "";
 	}
 
-	public java.net.URL getWww() {
+	public URL getWww() {
 		return www;
 	}
 
-	public void setWww(java.net.URL www) {
+	public void setWww(URL www) {
 		this.www = www;
 	}
 
@@ -163,12 +205,13 @@ public class EAVDAMUser {
 
 	@Override
 	public String toString() {
-		return "EAVDAMUser [organizationName=" + organizationName
-				+ ", countryID=" + countryID + ", phone=" + phone + ", fax="
-				+ fax + ", www=" + www + ", description=" + description
-				+ ", contact=" + contact + ", technicalContact="
-				+ technicalContact + ", visitingAddress=" + visitingAddress
-				+ ", postalAddress=" + postalAddress + ", anything=" + anything
-				+ "]";
+		return "EAVDAMUser [organizationName=" + organizationName +
+			", countryID=" + countryID + ", phone=" + phone + ", fax=" +
+			fax + ", www=" + www + ", description=" + description +
+			", contact=" + contact + ", technicalContact=" +
+			technicalContact + ", visitingAddress=" + visitingAddress +
+			", postalAddress=" + postalAddress + ", anything=" + anything +
+			"]";
 	}
+	
 }

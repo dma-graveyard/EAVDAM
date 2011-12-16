@@ -1162,20 +1162,9 @@ public class AddStationDialog extends JDialog implements ActionListener, ItemLis
 			try {			
 				float lat = Float.valueOf(addLatitudeTextField.getText().replace(",", ".").trim());
 				float lon = Float.valueOf(addLongitudeTextField.getText().replace(",", ".").trim());
-		
 				int singleCellSizeInNauticalMiles = 30;
-				int noOfSingleCellsAlongOneSideOfMasterCell = 6;
-				int masterCellSizeInNauticalMiles = singleCellSizeInNauticalMiles * noOfSingleCellsAlongOneSideOfMasterCell;		
-				int noOfMasterCellsAroundEquator = (int) (360.0d * 60.0d / masterCellSizeInNauticalMiles);
-				float masterCellSizeInDegreesLatitude = (float) masterCellSizeInNauticalMiles / 60;  	
-				float singleCellHeightInDegrees = masterCellSizeInDegreesLatitude / noOfSingleCellsAlongOneSideOfMasterCell;
-
-				int masterCellRowNo = (int) (Math.abs(lat + (float) 0.5*singleCellHeightInDegrees) / masterCellSizeInDegreesLatitude);
-				double masterCellMeanLatitude = (masterCellRowNo + 0.5) * masterCellSizeInDegreesLatitude;
-				int noOfMasterCellsAroundMasterCellRow = (int) (noOfMasterCellsAroundEquator * Math.cos(2*Math.PI*masterCellMeanLatitude/360.0));
-				float singleCellWidthInDegrees = (float) 360/(noOfSingleCellsAlongOneSideOfMasterCell*noOfMasterCellsAroundMasterCellRow);	
-									
-				return FATDMAGridLayer.getCellNo(lat, lon, singleCellSizeInNauticalMiles, noOfSingleCellsAlongOneSideOfMasterCell, masterCellRowNo, singleCellWidthInDegrees);
+				int noOfSingleCellsAlongOneSideOfMasterCell = 6;									
+				return FATDMAGridLayer.calculateCellNo(singleCellSizeInNauticalMiles, noOfSingleCellsAlongOneSideOfMasterCell, lat, lon);
 			
 			} catch (NumberFormatException e) {}	
 		}

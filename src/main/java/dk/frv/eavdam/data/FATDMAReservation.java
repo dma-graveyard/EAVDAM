@@ -1,14 +1,46 @@
+/*
+* Copyright 2011 Danish Maritime Safety Administration. All rights reserved.
+*
+* Redistribution and use in source and binary forms, with or without
+* modification, are permitted provided that the following conditions are met:
+*
+* 1. Redistributions of source code must retain the above copyright notice,
+* this list of conditions and the following disclaimer.
+*
+* 2. Redistributions in binary form must reproduce the above copyright notice,
+* this list of conditions and the following disclaimer in the documentation and/or
+* other materials provided with the distribution.
+*
+* THIS SOFTWARE IS PROVIDED BY Danish Maritime Safety Administration ``AS IS''
+* AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+* IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+* DISCLAIMED. IN NO EVENT SHALL <COPYRIGHT HOLDER> OR CONTRIBUTORS BE LIABLE FOR
+* ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+* (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+* LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+* ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+* (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+* SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+* The views and conclusions contained in the software and documentation are those
+* of the authors and should not be interpreted as representing official policies,
+* either expressed or implied, of Danish Maritime Safety Administration.
+*
+*/
 package dk.frv.eavdam.data;
 
+/**
+ * Class for a FATDMA reservation.
+ */
 public class FATDMAReservation {
         
 	public final static String STATION_OWNERSHIP_LOCAL = "L";
 	public final static String STATION_OWNERSHIP_REMOTE = "R";	
 		
-    private Integer startslot = null;  // 0..2249
-    private Integer blockSize = null;  // 1..5
-    private Integer increment = null;  // 0..1125
-    private String ownership = null;  // L: use by local station, R: use by remote station
+    private Integer startslot = null;
+    private Integer blockSize = null;
+    private Integer increment = null;
+    private String ownership = null;
 	private String usage = null;
 
     private Integer dbID = null;
@@ -27,6 +59,11 @@ public class FATDMAReservation {
         return startslot;
     }
     
+	/**
+	 * Also validates the startslot. Throws IllegalArgumentException if startslot is not in range 0-2249.
+	 *
+	 * @param startslot  FATDMA startslot
+	 */
     public void setStartslot(Integer startslot) {
 		if (startslot != null && (startslot.intValue() < 0 || startslot.intValue() > 2249)) {
 			throw new IllegalArgumentException("Startslot not in range [0 2249]");
@@ -38,6 +75,11 @@ public class FATDMAReservation {
         return blockSize;
     }
     
+	/**
+	 * Also validates the block size. Throws IllegalArgumentException if block size is not in range 1-5.
+	 *
+	 * @param blockSize  FATDMA block size
+	 */	
     public void setBlockSize(Integer blockSize) {
 		if (blockSize != null && (blockSize.intValue() < 1 || blockSize.intValue() > 5)) {
 			throw new IllegalArgumentException("Block Size not in range [1 5]");
@@ -49,6 +91,11 @@ public class FATDMAReservation {
         return increment;
     }
     
+	/**
+	 * Also validates the increment. Throws IllegalArgumentException if increment is not in range 0-1125.
+	 *
+	 * @param increment  FATDMA increment
+	 */		
     public void setIncrement(Integer increment) {
 		if (increment != null && (increment.intValue() < 0 || increment.intValue() > 1125)) {
 			throw new IllegalArgumentException("Increment not in range [0 1125]");
@@ -60,6 +107,11 @@ public class FATDMAReservation {
         return ownership;
     }
     
+	/**
+	 * Also validates the ownership. Throws IllegalArgumentException if ownership is not either STATION_OWNERSHIP_LOCAL or STATION_OWNERSHIP_REMOTE.
+	 *
+	 * @param ownership  FATDMA ownership
+	 */		
     public void setOwnership(String ownership) {
 		if (ownership != null && (!ownership.equals(STATION_OWNERSHIP_LOCAL) && !ownership.equals(STATION_OWNERSHIP_REMOTE))) {
 			throw new IllegalArgumentException("Ownership not one of allowed values [" + STATION_OWNERSHIP_LOCAL + ", " + STATION_OWNERSHIP_REMOTE +"]");
@@ -108,7 +160,7 @@ public class FATDMAReservation {
 		}
     
 		return true;
-	}	
+	}
 
 	public Integer getDbID() {
 		return dbID;
@@ -119,7 +171,8 @@ public class FATDMAReservation {
 	}
 	
 	public String toString(){
-		return "id: "+this.dbID+", owner: "+this.ownership+", increment: "+this.increment+", block size: "+this.blockSize+", start slot: "+this.startslot+", usage:"+this.usage;
+		return "id: " + this.dbID + ", owner: " + this.ownership + ", increment: " + this.increment + ", block size: " +
+			this.blockSize + ", start slot: " + this.startslot + ", usage:" + this.usage;
 	}
 
 }

@@ -1,3 +1,32 @@
+/*
+* Copyright 2011 Danish Maritime Safety Administration. All rights reserved.
+*
+* Redistribution and use in source and binary forms, with or without
+* modification, are permitted provided that the following conditions are met:
+*
+* 1. Redistributions of source code must retain the above copyright notice,
+* this list of conditions and the following disclaimer.
+*
+* 2. Redistributions in binary form must reproduce the above copyright notice,
+* this list of conditions and the following disclaimer in the documentation and/or
+* other materials provided with the distribution.
+*
+* THIS SOFTWARE IS PROVIDED BY Danish Maritime Safety Administration ``AS IS''
+* AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+* IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+* DISCLAIMED. IN NO EVENT SHALL <COPYRIGHT HOLDER> OR CONTRIBUTORS BE LIABLE FOR
+* ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+* (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+* LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+* ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+* (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+* SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+* The views and conclusions contained in the software and documentation are those
+* of the authors and should not be interpreted as representing official policies,
+* either expressed or implied, of Danish Maritime Safety Administration.
+*
+*/
 package dk.frv.eavdam.app;
 
 import com.bbn.openmap.gui.MapPanelChild;
@@ -43,6 +72,9 @@ import javax.swing.JTextField;
 import javax.swing.ListSelectionModel;
 import javax.swing.SwingConstants;
 
+/**
+ * Class for the side panel of the open map frame.
+ */
 public class SidePanel extends JPanel implements MapPanelChild, ActionListener {
 
 	private static final long serialVersionUID = 1L;
@@ -67,109 +99,12 @@ public class SidePanel extends JPanel implements MapPanelChild, ActionListener {
 		this.hch = hch;
 	}
 	
+	/**
+	 * Creates the side panel.
+	 */	
 	public SidePanel() {
 	        
-        setLayout(new BoxLayout(this, BoxLayout.PAGE_AXIS));             
-
-/*
-              
-        // choose maps title      
-              
-        JPanel chooseMapsPanel = new JPanel();  
-        chooseMapsPanel.setLayout(new BorderLayout());
-        chooseMapsPanel.setBorder(BorderFactory.createEmptyBorder(10,10,10,10));
-        JLabel chooseMapsLabel = new JLabel("Choose Map(s)", null, JLabel.CENTER);
-        chooseMapsLabel.setFont(new Font("Serif", Font.BOLD, 16));
-        chooseMapsLabel.setVerticalTextPosition(JLabel.BOTTOM);
-        chooseMapsLabel.setHorizontalTextPosition(JLabel.CENTER);               
-        chooseMapsPanel.add(chooseMapsLabel);
-        chooseMapsPanel.setPreferredSize(new Dimension(250, 40));
-        chooseMapsPanel.setMaximumSize(new Dimension(250, 40));
-        add(chooseMapsPanel);
-                   
-        // map names list           
-                              
-        String[] mapNames = { "Bornholm2W4mEu", "Bornholm2W4mEz", "Bornholm2W4mEz1", "Bornholm2W10mEu", "Bornholm2W10mEz" };
-        JList mapList = new JList(mapNames);
-        mapList.setSelectionMode(ListSelectionModel.MULTIPLE_INTERVAL_SELECTION);
-        mapList.setLayoutOrientation(JList.VERTICAL);
-        mapList.setVisibleRowCount(4);
-        JScrollPane mapListScroller = new JScrollPane(mapList);
-        mapListScroller.setBorder(new CompoundBorder
-            (BorderFactory.createEmptyBorder(0,10,10,10),
-            BorderFactory.createLineBorder(new Color(122, 138, 153), 1)));
-        mapListScroller.setPreferredSize(new Dimension(250, 90));
-        mapListScroller.setMaximumSize(new Dimension(250, 90));
-        add(mapListScroller);
-     
-        // add map and remove map buttons
-     
-        JPanel mapButtonsPanel = new JPanel();
-        mapButtonsPanel.setBorder(BorderFactory.createEmptyBorder(0,10,10,10)); 
-        GridLayout gridLayout = new GridLayout(1,2);               
-        gridLayout.setHgap(10);
-        mapButtonsPanel.setLayout(gridLayout);
-        JButton addMapButton = new JButton("Add map", null);        
-        addMapButton.setVerticalTextPosition(AbstractButton.BOTTOM);
-        addMapButton.setHorizontalTextPosition(AbstractButton.CENTER);
-        addMapButton.setPreferredSize(new Dimension(100, 35));
-        addMapButton.setMaximumSize(new Dimension(100, 35));
-        mapButtonsPanel.add(addMapButton);
-        JButton removeMapButton = new JButton("Remove map", null);        
-        removeMapButton.setVerticalTextPosition(AbstractButton.BOTTOM);
-        removeMapButton.setHorizontalTextPosition(AbstractButton.CENTER);
-        removeMapButton.setPreferredSize(new Dimension(130, 35));
-        removeMapButton.setMaximumSize(new Dimension(130, 35));
-        mapButtonsPanel.add(removeMapButton);        
-        mapButtonsPanel.setMinimumSize(new Dimension(250, 35));
-        mapButtonsPanel.setPreferredSize(new Dimension(250, 35));
-        mapButtonsPanel.setMaximumSize(new Dimension(250, 35));        
-        add(mapButtonsPanel);
-
-        // empty textarea
-
-        JTextArea textArea = new JTextArea("");
-        textArea.setLineWrap(true);
-        textArea.setWrapStyleWord(true);
-        textArea.setEditable(false);
-        JScrollPane areaScrollPane = new JScrollPane(textArea);
-        areaScrollPane.setBorder(new CompoundBorder
-            (BorderFactory.createEmptyBorder(0,10,10,10),
-            BorderFactory.createLineBorder(new Color(122, 138, 153), 1)));
-        areaScrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
-        areaScrollPane.setPreferredSize(new Dimension(250, 90));
-        areaScrollPane.setMaximumSize(new Dimension(250, 90));
-        add(areaScrollPane);
-        
-        // display maps button
-        
-        JPanel displayMapsButtonPanel = new JPanel();
-        displayMapsButtonPanel.setBorder(BorderFactory.createEmptyBorder(0,10,10,10));                
-        displayMapsButtonPanel.setLayout(new GridLayout(1,1));
-        JButton displayMapsButton = new JButton("Display map(s)", null);        
-        displayMapsButton.setVerticalTextPosition(AbstractButton.BOTTOM);
-        displayMapsButton.setHorizontalTextPosition(AbstractButton.CENTER);
-        displayMapsButtonPanel.add(displayMapsButton);        
-        displayMapsButtonPanel.setPreferredSize(new Dimension(150, 35));
-        displayMapsButtonPanel.setMaximumSize(new Dimension(150, 35));        
-        add(displayMapsButtonPanel);        
-          
-        // base station parameters title
-
-        JPanel baseStationParametersPanel = new JPanel();  
-        baseStationParametersPanel.setLayout(new BorderLayout());
-        baseStationParametersPanel.setBorder(BorderFactory.createEmptyBorder(15,10,10,10));
-        JLabel baseStationParametersLabel = new JLabel("Base station parameters", null, JLabel.CENTER);
-        baseStationParametersLabel.setFont(new Font("Serif", Font.BOLD, 16));
-        baseStationParametersLabel.setVerticalTextPosition(JLabel.BOTTOM);
-        baseStationParametersLabel.setHorizontalTextPosition(JLabel.CENTER);               
-        baseStationParametersPanel.add(baseStationParametersLabel);
-        baseStationParametersPanel.setPreferredSize(new Dimension(250, 40));
-        baseStationParametersPanel.setMaximumSize(new Dimension(250, 40));
-        add(baseStationParametersPanel);
-        */
-        
-        // station information
+        setLayout(new BoxLayout(this, BoxLayout.PAGE_AXIS));
         
         infoPane = new JEditorPane("text/html",
             "<p><strong>Click a station to view data:<strong></p>" +
@@ -189,9 +124,6 @@ public class SidePanel extends JPanel implements MapPanelChild, ActionListener {
             "<tr><td valign=\"top\">Timeslots reserved on CH A (AIS1):</td><td>...</td></tr>" +
 			"<tr><td valign=\"top\">Timeslots reserved on CH B (AIS2):</td><td>...</td></tr></table>");
         infoPane.setBackground(new Color(238, 238, 238));
-        //infoPane.setBorder(new CompoundBorder
-        //    (BorderFactory.createLineBorder(new Color(122, 138, 153), 1),
-        //    BorderFactory.createEmptyBorder(0,10,0,10)));
         infoPane.setBorder(BorderFactory.createEmptyBorder(0,0,0,0));
         infoPane.setPreferredSize(new Dimension(230, 500));
         infoPane.setMaximumSize(new Dimension(230, 500));
@@ -201,8 +133,7 @@ public class SidePanel extends JPanel implements MapPanelChild, ActionListener {
         infoScrollPane.setBorder(BorderFactory.createEmptyBorder(0,10,0,10));
         infoScrollPane.setPreferredSize(new Dimension(230, 500));
         infoScrollPane.setMaximumSize(new Dimension(230, 500));
-        add(infoScrollPane);
-        //add(infoPane);        
+        add(infoScrollPane);       
         	
 		progressIndicatorPane = new JPanel();								
 		progressIndicatorPane.setLayout(new GridBagLayout());
@@ -291,6 +222,11 @@ public class SidePanel extends JPanel implements MapPanelChild, ActionListener {
 		}
 	}
 	
+	/**
+	 * Sets the station information to the side panel.
+	 *
+	 * @param omBaseStation  The station of which information is set
+	 */
 	public void showInfo(OMBaseStation omBaseStation) {
 		EAVDAMUser owner = omBaseStation.getOwner();
 	    AISFixedStationData stationData = omBaseStation.getStationData();

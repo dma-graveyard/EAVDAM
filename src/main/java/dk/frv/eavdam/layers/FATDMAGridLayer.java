@@ -102,8 +102,7 @@ public class FATDMAGridLayer extends OMGraphicHandlerLayer {
 							if ((lon > startLon) && (lon < endLon)) {  
 								OMRect omRect = new OMRect(lat, lon, lat + singleCellHeightInDegrees, lon+singleCellWidthInDegrees, OMGraphic.LINETYPE_RHUMB);
 								graphics.add(omRect);					
-								int cellno = getCellNo(lat + 0.5*singleCellHeightInDegrees, lon + 0.5*singleCellWidthInDegrees,
-									singleCellSizeInNauticalMiles, noOfSingleCellsAlongOneSideOfMasterCell, masterCellRowNo, singleCellWidthInDegrees);					
+								int cellno = calculateCellNo(singleCellSizeInNauticalMiles, noOfSingleCellsAlongOneSideOfMasterCell, lat + 0.5*singleCellHeightInDegrees, lon + 0.5*singleCellWidthInDegrees);					
 								OMText omText = new OMText(lat + 0.5*singleCellHeightInDegrees, lon +0.5*singleCellWidthInDegrees, String.valueOf(cellno), OMText.JUSTIFY_CENTER);
 								omText.setBaseline(OMText.BASELINE_MIDDLE);
 								graphics.add(omText);
@@ -115,8 +114,7 @@ public class FATDMAGridLayer extends OMGraphicHandlerLayer {
 							if ((lon > startLon) && (lon <= 180)) {  
 								OMRect omRect = new OMRect(lat, lon, lat + singleCellHeightInDegrees, lon+singleCellWidthInDegrees, OMGraphic.LINETYPE_RHUMB);
 								graphics.add(omRect);					
-								int cellno = getCellNo(lat + 0.5*singleCellHeightInDegrees, lon + 0.5*singleCellWidthInDegrees,
-									singleCellSizeInNauticalMiles, noOfSingleCellsAlongOneSideOfMasterCell, masterCellRowNo, singleCellWidthInDegrees);					
+								int cellno = calculateCellNo(singleCellSizeInNauticalMiles, noOfSingleCellsAlongOneSideOfMasterCell, lat + 0.5*singleCellHeightInDegrees, lon + 0.5*singleCellWidthInDegrees);			
 								OMText omText = new OMText(lat + 0.5*singleCellHeightInDegrees, lon + 0.5*singleCellWidthInDegrees, String.valueOf(cellno), OMText.JUSTIFY_CENTER);
 								omText.setBaseline(OMText.BASELINE_MIDDLE);
 								graphics.add(omText);
@@ -130,8 +128,7 @@ public class FATDMAGridLayer extends OMGraphicHandlerLayer {
 							if ((lon >= -180) && (lon < endLon)) {
 								OMRect omRect = new OMRect(lat, lon, lat + singleCellHeightInDegrees, lon+singleCellWidthInDegrees, OMGraphic.LINETYPE_RHUMB);
 								graphics.add(omRect);		
-								int cellno = getCellNo(lat + 0.5*singleCellHeightInDegrees, lon + 0.5*singleCellWidthInDegrees,
-									singleCellSizeInNauticalMiles, noOfSingleCellsAlongOneSideOfMasterCell, masterCellRowNo, singleCellWidthInDegrees);					
+								int cellno = calculateCellNo(singleCellSizeInNauticalMiles, noOfSingleCellsAlongOneSideOfMasterCell, lat + 0.5*singleCellHeightInDegrees, lon + 0.5*singleCellWidthInDegrees);													
 								OMText omText = new OMText(lat + 0.5*singleCellHeightInDegrees, lon + 0.5*singleCellWidthInDegrees, String.valueOf(cellno), OMText.JUSTIFY_CENTER);
 								omText.setBaseline(OMText.BASELINE_MIDDLE);
 								graphics.add(omText);
@@ -225,37 +222,50 @@ public class FATDMAGridLayer extends OMGraphicHandlerLayer {
 		}
 	}
 	
-    public static int getCellNo(double lat, double lon, int singleCellSizeInNauticalMiles, int noOfSingleCellsAlongOneSideOfMasterCell, int masterCellRowNo, double singleCellWidthInDegrees) {
+	public static int calculateCellNo(int singleCellSizeInNauticalMiles, int noOfSingleCellsAlongOneSideOfMasterCell, double lat, double lon) {
+	
+		// assuming mastercell consists of rectangular grid of singlecells
+		// lat / lon in decimal degrees
+    
+		int result = -1;
 
-        int rowNumberInsideMasterCell =-1;
-        int columnNumberInsideMasterCell =-1;
+		int masterCellSizeInNauticalMiles = singleCellSizeInNauticalMiles * noOfSingleCellsAlongOneSideOfMasterCell;
+		int noOfMasterCellsAroundEquator = (int) (360.0d * 60.0d / masterCellSizeInNauticalMiles);
+		double MasterCellSizeInDegreesLatitude = (double)masterCellSizeInNauticalMiles / 60.0d;  
 
-        // default: Southern Hemisphere
-        rowNumberInsideMasterCell = ((int) (Math.abs(lat) * 60.0 / singleCellSizeInNauticalMiles)) - noOfSingleCellsAlongOneSideOfMasterCell * masterCellRowNo; // positive integer
+		try {
+			int masterCellRowNo = (int) (Math.abs(lat) / MasterCellSizeInDegreesLatitude);  // integer: 0 near equator, positive value increasing towards the poles
+			double masterCellMeanLatitude = (masterCellRowNo+0.5) * MasterCellSizeInDegreesLatitude;  // positive value, denotes the vertical middle of the master cell
+			int noOfMasterCellsAroundMasterCellRow = (int) (noOfMasterCellsAroundEquator * Math.cos(2*Math.PI*masterCellMeanLatitude/360.0));
+			double singleCellWidthInDegrees = 360.0d/(noOfSingleCellsAlongOneSideOfMasterCell*noOfMasterCellsAroundMasterCellRow);  // Assuming 5 cells per mastercell
 
-		if (lat > 0) { //in case of Northern Hemisphere      
-			rowNumberInsideMasterCell = noOfSingleCellsAlongOneSideOfMasterCell - rowNumberInsideMasterCell - 1;
-        }
+			int rowNumberInsideMasterCell =-1;  //legal values [0;noOfSingleCellsAlongOneSideOfMasterCell-1]
+			int columnNumberInsideMasterCell =-1;  //legal values [0;noOfSingleCellsAlongOneSideOfMasterCell-1]
 
-		//default: Positive longitude - east of Greenwich
-		columnNumberInsideMasterCell = (int) (Math.abs(lon) / singleCellWidthInDegrees);
-		while (columnNumberInsideMasterCell > (noOfSingleCellsAlongOneSideOfMasterCell-1)) {
-			columnNumberInsideMasterCell -= noOfSingleCellsAlongOneSideOfMasterCell;
-		}
+			// default: Southern Hemisphere
+			rowNumberInsideMasterCell = ((int) (Math.abs(lat) * 60.0 / singleCellSizeInNauticalMiles)) - noOfSingleCellsAlongOneSideOfMasterCell * masterCellRowNo; // positive integer
+	
+			if (lat>0) {  //in case of Northern Hemisphere
+				rowNumberInsideMasterCell = noOfSingleCellsAlongOneSideOfMasterCell - rowNumberInsideMasterCell - 1;
+			}
+
+			//default: Positive longitude - east of Greenwich
+			columnNumberInsideMasterCell = (int) (Math.abs(lon) / singleCellWidthInDegrees);
+			while (columnNumberInsideMasterCell >(noOfSingleCellsAlongOneSideOfMasterCell-1)) {
+				columnNumberInsideMasterCell -= noOfSingleCellsAlongOneSideOfMasterCell;
+			}
           
-		if (lon < 0) {  // In case of Negative longitude - west of Greenwich      
-			columnNumberInsideMasterCell = (noOfSingleCellsAlongOneSideOfMasterCell-1)-columnNumberInsideMasterCell;
-		}
+			if (lon<0) {  // In case of Negative longitude - west of Greenwich
+				columnNumberInsideMasterCell = (noOfSingleCellsAlongOneSideOfMasterCell-1)-columnNumberInsideMasterCell;
+			}
 
-		/*
-		if (rowNumberInsideMasterCell*noOfSingleCellsAlongOneSideOfMasterCell+columnNumberInsideMasterCell+1 >  36) {
-			System.out.println("rowNumberInsideMasterCell: " + rowNumberInsideMasterCell);
-			System.out.println("columnNumberInsideMasterCell: " + columnNumberInsideMasterCell);
-			System.out.println("noOfSingleCellsAlongOneSideOfMasterCell: " + noOfSingleCellsAlongOneSideOfMasterCell);			
-		}
-		*/
+			result = rowNumberInsideMasterCell*noOfSingleCellsAlongOneSideOfMasterCell+columnNumberInsideMasterCell+1;
 		
-		return rowNumberInsideMasterCell*noOfSingleCellsAlongOneSideOfMasterCell+columnNumberInsideMasterCell+1;           
+		} catch (Exception ex) {
+			result = -1;
+		}
+		return result;
+	
 	}
 
 	@Override

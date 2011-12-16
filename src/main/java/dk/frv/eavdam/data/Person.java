@@ -1,11 +1,36 @@
+/*
+* Copyright 2011 Danish Maritime Safety Administration. All rights reserved.
+*
+* Redistribution and use in source and binary forms, with or without
+* modification, are permitted provided that the following conditions are met:
+*
+* 1. Redistributions of source code must retain the above copyright notice,
+* this list of conditions and the following disclaimer.
+*
+* 2. Redistributions in binary form must reproduce the above copyright notice,
+* this list of conditions and the following disclaimer in the documentation and/or
+* other materials provided with the distribution.
+*
+* THIS SOFTWARE IS PROVIDED BY Danish Maritime Safety Administration ``AS IS''
+* AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+* IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+* DISCLAIMED. IN NO EVENT SHALL <COPYRIGHT HOLDER> OR CONTRIBUTORS BE LIABLE FOR
+* ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+* (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+* LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+* ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+* (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+* SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+* The views and conclusions contained in the software and documentation are those
+* of the authors and should not be interpreted as representing official policies,
+* either expressed or implied, of Danish Maritime Safety Administration.
+*
+*/
 package dk.frv.eavdam.data;
 
 /**
- * Class for one contact point information
- * 
- * @author ttesei
- * @version 1.0
- * @created 26-elo-2011 13:27:25
+ * Class for a contact person. 
  */
 public class Person {
 
@@ -17,13 +42,17 @@ public class Person {
 	private Address visitingAddress;
 	private Address postalAddress;
 
-	public Person() {
-	}
+	public Person() {}
 
 	public String getName() {
 		return name;
 	}
 
+	/**
+	 * Also validates the name. Throws IllegalArgumentException if name is empty.
+	 *
+	 * @param name  Name of the person
+	 */
 	public void setName(String name) {
 		if (name == null || name.trim().length() == 0) {
 			throw new IllegalArgumentException("Name must be given");
@@ -47,6 +76,11 @@ public class Person {
 		return phone;
 	}
 
+	/**
+	 * Also validates the phone number. Throws IllegalArgumentException if phone number does not start with + followed by digits, space and dashes allowed.
+	 *
+	 * @param phone  Phone number of the person
+	 */	
 	public void setPhone(String phone) {
 		if (phone != null && phone.length() > 0 && !phone.matches("\\+[0-9 -]+")) {
 			throw new IllegalArgumentException(
@@ -62,6 +96,11 @@ public class Person {
 		return fax;
 	}
 
+	/**
+	 * Also validates the fax number. Throws IllegalArgumentException if fax number does not start with + followed by digits, space and dashes allowed.
+	 *
+	 * @param fax  Fax number of the person 
+	 */		
 	public void setFax(String fax) {
 		if (fax != null && fax.length() > 0 && !fax.matches("\\+[0-9 -]+")) {
 			throw new IllegalArgumentException(
@@ -104,9 +143,9 @@ public class Person {
 
 	@Override
 	public String toString() {
-		return "Person [name=" + name + ", email=" + email + ", phone=" + phone
-				+ ", fax=" + fax + ", description=" + description
-				+ ", visitingAddress=" + visitingAddress + ", postalAddress="
-				+ postalAddress + "]";
+		return "Person [name=" + name + ", email=" + email + ", phone=" + phone +
+			", fax=" + fax + ", description=" + description +
+			", visitingAddress=" + visitingAddress + ", postalAddress=" +
+			postalAddress + "]";
 	}
 }
