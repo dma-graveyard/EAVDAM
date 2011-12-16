@@ -376,7 +376,7 @@ public class HealthCheckHandler {
 			
 			if(checkRule5){
 				
-				if(this.checkRule5(station)){
+				if(!this.checkRule5(station)){
 					
 					List<AISStation> stations = new ArrayList<AISStation>();
 					AISStation s1 = new AISStation(station.getOperator().getOrganizationName(), station.getStationName(), station.getLat(), station.getLon());
@@ -507,7 +507,6 @@ public class HealthCheckHandler {
 	
 	
 	private boolean checkRule5(AISFixedStationData station) {
-		System.out.println("checking rule 5 for station " + station.getStationName());
 		return FATDMAUtils.areReservedBlocksAccordingToFATDMAScheme((float)station.getLat(), (float)station.getLon(), station.getReservedBlocksForChannelA(), station.getReservedBlocksForChannelB());
 	}
 

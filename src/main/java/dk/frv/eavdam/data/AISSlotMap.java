@@ -31,10 +31,19 @@ package dk.frv.eavdam.data;
 
 import java.util.List;
 
+/**
+ * Class for slot map.
+ */
 public class AISSlotMap {
 
-	private List<AISTimeslot> ais1Timeslots;  // 2250 timeslots for AIS1 preferably in order from 0 to 2249
-	private List<AISTimeslot> ais2Timeslots;  // 2250 timeslots for AIS2 preferably in order from 0 to 2249
+	/**
+	 * 2250 timeslots for AIS1 in order from 0 to 2249
+	 */
+	private List<AISTimeslot> ais1Timeslots;  
+	/**
+	 * 2250 timeslots for AIS2 in order from 0 to 2249
+	 */	
+	private List<AISTimeslot> ais2Timeslots;
 	private double lat;
 	private double lon;
 	private double bandwidthReservation;

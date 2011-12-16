@@ -49,17 +49,12 @@ import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 
 /**
- * A class for holding all properties of an AIS base station.
- * 
- * @author ttesei
- * @version 1.0
- * @created 26-elo-2011 13:27:24
+ * A class for holding all properties of an AIS station.
  */
 public class AISFixedStationData {
 
 	/**
-	 * Descriptive name for the station (E.g. 'Bornholm AIS Base Station' or
-	 * 'W24 AIS AtoN Station').
+	 * Descriptive name for the station (E.g. 'Bornholm AIS Base Station' or 'W24 AIS AtoN Station')
 	 */
 	private String stationName;
 	/**
@@ -75,101 +70,100 @@ public class AISFixedStationData {
 	 */
 	private String mmsi;
 	/**
-	 * Transmission power in Watts.
+	 * Transmission power in Watts
 	 */
 	private Double transmissionPower;
 	/**
-	 * A free text description of the station.
+	 * A free text description of the station
 	 */
 	private String description;
-
+	
 	/**
-	 * Transmission coverage information for the station.
+	 * Transmission coverage information for the station
 	 */
 	private AISFixedStationCoverage transmissionCoverage;
 	
 	/**
-	 * Receive coverage information for the station.
+	 * Receive coverage information for the station
 	 */
 	private AISFixedStationCoverage receiveCoverage;
 	
 	/**
-	 * Interference coverage information for the station.
+	 * Interference coverage information for the station
 	 */
 	private AISFixedStationCoverage interferenceCoverage;
 	
 	/**
-	 * Antenna information for the station.
+	 * Antenna information for the station
 	 */
 	private Antenna antenna;
+	
 	/**
-	 * FATDMA channels
+	 * FATDMA channel A
 	 */
 	private FATDMAChannel fatdmaChannelA;
+	/**
+	 * FATDMA channel B
+	 */
 	private FATDMAChannel fatdmaChannelB;
 	/**
-	 * FATDMA allocation information for the station.
+	 * FATDMA allocation information for the station
 	 */
 	private FATDMASlotAllocation fatdmaAllocation;
+	
 	/**
-	 * Type of the fixed AIS station.
+	 * Type of the fixed AIS station
 	 */
 	private AISFixedStationType stationType;
 	/**
-	 * Responsible operator (user of EAVDAM) of the station.
+	 * Responsible operator (user of EAVDAM) of the station
 	 */
 	private EAVDAMUser operator;
 	/**
-	 * 
+	 * Station status
 	 */
 	private AISFixedStationStatus status;
+	
 	/**
-	 * Anything can go in here. The schema allows unknown XML content in the
-	 * end.
+	 * Anything can go in here, the schema allows unknown XML content in the end
 	 */
 	private List<Element> anything;
 	
 	/**
-	 * Organization that has proposed this station.
+	 * Organization that has proposed this station
 	 */
 	private int proposee;
 	
 	/**
-	 * Id of the station to which the planned station maps to.
-	 * 
+	 * Id of the station to which the planned station maps to
 	 */
 	private int refStationID;
 	
 	/**
-	 * ID that is used in the database.
-	 * 
+	 * ID that is used in the database
 	 */
 	private int stationDBID;
 
 	/**
-	 * Stores the info about the ownership for each timeslot in both channel A and B.
-	 * 
-	 * Needed for rules checking.
+	 * Stores the info about the ownership for each timeslot in channel A (needed for rules checking)
 	 */
 	private Map<Integer,String> ownershipA;
+	
+	/**
+	 * Stores the info about the ownership for each timeslot in channel B (needed for rules checking)
+	 */	
 	private Map<Integer,String> ownershipB;
 	
-	/**
-	 * For optimizing. No need to get this information several times.
-	 */
-	private List<Integer> reservedBlocksA = null;
-	private List<Integer> reservedBlocksB = null;
+	private List<Integer> reservedBlocksA = null;  // for optimizing, no need to get this information several times
+	private List<Integer> reservedBlocksB = null;  // for optimizing, no need to get this information several times
 	
-	/**
-	 * Used for optimizing the algorithm.
-	 */
+	// Used for optimizing the algorithm 
 	private double[] northCoveragePoint = null; 
 	private double[] westCoveragePoint = null;		
 	private double[] southCoveragePoint = null; 
 	private double[] eastCoveragePoint = null;	
 	
-	public AISFixedStationData() {
-	}
+	public AISFixedStationData() {}
 
 	public String getStationName() {
 		return stationName;
@@ -231,8 +225,7 @@ public class AISFixedStationData {
 
 	public void setTransmissionPower(Double transmissionPower) {
 		if (transmissionPower != null && transmissionPower < 0) {
-			throw new IllegalArgumentException(
-					"Transmission power must be non-negative");
+			throw new IllegalArgumentException("Transmission power must be non-negative");
 		}
 		this.transmissionPower = transmissionPower;
 	}
@@ -321,43 +314,6 @@ public class AISFixedStationData {
 		this.anything = anything;
 	}
 
-	public String getAnythingString() throws TransformerException {
-		if (this.anything != null) {
-			TransformerFactory transFactory = TransformerFactory.newInstance();
-			Transformer transformer = transFactory.newTransformer();
-			transformer.setOutputProperty(OutputKeys.OMIT_XML_DECLARATION,
-					"yes");
-
-			StringBuilder sb = new StringBuilder();
-			for (Element e : this.anything) {
-				sb.append(e.getLocalName());
-				sb.append(" = ");
-				NodeList children = e.getChildNodes();
-				StringWriter buffer = new StringWriter();
-				for (int i = 0; i < children.getLength(); i++) {
-					transformer.transform(new DOMSource(children.item(i)),
-							new StreamResult(buffer));
-				}
-				sb.append(buffer.toString());
-				sb.append("\n");
-			}
-			return sb.toString();
-		}
-		return null;
-	}
-
-	@Override
-	public String toString() {
-		return "AISFixedStationData [stationName=" + stationName + ", lat="
-				+ lat + ", lon=" + lon + ", mmsi=" + mmsi
-				+ ", transmissionPower=" + transmissionPower + ", description="
-				+ description + ", transmitCoverage=" + transmissionCoverage + ", antenna="
-				+ antenna + ", fatdmaChannelA=" + fatdmaChannelA.toString()
-				+ ", fatdmaChannelB=" + fatdmaChannelB.toString()
-				+ ", stationType=" + stationType + ", operator=" + operator
-				+ ", status=" + status + ", anything=" + anything + "]";
-	}
-
 	public int getProposee() {
 		return proposee;
 	}
@@ -396,8 +352,38 @@ public class AISFixedStationData {
 
 	public void setInterferenceCoverage(AISFixedStationCoverage interferenceCoverage) {
 		this.interferenceCoverage = interferenceCoverage;
-	}
+	}	
 	
+	public String getAnythingString() throws TransformerException {
+		if (this.anything != null) {
+			TransformerFactory transFactory = TransformerFactory.newInstance();
+			Transformer transformer = transFactory.newTransformer();
+			transformer.setOutputProperty(OutputKeys.OMIT_XML_DECLARATION,
+					"yes");
+
+			StringBuilder sb = new StringBuilder();
+			for (Element e : this.anything) {
+				sb.append(e.getLocalName());
+				sb.append(" = ");
+				NodeList children = e.getChildNodes();
+				StringWriter buffer = new StringWriter();
+				for (int i = 0; i < children.getLength(); i++) {
+					transformer.transform(new DOMSource(children.item(i)),
+							new StreamResult(buffer));
+				}
+				sb.append(buffer.toString());
+				sb.append("\n");
+			}
+			return sb.toString();
+		}
+		return null;
+	}
+
+	/**
+	 * Gets reserved blocks for channel A.
+	 *
+	 * @return  Reserved blocks for channel A
+	 */	
 	public List<Integer> getReservedBlocksForChannelA() {
 		
 		if(reservedBlocksA != null) return this.reservedBlocksA; 
@@ -463,6 +449,11 @@ public class AISFixedStationData {
 		return reservedBlocksA;
 	}
 	
+	/**
+	 * Gets reserved blocks for channel B.
+	 *
+	 * @return  Reserved blocks for channel B
+	 */
 	public List<Integer> getReservedBlocksForChannelB() {
 		
 		if(this.reservedBlocksB != null) return reservedBlocksB;
@@ -530,9 +521,9 @@ public class AISFixedStationData {
 	/**
 	 * Returns the ownership of the given timeslot in the given channel. Null is return if there is no reservation for the given slot. 
 	 * 
-	 * @param channel Either A or B.
-	 * @param slot Integer of the slot
-	 * @return R = remote, L = local, null = no reservation or the station is an aton station.
+	 * @param channel  Either A or B
+	 * @param slot  Integer of the slot
+	 * @return  R = remote, L = local, null = no reservation or the station is an aton station
 	 */
 	public String getOwnershipInSlot(String channel, Integer slot){
 		if(this.stationType.equals(AISFixedStationType.ATON)) return null;
@@ -585,6 +576,11 @@ public class AISFixedStationData {
 		return maxLat;
 	}
 	
+	/**
+	 * Finds the westest point of the coverage. Used to optimize the rule checking.
+	 * 
+	 * @return
+	 */	
 	public double[] getWestTransmitCoveragePoints(){
 		if(this.westCoveragePoint != null) return this.westCoveragePoint;
 		
@@ -613,6 +609,11 @@ public class AISFixedStationData {
 		return minLon;
 	}
 	
+	/**
+	 * Finds the eastest point of the coverage. Used to optimize the rule checking.
+	 * 
+	 * @return
+	 */	
 	public double[] getEastTransmitCoveragePoints(){
 		if(this.eastCoveragePoint != null) return this.eastCoveragePoint;
 		
@@ -640,7 +641,12 @@ public class AISFixedStationData {
 		
 		return maxLon;
 	}
-	
+
+	/**
+	 * Finds the southest point of the coverage. Used to optimize the rule checking.
+	 * 
+	 * @return
+	 */	
 	public double[] getSouthTransmitCoveragePoints(){
 		if(this.southCoveragePoint != null) return this.southCoveragePoint;
 		
@@ -668,5 +674,17 @@ public class AISFixedStationData {
 		
 		return minLat;
 	}
-}
+	
+	@Override
+	public String toString() {
+		return "AISFixedStationData [stationName=" + stationName + ", lat=" +
+			lat + ", lon=" + lon + ", mmsi=" + mmsi +
+			", transmissionPower=" + transmissionPower + ", description=" +
+			description + ", transmitCoverage=" + transmissionCoverage + ", antenna=" +
+			antenna + ", fatdmaChannelA=" + fatdmaChannelA.toString() +
+			", fatdmaChannelB=" + fatdmaChannelB.toString() +
+			", stationType=" + stationType + ", operator=" + operator +
+			", status=" + status + ", anything=" + anything + "]";
+	}
 
+}
