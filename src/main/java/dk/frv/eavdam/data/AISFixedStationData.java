@@ -169,6 +169,11 @@ public class AISFixedStationData {
 		return stationName;
 	}
 
+	/**
+	 * Also validates the station name. Throws IllegalArgumentException if station name is empty.
+	 *
+	 * @param stationName  Name of the station
+	 */	
 	public void setStationName(String stationName) {
 		if (stationName == null || stationName.trim().length() == 0) {
 			throw new IllegalArgumentException("Station name must be given");
@@ -180,6 +185,11 @@ public class AISFixedStationData {
 		return lat;
 	}
 
+	/**
+	 * Also validates the latitude. Throws IllegalArgumentException if latitude is not in range -90-90.
+	 *
+	 * @param lat  Latitude
+	 */	
 	public void setLat(double lat) {
 		if (lat < -90 || lat > 90) {
 			throw new IllegalArgumentException("Latitude not in range [-90 90]");
@@ -191,6 +201,11 @@ public class AISFixedStationData {
 		return lon;
 	}
 
+	/**
+	 * Also validates the longitude. Throws IllegalArgumentException if longitude is not in range -180-180.
+	 *
+	 * @param lon  Longitude
+	 */		
 	public void setLon(double lon) {
 		if (lon < -180 || lon > 180) {
 			throw new IllegalArgumentException(
@@ -203,6 +218,11 @@ public class AISFixedStationData {
 		return mmsi;
 	}
 
+	/**
+	 * Also validates the MMSI number. Throws IllegalArgumentException if MMSI number does not consist of 9 digits.
+	 *
+	 * @param mmsi  MMSI number
+	 */		
 	public void setMmsi(String mmsi) {
 	    // mmsi may be less than 9 digits but should then be prepended with zeros
 	    if (mmsi != null && mmsi.length() < 9) {
@@ -222,7 +242,12 @@ public class AISFixedStationData {
 	public Double getTransmissionPower() {
 		return transmissionPower;
 	}
-
+	
+	/**
+	 * Also validates the transmission power. Throws IllegalArgumentException if transmission power is negative.
+	 *
+	 * @param transmissionPower  Transmission number
+	 */		
 	public void setTransmissionPower(Double transmissionPower) {
 		if (transmissionPower != null && transmissionPower < 0) {
 			throw new IllegalArgumentException("Transmission power must be non-negative");
@@ -386,8 +411,9 @@ public class AISFixedStationData {
 	 */	
 	public List<Integer> getReservedBlocksForChannelA() {
 		
-		if(reservedBlocksA != null) return this.reservedBlocksA; 
-		
+		if(reservedBlocksA != null) {
+			return this.reservedBlocksA;
+		}
 		
 		if (fatdmaChannelA != null) {
 			if (fatdmaChannelA instanceof AISBaseAndReceiverStationFATDMAChannel) {
@@ -441,8 +467,8 @@ public class AISFixedStationData {
 		}
 
 
-		if(this.reservedBlocksA != null){
-			//Put them into ascending order. 
+		if (this.reservedBlocksA != null) {
+			// put them into ascending order
 			Collections.sort(reservedBlocksA);
 		}
 		
@@ -456,7 +482,9 @@ public class AISFixedStationData {
 	 */
 	public List<Integer> getReservedBlocksForChannelB() {
 		
-		if(this.reservedBlocksB != null) return reservedBlocksB;
+		if (this.reservedBlocksB != null) {
+			return reservedBlocksB;
+		}
 		
 		if (fatdmaChannelB != null) {
 			if (fatdmaChannelB instanceof AISBaseAndReceiverStationFATDMAChannel) {
@@ -511,7 +539,7 @@ public class AISFixedStationData {
 
 
 		if(reservedBlocksB != null){
-			//Put them into ascending order. 
+			// put them into ascending order
 			Collections.sort(reservedBlocksB);
 		}
 		
@@ -526,19 +554,34 @@ public class AISFixedStationData {
 	 * @return  R = remote, L = local, null = no reservation or the station is an aton station
 	 */
 	public String getOwnershipInSlot(String channel, Integer slot){
-		if(this.stationType.equals(AISFixedStationType.ATON)) return null;
+	
+		if (this.stationType.equals(AISFixedStationType.ATON)) {
+			return null;
+		}
 		
-		if(channel.equals("A")){
-			if(this.ownershipA == null) this.getReservedBlocksForChannelA();
-			if(this.ownershipA == null) return null;
+		if (channel.equals("A")) {
+			
+			if (this.ownershipA == null) {
+				this.getReservedBlocksForChannelA();
+			}
+			if (this.ownershipA == null) {
+				return null;
+			}
 			
 			return this.ownershipA.get(slot);
-		}else if(channel.equals("B")){
-			if(this.ownershipB == null) this.getReservedBlocksForChannelB();
-			if(this.ownershipB == null) return null;
+			
+		} else if(channel.equals("B")) {
+	
+			if (this.ownershipB == null) {
+				this.getReservedBlocksForChannelB();
+			}
+			if (this.ownershipB == null) {
+				return null;
+			}
 			
 			return this.ownershipB.get(slot);
-		}else{
+			
+		} else {
 			return null;
 		}
 	}
@@ -548,24 +591,36 @@ public class AISFixedStationData {
 	 * 
 	 * @return
 	 */
-	public double[] getNorthTransmitCoveragePoints(){
-		if(this.northCoveragePoint != null) return this.northCoveragePoint;
+	public double[] getNorthTransmitCoveragePoints() {
+	
+		if (this.northCoveragePoint != null) {
+			return this.northCoveragePoint;
+		}	
 		
-		if(this.transmissionCoverage == null || this.transmissionCoverage.getCoveragePoints() == null) return null;
+		if (this.transmissionCoverage == null || this.transmissionCoverage.getCoveragePoints() == null) {
+			return null;
+		}
 		
 		double[] maxLat = {Double.MIN_VALUE,Double.MIN_VALUE};
 		double[] minLat = {Double.MAX_VALUE,Double.MAX_VALUE};
 		double[] maxLon = {Double.MIN_VALUE,Double.MIN_VALUE};
 		double[] minLon = {Double.MAX_VALUE,Double.MAX_VALUE};
 		
+		for (double[] p : this.transmissionCoverage.getCoveragePoints()) {
 		
-		for(double[] p : this.transmissionCoverage.getCoveragePoints()){
-			if(p[0] > maxLat[0]) maxLat = p;
-			if(p[0] < minLat[0]) minLat = p;
+			if (p[0] > maxLat[0]) {
+				maxLat = p;
+			}
+			if (p[0] < minLat[0]) {
+				minLat = p;
+			}
 			
-			if(p[1] < minLon[1]) minLon = p; 
-			if(p[1] > maxLon[1]) maxLon = p;
-			
+			if (p[1] < minLon[1]) {
+				minLon = p; 
+			}
+			if (p[1] > maxLon[1]) {
+				maxLon = p;	
+			}
 		}
 		
 		this.northCoveragePoint = maxLat;
@@ -582,22 +637,35 @@ public class AISFixedStationData {
 	 * @return
 	 */	
 	public double[] getWestTransmitCoveragePoints(){
-		if(this.westCoveragePoint != null) return this.westCoveragePoint;
+	
+		if (this.westCoveragePoint != null) {
+			return this.westCoveragePoint;
+		}
 		
-		if(this.transmissionCoverage == null || this.transmissionCoverage.getCoveragePoints() == null) return null;
+		if (this.transmissionCoverage == null || this.transmissionCoverage.getCoveragePoints() == null) {
+			return null;
+		}
 		
 		double[] maxLat = {Double.MIN_VALUE,Double.MIN_VALUE};
 		double[] minLat = {Double.MAX_VALUE,Double.MAX_VALUE};
 		double[] maxLon = {Double.MIN_VALUE,Double.MIN_VALUE};
 		double[] minLon = {Double.MAX_VALUE,Double.MAX_VALUE};
 		
+		for (double[] p : transmissionCoverage.getCoveragePoints()) {
 		
-		for(double[] p : transmissionCoverage.getCoveragePoints()){
-			if(p[0] > maxLat[0]) maxLat = p;
-			if(p[0] < minLat[0]) minLat = p;
+			if (p[0] > maxLat[0]) {
+				maxLat = p;
+			}
+			if (p[0] < minLat[0]) {
+				minLat = p;
+			}
 			
-			if(p[1] < minLon[1]) minLon = p; 
-			if(p[1] > maxLon[1]) maxLon = p;
+			if (p[1] < minLon[1]) {
+				minLon = p; 
+			}
+			if (p[1] > maxLon[1]) {
+				maxLon = p;
+			}
 			
 		}
 		
@@ -615,22 +683,35 @@ public class AISFixedStationData {
 	 * @return
 	 */	
 	public double[] getEastTransmitCoveragePoints(){
-		if(this.eastCoveragePoint != null) return this.eastCoveragePoint;
 		
-		if(this.transmissionCoverage == null || this.transmissionCoverage.getCoveragePoints() == null) return null;
+		if (this.eastCoveragePoint != null) {
+			return this.eastCoveragePoint;
+		}
+		
+		if (this.transmissionCoverage == null || this.transmissionCoverage.getCoveragePoints() == null) {
+			return null;
+		}
 		
 		double[] maxLat = {Double.MIN_VALUE,Double.MIN_VALUE};
 		double[] minLat = {Double.MAX_VALUE,Double.MAX_VALUE};
 		double[] maxLon = {Double.MIN_VALUE,Double.MIN_VALUE};
 		double[] minLon = {Double.MAX_VALUE,Double.MAX_VALUE};
 		
+		for (double[] p : transmissionCoverage.getCoveragePoints()) {
 		
-		for(double[] p : transmissionCoverage.getCoveragePoints()){
-			if(p[0] > maxLat[0]) maxLat = p;
-			if(p[0] < minLat[0]) minLat = p;
+			if (p[0] > maxLat[0]) {
+				maxLat = p;
+			}	
+			if (p[0] < minLat[0]) {
+				minLat = p;
+			}
 			
-			if(p[1] < minLon[1]) minLon = p; 
-			if(p[1] > maxLon[1]) maxLon = p;
+			if (p[1] < minLon[1]) {
+				minLon = p; 
+			}
+			if (p[1] > maxLon[1]) {
+				maxLon = p;
+			}
 			
 		}
 		
@@ -648,9 +729,14 @@ public class AISFixedStationData {
 	 * @return
 	 */	
 	public double[] getSouthTransmitCoveragePoints(){
-		if(this.southCoveragePoint != null) return this.southCoveragePoint;
+	
+		if (this.southCoveragePoint != null) {
+			return this.southCoveragePoint;
+		}
 		
-		if(this.transmissionCoverage == null || this.transmissionCoverage.getCoveragePoints() == null) return null;
+		if (this.transmissionCoverage == null || this.transmissionCoverage.getCoveragePoints() == null) {
+			return null;
+		}
 		
 		double[] maxLat = {Double.MIN_VALUE,Double.MIN_VALUE};
 		double[] minLat = {Double.MAX_VALUE,Double.MAX_VALUE};
@@ -658,12 +744,21 @@ public class AISFixedStationData {
 		double[] minLon = {Double.MAX_VALUE,Double.MAX_VALUE};
 		
 		
-		for(double[] p : transmissionCoverage.getCoveragePoints()){
-			if(p[0] > maxLat[0]) maxLat = p;
-			if(p[0] < minLat[0]) minLat = p;
+		for (double[] p : transmissionCoverage.getCoveragePoints()) {
+		
+			if(p[0] > maxLat[0]) {
+				maxLat = p;
+			}
+			if (p[0] < minLat[0]) {
+				minLat = p;
+			}
 			
-			if(p[1] < minLon[1]) minLon = p; 
-			if(p[1] > maxLon[1]) maxLon = p;
+			if (p[1] < minLon[1]) {
+				minLon = p; 
+			}
+			if (p[1] > maxLon[1]) {
+				maxLon = p;
+			}
 			
 		}
 		

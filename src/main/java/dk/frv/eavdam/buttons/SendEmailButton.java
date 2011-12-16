@@ -99,8 +99,7 @@ public class SendEmailButton extends OMToolComponent implements ActionListener, 
 						JOptionPane.showMessageDialog(openMapFrame, "No e-mail recipients defined!"); 
 					} else {
 						EmailSender.sendDataToEmail(options.getEmailTo(), options.getEmailFrom(), options.getEmailSubject(),
-							options.getEmailHost(), options.isEmailAuth(), options.getEmailUsername(), options.getEmailPassword(),
-							XMLHandler.getLatestDataFileName());
+							options.getEmailHost(), options.isEmailAuth(), options.getEmailUsername(), options.getEmailPassword());
 						JOptionPane.showMessageDialog(openMapFrame, "E-mails were sent succesfully."); 
 					}
 				} catch (IOException ex) {

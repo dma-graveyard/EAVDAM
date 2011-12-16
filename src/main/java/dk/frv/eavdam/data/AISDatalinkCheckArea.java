@@ -33,7 +33,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * This class contains a bandwith usage area of a AIS VHF Datalink Health Check operation.
+ * Class for a bandwith usage area of an AIS VHF Datalink Health Check operation.
  */
 public class AISDatalinkCheckArea {
 
@@ -109,12 +109,11 @@ public class AISDatalinkCheckArea {
 	}		
 	
 	public String toString(){
-		String ut = "("+topLeftLatitude+";"+topLeftLongitude+") - ("+lowerRightLatitude+";"+lowerRightLongitude+"): "+bandwithUsageLevel+" "+(issues != null ? issues.size() +" issues " : "");
-		if(this.issues != null && issues.size() > 0){
-			 ut+= "\n\t"+issues.get(0).getRuleViolated();
-		
-		}
-		
+		String ut = "(" + topLeftLatitude + ";" + topLeftLongitude + ") - (" + lowerRightLatitude + ";"+lowerRightLongitude +
+			"): " + bandwithUsageLevel + " " + (issues != null ? issues.size() + " issues " : "");
+		if( this.issues != null && issues.size() > 0) {
+			 ut += "\n\t" + issues.get(0).getRuleViolated();
+		}		
 		return ut;
 	}
 
@@ -127,8 +126,9 @@ public class AISDatalinkCheckArea {
 	}
 	
 	public void addIssue(AISDatalinkCheckIssue issue){
-		if(this.issues == null) this.issues = new ArrayList<AISDatalinkCheckIssue>();
-		
+		if (this.issues == null) {
+			this.issues = new ArrayList<AISDatalinkCheckIssue>();
+		}
 		issues.add(issue);
 	}
 

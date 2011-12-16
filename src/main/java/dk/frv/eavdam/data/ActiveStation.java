@@ -34,6 +34,10 @@ import java.util.List;
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * Class for an active station. Contains a list of station data that each represent a different status
+ * (operative, planned) of the station and a list of proposals that other users may have made to the station.
+ */
 public class ActiveStation {
 
     private List<AISFixedStationData> stations = new ArrayList<AISFixedStationData>(); 

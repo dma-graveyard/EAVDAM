@@ -29,6 +29,9 @@
 */
 package dk.frv.eavdam.data;
 
+/**
+ * Class for postal address.
+ */
 public class Address {
 
 	private String addressline1;
@@ -102,8 +105,8 @@ public class Address {
 
 	@Override
 	public String toString() {
-		return "Address [addressline1=" + addressline1 + ", addressline2="
-				+ addressline2 + ", zip=" + zip + ", city=" + city
-				+ ", country=" + country + "]";
+		return "Address [addressline1=" + addressline1 + ", addressline2=" +
+			addressline2 + ", zip=" + zip + ", city=" + city +
+			", country=" + country + "]";
 	}
 }

@@ -33,11 +33,11 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * This class contains a single issue of a AIS VHF Datalink Health Check operation.
+ * Class for a single issue of an AIS VHF Datalink Health Check operation.
  */
 public class AISDatalinkCheckIssue {
 
-	private int id;  // to be able to delete or acknowledge the issue
+	private int id;
 	private AISDatalinkCheckRule ruleViolated;
 	private AISDatalinkCheckSeverity severity;
 	private List<AISStation> involvedStations;
@@ -104,14 +104,20 @@ public class AISDatalinkCheckIssue {
 	}
 
 	public String toString(){
-		if(getInvolvedStations() == null) this.involvedStations = new ArrayList<AISStation>();
-		if(getInvolvedTimeslots() == null) this.involvedTimeslots = new ArrayList<AISTimeslot>();
+		if (getInvolvedStations() == null) {
+			this.involvedStations = new ArrayList<AISStation>();
+		}
+		if (getInvolvedTimeslots() == null) {
+			this.involvedTimeslots = new ArrayList<AISTimeslot>();
+		}
 		
-		String ut = id+": "+severity+" "+ruleViolated+". There are "+getInvolvedStations().size()+" involved stations ";
-		if(getInvolvedStations().size() > 0)
-			ut += "("+getInvolvedStations().get(0).getStationName()+(getInvolvedStations().size() > 1 ? " and "+getInvolvedStations().get(1).getStationName() : "")+") ";
-		if(this.involvedTimeslots != null)
-			ut += "and "+involvedTimeslots.size()+" involved timeslots...";
+		String ut = id + ": " + severity + " " + ruleViolated + ". There are " + getInvolvedStations().size() + " involved stations ";
+		if (getInvolvedStations().size() > 0) {
+			ut += "(" + getInvolvedStations().get(0).getStationName() + (getInvolvedStations().size() > 1 ? " and " + getInvolvedStations().get(1).getStationName() : "") + ") ";
+		}
+		if (this.involvedTimeslots != null) {
+			ut += "and " + involvedTimeslots.size() + " involved timeslots...";
+		}
 		return ut;
 	}
 

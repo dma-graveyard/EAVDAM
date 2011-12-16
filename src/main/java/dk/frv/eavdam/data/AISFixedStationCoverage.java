@@ -33,30 +33,29 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * A class for holding all information for AIS base station coverage area.
- * @author ttesei
- * @version 1.0
- * @created 26-elo-2011 13:27:24
+ * Class for holding all information for AIS base station coverage area.
  */
 public class AISFixedStationCoverage {
 	
-	ArrayList<double[]> coveragePoints;
-	int coverageType; //1 = transmit, 2 = receiver, 3 = interference
+	private ArrayList<double[]> coveragePoints;
+	/**
+	 * Coverage type, 1 = transmit, 2 = receiver, 3 = interference
+	 */
+	private int coverageType;
 	
-	public AISFixedStationCoverage(){
+	public AISFixedStationCoverage() {}
 
-	}
-
-	
-	public void addCoveragePoint(double lat, double lon){
-		if(this.coveragePoints == null) coveragePoints = new ArrayList<double[]>();
+	public void addCoveragePoint(double lat, double lon) {
+		
+		if (this.coveragePoints == null) {
+			coveragePoints = new ArrayList<double[]>();
+		}
 		
 		double[] c = new double[2];
 		c[0] = lat;
 		c[1] = lon;
 		
 		coveragePoints.add(c);
-		
 	}
 
 

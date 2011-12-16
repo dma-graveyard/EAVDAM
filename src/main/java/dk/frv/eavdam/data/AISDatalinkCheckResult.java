@@ -32,7 +32,7 @@ package dk.frv.eavdam.data;
 import java.util.List;
 
 /**
- * This class contains the result of a AIS VHF Datalink Health Check operation.
+ * Class for the result of a AIS VHF Datalink Health Check operation.
  */
 public class AISDatalinkCheckResult {
 
