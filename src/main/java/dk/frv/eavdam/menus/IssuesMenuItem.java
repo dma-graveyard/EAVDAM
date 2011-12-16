@@ -47,6 +47,9 @@ public class IssuesMenuItem extends JMenuItem {
 	
 	public static List<AISDatalinkCheckIssue> issues = null;
 	
+	public static Boolean healthCheckMayBeOutdated = null;
+	public static Boolean ignoreHealthCheckMayBeOutdated = null;
+	
 	public static GregorianCalendar lastHealthCheckDoneAt = null;
 	public static List<AISDatalinkCheckRule> lastHealthCheckRules = null;
 	public static Double lastHealthCheckTopLeftLatitude = null;
@@ -118,7 +121,17 @@ class IssuesMenuItemActionListener implements ActionListener {
             dialog.setBounds((int) screenSize.getWidth()/2 - IssuesMenuItem.ISSUES_WINDOW_WIDTH/2,
                 (int) screenSize.getHeight()/2 - IssuesMenuItem.ISSUES_WINDOW_HEIGHT/2,
 				IssuesMenuItem.ISSUES_WINDOW_WIDTH, IssuesMenuItem.ISSUES_WINDOW_HEIGHT);
-            dialog.setVisible(true);	
+            dialog.setVisible(true);
+			
+			if (IssuesMenuItem.healthCheckMayBeOutdated != null && IssuesMenuItem.healthCheckMayBeOutdated.booleanValue() == true &&
+					IssuesMenuItem.ignoreHealthCheckMayBeOutdated != null && IssuesMenuItem.ignoreHealthCheckMayBeOutdated.booleanValue() == false &&
+					IssuesMenuItem.issues != null && !IssuesMenuItem.issues.isEmpty()) {
+                int response = JOptionPane.showConfirmDialog(dialog, "Data has changed after the latest health check\n" +
+					"and the issues list may therefore be outdated.\n\nIgnore this warning in the future?", "Warning", JOptionPane.YES_NO_OPTION);
+                if (response == JOptionPane.YES_OPTION) {					
+					IssuesMenuItem.ignoreHealthCheckMayBeOutdated = new Boolean(true);
+				}
+			}
 		
 		} else if (e.getSource() == exportToCSVButton) {
 

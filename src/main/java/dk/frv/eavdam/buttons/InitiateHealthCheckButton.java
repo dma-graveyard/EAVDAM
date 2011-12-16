@@ -412,6 +412,38 @@ public class InitiateHealthCheckButton extends OMToolComponent implements Action
 
 		DBHandler.saveData(data); //Do this before calculating the number of old issues...
 	
+		IssuesMenuItem.healthCheckMayBeOutdated = new Boolean(false);
+		IssuesMenuItem.ignoreHealthCheckMayBeOutdated = new Boolean(false);
+		AISDatalinkCheckIssueLayer.ignoreHealthCheckMayBeOutdated = new Boolean(false);
+		AISDatalinkCheckBandwidthAreasLayer.ignoreHealthCheckMayBeOutdated = new Boolean(false);
+		IssuesMenuItem.lastHealthCheckDoneAt = new GregorianCalendar();
+		List<AISDatalinkCheckRule> rules = new ArrayList<AISDatalinkCheckRule>();
+		if (rule1CheckBox.isSelected()) {
+			rules.add(AISDatalinkCheckRule.RULE1);
+		}
+		if (rule2CheckBox.isSelected()) {
+			rules.add(AISDatalinkCheckRule.RULE2);
+		}
+		if (rule3CheckBox.isSelected()) {
+			rules.add(AISDatalinkCheckRule.RULE3);
+		}
+		if (rule4CheckBox.isSelected()) {
+			rules.add(AISDatalinkCheckRule.RULE4);
+		}
+		if (rule5CheckBox.isSelected()) {
+			rules.add(AISDatalinkCheckRule.RULE5);
+		}
+		if (rule6CheckBox.isSelected()) {
+			rules.add(AISDatalinkCheckRule.RULE6);
+		}
+		if (rule7CheckBox.isSelected()) {
+			rules.add(AISDatalinkCheckRule.RULE7);
+		}		
+		IssuesMenuItem.lastHealthCheckRules = rules;
+		IssuesMenuItem.lastHealthCheckTopLeftLatitude = topLeftLatitude;
+		IssuesMenuItem.lastHealthCheckTopLeftLongitude = topLeftLongitude;
+		IssuesMenuItem.lastHealthCheckLowerRightLatitude = lowerRightLatitude;
+		IssuesMenuItem.lastHealthCheckLowerRightLongitude = lowerRightLongitude;	
 		
 		int numberOfOldIssues = 0;		
 		int numberOfNewIssues = 0;
@@ -477,35 +509,6 @@ public class InitiateHealthCheckButton extends OMToolComponent implements Action
 		Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
 		completedDialog.setBounds((int) screenSize.getWidth()/2 - 380/2, (int) screenSize.getHeight()/2 - 200/2, 380, 200);
 		completedDialog.setVisible(true);
-
-		IssuesMenuItem.lastHealthCheckDoneAt = new GregorianCalendar();
-		List<AISDatalinkCheckRule> rules = new ArrayList<AISDatalinkCheckRule>();
-		if (rule1CheckBox.isSelected()) {
-			rules.add(AISDatalinkCheckRule.RULE1);
-		}
-		if (rule2CheckBox.isSelected()) {
-			rules.add(AISDatalinkCheckRule.RULE2);
-		}
-		if (rule3CheckBox.isSelected()) {
-			rules.add(AISDatalinkCheckRule.RULE3);
-		}
-		if (rule4CheckBox.isSelected()) {
-			rules.add(AISDatalinkCheckRule.RULE4);
-		}
-		if (rule5CheckBox.isSelected()) {
-			rules.add(AISDatalinkCheckRule.RULE5);
-		}
-		if (rule6CheckBox.isSelected()) {
-			rules.add(AISDatalinkCheckRule.RULE6);
-		}
-		if (rule7CheckBox.isSelected()) {
-			rules.add(AISDatalinkCheckRule.RULE7);
-		}		
-		IssuesMenuItem.lastHealthCheckRules = rules;
-		IssuesMenuItem.lastHealthCheckTopLeftLatitude = topLeftLatitude;
-		IssuesMenuItem.lastHealthCheckTopLeftLongitude = topLeftLongitude;
-		IssuesMenuItem.lastHealthCheckLowerRightLatitude = lowerRightLatitude;
-		IssuesMenuItem.lastHealthCheckLowerRightLongitude = lowerRightLongitude;
 	}
 	
 	public void findAndInit(Object obj) {

@@ -11,6 +11,7 @@ import com.bbn.openmap.omGraphics.OMLine;
 import com.bbn.openmap.omGraphics.OMRect;
 import com.bbn.openmap.omGraphics.OMText;
 import dk.frv.eavdam.data.AISDatalinkCheckArea;
+import dk.frv.eavdam.menus.IssuesMenuItem;
 import java.awt.Color;
 import java.awt.geom.Point2D;
 import java.util.ArrayList;
@@ -28,6 +29,8 @@ public class AISDatalinkCheckBandwidthAreasLayer extends OMGraphicHandlerLayer {
 	
 	private List<AISDatalinkCheckArea> areas = null;	
 	
+	public static Boolean ignoreHealthCheckMayBeOutdated = null;	
+	
 	public AISDatalinkCheckBandwidthAreasLayer() {}
 	
 	public List<AISDatalinkCheckArea> getAreas() {
@@ -44,7 +47,7 @@ public class AISDatalinkCheckBandwidthAreasLayer extends OMGraphicHandlerLayer {
 
 	@Override
 	public synchronized OMGraphicList prepare() {	
-	
+		
 		graphics.clear();
 		
 		// XXX: for testing
@@ -101,7 +104,18 @@ public class AISDatalinkCheckBandwidthAreasLayer extends OMGraphicHandlerLayer {
 		
 		graphics.project(getProjection(), true);
 		this.repaint();
-		this.validate();
+		this.validate();		
+		
+		if (IssuesMenuItem.healthCheckMayBeOutdated != null && IssuesMenuItem.healthCheckMayBeOutdated.booleanValue() == true &&
+				AISDatalinkCheckBandwidthAreasLayer.ignoreHealthCheckMayBeOutdated != null && AISDatalinkCheckBandwidthAreasLayer.ignoreHealthCheckMayBeOutdated.booleanValue() == false &&
+				IssuesMenuItem.issues != null && !IssuesMenuItem.issues.isEmpty()) {
+			int response = JOptionPane.showConfirmDialog(openMapFrame, "Data has changed after the latest health check and\n" +
+		        "the bandwidth areas layer may therefore be outdated.\n\nIgnore this warning in the future?", "Warning", JOptionPane.YES_NO_OPTION);
+			if (response == JOptionPane.YES_OPTION) {					
+				AISDatalinkCheckBandwidthAreasLayer.ignoreHealthCheckMayBeOutdated = new Boolean(true);
+			}
+		}		
+		
 		return graphics;
 	}
 	

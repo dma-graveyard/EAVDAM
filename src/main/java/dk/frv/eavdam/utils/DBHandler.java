@@ -18,6 +18,7 @@ import dk.frv.eavdam.io.XMLExporter;
 import dk.frv.eavdam.io.XMLImporter;
 import dk.frv.eavdam.io.derby.DerbyDBInterface;
 import dk.frv.eavdam.layers.StationLayer;
+import dk.frv.eavdam.menus.IssuesMenuItem;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -34,7 +35,6 @@ public class DBHandler {
     private static EAVDAMData data = null;  // for testing before the database works        
     private static boolean initialized = false;    
     private static boolean updatedXML = false;
-	public static boolean changes = false;
     
 	public static boolean importDataUpdated = false;
     public static DerbyDBInterface derby = null;
@@ -46,9 +46,6 @@ public class DBHandler {
     public static EAVDAMData getData(OpenMapFrame openMapFrame) {        
 		if(derby == null) derby = new DerbyDBInterface();
 		
-//    	System.out.println("Getting data from database!");
-//    	if(data != null && !changes) return data;
-    	
     	EAVDAMData dat = new EAVDAMData();
     	if(!initialized){
     		//Check if the database exists. It does the check in the constructor.
@@ -129,7 +126,6 @@ public class DBHandler {
 //    	}
     		
     	data = dat;
-    	changes = false;
     	
         return dat;
 
@@ -169,8 +165,7 @@ public class DBHandler {
 //		System.out.println("Storing data to database...");
         
 		derby.insertEAVDAMData(data);
-
-		changes = true;
+		IssuesMenuItem.healthCheckMayBeOutdated = true;
     }
     
     public static void saveUserData(EAVDAMUser user, boolean defaultUser){
@@ -178,11 +173,11 @@ public class DBHandler {
         //d.createDatabase(null);
     	try{
     		int id = derby.insertEAVDAMUser(user, defaultUser);
+			IssuesMenuItem.healthCheckMayBeOutdated = true;
 //    		System.out.println("Added user under id "+id+" (default: "+defaultUser+")");
-    		changes = true;
     	}catch(Exception e){
     		e.printStackTrace();
-    	}
+    	}	
     }
     
     /**
@@ -209,14 +204,13 @@ public class DBHandler {
     public static void saveOptions(Options options){
 		if(derby == null) derby = new DerbyDBInterface();
     	derby.insertOptions(options);
-    	changes = true;
     }
     
     public static void deleteSimulation(String simulationName){
     	try{
     		if(derby == null) derby = new DerbyDBInterface();
     		derby.deleteSimulation(simulationName);
-    		changes = true;
+			IssuesMenuItem.healthCheckMayBeOutdated = true;			
     	}catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -226,7 +220,7 @@ public class DBHandler {
     	try{
     		if(derby == null) derby = new DerbyDBInterface();
     		derby.deleteStation(stationID);
-    		changes = true;
+			IssuesMenuItem.healthCheckMayBeOutdated = true;			
     	}catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -237,7 +231,6 @@ public class DBHandler {
     	try{
     		if(derby == null) derby = new DerbyDBInterface();
     		derby.acknowledgeIssues(issues);
-    		changes = true;
     	}catch(Exception e){
     		e.printStackTrace();
     	}
@@ -314,9 +307,8 @@ class LoadXMLsFromFTPsThread extends Thread {
 			JOptionPane.showMessageDialog(openMapFrame, "The following ftp sites had problems when exchanging data:\n" + errors, "Error", JOptionPane.ERROR_MESSAGE); 
 		}	
 
-		DBHandler.importDataUpdated = updated;		
-		
-		DBHandler.changes = true;
+		DBHandler.importDataUpdated = updated;			
+		IssuesMenuItem.healthCheckMayBeOutdated = updated;
 	}
 
 }

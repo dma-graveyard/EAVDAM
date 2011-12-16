@@ -32,6 +32,8 @@ public class AISDatalinkCheckIssueLayer extends OMGraphicHandlerLayer {
 	private LayerHandler layerHandler;
 	private InformationDelegator infoDelegator;
 	
+	public static Boolean ignoreHealthCheckMayBeOutdated = null;		
+	
     public AISDatalinkCheckIssueLayer() {}
 
 	public OMGraphicList getGraphicsList() {
@@ -70,6 +72,17 @@ public class AISDatalinkCheckIssueLayer extends OMGraphicHandlerLayer {
 		graphics.project(getProjection(), true);
 		this.repaint();
 		this.validate();
+		
+		if (IssuesMenuItem.healthCheckMayBeOutdated != null && IssuesMenuItem.healthCheckMayBeOutdated.booleanValue() == true &&
+				AISDatalinkCheckIssueLayer.ignoreHealthCheckMayBeOutdated != null && AISDatalinkCheckIssueLayer.ignoreHealthCheckMayBeOutdated.booleanValue() == false &&
+				IssuesMenuItem.issues != null && !IssuesMenuItem.issues.isEmpty()) {
+			int response = JOptionPane.showConfirmDialog(openMapFrame, "Data has changed after the latest health check and\n" +
+		        "the issues layer may therefore be outdated.\n\nIgnore this warning in the future?", "Warning", JOptionPane.YES_NO_OPTION);
+			if (response == JOptionPane.YES_OPTION) {					
+				AISDatalinkCheckIssueLayer.ignoreHealthCheckMayBeOutdated = new Boolean(true);
+			}
+		}				
+		
 		return graphics;
 	}
 	

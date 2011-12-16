@@ -9,6 +9,7 @@ import dk.frv.eavdam.data.Options;
 import dk.frv.eavdam.io.FTPHandler;
 import dk.frv.eavdam.io.derby.DerbyDBInterface;
 import dk.frv.eavdam.menus.EavdamMenu;
+import dk.frv.eavdam.menus.IssuesMenuItem;
 import dk.frv.eavdam.menus.ShowOnMapMenu;
 import dk.frv.eavdam.menus.OptionsMenuItem;
 import dk.frv.eavdam.layers.StationLayer;
@@ -102,6 +103,7 @@ public class SendFTPButton extends OMToolComponent implements ActionListener, To
 				}
 				
 				EAVDAMData data = XMLHandler.importData();
+				IssuesMenuItem.healthCheckMayBeOutdated = true;
 				if (eavdamMenu != null) {
 					//eavdamMenu.setShowOnMapMenu(new ShowOnMapMenu(eavdamMenu));
 					if (eavdamMenu.getStationInformationMenu() != null && eavdamMenu.getStationInformationMenu().getStationInformationMenuItem() != null) {
