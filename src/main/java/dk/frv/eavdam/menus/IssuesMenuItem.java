@@ -67,6 +67,10 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 
+
+/**
+ * Class for showing the issues found in an AIS VHF datalink health check.
+ */
 public class IssuesMenuItem extends JMenuItem {
 
     public static final long serialVersionUID = 1L;
@@ -74,16 +78,50 @@ public class IssuesMenuItem extends JMenuItem {
 	public static int ISSUES_WINDOW_WIDTH = 1024;
 	public static int ISSUES_WINDOW_HEIGHT = 1000;	
 	
+	/**
+	 * The issues found in the latest AIS VHF datalink health check
+	 */
 	public static List<AISDatalinkCheckIssue> issues = null;
 	
+	/**
+	 * Whether data has changed after the health check meaning that the issues may be outdated
+	 */
 	public static Boolean healthCheckMayBeOutdated = null;
+	
+	/**
+	 * Whether to not show warnings that the issues of the latest health check may be outdated.
+	 * Set if the user chooses to ignore warnings from the dialog warning about possibly outdated issues.
+	 */
 	public static Boolean ignoreHealthCheckMayBeOutdated = null;
 	
+	/**
+	 * When the latest health check was completed
+	 */
 	public static GregorianCalendar lastHealthCheckDoneAt = null;
+
+	/**
+	 * Which were the rules processed in the latest health check
+	 */
 	public static List<AISDatalinkCheckRule> lastHealthCheckRules = null;
+
+	/**
+	 * What was the top left latitude in the latest health check
+	 */
 	public static Double lastHealthCheckTopLeftLatitude = null;
+
+	/**
+	 * What was the top left longitude in the latest health check
+	 */
 	public static Double lastHealthCheckTopLeftLongitude = null;
+	
+	/**
+	 * What was the lower right latitude in the latest health check
+	 */	
 	public static Double lastHealthCheckLowerRightLatitude = null;
+	
+	/**
+	 * What was the lower right longitude in the latest health check
+	 */	
 	public static Double lastHealthCheckLowerRightLongitude = null;
 
     public IssuesMenuItem(EavdamMenu eavdamMenu) {        
@@ -93,6 +131,10 @@ public class IssuesMenuItem extends JMenuItem {
 	
 }
  
+ 
+/**
+ * Class for showing the issues found in an AIS VHF datalink health check. The issues can also be exported to a CSV file.
+ */
 class IssuesMenuItemActionListener implements ActionListener {
 
     private EavdamMenu eavdamMenu;
@@ -182,8 +224,6 @@ class IssuesMenuItemActionListener implements ActionListener {
 			IssuesMenuItem.issues = data.getAISDatalinkCheckIssues();
 		}
 		
-		//Put them into the correct order.
-		//TODO Change this as you will; the list should be ordered when it is returned from DBHandler but for some reason it isn't
     	List<AISDatalinkCheckIssue> tempList = new ArrayList<AISDatalinkCheckIssue>();
     	for(AISDatalinkCheckIssue issue : IssuesMenuItem.issues){
     		if(tempList.size() == 0){
@@ -204,33 +244,12 @@ class IssuesMenuItemActionListener implements ActionListener {
     	}
     	IssuesMenuItem.issues = tempList;
 				
-		// XXX: FOR TESTING
-		/*
-		List<AISStation> testStations = new ArrayList<AISStation>();
-		testStations.add(new AISStation("VTT", "Test station", (double) 60, (double) 20));
-		testStations.add(new AISStation("VTT", "Test station 2", (double) 59, (double) 19));
-		List<AISTimeslot> testTimeslots = new ArrayList<AISTimeslot>();
-		testTimeslots.add(new AISTimeslot(AISFrequency.AIS1, 100, false, null, null, null, null));
-		testTimeslots.add(new AISTimeslot(AISFrequency.AIS2, 101, false, null, null, null, null));			
-		testTimeslots.add(new AISTimeslot(AISFrequency.AIS1, 102, false, null, null, null, null));	
-		testTimeslots.add(new AISTimeslot(AISFrequency.AIS2, 103, false, null, null, null, null));	
-		testTimeslots.add(new AISTimeslot(AISFrequency.AIS1, 104, true, null, null, null, null));	
-		AISDatalinkCheckIssue test = new AISDatalinkCheckIssue(1, AISDatalinkCheckRule.RULE4, AISDatalinkCheckSeverity.SEVERE, testStations, testTimeslots);
-		//test.setAcknowledged(true);
-		if (issues == null || issues.isEmpty()) {
-			issues = new ArrayList<AISDatalinkCheckIssue>();			
-			issues.add(test);
-		}
-		*/
-
 		JPanel panel = new JPanel();
 		panel.setLayout(new GridBagLayout());                  
 		
 		GridBagConstraints c = new GridBagConstraints();
 		c.gridx = 0;
 		c.gridy = 0;    
-		//c.weightx = 0.5;
-		//c.weighty = 0.5;
 		c.anchor = GridBagConstraints.LINE_START;
 		c.insets = new Insets(5,5,5,5);
 		
@@ -486,7 +505,6 @@ class IssuesMenuItemActionListener implements ActionListener {
 		JScrollPane scrollPane = new JScrollPane(panel);
 		scrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
 		scrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
-		//scrollPane.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
 		if (scrollPane.getViewport().getViewSize().getHeight() > IssuesMenuItem.ISSUES_WINDOW_HEIGHT-90) {
 			scrollPane.setPreferredSize(new Dimension(IssuesMenuItem.ISSUES_WINDOW_WIDTH, IssuesMenuItem.ISSUES_WINDOW_HEIGHT-90));
 			scrollPane.setMaximumSize(new Dimension(IssuesMenuItem.ISSUES_WINDOW_WIDTH, IssuesMenuItem.ISSUES_WINDOW_HEIGHT-90));
@@ -495,8 +513,11 @@ class IssuesMenuItemActionListener implements ActionListener {
 		
 		return scrollPane;
 	}
-		
-	public void updateScrollPane() {
+	
+	/**
+	 * Updates the scroll panel showing the issues.
+	 */
+	protected void updateScrollPane() {
 		JScrollPane scrollPane = getScrollPane();		
 		scrollPane.setBorder(BorderFactory.createEmptyBorder());
 			
@@ -520,6 +541,9 @@ class IssuesMenuItemActionListener implements ActionListener {
 }
 
 
+/**
+ * Class for acknowledging an issue.
+ */
 class AcknowledgeAction extends AbstractAction {
 
     public static final long serialVersionUID = 1L;
@@ -540,9 +564,6 @@ class AcknowledgeAction extends AbstractAction {
 			List<AISDatalinkCheckIssue> issues = new ArrayList<AISDatalinkCheckIssue>();
 			issues.add(issue);			
 			DBHandler.acknowledgeIssues(issues);
-			//IssuesMenuItem.issues.remove(issue);
-			//issue.setAcknowledged(true);
-			//IssuesMenuItem.issues.add(issue);
 			IssuesMenuItem.issues = null;
 			issuesMenuItemActionListener.updateScrollPane();           
         } else if (response == JOptionPane.NO_OPTION) {}

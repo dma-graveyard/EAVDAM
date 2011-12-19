@@ -32,7 +32,7 @@ package dk.frv.eavdam.menus;
 import javax.swing.JMenuItem;
 
 /**
- * This class represents a menu item that opens a frame where the user can edit
+ * Class for presenting a menu item that opens a frame where the user can edit
  * station information.
  */
 public class StationInformationMenu extends JMenuItem {
@@ -40,19 +40,36 @@ public class StationInformationMenu extends JMenuItem {
     public static final long serialVersionUID = 3L;
 
 	private StationInformationMenuItem stationInformationMenuItem;
-	
+
+	/**
+	 * Constructor for the menu.
+	 *
+	 * @param eavdamMenu  EAVDAM menu where this menu item resides
+	 */
     public StationInformationMenu(EavdamMenu eavdamMenu) {
         super("Edit Station Information");
 		this.stationInformationMenuItem = new StationInformationMenuItem(eavdamMenu, null, null);
         addActionListener(stationInformationMenuItem);
     }
 
+	/**
+	 * Constructor for the menu when the user right clicks a station on the map and selects to edit the station.
+	 *
+	 * @param eavdamMenu   EAVDAM menu where this menu item resides
+	 * @param dataset      NULL value for user's own stations, simulation name (String) for simulations or EAVDAMUser object for other users' stations 
+	 * @param stationName  Name of the station that is to be initially selected in the edit station menu
+	 */
     public StationInformationMenu(EavdamMenu eavdamMenu, String dataset, String stationName) {
         super("Edit Station Information");     
 		this.stationInformationMenuItem = new StationInformationMenuItem(eavdamMenu, dataset, stationName);
         addActionListener(stationInformationMenuItem);
     }
 	
+	/**
+	 * Returns the actual menu item that does the editing of station information.
+	 *
+	 * @return  The actual menu item that does the editing of station information
+	 */
 	public StationInformationMenuItem getStationInformationMenuItem() {
 		return stationInformationMenuItem;
 	}

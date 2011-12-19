@@ -71,6 +71,9 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.filechooser.FileFilter;
 
+/**
+ * Class for showing a menu where the user can export selected stations to a CVS file.
+ */
 public class ExportStationsToCSVDialog extends JDialog implements ActionListener {
 
     public static final long serialVersionUID = 1L;
@@ -230,6 +233,11 @@ public class ExportStationsToCSVDialog extends JDialog implements ActionListener
 		}
 	}	
 
+	/** 
+	 * Saves the stations to a file.
+	 *
+	 * @param file  File to which to save the stations
+	 */	
 	private void exportToCSVFile(File file) {
 
 		try {
@@ -673,13 +681,27 @@ public class ExportStationsToCSVDialog extends JDialog implements ActionListener
 }
 
 
+/**
+ * Class for filtering csv files.
+ */
 class StationsCSVFilter extends FileFilter {
 
+	/**
+	 * Accepts files that end with .csv
+	 *
+	 * @param file  Some file
+	 * @return      True if the filename ends with .csv, false otherwise
+	 */
 	public boolean accept(File file) {
         String filename = file.getName();
         return filename.endsWith(".csv");
     }
-	
+
+	/**
+	 * Returns description for the filter.
+	 *
+	 * @return  Description for the filter
+	 */	
     public String getDescription() {
         return "*.csv";
     }

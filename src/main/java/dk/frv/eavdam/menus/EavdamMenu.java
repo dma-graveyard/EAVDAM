@@ -44,7 +44,7 @@ import javax.swing.event.MenuEvent;
 import javax.swing.event.MenuListener;
 
 /**
- * This class represents a menu containing eavdam related items.
+ * Class for presenting a menu containing eavdam related items.
  */
 public class EavdamMenu extends AbstractOpenMapMenu implements MenuListener {
 
@@ -87,13 +87,7 @@ public class EavdamMenu extends AbstractOpenMapMenu implements MenuListener {
         // add(new JSeparator());
 		addMenuListener(this);
     }
-		
-	/*
-	public void rebuildShowOnMapMenu() {
-		showOnMapMenu = new ShowOnMapMenu(this);
-	}
-	*/
-	
+			
 	public void	menuCanceled(MenuEvent e) {}
 	
 	public void	menuDeselected(MenuEvent e) {}
@@ -103,28 +97,33 @@ public class EavdamMenu extends AbstractOpenMapMenu implements MenuListener {
 		removeAll();
 		
 		userInformationMenuItem = new UserInformationMenuItem(this, false);
-
 		add(userInformationMenuItem);
+		
 		if (stationInformationMenu == null) {
 			stationInformationMenu = new StationInformationMenu(this);
 		}
 		add(stationInformationMenu);
+		
 		if (showOnMapMenu == null) {
 			showOnMapMenu = new ShowOnMapMenu(this);
 		}
 		add(showOnMapMenu);		
+		
 		if (shapeLayersMenu == null) {
 			shapeLayersMenu = new ShapeLayersMenu(this);
 		}
 		add(shapeLayersMenu);	
+		
 		if (issuesMenuItem == null) {
 			issuesMenuItem = new IssuesMenuItem(this);
 		}
 		add(issuesMenuItem);
+		
 		if (listOfRulesMenuItem == null) {
 			listOfRulesMenuItem = new ListOfRulesMenuItem(this);
 		}
 		add(listOfRulesMenuItem);
+		
 		if (optionsMenuItem == null) {
 			optionsMenuItem = new OptionsMenuItem(this);
 		}	

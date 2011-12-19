@@ -55,15 +55,18 @@ import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 
 /**
- * This class represents the about menu.
+ * Class for presenting the about menu.
  */
 public class AboutEAVDAMMenuItem extends JMenuItem implements ActionListener, LightMapHandlerChild {
 
     public static final long serialVersionUID = 1L;
 
+	/**
+	 * Application's version. This is updated automatically from the build.xml file when the application is compiled.
+	 */
 	public static String version = "xx.xx";
 	
-    protected InformationDelegator informationDelegator = null;
+    private InformationDelegator informationDelegator = null;
 	
 	private OpenMapFrame openMapFrame;
 	
@@ -76,17 +79,16 @@ public class AboutEAVDAMMenuItem extends JMenuItem implements ActionListener, Li
 	
     public AboutEAVDAMMenuItem() {
         super("About EAVDAM");
-        //setMnemonic('e');
         addActionListener(this);
-        setEnabled(false); // enabled when InformationDelegator found.
+        setEnabled(false);  // enabled when InformationDelegator found.
     }
 
-    public void setInformationDelegator(InformationDelegator in_informationDelegator) {
+    private void setInformationDelegator(InformationDelegator in_informationDelegator) {
         informationDelegator = in_informationDelegator;
         setEnabled(informationDelegator != null);
     }
 
-    protected InformationDelegator getInformationDelegator() {
+    private InformationDelegator getInformationDelegator() {
         return informationDelegator;
     }
 
@@ -173,6 +175,7 @@ public class AboutEAVDAMMenuItem extends JMenuItem implements ActionListener, Li
 		}
     }
 
+	@Override
     public void findAndInit(Object someObj) {
         if (someObj instanceof InformationDelegator) {
             setInformationDelegator((InformationDelegator) someObj);
@@ -180,7 +183,8 @@ public class AboutEAVDAMMenuItem extends JMenuItem implements ActionListener, Li
 			this.openMapFrame = (OpenMapFrame) someObj;
 		}
     }
-
+	
+	@Override
     public void findAndUndo(Object someObj) {
         if (someObj instanceof InformationDelegator
                 && getInformationDelegator() == (InformationDelegator) someObj) {
@@ -188,6 +192,11 @@ public class AboutEAVDAMMenuItem extends JMenuItem implements ActionListener, Li
         }
     }
 	
+	/**
+	 * Opens the given URL in a web browser.
+	 *
+	 * @param url  URL to open
+	 */
 	public static void openURL(String url) {
 		String osName = System.getProperty("os.name");
         try {

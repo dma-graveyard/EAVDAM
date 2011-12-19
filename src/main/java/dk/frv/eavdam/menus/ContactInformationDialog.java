@@ -45,6 +45,9 @@ import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
 
+/**
+ * Class for presenting other user's contact information.
+ */
 public class ContactInformationDialog extends JDialog {
 
     public static final long serialVersionUID = 1L;

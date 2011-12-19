@@ -41,7 +41,7 @@ import javax.swing.JMenuItem;
 import javax.swing.JScrollPane;
 
 /**
- * This class represents a menu item that opens a frame where the user can view
+ * Class for presenting a menu item that opens a frame where the user can view
  * the list of AIS VHF Health Check rules.
  */
 public class ListOfRulesMenuItem extends JMenuItem {
@@ -55,6 +55,10 @@ public class ListOfRulesMenuItem extends JMenuItem {
 	
 }
  
+ 
+/**
+ * Class for viewing the list of AIS VHF Health Check rules. Basically, this only shows the contents of the file share/data/rules.html.
+ */
 class ListOfRulesActionListener implements ActionListener {
 
     private EavdamMenu eavdamMenu;                                                   
@@ -102,4 +106,3 @@ class ListOfRulesActionListener implements ActionListener {
     }
 
 }
-

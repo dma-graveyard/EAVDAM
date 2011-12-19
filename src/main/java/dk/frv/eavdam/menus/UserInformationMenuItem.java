@@ -78,8 +78,8 @@ import javax.swing.event.DocumentListener;
 import javax.xml.bind.JAXBException;
 
 /**
- * This class represents a menu item that opens a frame where the user can edit
- * user information.
+ * Class for representing a menu item that opens a frame where the user can edit
+ * his user information.
  */
 public class UserInformationMenuItem extends JMenuItem {
 
@@ -94,7 +94,11 @@ public class UserInformationMenuItem extends JMenuItem {
     }
 	
 }
- 
+
+
+/**
+ * Class for actually showing the edit user information dialog.
+ */ 
 class UserInformationActionListener implements ActionListener, DocumentListener {
 
     private EavdamMenu eavdamMenu;
@@ -447,6 +451,9 @@ class UserInformationActionListener implements ActionListener, DocumentListener 
         }
     }
 
+	/**
+	 * Enables the save button, if the users changes anything.
+	 */
     public void changedUpdate(DocumentEvent e) {
         if (saveButton != null) {
             if (isChanged()) {
@@ -457,6 +464,9 @@ class UserInformationActionListener implements ActionListener, DocumentListener 
         }
     }  
     
+	/**
+	 * Enables the save button, if the users inputs anything.
+	 */	
     public void insertUpdate(DocumentEvent e) {
         if (saveButton != null) {
             if (isChanged()) {
@@ -467,6 +477,9 @@ class UserInformationActionListener implements ActionListener, DocumentListener 
         }
     } 
     
+	/**
+	 * Enables the save button, if the users deletes anything.
+	 */	
     public void removeUpdate(DocumentEvent e) {
         if (saveButton != null) {
             if (isChanged()) {
@@ -478,9 +491,9 @@ class UserInformationActionListener implements ActionListener, DocumentListener 
     }
 
     /** 
-     * Saves a user to XML.
+     * Saves a user to the database.
      *
-     * @return True if the save was succesful, false otherwise
+     * @return  true if the save was succesful, false otherwise
      */        
     private boolean saveUser() {
 
@@ -615,7 +628,7 @@ class UserInformationActionListener implements ActionListener, DocumentListener 
     /** 
      * Checks whether the form fields have changed.
      *
-     * @return  True if the fields have changed, false if not
+     * @return  true if the fields have changed, false if not
      */    
     private boolean isChanged() {
         

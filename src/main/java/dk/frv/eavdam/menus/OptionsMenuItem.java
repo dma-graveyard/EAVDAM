@@ -81,7 +81,7 @@ import javax.swing.event.DocumentListener;
 import javax.xml.bind.JAXBException;
 
 /**
- * This class represents a menu item that opens a frame where the user can edit
+ * Class for presenting a menu item that opens a frame where the user can edit
  * application's options.
  */
 public class OptionsMenuItem extends JMenuItem {
@@ -94,75 +94,21 @@ public class OptionsMenuItem extends JMenuItem {
     }
     
     /**
-     * Loads options
+     * Loads application's options.
      *
-     * @return  Options
+     * @return  Options for the application
      */
     public static Options loadOptions() {
-
-        Options op = new Options();
-
-//        StringBuilder contents = new StringBuilder();
-    
-        
-        op = DBHandler.getOptions();
-        
-        
-        return op;
-//        try {
-//            BufferedReader input =  new BufferedReader(new FileReader("data/settings.txt"));
-//            try {
-//                String line = null;
-//                List<FTP> ftps = new ArrayList<FTP>();                
-//                while ((line = input.readLine()) != null) {
-//                    if (line.startsWith("ftp:")) {
-//                        String temp = line.substring(4).trim();
-//                        String[] arr = temp.split(";");
-//                        if (arr.length == 4) {
-//                            FTP ftp = new FTP(arr[0], arr[1], arr[2], arr[3]);
-//                            ftps.add(ftp);
-//                        }                        
-//                    } else if (line.startsWith("email-to:")) {
-//                        op.setEmailTo(line.substring(9).trim());                        
-//                    } else if (line.startsWith("email-from:")) {
-//                        op.setEmailFrom(line.substring(11).trim());                            
-//                    } else if (line.startsWith("email-subject:")) {
-//                        op.setEmailSubject(line.substring(14).trim());                            
-//                    } else if (line.startsWith("email-host:")) {                                                
-//                        op.setEmailHost(line.substring(11).trim());                            
-//                    } else if (line.startsWith("email-auth:")) {
-//                        String temp = line.substring(11).trim();
-//                        if (temp.equals("true")) {
-//                            op.setEmailAuth(true);
-//                        } else if (temp.equals("false")) {
-//                            op.setEmailAuth(false);
-//                        }
-//                    } else if (line.startsWith("email-username:")) {
-//                        op.setEmailUsername(line.substring(15).trim());    
-//                    } else if (line.startsWith("email-password:")) {
-//                        op.setEmailPassword(line.substring(15).trim());                                                    
-//                    } else if (line.startsWith("icons:")) {
-//                        String temp = line.substring(7).trim();
-//                        if (temp.equals("large")) {
-//                            op.setIconsSize(Options.LARGE_ICONS);
-//                        } else if (temp.equals("small")) {
-//                            op.setIconsSize(Options.SMALL_ICONS);
-//                        }
-//                    }
-//                }
-//                op.setFTPs(ftps);
-//            } finally {
-//                input.close();
-//            }    
-//        } catch (IOException ex){
-//            System.out.println("Settings file could not be loaded");
-//        }
-//    
-//        return op;
+        Options op = new Options();        
+        return DBHandler.getOptions();
     }    
 
 }
  
+ 
+/**
+ * Class for editing the application's options.
+ */
 class OptionsActionListener implements ActionListener, ChangeListener, DocumentListener {
 
     private EavdamMenu eavdamMenu;
@@ -901,13 +847,16 @@ class OptionsActionListener implements ActionListener, ChangeListener, DocumentL
     }
 
     /** 
-     * Saves options.
+     * Saves options to database.
      *
      * @return  True if the save was succesful, false otherwise
      */        
     private boolean saveOptions() {
 
-    	if(options == null) options = new Options();
+    	if (options == null) {
+			options = new Options();
+		}
+		
     	options.setFTPs(this.ftps);
     	options.setEmailFrom(emailFromTextField.getText());
     	options.setEmailTo(emailToTextArea.getText());
@@ -928,47 +877,7 @@ class OptionsActionListener implements ActionListener, ChangeListener, DocumentL
     		options.setIconsSize(Options.SMALL_ICONS);
     	}
     	
-    	DBHandler.saveOptions(options); 
-    	
-//        try {
-//            File file = new File("data");
-//            if (!file.exists()) {
-//                file.mkdir();
-//            }
-//            String data = "";
-//            for (FTP ftp : ftps) {       
-//                if (!ftp.getServer().isEmpty() && !ftp.getUsername().isEmpty() && !ftp.getPassword().isEmpty()) {
-//                    data += "ftp:" + ftp.getServer() + ";" + ftp.getDirectory() + ";" + ftp.getUsername() + ";" + ftp.getPassword() + "\n";
-//                }
-//            }
-//            data += "email-to: " + emailToTextArea.getText() + "\n" +
-//                "email-from: " + emailFromTextField.getText() + "\n" +
-//                "email-subject: " + emailSubjectTextField.getText() + "\n" +
-//                "email-host: " + emailHostTextField.getText() + "\n" +
-//                "email-auth: ";
-//            if (((String) emailAuthComboBox.getSelectedItem()).equals("Yes")) {
-//                data += "true\n";
-//            } else if (((String) emailAuthComboBox.getSelectedItem()).equals("No")) {
-//                data += "false\n";
-//            }
-//            data +=
-//                "email-username: " + emailUsernameTextField.getText() + "\n" +
-//                "email-password: " + new String(emailPasswordTextField.getPassword()) + "\n" +
-//                "icons: ";
-//            if (iconsSizeComboBox.getSelectedIndex() == 0) {
-//                data += "large\n";
-//            } else if (iconsSizeComboBox.getSelectedIndex() == 1) {
-//                data += "small\n";
-//            }
-//            File optionsFile = new File("data/settings.txt");
-//            FileWriter fw = new FileWriter(optionsFile);
-//            fw.write(data);
-//            fw.close();
-//        } catch (FileNotFoundException ex) {
-//            System.out.println(ex.getMessage());
-//        } catch (IOException ex) {
-//            System.out.println(ex.getMessage());
-//        }
+    	DBHandler.saveOptions(options);
 
         return true;
     }
@@ -1039,5 +948,5 @@ class OptionsActionListener implements ActionListener, ChangeListener, DocumentL
        
         return false;        
     }
-}
 
+}

@@ -34,8 +34,7 @@ import java.awt.event.ActionListener;
 import javax.swing.JMenuItem;
 
 /**
- * This class represents a menu item that opens a frame where the user can edit
- * station information.
+ * Class for showing the Show on map menu in the EAVDAM menu.
  */
 public class ShowOnMapMenu extends JMenuItem {
 
@@ -51,6 +50,9 @@ public class ShowOnMapMenu extends JMenuItem {
 	
 }
  
+ /**
+ * Class for opening the Show on map menu from the EAVDAM menu.
+ */
 class ShowOnMapMenuActionListener implements ActionListener {
 
 	private EavdamMenu eavdamMenu;

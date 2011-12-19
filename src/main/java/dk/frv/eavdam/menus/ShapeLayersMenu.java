@@ -70,7 +70,7 @@ import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 
 /**
- * This class represents a menu item where the user can select which shape layers are shown on the map.
+ * Class for presenting a menu item where the user can select which shape layers are shown on the map.
  */
 public class ShapeLayersMenu extends JMenuItem {
 
@@ -116,7 +116,11 @@ public class ShapeLayersMenu extends JMenuItem {
 	}
 
 }
-	
+
+
+/**
+ * Class for loading and saving shape layers to the map.
+ */	
 class ShapeLayersActionListener implements ActionListener {
 
     private EavdamMenu eavdamMenu;	

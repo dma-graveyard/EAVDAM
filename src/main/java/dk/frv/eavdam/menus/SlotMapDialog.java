@@ -55,17 +55,20 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 
+/**
+ * Class for displaying a slot map.
+ */
 public class SlotMapDialog extends JDialog implements ActionListener {
 
-	private static final long serialVersionUID = 1L;
+	public static final long serialVersionUID = 1L;
 
+	public static int SLOTMAP_WINDOW_WIDTH = 1024;
+	public static int SLOTMAP_WINDOW_HEIGHT = 1000;	
+	
 	private double latitude;
 	private double longitude;
 	private AISSlotMap slotmap;
 	
-	public static int SLOTMAP_WINDOW_WIDTH = 1024;
-	public static int SLOTMAP_WINDOW_HEIGHT = 1000;
-
 	private LinkLabel slots0_250LinkLabel;
 	private LinkLabel slots251_500LinkLabel;
 	private LinkLabel slots501_750LinkLabel;
@@ -76,7 +79,15 @@ public class SlotMapDialog extends JDialog implements ActionListener {
 	private LinkLabel slots1751_2000LinkLabel;
 	private LinkLabel slots2001_2249LinkLabel;
 	
-	public SlotMapDialog(OpenMapFrame openMapFrame, double latitude, double longitude, AISSlotMap slotmap) {
+	/**
+	 * Creates and displays the slot map for the given data.
+	 *
+	 * @param openMapFrame  Application frame in which to display the slot map
+	 * @param latitude      Latitude of the point for which the slot map is being generated
+	 * @param longitude     Longitude of the point for which the slot map is being generated
+	 * @param slotmap       Data for the slotmap
+	 */
+	 public SlotMapDialog(OpenMapFrame openMapFrame, double latitude, double longitude, AISSlotMap slotmap) {
 	
 		super(openMapFrame, "Slotmap for latitude " + String.valueOf((double) (Math.round(latitude*1000))/1000) +
 			", longitude " + String.valueOf(((double) Math.round(longitude*1000))/1000) , true);
@@ -112,6 +123,12 @@ public class SlotMapDialog extends JDialog implements ActionListener {
 		getContentPane().add(containerPane);	
 	}
 
+	/**
+	 * Gets the scroll pane for a given portion of the slot map as the user interface is divided into several tabs
+	 * each containing only a portion of the slot map.
+	 *
+	 * @selectedSlotsIndex  Index of the portion of the slot map to show
+	 */
 	private JScrollPane getScrollPane(int selectedSlotsIndex) {
 
 		JPanel panel = new JPanel();
@@ -695,6 +712,12 @@ public class SlotMapDialog extends JDialog implements ActionListener {
 
 	}
 
+	/**
+	 * Fills the array with empty strings.
+	 *
+	 * @param array  A string array
+	 * @return       The array filled with empty strings
+	 */
 	private String[] fillEmpty(String[] array) {
 		for (int i=0; i<array.length; i++) {
 			array[i] = "";
@@ -702,6 +725,12 @@ public class SlotMapDialog extends JDialog implements ActionListener {
 		return array;
 	}
 	
+	/**
+	 * Fills the array with default values.
+	 *
+	 * @param array  A boolean array
+	 * @return       The array filled with default values
+	 */	
 	private boolean[] fillEmpty(boolean[] array, boolean defaultValue) {
 		for (int i=0; i<array.length; i++) {
 			array[i] = defaultValue;
