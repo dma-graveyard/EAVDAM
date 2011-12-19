@@ -211,6 +211,8 @@ public class InitiateHealthCheckButton extends OMToolComponent implements Action
 			c.gridy = 5;
 			rule6CheckBox = new JCheckBox("Rule 6: Slots reserved outside overall slot pattern for fixed statons (IALA A-124)");
 			//rule6CheckBox.setSelected(true);
+			rule6CheckBox.setEnabled(false);  // XXX: not implemented in HealthCheckHandler
+			rule6CheckBox.setToolTipText("Not yet implemented");
 			rulesPanel.add(rule6CheckBox, c);					
 
 			c.gridy = 6;

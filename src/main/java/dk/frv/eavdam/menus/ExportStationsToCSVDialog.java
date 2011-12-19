@@ -530,13 +530,7 @@ public class ExportStationsToCSVDialog extends JDialog implements ActionListener
 		
 		} else {
 		
-			List<String> temp = getBaseList(stationData);
-			temp.add("");
-			temp.add("");
-			temp.add("");
-			temp.add("");
-			temp.add("");
-			
+			List<String> temp = getBaseList(stationData);			
 			String[] tempArray = new String[temp.size()];
 			temp.toArray(tempArray);
 			stationArr.add(tempArray);
@@ -550,32 +544,38 @@ public class ExportStationsToCSVDialog extends JDialog implements ActionListener
 	
 		List<String> baseList = new ArrayList<String>();
 					
-		if (organizationCheckBox.isSelected() && stationData.getOperator() != null && stationData.getOperator().getOrganizationName() != null) {
-			baseList.add(stationData.getOperator().getOrganizationName());
-		} else {
-			baseList.add("");
+		if (organizationCheckBox.isSelected()) {
+			if (stationData.getOperator() != null && stationData.getOperator().getOrganizationName() != null) {
+				baseList.add(stationData.getOperator().getOrganizationName());
+			} else {
+				baseList.add("");
+			}
 		}
 
-		if (stationNameCheckBox.isSelected() && stationData.getStationName() != null) {
-			baseList.add(stationData.getStationName());
-		} else {
-			baseList.add("");
-		}		
+		if (stationNameCheckBox.isSelected()) {
+			if (stationData.getStationName() != null) {
+				baseList.add(stationData.getStationName());
+			} else {
+				baseList.add("");
+			}		
+		}
 		
-		if (stationTypeCheckBox.isSelected() && stationData.getStationType() != null) {
-			String stationType = "";
-			if (stationData.getStationType() == AISFixedStationType.BASESTATION) {
-				stationType = "AIS Base Station";
-			} else if (stationData.getStationType() == AISFixedStationType.REPEATER) {
-				stationType = "AIS Repeater";
-			} else if (stationData.getStationType() == AISFixedStationType.RECEIVER) {
-				stationType = "AIS Receiver Station";
-			} else if (stationData.getStationType() == AISFixedStationType.ATON) {
-				stationType = "AIS Aton Station";
+		if (stationTypeCheckBox.isSelected()) {
+			if (stationData.getStationType() != null) {
+				String stationType = "";
+				if (stationData.getStationType() == AISFixedStationType.BASESTATION) {
+					stationType = "AIS Base Station";
+				} else if (stationData.getStationType() == AISFixedStationType.REPEATER) {
+					stationType = "AIS Repeater";
+				} else if (stationData.getStationType() == AISFixedStationType.RECEIVER) {
+					stationType = "AIS Receiver Station";
+				} else if (stationData.getStationType() == AISFixedStationType.ATON) {
+					stationType = "AIS Aton Station";
+				}
+				baseList.add(stationType);
+			} else {
+				baseList.add("");
 			}
-			baseList.add(stationType);
-		} else {
-			baseList.add("");
 		}
 		
 		if (stationData.getStatus() != null) {
@@ -595,76 +595,76 @@ public class ExportStationsToCSVDialog extends JDialog implements ActionListener
 		if (positionCheckBox.isSelected()) {
 			baseList.add(String.valueOf(stationData.getLat()).replace(".", ","));
 			baseList.add(String.valueOf(stationData.getLon()).replace(".", ","));
-		} else {
-			baseList.add("");
-			baseList.add("");
 		}
 		
-		if (mmsiNumberCheckBox.isSelected() && stationData.getMmsi() != null) {
-			baseList.add(stationData.getMmsi());
-		} else {
-			baseList.add("");
+		if (mmsiNumberCheckBox.isSelected()) {
+			if (stationData.getMmsi() != null) {
+				baseList.add(stationData.getMmsi());
+			} else {
+				baseList.add("");
+			}
 		}
 
-		if (transmissionPowerCheckBox.isSelected() && stationData.getTransmissionPower() != null) {
-			baseList.add(stationData.getTransmissionPower().toString().replace(".", ","));
-		} else {
-			baseList.add("");
+		if (transmissionPowerCheckBox.isSelected()) {
+			if (stationData.getTransmissionPower() != null) {
+				baseList.add(stationData.getTransmissionPower().toString().replace(".", ","));
+			} else {
+				baseList.add("");
+			}
 		}
 		
-		if (stationData.getAntenna() != null) {
-			
-			Antenna antenna = stationData.getAntenna();
-			
-			if (antennaTypeCheckBox.isSelected() && antenna.getAntennaType() != null) {
+		if (antennaTypeCheckBox.isSelected()) {
+			if (stationData.getAntenna() != null && stationData.getAntenna().getAntennaType() != null) {
 				String antennaType = "";
-				if (antenna.getAntennaType() == AntennaType.OMNIDIRECTIONAL) {
+				if (stationData.getAntenna().getAntennaType() == AntennaType.OMNIDIRECTIONAL) {
 					antennaType = "Omnidirectional";
-				} else if (antenna.getAntennaType() == AntennaType.DIRECTIONAL) {
+				} else if (stationData.getAntenna().getAntennaType() == AntennaType.DIRECTIONAL) {
 					antennaType = "Directional";
 				}
 				baseList.add(antennaType);
 			} else {
 				baseList.add("");
 			}
+		}
 			
-			if (antennaHeightCheckBox.isSelected()) {
-				baseList.add(String.valueOf(antenna.getAntennaHeight()));
+		if (antennaHeightCheckBox.isSelected()) {
+			if (stationData.getAntenna() != null) {
+				baseList.add(String.valueOf(stationData.getAntenna().getAntennaHeight()));
 			} else {
 				baseList.add("");
 			}
+		}
 
-			if (terrainHeightCheckBox.isSelected()) {
-				baseList.add(String.valueOf(antenna.getTerrainHeight()));
+		if (terrainHeightCheckBox.isSelected()) {
+			if (stationData.getAntenna() != null) {
+				baseList.add(String.valueOf(stationData.getAntenna().getTerrainHeight()));
 			} else {
 				baseList.add("");
 			}			
-			
-			if (antennaHeadingCheckBox.isSelected() && antenna.getHeading() != null) {
-				baseList.add(antenna.getHeading().toString());
-			} else {
-				baseList.add("");
-			}	
+		}
 		
-			if (antennaFieldOfViewAngleCheckBox.isSelected() && antenna.getFieldOfViewAngle() != null) {
-				baseList.add(antenna.getFieldOfViewAngle().toString());
+		if (antennaHeadingCheckBox.isSelected()) {
+			if (stationData.getAntenna() != null && stationData.getAntenna().getHeading() != null) {
+				baseList.add(stationData.getAntenna().getHeading().toString());
+			} else {
+				baseList.add("");
+			}
+		}
+		
+		if (antennaFieldOfViewAngleCheckBox.isSelected()) {
+			if (stationData.getAntenna() != null && stationData.getAntenna().getFieldOfViewAngle() != null) {
+				baseList.add(stationData.getAntenna().getFieldOfViewAngle().toString());
 			} else {
 				baseList.add("");
 			}	
+		}
 			
-			if (antennaGainCheckBox.isSelected() && antenna.getGain() != null) {
-				baseList.add(antenna.getGain().toString());
+		if (antennaGainCheckBox.isSelected()) {
+			if (stationData.getAntenna() != null && stationData.getAntenna().getGain() != null) {
+				baseList.add(stationData.getAntenna().getGain().toString());
 			} else {
 				baseList.add("");
-			}	
-			
-		} else {						
-			baseList.add("");
-			baseList.add("");
-			baseList.add("");						
-			baseList.add("");
-			baseList.add("");
-			baseList.add("");
+			}
 		}
 	
 		return baseList;
