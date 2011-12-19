@@ -135,9 +135,19 @@ import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.TreeModel;
 import skt.swing.tree.check.*;
 
+/**
+ * Class for displaying the stations and their coverage areas as well as the pop up menu for the stations and the show on map menu. 
+ */
 public class StationLayer extends OMGraphicHandlerLayer implements MapMouseListener, ActionListener, WindowListener, DrawingToolRequestor {
 
-	private static final long serialVersionUID = 1L;
+	public static final long serialVersionUID = 1L;
+
+	public static String INITIAL_LAYERS_FILE_NAME = "initialLayers.txt";
+	
+	/**
+	 * Whether the layer has completely loaded.
+	 */
+	public static boolean windowReady = false;
 	
     private MapBean mapBean;
 	private OpenMapFrame openMapFrame;
@@ -190,7 +200,6 @@ public class StationLayer extends OMGraphicHandlerLayer implements MapMouseListe
 	private ExportStationsToCSVDialog exportStationsToCSVDialog;
 	
 	private EAVDAMData data;
-	//private int currentIcons = -1;
 
 	private boolean needsSaving = false;
 	
@@ -209,7 +218,6 @@ public class StationLayer extends OMGraphicHandlerLayer implements MapMouseListe
 	private List<OMGraphic> hiddenReceiveCoverageAreas;
 	private List<OMGraphic> hiddenInterferenceCoverageAreas;
 	
-	public static String INITIAL_LAYERS_FILE_NAME = "initialLayers.txt";
 	private Map<String, Boolean> initiallySelectedLayerClassNames;
 	private List<Layer> initiallySelectedLayers;
 	private Map<Layer, Boolean> initiallySelectedLayersVisibilities;
@@ -242,8 +250,9 @@ public class StationLayer extends OMGraphicHandlerLayer implements MapMouseListe
 	private int currentX = -1;
 	private int currentY = -1;
 	
-	public static boolean windowReady = false;
-	
+	/**
+	 * The constructor initiates the show on map menu items.
+	 */	 
     public StationLayer() {
 		showOnMapMenuItem = new JMenuItem("Show on map");
 		showOnMapMenuItem.addActionListener(this);
@@ -351,6 +360,13 @@ public class StationLayer extends OMGraphicHandlerLayer implements MapMouseListe
 		return showAISAtonStationCheckBox;
 	}
 
+	/**
+	 * Adds a station to the layer.
+	 *
+	 * @param datasetSource  NULL value for user's own stations, simulation name (String) for simulations or EAVDAMUser object for other users' stations 
+	 * @param owner          User who operates the station that is being added
+	 * @param stationData    Station that is to be added
+	 */	 
     public void addBaseStation(Object datasetSource, EAVDAMUser owner, AISFixedStationData stationData) {
 	
 		if (omBaseStations == null) {
@@ -489,7 +505,10 @@ public class StationLayer extends OMGraphicHandlerLayer implements MapMouseListe
 
 		omBaseStations.add(base);
 	}
-		
+	
+	/** 
+	 * Renders the added stations on the map.
+	 */
 	public void renderBaseStations() {
 	
 		if (omBaseStations == null) {
@@ -588,19 +607,13 @@ public class StationLayer extends OMGraphicHandlerLayer implements MapMouseListe
 	}
 	
 	 public DrawingTool getDrawingTool() {
-        // Usually set in the findAndInit() method.
         return drawingTool;
     }
 
     public void setDrawingTool(DrawingTool dt) {
-        // Called by the findAndInit method.
         drawingTool = dt;
     }
 	
-    /**
-     * Called when the DrawingTool is complete, providing the layer with the
-     * modified OMGraphic.
-     */
 	@Override	 
     public void drawingComplete(OMGraphic omg, OMAction action) {
 	
@@ -639,29 +652,6 @@ public class StationLayer extends OMGraphicHandlerLayer implements MapMouseListe
 			
 		}
 	
-/*
-        Object obj = omg.getAppObject();
-
-        if (obj != null && (obj == internalKey || obj == externalKey)
-                && !action.isMask(OMGraphicConstants.DELETE_GRAPHIC_MASK)) {
-
-            java.awt.Shape filterShape = omg.getShape();
-            OMGraphicList filteredList = filter(filterShape,
-                    (omg.getAppObject() == internalKey));
-            if (Debug.debugging("demo")) {
-                Debug.output("DemoLayer filter: "
-                        + filteredList.getDescription());
-            }
-        } else {
-            if (!doAction(omg, action)) {
-                // null OMGraphicList on failure, should only occur if
-                // OMGraphic is added to layer before it's ever been
-                // on the map.
-                setList(new OMGraphicList());
-                doAction(omg, action);
-            }
-        }
-*/
         repaint();
     }		
 	
@@ -811,27 +801,7 @@ public class StationLayer extends OMGraphicHandlerLayer implements MapMouseListe
 
 	@Override
 	public boolean mouseDragged(MouseEvent e) {
-	    /*
-		OMList<OMGraphic> allClosest = graphics.findAll(e.getX(), e.getY(), 5.0f);
-		for (OMGraphic omGraphic : allClosest) {
-			if (omGraphic instanceof OMBaseStation) {
-				System.out.println("Mouse dragged on omGraphic: " + omGraphic);
-				OMBaseStation r = (OMBaseStation) omGraphic;
-				Point2D p = ((MapMouseEvent) e).getLatLon();
-				r.setLatLon(p.getY(), p.getX());
-				r.generate(getProjection());
-				this.repaint();
-
-				// if (this.infoDelegator != null) {
-				// this.infoDelegator.setLabel("FOO");
-				// }
-				
-				// Consumed by this
-				return true;
-			}
-		}
-		*/
-		return false;		
+		return false;
 	}
 
 	@Override
@@ -1343,6 +1313,17 @@ public class StationLayer extends OMGraphicHandlerLayer implements MapMouseListe
         }
     }
 	
+	/**
+	 * Saves the coverage area that the user has edited on the map.
+	 *
+	 * @param data         Application data
+	 * @param baseStation  Station of which coverage area the user edited
+	 * @param points       Points of the user defined coverage area
+	 * @param activeLayer  Whether the user edited transmit coverage (OMAISBaseStationTransmitCoverageLayer),
+	 *                     receive coverage (OMAISBaseStationReceiveCoverageLayer) or interference coverage
+     *                     (OMAISBaseStationInterferenceCoverageLayer)
+	 * @return             Application data with the newly saved coverage area
+	 */
 	private EAVDAMData saveCoverage(EAVDAMData data, OMBaseStation baseStation, ArrayList<double[]> points, OMGraphicHandlerLayer activeLayer) {
 		if (baseStation.getDatasetSource() == null) {
 			List<ActiveStation> activeStations = data.getActiveStations();
@@ -1480,6 +1461,9 @@ public class StationLayer extends OMGraphicHandlerLayer implements MapMouseListe
 		return data;	
 	}
 	
+	/**
+	 * Creates the station check box tree for the show on map menu.
+	 */
 	public void createTree() {
 			
 		// loads earlier selections
@@ -1666,6 +1650,15 @@ public class StationLayer extends OMGraphicHandlerLayer implements MapMouseListe
 		}		
 	}
 
+	/**
+	 * Returns current selections from the station check box tree of the show on map menu.
+	 *
+	 * @return  Current selections from the station check box tree of the show on map menu.
+     *	        The String value in the returned HashMap is in one of the following formats:
+	 *          "Own operative stations /// station_name",  "Own planned stations /// station_name",
+	 *          "Simulation : simulation_name /// station_name" or "Stations of organization:
+	 *          organization_name /// station_name"
+	 */
 	public Map<String, Boolean> getCurrentSelections() {
 	
 		Map<String, Boolean> currentSelections = new HashMap<String, Boolean>();
@@ -1784,6 +1777,9 @@ public class StationLayer extends OMGraphicHandlerLayer implements MapMouseListe
 		return currentSelections;
 	}
 	
+	/**
+	 * Restores initially selected stations to the check box tree. Used in case the user chooses to cancel his selections.
+	 */
 	private void restoreInitiallySelectedStations() {
 			
 		CheckTreeSelectionModel selectionModel = checkTreeManager.getSelectionModel();
@@ -2006,6 +2002,9 @@ public class StationLayer extends OMGraphicHandlerLayer implements MapMouseListe
 	
 	public void windowClosed(WindowEvent e) {}
 	
+	/**
+	 * Writes the currently selected layers to a file so that they can be restored when the application is started the next time.
+	 */
 	public void windowClosing(WindowEvent e) {
 		try {
 			new File(StationLayer.INITIAL_LAYERS_FILE_NAME).delete();
@@ -2027,6 +2026,9 @@ public class StationLayer extends OMGraphicHandlerLayer implements MapMouseListe
 	
 	public void	windowIconified(WindowEvent e) {}
 	
+	/**
+	 * Restores the layers that were active when the user closed the application last time.
+	 */
 	public void	windowOpened(WindowEvent e) {
 		
 		Toolkit toolkit = Toolkit.getDefaultToolkit();
@@ -2132,6 +2134,9 @@ public class StationLayer extends OMGraphicHandlerLayer implements MapMouseListe
         return true;
 	}
 	
+	/**
+	 * Updates stations on the map. Does it in a separate thread and shows a wait dialog while the update is going on.
+	 */
     public void updateStations() {
 
 		if (eavdamMenu == null) {
@@ -2181,6 +2186,9 @@ public class StationLayer extends OMGraphicHandlerLayer implements MapMouseListe
 }
 
 
+/**
+ * Class for getting a slot map.
+ */
 class GetSlotMapDialogThread extends Thread {
 	
 	StationLayer stationLayer;
@@ -2206,6 +2214,9 @@ class GetSlotMapDialogThread extends Thread {
 }
 
 
+/**
+ * Class for displaying a wait dialog while the slot map is being generated.
+ */
 class WaitThread extends Thread {
 
 	StationLayer stationLayer;
@@ -2230,6 +2241,10 @@ class WaitThread extends Thread {
 
 }
 
+
+/**
+ * Class for updating stations.
+ */
 class UpdateStationsThread extends Thread {
 			
 	StationLayer stationLayer;
@@ -2368,17 +2383,6 @@ class UpdateStationsThread extends Thread {
 			if (stationLayer.isNeedsSaving()) {
 				DBHandler.saveData(stationLayer.getData());
 			}
-			
-			/*
-            this.repaint();
-		    this.validate();
-            transmitCoverageLayer.repaint();
-		    transmitCoverageLayer.validate();
-            receiveCoverageLayer.repaint();
-		    receiveCoverageLayer.validate();
-	        interferenceCoverageLayer.repaint();
-		    interferenceCoverageLayer.validate();		
-			*/			
 			
 		}
 		

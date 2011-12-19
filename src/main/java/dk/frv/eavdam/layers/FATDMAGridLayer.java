@@ -42,6 +42,9 @@ import com.bbn.openmap.omGraphics.OMText;
 import java.awt.geom.Point2D;
 import javax.swing.JOptionPane;
 
+/**
+ * Class for presenting the IALA A-124 global FATDMA grid
+ */
 public class FATDMAGridLayer extends OMGraphicHandlerLayer {
 
 	private static final long serialVersionUID = 1L;
@@ -71,26 +74,6 @@ public class FATDMAGridLayer extends OMGraphicHandlerLayer {
 			JOptionPane.showMessageDialog(openMapFrame, "Scale too small for displaying FATDMA grid layer! Please, zoom in!");			
 			
 		} else {
-			
-			/*	
-			Point2D upperLeft = projection.getUpperLeft();
-			Point2D lowerRight = projection.getLowerRight();		
-						
-			double latTopPos = Math.floor(upperLeft.getY());
-			double lonLeftPos = Math.floor(upperLeft.getX());
-			double latBottomPos = Math.floor(lowerRight.getY());
-			double lonRightPos = Math.floor(lowerRight.getX());
-
-			// if looking at an area (in the Pacific Ocean), where the dateline crosses through
-			// the area of interest (LONleft > LONright) the drawing method needs to be called twice
-			
-			if (lonLeftPos > lonRightPos) {
-				addGridToGraphics(latTopPos, lonLeftPos, latBottomPos, 180);
-				addGridToGraphics(latTopPos, -180, latBottomPos, lonRightPos);				
-			} else {
-				addGridToGraphics(latTopPos, lonLeftPos, latBottomPos, lonRightPos);
-			}
-			*/
 				
 			Point2D upperLeft = projection.getUpperLeft();
 			Point2D lowerRight = projection.getLowerRight();
@@ -197,12 +180,12 @@ public class FATDMAGridLayer extends OMGraphicHandlerLayer {
 			OMLine omLine = new OMLine(latBottom, lonStart, latBottom, lonStop, OMLine.LINETYPE_RHUMB);
 			graphics.add(omLine);
 			
-			//... using the algorithm from above at this particular latitude
-			//Note: abs(x) denotes the absolute value of x; int(x) denotes truncated integer value of x 
+			// ... using the algorithm from above at this particular latitude
+			// note: abs(x) denotes the absolute value of x; int(x) denotes truncated integer value of x 
 			int masterCellRowNo = (int) (Math.abs(lat) / masterCellSizeInDegreesLatitude); 
 			double masterCellMeanLatitude = (masterCellRowNo+0.5) * masterCellSizeInDegreesLatitude;
 
-			//Note: cos(x) denotes cosine of x in radians
+			// note: cos(x) denotes cosine of x in radians
 			int noOfMasterCellsAroundMasterCellRow = (int) (noOfMasterCellsAroundEquator * Math.cos(2 * Math.PI * masterCellMeanLatitude / 360 ));
 
 			double singleCellWidthInDegrees = 360 / (noOfSingleCellsAlongOneSideOfMasterCell * noOfMasterCellsAroundMasterCellRow); 
@@ -216,12 +199,12 @@ public class FATDMAGridLayer extends OMGraphicHandlerLayer {
 					OMLine omLine2 = new OMLine(latBottom, n*singleCellWidthInDegrees, latBottom+0.5, n*singleCellWidthInDegrees, OMLine.LINETYPE_RHUMB);
 					graphics.add(omLine2);
 	
-					//Now calculate the cell number
+					// now calculate the cell number
 					Double lon = n*singleCellWidthInDegrees+singleCellWidthInDegrees*0.5;
 
 					int rowNumberInsideMasterCell = (int) (Math.abs(lat) * 60 / singleCellSizeInNauticalMiles) - noOfSingleCellsAlongOneSideOfMasterCell * masterCellRowNo;
 
-					// Note: first Southern Hemisphere is assumed, then compensate if Northern Hemisphere
+					// note: first Southern Hemisphere is assumed, then compensate if Northern Hemisphere
 					if (lat > 0) {
 						rowNumberInsideMasterCell = noOfSingleCellsAlongOneSideOfMasterCell - rowNumberInsideMasterCell - 1;
 					}
@@ -232,7 +215,7 @@ public class FATDMAGridLayer extends OMGraphicHandlerLayer {
 						columnNumberInsideMasterCell = columnNumberInsideMasterCell - noOfSingleCellsAlongOneSideOfMasterCell;
 					}
 
-					// Note: first positive longitude is assumed, compensate if negative longitude (west of Greenwich)
+					// note: first positive longitude is assumed, compensate if negative longitude (west of Greenwich)
 					if (lon < 0) {
 						columnNumberInsideMasterCell = (noOfSingleCellsAlongOneSideOfMasterCell - 1) - columnNumberInsideMasterCell;
 					}
@@ -251,6 +234,15 @@ public class FATDMAGridLayer extends OMGraphicHandlerLayer {
 		}
 	}
 	
+	/**
+	 * Calculates the FATDMA grid cell number for given cell sizes and coordinates.
+	 *
+	 * @param singleCellSizeInNauticalMiles            Single cell size in the FATDMA grid in nautical miles (typically 30)
+	 * @param noOfSingleCellsAlongOneSideOfMasterCell  Number of cells along one side of master cell in the FATDMA grid (typically 6)
+	 * @param lat                                      Latitude of the point for which the cell number is to be calculated
+	 * @param lon                                      Longitude of the point for which the cell number is to be calculated
+	 * @return                                         FATDMA grid cell number for given cell sizes and coordinates
+	 */
 	public static int calculateCellNo(int singleCellSizeInNauticalMiles, int noOfSingleCellsAlongOneSideOfMasterCell, double lat, double lon) {
 	
 		// assuming mastercell consists of rectangular grid of singlecells
@@ -268,23 +260,23 @@ public class FATDMAGridLayer extends OMGraphicHandlerLayer {
 			int noOfMasterCellsAroundMasterCellRow = (int) (noOfMasterCellsAroundEquator * Math.cos(2*Math.PI*masterCellMeanLatitude/360.0));
 			double singleCellWidthInDegrees = 360.0d/(noOfSingleCellsAlongOneSideOfMasterCell*noOfMasterCellsAroundMasterCellRow);  // Assuming 5 cells per mastercell
 
-			int rowNumberInsideMasterCell =-1;  //legal values [0;noOfSingleCellsAlongOneSideOfMasterCell-1]
-			int columnNumberInsideMasterCell =-1;  //legal values [0;noOfSingleCellsAlongOneSideOfMasterCell-1]
+			int rowNumberInsideMasterCell = -1;  // legal values [0;noOfSingleCellsAlongOneSideOfMasterCell-1]
+			int columnNumberInsideMasterCell = -1;  // legal values [0;noOfSingleCellsAlongOneSideOfMasterCell-1]
 
 			// default: Southern Hemisphere
 			rowNumberInsideMasterCell = ((int) (Math.abs(lat) * 60.0 / singleCellSizeInNauticalMiles)) - noOfSingleCellsAlongOneSideOfMasterCell * masterCellRowNo; // positive integer
 	
-			if (lat>0) {  //in case of Northern Hemisphere
+			if (lat > 0) {  //in case of Northern Hemisphere
 				rowNumberInsideMasterCell = noOfSingleCellsAlongOneSideOfMasterCell - rowNumberInsideMasterCell - 1;
 			}
 
-			//default: Positive longitude - east of Greenwich
+			// default: Positive longitude - east of Greenwich
 			columnNumberInsideMasterCell = (int) (Math.abs(lon) / singleCellWidthInDegrees);
 			while (columnNumberInsideMasterCell >(noOfSingleCellsAlongOneSideOfMasterCell-1)) {
 				columnNumberInsideMasterCell -= noOfSingleCellsAlongOneSideOfMasterCell;
 			}
           
-			if (lon<0) {  // In case of Negative longitude - west of Greenwich
+			if (lon < 0) {  // in case of Negative longitude - west of Greenwich
 				columnNumberInsideMasterCell = (noOfSingleCellsAlongOneSideOfMasterCell-1)-columnNumberInsideMasterCell;
 			}
 

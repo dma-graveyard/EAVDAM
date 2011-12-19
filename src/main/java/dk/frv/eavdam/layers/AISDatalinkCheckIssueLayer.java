@@ -52,6 +52,10 @@ import java.awt.geom.Point2D;
 import java.util.List;
 import javax.swing.JOptionPane;
 
+/**
+ * Class for displaying the issues found in an AIS VHF datalink health check.
+ * Draws red circles around the stations that are involved with issues.
+ */
 public class AISDatalinkCheckIssueLayer extends OMGraphicHandlerLayer {
 
 	private static final long serialVersionUID = 1L;

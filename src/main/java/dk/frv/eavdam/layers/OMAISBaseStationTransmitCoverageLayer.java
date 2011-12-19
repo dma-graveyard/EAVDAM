@@ -48,6 +48,9 @@ import java.awt.geom.Point2D;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Class for presenting station's transmit coverage area on the map.
+ */
 public class OMAISBaseStationTransmitCoverageLayer extends OMGraphicHandlerLayer {
 
 	private static final long serialVersionUID = 1L;
@@ -79,6 +82,12 @@ public class OMAISBaseStationTransmitCoverageLayer extends OMGraphicHandlerLayer
 		return graphics;
 	}
 	
+	/**
+	 * Adds the transmit coverage area.
+	 *
+	 * @param bs  Station for which to add the transmit coverage area
+	 * @return    The added coverage area  (OMCircle or OMPoly)
+	 */
 	public Object addTransmitCoverageArea(OMBaseStation bs) {
 	    
 		if (bs.getTransmitCoverageArea() == null) {

@@ -48,6 +48,9 @@ import java.awt.geom.Point2D;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Class for presenting station's interference coverage area on the map.
+ */
 public class OMAISBaseStationInterferenceCoverageLayer extends OMGraphicHandlerLayer {
 
 	private static final long serialVersionUID = 1L;
@@ -79,7 +82,12 @@ public class OMAISBaseStationInterferenceCoverageLayer extends OMGraphicHandlerL
 		return graphics;
 	}
 
-	
+	/**
+	 * Adds the interference coverage area.
+	 *
+	 * @param bs  Station for which to add the interference coverage area
+	 * @return    The added coverage area (OMCircle or OMPoly)
+	 */		
 	public Object addInterferenceCoverageArea(OMBaseStation bs) {
 	    
 		if (bs.getInterferenceCoverageArea() == null) {

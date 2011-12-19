@@ -47,6 +47,14 @@ import java.util.ArrayList;
 import java.util.List;
 import javax.swing.JOptionPane;
 
+/**
+ * Class for displaying the bandwidth areas found in an AIS VHF datalink health check.
+ * Draws colored semi-transparent squares on the map according to the following scheme:
+ * 0-10% BW loading: green color with 90-80% transparency, 11-20% BW loading: green color with
+ * 79-70% transparency, 21-30% BW loading: dark green color with 69-60% transparency,
+ * 31-40% BW loading: red color with 59-50% transparency, 41-50% BW loading: red color with
+ * 49-40% transparency, above 50% BW loading: dark red color with 40-0% transparency.
+ */
 public class AISDatalinkCheckBandwidthAreasLayer extends OMGraphicHandlerLayer {
 
 	private static final long serialVersionUID = 1L;

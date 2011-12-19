@@ -31,6 +31,9 @@ package dk.frv.eavdam.layers;
 
 import com.bbn.openmap.layer.shape.ShapeLayer;
 
+/**
+ * Class for presenting a shape file on the map.
+ */
 public class OMAISShapeLayer extends ShapeLayer {
 
 	private static final long serialVersionUID = 1L;

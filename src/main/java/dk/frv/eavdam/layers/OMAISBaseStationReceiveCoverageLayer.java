@@ -48,6 +48,9 @@ import java.awt.geom.Point2D;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Class for presenting station's receive coverage area on the map.
+ */
 public class OMAISBaseStationReceiveCoverageLayer extends OMGraphicHandlerLayer {
 
 	private static final long serialVersionUID = 1L;
@@ -79,6 +82,12 @@ public class OMAISBaseStationReceiveCoverageLayer extends OMGraphicHandlerLayer 
 		return graphics;
 	}
 	
+	/**
+	 * Adds the receive coverage area.
+	 *
+	 * @param bs  Station for which to add the receive coverage area
+	 * @return    The added coverage area (OMCircle or OMPoly)
+	 */	
 	public Object addReceiveCoverageArea(OMBaseStation bs) {
 	    
 		if (bs.getReceiveCoverageArea() == null) {
