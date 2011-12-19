@@ -104,7 +104,7 @@ public class SendFTPButton extends OMToolComponent implements ActionListener, To
 		 
 		String infoText = "This will send your latest data file to all defined ftp directories and download\n" +
 			"new data files of other users from them. Are you sure you want to do this?";
-		if (exportData.getActiveStations() == null || exportData.getActiveStations().isEmpty()) {
+		if (exportData.getStations() == null || exportData.getStations().length == 0) {
 			infoText =  "You have no own stations, so this will only download new data files of other\n" +
 				"users from the defined ftp directories. Are you sure you want to do this?";
 		}

@@ -88,7 +88,7 @@ public class SendEmailButton extends OMToolComponent implements ActionListener, 
 	    
 		EAVDAMData exportData = XMLHandler.exportData();	
 
-		if (exportData.getActiveStations() == null || exportData.getActiveStations().isEmpty()) {
+		if (exportData.getStations() == null || exportData.getStations().length == 0) {
             JOptionPane.showMessageDialog(openMapFrame, "You have no own stations", "Error", JOptionPane.ERROR_MESSAGE);
 		} else {
 			 int response = JOptionPane.showConfirmDialog(openMapFrame, "This will e-mail the latest data file to all defined recipients. Are you sure you want to do this?", "Confirm action", JOptionPane.YES_NO_OPTION);
