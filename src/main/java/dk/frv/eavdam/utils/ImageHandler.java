@@ -36,8 +36,19 @@ import java.awt.image.BufferedImage;
 import java.awt.Graphics2D;
 import java.util.List;
 
+/**
+ * Class for handling images.
+ */
 public class ImageHandler {
 
+	/**
+	 * Gets an image for representing a slot map.
+	 *
+	 * @param width                 Width for the image
+	 * @param height                Height for the image
+	 * @param timeslotReservations  Timeslot reservations that are to be visualized in the slot map
+	 * @return                      Slot map as an Image object
+	 */
     public static Image getTimeslotImage(int width, int height, List<TimeslotReservation> timeslotReservations) {
  
 		BufferedImage bimage = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
@@ -71,6 +82,14 @@ public class ImageHandler {
     
 	}
  
+	/**
+	 * Gets an image for representing a slot map.
+	 *
+	 * @param width                 Width for the image
+	 * @param height                Height for the image
+	 * @param blockReservations     Reserved blocks that are to be visualized in the slot map
+	 * @return                      Slot map as an Image object
+	 */ 
     public static Image getTimeslotImage(int width, int height, boolean[] blockReservations) {
  
 		//int width = 400;

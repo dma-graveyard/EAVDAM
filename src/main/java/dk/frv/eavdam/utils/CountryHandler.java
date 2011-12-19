@@ -34,6 +34,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * Class for handling the conversion between countries and country codes.
+ */
 public class CountryHandler {
 
 	private static List<String> countries = new ArrayList<String>();
@@ -42,6 +45,12 @@ public class CountryHandler {
 	
 	private static boolean inited = false;
 
+	/**
+	 * Gets a country name of a given country code.
+	 *
+	 * @param countryCode  Country code
+	 * @return             Country name of the given country code
+	 */
 	public static String getCountryName(String countryCode) {
 		if (!inited) {
 			init();
@@ -52,6 +61,12 @@ public class CountryHandler {
 		return null;
 	}	
 
+	/**
+	 * Gets a country code of a given country name.
+	 *
+	 * @param countryName  Country name
+	 * @return             Country code of the given country name
+	 */	
 	public static String getCountryCode(String countryName) {	
 		if (!inited) {
 			init();
@@ -62,6 +77,11 @@ public class CountryHandler {
 		return null;
 	}
 	
+	/**
+	 * Gets all country names in a list.
+	 *
+	 * @return  All countries in a list
+	 */
 	public static List<String> getCountries() {	
 		if (!inited) {
 			init();

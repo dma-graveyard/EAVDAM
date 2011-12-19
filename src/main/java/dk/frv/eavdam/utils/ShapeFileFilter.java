@@ -32,8 +32,16 @@ package dk.frv.eavdam.utils;
 import java.io.File;
 import javax.swing.filechooser.FileFilter;
 
+/**
+ * Class for filtering shape (.shp) files in a file selection dialog.
+ */
 public class ShapeFileFilter extends FileFilter {
  
+	/**
+	 * Selects shape files, i.e., files that end with .shp
+	 *
+	 * @true if the given file's extension is shp, false otherwise
+	 */	
     public boolean accept(File f) {
         if (f.isDirectory()) {
             return true;
@@ -44,6 +52,11 @@ public class ShapeFileFilter extends FileFilter {
         return false;
     }
  
+	/**
+	 * Return description for the file filter.
+	 *
+	 * @return  Description for the file filter
+	 */
     public String getDescription() {
         return "Shape files";
     }

@@ -37,11 +37,26 @@ import dk.frv.eavdam.layers.FATDMAGridLayer;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-	
+
+/**
+ * Class for FATDMA calculations.
+ */
 public class FATDMAUtils {
 
+	/**
+	 * Holds default FATDMA cell values.
+	 */
 	public static Map<String,List<FATDMACell>> fatdmaCellsMap = null;
 	
+	/**
+	 * Checks whether given reserved blocks are according to IALA A-124 default FATDMA scheme in the given latitude/longitude point.
+	 *
+	 * @param lat                        Latitude for a point
+	 * @param lon                        Longitude for a point
+	 * @param reservedBlocksForChannelA  Reserved blocks for channel A
+	 * @param reservedBlocksForChannelB  Reserved blocks for channel B
+	 * @return                           True if the reserved blocks are according to the IALA A-124 default FATDMA scheme, false otherwise
+	 */
 	public static boolean areReservedBlocksAccordingToFATDMAScheme(double lat, double lon, List<Integer> reservedBlocksForChannelA, List<Integer> reservedBlocksForChannelB) {
 	
 		int singleCellSizeInNauticalMiles = 30;
@@ -145,6 +160,14 @@ public class FATDMAUtils {
 		return acceptedFATDMABlocks;
 	}
 	
+	/**
+	 * Calculates block numbers that given startslot, block size and increment values define.
+	 *
+	 * @param startslot   Startslot
+	 * @param blockSize   Block size
+	 * @param incerement  Increment
+	 * @return            Block numbers that the given startslot, block size and increment values define
+	 */
 	public static List<Integer> getBlocks(Integer startslot, Integer blockSize, Integer increment) {
 	
 		List<Integer> blocks = new ArrayList<Integer>();

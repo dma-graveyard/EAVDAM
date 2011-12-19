@@ -33,10 +33,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Calculates the round coverage area given the antenna height.
- * 
- * @author TTETMJ
- *
+ * Class for calculating the round coverage area given the antenna height.
  */
 public class RoundCoverage {
 
@@ -194,13 +191,10 @@ public class RoundCoverage {
 		}
 		
 		double temp = -1;
-		//Add line from the station to the start point:
-//		double[] p1 = {centerLat,centerLon};
-//		points.add(p1);
 		
 		if(endAngle < startAngle) endAngle += 360;
 		
-		//First, do the half circle behind the heading
+		// first, do the half circle behind the heading
 		for (double angle = startAngle; angle <= endAngle; angle += partOfCircleAngle){	
 			double realAngle = angle;
 			if(realAngle > 360) realAngle -= 360;
@@ -212,23 +206,17 @@ public class RoundCoverage {
 		
 		if(endAngle > 360) endAngle -= 360;
 		
-		if (temp != endAngle) { //Adds the last point if the points were not evenly distributed
-			
+		if (temp != endAngle) {  // adds the last point if the points were not evenly distributed
 			double[] point = getCoordinates(centerLat, centerLon, radius1, endAngle);
 			points.add(point);		
 		}
-
-		//Line from the end point to the station
-//		double[] p2 = {centerLat,centerLon};
-//		points.add(p2);
-
 		
 		double partStartAngle = heading-(fieldOfViewAngle/2);
 		double partEndAngle = heading+(fieldOfViewAngle/2);
 		
 		if(partStartAngle > partEndAngle) partEndAngle += 360;
 		
-		//Coverage to the front of the heading
+		// coverage to the front of the heading
 		partOfCircleAngle = fieldOfViewAngle/Math.round(numberOfPoints/2);
 		for(double angle = partStartAngle; angle <= partEndAngle; angle += partOfCircleAngle){			
 			double realAngle = angle;
@@ -246,7 +234,6 @@ public class RoundCoverage {
 			points.add(point);		
 		}
 
-//		double[] point = {centerLat,centerLon};  // first point
 		double[] point = getCoordinates(centerLat, centerLon, radius1, startAngle);
 		
 		points.add(point);
@@ -268,15 +255,25 @@ public class RoundCoverage {
 		
 	}
 	
+	/**
+	 * Converts degrees to radians.
+	 *
+	 * @param d  Degrees value
+	 * @return   Given value converted to radians
+	 */
     public static double degrees2radians(double d) {
         return d * Math.PI / 180;
     }
 
+	/**
+	 * Converts radians to degrees.
+	 *
+	 * @param d  Radians value
+	 * @return   Given value converted to degrees
+	 */	
     public static double radians2degrees(double r) {
         return r * 180 / Math.PI;
     }
-
-
     
     /**
      * Converts the D'M.S degree to the decimal degree.
@@ -293,11 +290,11 @@ public class RoundCoverage {
     /**
      * Returns the distance between two coordinates.
      * 
-     * @param lat1 
-     * @param lon1
-     * @param lat2
-     * @param lon2
-     * @return
+     * @param lat1  Latitude of the first coordinate
+     * @param lon1  Longitude of the first coordinate
+     * @param lat2  Latitude of the second coordinate
+     * @param lon2  Longitude of the second coordinate
+     * @return      Distance between the coordinates
      */
     private static double greatCircleDistance(double lat1, double lon1, double lat2, double lon2) {
         lat1 = degrees2radians(lat1);
@@ -313,12 +310,11 @@ public class RoundCoverage {
     /**
      * Returns the coordinates  
      * 
-     * @param lat1 starting point (lat)
-     * @param lon1 starting point (lon)
-     * @param dist distance to the other coordinate.
-     * @param angle angle to the other coordinate.
-     * 
-     * @return double array where index 0 has the latitude and the index 1 longitude.
+     * @param lat1   Starting point (lat)
+     * @param lon1   Starting point (lon)
+     * @param dist   Distance to the other coordinate.
+     * @param angle  Angle to the other coordinate.
+     * @return       Double array where index 0 has the latitude and the index 1 longitude.
      */
     public static double[] getCoordinates(double lat1, double lon1, double dist, double angle) {
         lat1 = degrees2radians(lat1);
@@ -343,19 +339,18 @@ public class RoundCoverage {
         
         return coord;
     }
-    
-    
-    
+        
     /**
      * Just for testing... 
      * 
      * @param args
      */
-    public static void main(String[] args){
+    public static void main(String[] args) {
     	List<double[]> points = getRoundCoverage(10, 4, 12.0, 55.0, 11);
     	
-    	for(double[] p : points){
+    	for (double[] p : points) {
     		System.out.println(p[0]+","+p[1]);
     	}
     }
+	
 }

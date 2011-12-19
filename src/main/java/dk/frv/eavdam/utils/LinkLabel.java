@@ -35,28 +35,51 @@ import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
 import javax.swing.JLabel;
 
+/**
+ * Class for a JLabel representing link.
+ */
 public class LinkLabel extends JLabel {
 
 	public static final long serialVersionUID = 1L;
 
 	private String text;
 
+	/**
+	 * Constructor for giving the text for the label.
+	 *
+	 * @param text  Text for the label
+	 */
 	public LinkLabel(String text) {
 		super(text);
 		setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
 		enableEvents(MouseEvent.MOUSE_EVENT_MASK);
 	}
 
+	/**
+	 * Sets the text for the label.
+	 *
+	 * @param text  Text for the label
+	 */
 	public void setText(String text) {
 		super.setText("<html><font color=\"#0000CF\"><u>"+text+"</u></font></html>");
 		this.text = text;
 	}
 
+	/**
+	 * Sets the text for the label and makes the text red.
+	 *
+	 * @param text  Text for the label
+	 */
 	public void setRedText(String text) {
 		super.setText("<html><font color=\"red\"><u>"+text+"</u></font></html>");
 		this.text = text;
 	}
 	
+	/**
+	 * Gets label's text.
+	 *
+	 * @return  Label's text
+	 */
 	public String getNormalText() {
 		return text;
 	}
@@ -68,10 +91,20 @@ public class LinkLabel extends JLabel {
 		}
 	}
 
+	/**
+	 * Adds action listener.
+	 *
+	 * @param listener  Action listener to add
+	 */
 	public void addActionListener(ActionListener listener) {
 		listenerList.add(ActionListener.class, listener);
 	}
 
+	/**
+	 * Removes action listener.
+	 *
+	 * @param listener  Action listener to remove
+	 */
 	public void removeActionListener(ActionListener listener) {
 		listenerList.remove(ActionListener.class, listener);
 	}

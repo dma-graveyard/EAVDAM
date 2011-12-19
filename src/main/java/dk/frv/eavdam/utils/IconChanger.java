@@ -36,8 +36,16 @@ import java.io.IOException;
 import java.util.List;
 import net.sf.image4j.codec.ico.ICODecoder;
 
+/**
+ * Class for reading and setting the application icon.
+ */
 public class IconChanger {
 
+	/**
+	 * Changes application's default icon to EAVDAM.ico.
+	 *
+	 * @param  openMapFrame  OpenMapFrame of the application
+	 */
 	public static void changeToEAVDAMIcon(OpenMapFrame openMapFrame) {
 		try {
 			List<BufferedImage> image = ICODecoder.read(new File("share/data/images/EAVDAM.ico"));

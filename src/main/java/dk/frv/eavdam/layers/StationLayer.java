@@ -84,6 +84,7 @@ import dk.frv.eavdam.utils.HealthCheckHandler;
 import dk.frv.eavdam.utils.RoundCoverage;
 import java.awt.BorderLayout;
 import java.awt.Color;
+import java.awt.Cursor;
 import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.GridBagConstraints;
@@ -2027,6 +2028,7 @@ public class StationLayer extends OMGraphicHandlerLayer implements MapMouseListe
 	public void	windowIconified(WindowEvent e) {}
 	
 	public void	windowOpened(WindowEvent e) {
+		
 		Toolkit toolkit = Toolkit.getDefaultToolkit();
 		Dimension dimension = toolkit.getScreenSize();
 		if (dimension.width-100 < SlotMapDialog.SLOTMAP_WINDOW_WIDTH) {
@@ -2063,19 +2065,7 @@ public class StationLayer extends OMGraphicHandlerLayer implements MapMouseListe
 				userInformationMenuItem.doClick();
 			}		
 		} catch (Exception ex) {}
-		*/
-		
-		// inserts a default read only user if no user is defined
-		DerbyDBInterface derby = new DerbyDBInterface();		
-		try {
-			EAVDAMUser user = derby.retrieveDefaultUser();
-			if (user == null || user.getOrganizationName() == null || user.getOrganizationName().isEmpty()) {
-				user = new EAVDAMUser();
-				user.setOrganizationName("read_only_user_" + String.valueOf(new Date().getTime()));
-				user.setCountryID("FI");
-				DBHandler.saveUserData(user, true);
-			}
-		} catch (Exception ex) {}		
+		*/			
 				
 		if (eavdamMenu != null && transmitCoverageLayer != null && receiveCoverageLayer != null && interferenceCoverageLayer != null && sidePanel != null && !stationsInitiallyUpdated) {
 			//eavdamMenu.getShowOnMapMenu().updateCoverageItems(receiveCoverageLayer.isVisible(), transmitCoverageLayer.isVisible(), interferenceCoverageLayer.isVisible());
@@ -2110,7 +2100,7 @@ public class StationLayer extends OMGraphicHandlerLayer implements MapMouseListe
 			layerHandler.moveLayer(aisDatalinkCheckIssueLayer, 0);	
 			((AISDatalinkCheckIssueLayer) aisDatalinkCheckIssueLayer).doPrepare();		
 		}
-		StationLayer.windowReady = true;
+		StationLayer.windowReady = true;	
 	}
 
 	private byte[] getImage(String filename) {  
@@ -2150,6 +2140,14 @@ public class StationLayer extends OMGraphicHandlerLayer implements MapMouseListe
 		
 		new UpdateStationsThread(this).start();
 
+		waitDialog = getWaitDialogForUpdatingStations();
+		Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
+		waitDialog.setBounds((int) screenSize.getWidth()/2 - 380/2, (int) screenSize.getHeight()/2 - 150/2, 380, 150);
+		waitDialog.setVisible(true);
+    }
+
+	private JDialog getWaitDialogForUpdatingStations() {
+		
 		waitDialog = new JDialog(openMapFrame, "Please wait...", true);
 
 		progressBar = new JProgressBar();
@@ -2174,12 +2172,12 @@ public class StationLayer extends OMGraphicHandlerLayer implements MapMouseListe
 		c.gridy = 1;
 		c.anchor = GridBagConstraints.CENTER;
 		panel.add(progressBar, c);
-		waitDialog.getContentPane().add(panel);
-		Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
-		waitDialog.setBounds((int) screenSize.getWidth()/2 - 380/2, (int) screenSize.getHeight()/2 - 150/2, 380, 150);
-		waitDialog.setVisible(true);
-    }
+		waitDialog.getContentPane().add(panel);	
 
+		return waitDialog;
+		
+	}
+	
 }
 
 

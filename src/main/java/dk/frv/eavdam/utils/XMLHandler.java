@@ -52,12 +52,19 @@ import java.util.GregorianCalendar;
 import java.util.List;
 import javax.xml.bind.JAXBException;
 
+/**
+ * Class for handling XML files.
+ */
 public class XMLHandler {
     
-    //public static EAVDAMData currentEAVDAMData;
 	public static final String exportDataFolder = "generated";
 	public static final String importDataFolder = "import";
     
+	/**
+	 * Gets the filename of the user's own saved station data.
+	 *
+	 * @return  Filename of user's own saved station data
+	 */
     public static String getLatestDataFileName() {
         
         String datafile = "";
@@ -83,11 +90,12 @@ public class XMLHandler {
     }
     
     /**
-     * Compares the two xml-files. 
+     * Compares the two xml-files to determine which is older. Primarily compares timestamp parameters of the XML files,
+	 * but if there are no timestamps, last modified values of the files are compared.
      * 
      * @param compareXMLFile
      * @param compareToXMLFile
-     * @return true if the first xml-file (compareXMLFile) is older (is before) than the second file (compareToXMLFile). If there are no timestamps, last modified values are compared.
+     * @return true if the first xml-file (compareXMLFile) is older (is before) than the second file (compareToXMLFile)
      */
     public static boolean isOlderXML(File compareXMLFile, File compareToXMLFile){
 
@@ -112,10 +120,23 @@ public class XMLHandler {
     	return false;
     }
     
+	/**
+	 * Gets the application version that created a given xml file.
+	 *
+	 * @param xml  XML file
+	 * @return     Version number of the application that created the XML file
+	 */
     public static String getXMLVersion(File xml) throws JAXBException, MalformedURLException{
     	return XMLImporter.getXMLVersion(xml);
     }
     
+	/**
+	 * Gets a filename for saving the user's own station data to a XML file.
+	 *
+	 * @param organisationName  User's organization name
+	 * @return                  Filename for saving the user's own station data to a XML file	 
+	 */
+	
     public static String getNewDataFileName(String organisationName) {
         
         if (organisationName == null || organisationName.isEmpty()) {
@@ -171,6 +192,9 @@ public class XMLHandler {
         return exportDataFolder+ "/" + organisationName+".xml";// + "_" + year + month + day + hours + minutes + seconds + ".xml"; 
     }
     
+	/**
+	 * Delete's user's old saved station data XML files.
+	 */
     public static void deleteOldDataFiles() {
         
         String latestDataFile = getLatestDataFileName();
@@ -195,7 +219,7 @@ public class XMLHandler {
     /**
      * Imports the data from the importDataFolder (default: import/) and stores it to the database. After storing, all the data is retrieved from the database.
      * 
-     * @return Data that holds all the relevant stations.
+     * @return Data that holds all the relevant stations
      */
     public static EAVDAMData importData() {
     	System.out.println("Importing data...");
@@ -243,9 +267,9 @@ public class XMLHandler {
     }
 
     /** 
-     * Saves data to XML file.
+     * Exports data to exportDataFolder (default: generated).
      *
-     * @param data  Data to be saved
+     * @return  Exported data
      */    
     public static EAVDAMData exportData() {
         try {
@@ -267,7 +291,6 @@ public class XMLHandler {
                 }
             }
 			if (!organisationName.startsWith("read_only_user_")) {
-            //currentEAVDAMData = data;
 				XMLExporter.writeXML(exportData, new File(getNewDataFileName(organisationName.replaceAll(" ", ""))));
 //            deleteOldDataFiles();
 			}
@@ -283,7 +306,12 @@ public class XMLHandler {
         return null;
     }
 	
-	
+	/**
+	 * Sets up default coverages for stations that don't have coverages defined.
+	 *
+	 * @param data  Station data
+	 * @return      Station data updated with default coverages for those station that did not have coverages defined
+	 */
     private static EAVDAMData updateDefaultCoverages(EAVDAMData data) {
 		if (data == null) {
 			return null;
@@ -424,7 +452,13 @@ public class XMLHandler {
 		return data;
 		
 	}
-					
+	
+	/**
+	 * Gets default transmission coverage.
+	 *
+	 * @param stationData  Station data of which default transmission coverage to get
+	 * @return             Default transmission coverage for the station
+	 */
 	private static AISFixedStationCoverage getDefaultTransmissionCoverage(AISFixedStationData stationData) {
 										
 		Antenna antenna = stationData.getAntenna();
@@ -449,6 +483,12 @@ public class XMLHandler {
 		return null;
 	}
 				
+	/**
+	 * Gets default receive coverage.
+	 *
+	 * @param stationData  Station data of which default receive coverage to get
+	 * @return             Default receive coverage for the station
+	 */				
 	private static AISFixedStationCoverage getDefaultReceiveCoverage(AISFixedStationData stationData) {
 										
 		Antenna antenna = stationData.getAntenna();
@@ -472,7 +512,13 @@ public class XMLHandler {
 		}
 		return null;
 	}
-				
+		
+	/**
+	 * Gets default interference coverage.
+	 *
+	 * @param stationData  Station data of which default interference coverage to get
+	 * @return             Default interference coverage for the station
+	 */		
 	private static AISFixedStationCoverage getDefaultInterferenceCoverage(AISFixedStationData stationData) {
 										
 		Antenna antenna = stationData.getAntenna();

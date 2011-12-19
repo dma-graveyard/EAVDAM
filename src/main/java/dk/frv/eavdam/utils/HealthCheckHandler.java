@@ -60,7 +60,9 @@ import dk.frv.eavdam.healthcheck.PointInPolygon;
 import dk.frv.eavdam.io.AISDatalinkCheckListener;
 import dk.frv.eavdam.io.derby.DerbyDBInterface;
 
-
+/**
+ * Class for executing an AIS VHF Datalink Health Check.
+ */
 public class HealthCheckHandler {
 
 	public static final int TRANSMISSION_COVERAGE = 1;
