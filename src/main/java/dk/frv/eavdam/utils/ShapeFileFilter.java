@@ -40,7 +40,7 @@ public class ShapeFileFilter extends FileFilter {
 	/**
 	 * Selects shape files, i.e., files that end with .shp
 	 *
-	 * @true if the given file's extension is shp, false otherwise
+	 * @return  True if the given file's extension is shp, false otherwise
 	 */	
     public boolean accept(File f) {
         if (f.isDirectory()) {

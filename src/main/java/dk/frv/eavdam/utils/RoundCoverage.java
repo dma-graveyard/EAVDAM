@@ -124,8 +124,6 @@ public class RoundCoverage {
 	/**
 	 * Gets the coverage area in a polygon form. 
 	 * 
-	 * @param antennaHeight Height of the antenna.
-	 * @param receiverHeight Height of the receiver. Default is 4.0 meters.
 	 * @param centerLat Location of the base station (lat)
 	 * @param centerLon Location of the base station (lon)
 	 * @param numberOfPoints Number of points in the polygon. Should be at least 10.
@@ -268,7 +266,7 @@ public class RoundCoverage {
 	/**
 	 * Converts radians to degrees.
 	 *
-	 * @param d  Radians value
+	 * @param r  Radians value
 	 * @return   Given value converted to degrees
 	 */	
     public static double radians2degrees(double r) {

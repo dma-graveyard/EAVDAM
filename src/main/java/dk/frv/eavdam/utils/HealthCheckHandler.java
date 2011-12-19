@@ -607,7 +607,7 @@ public class HealthCheckHandler {
 	 * 
 	 * @param s1
 	 * @param s2
-	 * @return
+	 * @return  Timelslots with problems
 	 */
 	public List<AISTimeslot> checkRule1(AISFixedStationData s1, AISFixedStationData s2){
 		if(s1 == null || s2 == null){
@@ -995,9 +995,9 @@ public class HealthCheckHandler {
 	 * 
 	 * Gets the stations and checks the bandwith of the given point. The point is the top left corner of the area.
 	 * 
-	 * @param lat TOP LEFT Lat point of the area
-	 * @param lon TOP LEFT Lon point of the area
-	 * @return
+	 * @param lat  TOP LEFT Lat point of the area
+	 * @param lon  TOP LEFT Lon point of the area
+	 * @return     Slot map at the defined point
 	 */
 	public AISSlotMap slotMapAtPoint(double lat, double lon, boolean includePlanned){
 		if(this.data == null){
@@ -1740,12 +1740,11 @@ public class HealthCheckHandler {
 	
 	
 	/**
-	 * 
 	 * Gets the stations and checks the bandwith of the given point. The point is the top left corner of the area.
 	 * 
-	 * @param lat TOP LEFT Lat point of the area
-	 * @param lon TOP LEFT Lon point of the area
-	 * @return
+	 * @param lat  TOP LEFT Lat point of the area
+	 * @param lon  TOP LEFT Lon point of the area
+	 * @return     Result of the check
 	 */
 	public AISDatalinkCheckResult checkRulesAtPoint(double lat, double lon, double endLat, double endLon, double resolution){
 		if(this.data == null){

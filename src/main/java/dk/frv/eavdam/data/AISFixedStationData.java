@@ -589,7 +589,6 @@ public class AISFixedStationData {
 	/**
 	 * Finds the northest point of the coverage. Used to optimize the rule checking.
 	 * 
-	 * @return
 	 */
 	public double[] getNorthTransmitCoveragePoints() {
 	
@@ -634,7 +633,6 @@ public class AISFixedStationData {
 	/**
 	 * Finds the westest point of the coverage. Used to optimize the rule checking.
 	 * 
-	 * @return
 	 */	
 	public double[] getWestTransmitCoveragePoints(){
 	
@@ -680,7 +678,6 @@ public class AISFixedStationData {
 	/**
 	 * Finds the eastest point of the coverage. Used to optimize the rule checking.
 	 * 
-	 * @return
 	 */	
 	public double[] getEastTransmitCoveragePoints(){
 		
@@ -726,7 +723,6 @@ public class AISFixedStationData {
 	/**
 	 * Finds the southest point of the coverage. Used to optimize the rule checking.
 	 * 
-	 * @return
 	 */	
 	public double[] getSouthTransmitCoveragePoints(){
 	

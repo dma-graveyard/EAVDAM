@@ -297,7 +297,6 @@ public class DerbyDBInterface {
 	 * 
 	 * 
 	 * @param address 
-	 * @return
 	 * @throws Exception
 	 */
 	private int getAddressID(Address address) throws Exception{
@@ -766,8 +765,9 @@ public class DerbyDBInterface {
    /**
 	* Inserts the FATDMA allocations to the database for the given station.
 	*  
-	* @param fatdma The FATDMA allocations.
+	* @param f
 	* @param stationID Station that has the given allocations.
+	* @param channelType
 	*/
 	public void insertFATDMAAllocations(FATDMAChannel f, int stationID, int channelType) throws Exception{
 		if(f == null) return;
@@ -2053,8 +2053,6 @@ public class DerbyDBInterface {
 	 * Retrieves all the data from the database.
 	 * 
 	 * This includes ...
-	 * 
-	 * @return
 	 */
 	public EAVDAMData retrieveAllEAVDAMData(EAVDAMUser defaultUser) throws Exception{
 		
@@ -2324,7 +2322,6 @@ public class DerbyDBInterface {
 	 * Retrieves the EAVDAMData only for the given organization AND only within the given area. 
 	 * 
 	 * @param user Either database userID (int) OR organization name. 
-	 * @return
 	 */
 	public EAVDAMData retrieveEAVDAMData(int user, int status, double topLeftLat, double topLeftLon, double lowRightLat, double lowRightLon) throws Exception{
 //	    	System.out.println("Retrieving EAVDAMData for user "+user+" with status "+status);
@@ -2407,7 +2404,6 @@ public class DerbyDBInterface {
 	 * Retrieves the EAVDAMData only for the given organization.
 	 * 
 	 * @param user Either database userID (int) OR organization name. 
-	 * @return
 	 */
 	public EAVDAMData retrieveEAVDAMData(int user, int status) throws Exception{
 //	    	System.out.println("Retrieving EAVDAMData for user "+user+" with status "+status);
@@ -2542,7 +2538,6 @@ public class DerbyDBInterface {
 	 * 
 	 * @param statusID
 	 * @param userID 
-	 * @return
 	 */
 	public List<AISFixedStationData> retrieveAISStations(int statusID, int userID, double topLeftLat, double topLeftLon, double lowRightLat, double lowRightLon) throws Exception{
 		ArrayList<AISFixedStationData> data = new ArrayList<AISFixedStationData>();
@@ -2691,7 +2686,6 @@ public class DerbyDBInterface {
 	 * 
 	 * @param statusID
 	 * @param userID 
-	 * @return
 	 */
 	public List<AISFixedStationData> retrieveAISStations(int statusID, int userID) throws Exception{
 		ArrayList<AISFixedStationData> data = new ArrayList<AISFixedStationData>();
@@ -2839,7 +2833,6 @@ public class DerbyDBInterface {
 	 * @param stationID
 	 * @param statusID
 	 * @param userID
-	 * @return
 	 * @throws Exception
 	 */
 	private List<AISFixedStationData> retrieveAISStation(int stationID, int statusID, int userID) throws Exception{
@@ -3006,8 +2999,6 @@ public class DerbyDBInterface {
 	/**
 	 * Retrieves all the simulations found from the database.
 	 * 
-	 * 
-	 * @return
 	 * @throws Exception
 	 */
 	public List<Simulation> retrieveSimulations(EAVDAMUser user) throws Exception{
@@ -3057,7 +3048,6 @@ public class DerbyDBInterface {
 	/**
 	 * Transforms the list of proposed stations into Map of proposed stations
 	 * 
-	 * @return
 	 */
 	public Map<EAVDAMUser, List<AISFixedStationData>> transformToProposals(List<AISFixedStationData> proposals) throws Exception{
 		Map<EAVDAMUser, List<AISFixedStationData>> map = new HashMap<EAVDAMUser, List<AISFixedStationData>>();
@@ -3152,7 +3142,6 @@ public class DerbyDBInterface {
 	 * This includes the active stations (STATUS_ACTIVE), and proposed stations (STATUS_PROPOSED).
 	 * The proposed stations are the stations that this user has proposed to another user.
 	 * 
-	 * @return
 	 */
 	public EAVDAMData retrieveEAVDAMDataForXML(){
 		try{
@@ -3857,7 +3846,6 @@ public class DerbyDBInterface {
 	/**
 	 * Retrieves the options for FTP and email xml sending.
 	 * 
-	 * @return
 	 */
 	public Options getOptions() throws Exception{
 		if(this.conn == null) this.conn = this.getDBConnection(null, false);
@@ -3905,7 +3893,6 @@ public class DerbyDBInterface {
 	/**
 	 * Retrieves the FTP settings from the database.
 	 * 
-	 * @return
 	 */
 	private List<FTP> retrieveFTPSettings() {
 		try{

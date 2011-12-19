@@ -87,6 +87,9 @@ import javax.swing.JTextArea;
 import javax.swing.JTextField;
 import javax.swing.border.EmptyBorder;
 
+/**
+ * Class for adding a station.
+ */
 public class AddStationDialog extends JDialog implements ActionListener, ItemListener {
 
     public static final long serialVersionUID = 1L;
@@ -1184,6 +1187,11 @@ public class AddStationDialog extends JDialog implements ActionListener, ItemLis
         } 
     }	
 	
+	/**
+	 * Gets the default FATDMA cell number for the station.
+	 *
+	 * @return default FATDMA cell number for the station - returns null, if latitude or longitude has not been given
+	 */
 	private int getCellNumber() {
 
 		if (!addLatitudeTextField.getText().trim().isEmpty() && !addLongitudeTextField.getText().trim().isEmpty()) {
@@ -1600,6 +1608,12 @@ public class AddStationDialog extends JDialog implements ActionListener, ItemLis
 		return channelPanel;
 	}
 	
+	/**
+	 * Clears a FATDMA information row in the user interface.
+	 *
+	 * @param channel              A or B
+	 * @param clearRowButtonIndex  Which row to clear
+	 */
 	private void clearRow(String channel, int clearRowButtonIndex) {
 			
 		menuItem.ignoreListeners = true;			
@@ -1673,7 +1687,13 @@ public class AddStationDialog extends JDialog implements ActionListener, ItemLis
 		menuItem.ignoreListeners = false;
 	}			
 	*/
-		
+	
+	/**
+	 * Gets a list of FATDMA reservations from the user interface FATDMA components.
+	 *
+	 * @param components  User interface FATDMA components
+	 * @return            FATDMA reservations from the given user interface components
+	 */
 	private List<FATDMAReservation> getFATDMAScheme(Component[] components) throws NumberFormatException, IllegalArgumentException {
 		List<FATDMAReservation> fatdmaScheme = new ArrayList<FATDMAReservation>();
 		int i = 0;
@@ -1704,6 +1724,12 @@ public class AddStationDialog extends JDialog implements ActionListener, ItemLis
 		return fatdmaScheme;
 	}
 
+	/**
+	 * Gets a list of Aton Message Broadcast Rates from the user interface FATDMA components.
+	 *
+	 * @param components  User interface FATDMA components
+	 * @return            Aton Message Broadcast Rates from the given user interface components
+	 */	
 	private List<AtonMessageBroadcastRate> getAtonMessageBroadcastList(Component[] components) throws NumberFormatException, IllegalArgumentException {
 		List<AtonMessageBroadcastRate> atonMessageBroadcastList = new ArrayList<AtonMessageBroadcastRate>();
 		int i = 0;
@@ -1739,6 +1765,11 @@ public class AddStationDialog extends JDialog implements ActionListener, ItemLis
 		return atonMessageBroadcastList;
 	}
 	
+	/**
+	 * Adds the station to database.
+	 *
+	 * @return  True if the station was added succesfully, false otherwise
+	 */
     private boolean addStation() {
         
         if (menuItem.getData() == null) {
@@ -1977,8 +2008,6 @@ public class AddStationDialog extends JDialog implements ActionListener, ItemLis
 			}
 		}
 		
-		
-		
 		if (doContinue) {
 			AISFixedStationData stationData = new AISFixedStationData();
 
@@ -2123,7 +2152,10 @@ public class AddStationDialog extends JDialog implements ActionListener, ItemLis
 	 * Checks whether the FATDMA scheme contains overlapping reservations,
 	 * e.g., startslot=100, blocksize=2, increment=1000 and startslot=50,
 	 * blocksize=1, increment=50, will result in block 101 beingg reserved
-	 * twice and in that case this method will return false
+	 * twice and in that case this method will return false.
+	 *
+	 * @param fatdmaScheme  FATDMA scheme of an AIS Base station or repeater Station
+	 * @return              True if the FATDMA reservations are ok, false otherwise	 
 	 */
 	private boolean validateFATDMAScheme(List<FATDMAReservation> fatdmaScheme) {
 		List<Integer> reservedBlocks = new ArrayList<Integer>();
@@ -2168,8 +2200,11 @@ public class AddStationDialog extends JDialog implements ActionListener, ItemLis
 	/** 
 	 * Checks whether the FATDMA scheme contains overlapping reservations,
 	 * e.g., startslot=100, blocksize=2, increment=1000 and startslot=50,
-	 * blocksize=1, increment=50, will result in block 101 beingg reserved
-	 * twice and in that case this method will return false
+	 * blocksize=1, increment=50, will result in block 101 being reserved
+	 * twice and in that case this method will return false.
+	 *
+	 * @param atonMessageBroadcastList  FATDMA reservations of an Aton Station
+	 * @return                          True if the FATDMA reservations are ok, false otherwise
 	 */
 	private boolean validateAtonMessageBroadcastList(List<AtonMessageBroadcastRate> atonMessageBroadcastList) {
 		List<Integer> reservedBlocks = new ArrayList<Integer>();

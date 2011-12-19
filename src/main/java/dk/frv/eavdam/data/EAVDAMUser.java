@@ -129,7 +129,7 @@ public class EAVDAMUser {
 	/**
 	 * Also validates the phone number. Throws IllegalArgumentException if phone number does not start with + followed by digits, space and dashes allowed.
 	 *
-	 * @param phone  Phone number of the person
+	 * @param fax  Phone number of the person
 	 */		
 	public void setFax(String fax) {
 		if (fax != null && fax.length() > 0 && !fax.matches("\\+[0-9 -]+")) {

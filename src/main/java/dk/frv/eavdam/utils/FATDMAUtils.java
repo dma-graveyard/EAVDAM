@@ -165,7 +165,7 @@ public class FATDMAUtils {
 	 *
 	 * @param startslot   Startslot
 	 * @param blockSize   Block size
-	 * @param incerement  Increment
+	 * @param increment  Increment
 	 * @return            Block numbers that the given startslot, block size and increment values define
 	 */
 	public static List<Integer> getBlocks(Integer startslot, Integer blockSize, Integer increment) {
