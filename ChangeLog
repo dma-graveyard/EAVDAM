@@ -1,3 +1,6 @@
+2011-12-20 Version 1.6
+	*  Final release version for the EfficienSea project
+
 2011-12-14 Version 1.5.1
 	* Version number added to XML
 	* Added maximum to bandwidth reservation between the channels (in addition to combined total bandwidth)
