@@ -1027,6 +1027,9 @@ public class AddStationDialog extends JDialog implements ActionListener, ItemLis
 		}
 	}
 	
+	/**
+	 * Calculates and updates the slot map image and time slot reserved number in the choosing of default FATDMA scheme dialog.
+	 */
 	private void updateTimeslotsReserved() {
 	
 		if (semaphoreModeRadioButton == null) {
@@ -1149,6 +1152,15 @@ public class AddStationDialog extends JDialog implements ActionListener, ItemLis
 		}		
 	}
 	
+	/**
+	 * Increases the number of time slots reserved in the choosing of default FATDMA scheme dialog.
+	 *
+	 * @param startslot          Startslot for time slot reservations
+	 * @param blockSize          Block size for time slot reservations
+	 * @param increment          Increment for time slot reservations 
+	 * @param timeslotsReserved  Number of time slots reserved before adding the time slots defined in startslot block size and increment
+	 * @return                   Number of time slots reserved after adding the time slots defined in startslot block size and increment
+	 */
 	private int increaseTimeslotsReserved(int startslot, int blockSize, int increment, int timeslotsReserved) {
 		List<Integer> blocks = FATDMAUtils.getBlocks(new Integer(startslot), new Integer(blockSize), new Integer(increment));
 		if (blocks != null) {
@@ -1208,6 +1220,18 @@ public class AddStationDialog extends JDialog implements ActionListener, ItemLis
 		return -1;
 	}
 	
+	/**
+	 * Updates FATDMA channels' GUI elements.
+	 *
+	 * @param initialChannelAComponents  Initial channel A FATDMA GUI components
+	 * @param initialChannelBComponents  Initial channel B FATDMA GUI components
+	 * @param clearChannelA              Whether to clear all channel A FATDMA GUI components
+	 * @param clearChannelB              Whether to clear all channel B FATDMA GUI components
+	 * @param initChannelA               Whether to init channel A, i.e., make sure at least three rows exist of which some or all can be empty
+	 * @param initChannelB               Whether to init channel B, i.e., make sure at least three rows exist of which some or all can be empty
+	 * @param addRowToChannelA           Whether to add an empty row to channel A FATDMA GUI components
+	 * @param addRowToChannelB           Whether to add an empty row to channel B FATDMA GUI components
+	 */
 	private void updateAddStationChannelComboBoxesAndScrollPanes(List<Component> initialChannelAComponents, List<Component> initialChannelBComponents,
 			boolean clearChannelA, boolean clearChannelB, boolean initChannelA, boolean initChannelB, boolean addRowToChannelA, boolean addRowToChannelB) {
 	
@@ -1390,6 +1414,11 @@ public class AddStationDialog extends JDialog implements ActionListener, ItemLis
 		menuItem.ignoreListeners = false;
 	}	
 	
+	/**
+	 * Gets the title panel for AIS base and repeater stations' FATDMA information.
+	 *
+	 * @return  Title panel for AIS base and repeater stations' FATDMA information	 
+	 */
 	private JPanel getChannelTitlePanelForBaseStationOrRepeater() {
 		JPanel channelTitlePanel = new JPanel(new GridBagLayout());
 		GridBagConstraints c = new GridBagConstraints();			
@@ -1417,6 +1446,14 @@ public class AddStationDialog extends JDialog implements ActionListener, ItemLis
 		return channelTitlePanel;
 	}	
 	
+	/**
+	 * Gets FATDMA components GUI panel for AIS base or repeater stations
+	 *
+	 * @param initialComponents          Initial FATDMA GUI components for the channel
+	 * @param previousChannelComponents  Previous FATDMA GUI components for the channel (added after the initial components)
+	 * @param init                       Whether to init the channel, i.e., make sure at least three rows exist of which some or all can be empty
+	 * @param addRowToChannel            Whether to add an empty row to channel's  FATDMA GUI components
+	 */		
 	private JPanel getChannelPanelForBaseStationOrRepeater(List<Component> initialComponents, Component[] previousChannelComponents, boolean init, boolean addRowToChannel) {
 	
 		JPanel channelPanel = new JPanel(new GridBagLayout());
@@ -1494,6 +1531,11 @@ public class AddStationDialog extends JDialog implements ActionListener, ItemLis
 		return channelPanel;
 	}
 	
+	/**
+	 * Gets the title panel for AIS Aton stations' FATDMA information.
+	 *
+	 * @return  Title panel for AIS Aton stations' FATDMA information
+	 */		 
 	private JPanel getChannelTitlePanelForAtonStation() {
 		JPanel channelTitlePanel = new JPanel(new GridBagLayout());
 		GridBagConstraints c = new GridBagConstraints();		
@@ -1533,6 +1575,14 @@ public class AddStationDialog extends JDialog implements ActionListener, ItemLis
 		return channelTitlePanel;
 	}
 	
+	/**
+	 * Gets FATDMA components GUI panel for AIS Aton stations
+	 *
+	 * @param initialComponents          Initial FATDMA GUI components for the channel
+	 * @param previousChannelComponents  Previous FATDMA GUI components for the channel (added after the initial components)
+	 * @param init                       Whether to init the channel, i.e., make sure at least three rows exist of which some or all can be empty
+	 * @param addRowToChannel            Whether to add an empty row to channel's  FATDMA GUI components
+	 */		
 	private JPanel getChannelPanelForAtonStation(List<Component> initialComponents, Component[] previousChannelComponents, boolean init, boolean addRowToChannel) {
 	
 		JPanel channelPanel = new JPanel(new GridBagLayout());
