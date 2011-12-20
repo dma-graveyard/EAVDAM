@@ -52,55 +52,7 @@ public class FATDMAUtils {
 	 */
 	public static Map<String,List<FATDMACell>> fatdmaCellsMap = null;
 	public static Set<String> FATDMASlotPattern = null;
-	
-	/**
-	 * Checks whether given reserved blocks are according to IALA A-124 default FATDMA scheme in the given latitude/longitude point.
-	 *
-	 * @param lat                        Latitude for a point
-	 * @param lon                        Longitude for a point
-	 * @param reservedBlocksForChannelA  Reserved blocks for channel A
-	 * @param reservedBlocksForChannelB  Reserved blocks for channel B
-	 * @return                           True if the reserved blocks are according to the IALA A-124 default FATDMA scheme, false otherwise
-	 */
-	public static boolean areReservedBlocksAccordingToFATDMAScheme(double lat, double lon, List<Integer> reservedBlocksForChannelA, List<Integer> reservedBlocksForChannelB) {
-	
-		int singleCellSizeInNauticalMiles = 30;
-		int noOfSingleCellsAlongOneSideOfMasterCell = 6;		
-		int cellNumber =  FATDMAGridLayer.calculateCellNo(singleCellSizeInNauticalMiles, noOfSingleCellsAlongOneSideOfMasterCell, lat, lon);									
 		
-		if (fatdmaCellsMap == null) {
-			fatdmaCellsMap = DefaultFATDMAReader.readDefaultValues(null, null);
-		}
-		
-		List<Integer> acceptedFATDMABlocksForChannelA = new ArrayList<Integer>();
-		List<Integer> acceptedFATDMABlocksForChannelB = new ArrayList<Integer>();
-		
-		List<FATDMACell> fatdmaICells = fatdmaCellsMap.get(String.valueOf(cellNumber) + "-I");
-		acceptedFATDMABlocksForChannelA = processFATDMACellsChannelA(fatdmaICells, acceptedFATDMABlocksForChannelA);		
-		acceptedFATDMABlocksForChannelB = processFATDMACellsChannelB(fatdmaICells, acceptedFATDMABlocksForChannelB);
-		List<FATDMACell> fatdmaIICells = fatdmaCellsMap.get(String.valueOf(cellNumber) + "-II");		
-		acceptedFATDMABlocksForChannelA = processFATDMACellsChannelA(fatdmaIICells, acceptedFATDMABlocksForChannelA);
-		acceptedFATDMABlocksForChannelB = processFATDMACellsChannelB(fatdmaIICells, acceptedFATDMABlocksForChannelB);
-
-		if (reservedBlocksForChannelA != null) {
-			for (Integer block : reservedBlocksForChannelA) {
-				if (!acceptedFATDMABlocksForChannelA.contains(block)) {
-					return false;
-				}
-			}
-		}
-
-		if (reservedBlocksForChannelB != null) {
-			for (Integer block : reservedBlocksForChannelB) {
-				if (!acceptedFATDMABlocksForChannelB.contains(block)) {			
-					return false;
-				}
-			}
-		}
-
-		return true;		
-	}
-	
 	/**
 	 * Checks whether given reserved blocks are according to IALA A-124 default FATDMA scheme in the given latitude/longitude point.
 	 *
