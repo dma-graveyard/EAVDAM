@@ -154,6 +154,8 @@ public class FTPHandler {
         File importDir = new File(importDirectory);
         if(!importDir.exists()) importDir.mkdirs();
         
+		boolean success = false;
+		
 		FTPFile[] files = ftpClient.listFiles();
         for (FTPFile file : files) {		
 			if (!file.isDirectory() && (ownFileName == null || !file.getName().equals(ownFileName)) && (file.getName().substring(file.getName().length()-3).equalsIgnoreCase("xml"))) {
@@ -168,18 +170,18 @@ public class FTPHandler {
 						fos = new FileOutputStream(importedFile);
 						ftpClient.retrieveFile(file.getName(), fos);
 						fos.close();
-						return true;
+						success = true;
 					}
 				} else {
 					fos = new FileOutputStream(importedFile);
 					ftpClient.retrieveFile(file.getName(), fos);
 					fos.close();
-					return true;
+					success = true;
 				}
 				tempFile.delete();
 			}
 		}
-		return false;
+		return success;
     } 
 	
 	/**
