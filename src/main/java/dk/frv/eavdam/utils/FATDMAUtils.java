@@ -29,14 +29,18 @@
 */
 package dk.frv.eavdam.utils;
 
+import dk.frv.eavdam.data.AISFrequency;
+import dk.frv.eavdam.data.AISTimeslot;
 import dk.frv.eavdam.data.FATDMACell;	
 import dk.frv.eavdam.data.FATDMADefaultChannel;	
 import dk.frv.eavdam.data.FATDMANode;
 import dk.frv.eavdam.io.DefaultFATDMAReader;
 import dk.frv.eavdam.layers.FATDMAGridLayer;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * Class for FATDMA calculations.
@@ -47,6 +51,7 @@ public class FATDMAUtils {
 	 * Holds default FATDMA cell values.
 	 */
 	public static Map<String,List<FATDMACell>> fatdmaCellsMap = null;
+	public static Set<String> FATDMASlotPattern = null;
 	
 	/**
 	 * Checks whether given reserved blocks are according to IALA A-124 default FATDMA scheme in the given latitude/longitude point.
@@ -158,6 +163,99 @@ public class FATDMAUtils {
 		}
 		
 		return acceptedFATDMABlocks;
+	}
+	
+	/**
+	 * Checks if the slot pattern is within the given IALA slot pattern.
+	 *
+	 * The slot patterns according to IALA A-124:
+	 * Start slot	Block size	Increment
+	 * 0			5			25
+	 * 10			5			25
+	 * 18			4			25
+	 * 
+	 * @param reservedBlocksForChannelA
+	 * @param reservedBlocksForChannelB
+	 * @return
+	 */
+	public static List<AISTimeslot> areReservedBlocksAccordingToFATDMASlotPattern(List<Integer> reservedBlocksForChannelA, List<Integer> reservedBlocksForChannelB) {
+		
+		List<AISTimeslot> problems = new ArrayList<AISTimeslot>();
+		if(FATDMASlotPattern == null) getFATDMASlotPattern();
+		
+		if(reservedBlocksForChannelA != null){
+			for(Integer a : reservedBlocksForChannelA){
+				if(!FATDMASlotPattern.contains(a.intValue()+"")){
+					AISTimeslot ts = new AISTimeslot();
+					ts.setFrequency(AISFrequency.AIS1);
+					ts.setSlotNumber(a.intValue());
+					ts.setFree(false);
+					ts.setPossibleConflicts(true);
+					
+					problems.add(ts);
+				}
+			}
+		}
+		
+		if(reservedBlocksForChannelB != null){
+			for(Integer b : reservedBlocksForChannelB){
+				if(!FATDMASlotPattern.contains(b.intValue()+"")){
+					AISTimeslot ts = new AISTimeslot();
+					ts.setFrequency(AISFrequency.AIS2);
+					ts.setSlotNumber(b.intValue());
+					ts.setFree(false);
+					ts.setPossibleConflicts(true);
+					
+					problems.add(ts);
+				}
+			}
+		}
+		
+		
+		return problems;
+	}
+	
+	/**
+	 * Returns the slot pattern. 
+	 *
+	 * Start slot	Block size	Increment
+	 * 0			5			25
+	 * 10			5			25
+	 * 18			4			25
+	 * @return
+	 */
+	private static Set<String> getFATDMASlotPattern(){
+		if(FATDMASlotPattern == null){
+			FATDMASlotPattern = new HashSet<String>();
+			
+			for(int startSlot = 0; startSlot <= 2500; startSlot += 25){
+				for(int i = 0; i <= 4; ++i){
+					int slot = startSlot+i;
+							
+					FATDMASlotPattern.add(slot+"");
+				}
+			}
+			
+			for(int startSlot = 10; startSlot <= 2500; startSlot += 25){
+				for(int i = 0; i <= 4; ++i){
+					int slot = startSlot+i;
+							
+					FATDMASlotPattern.add(slot+"");
+				}
+			}
+			
+			for(int startSlot = 18; startSlot <= 2500; startSlot += 25){
+				for(int i = 0; i <= 3; ++i){
+					int slot = startSlot+i;
+							
+					FATDMASlotPattern.add(slot+"");
+				}
+			}
+			
+			return FATDMASlotPattern;
+		}else{
+			return FATDMASlotPattern;
+		}
 	}
 	
 	/**

@@ -62,6 +62,7 @@ import dk.frv.eavdam.io.derby.DerbyDBInterface;
 
 /**
  * Class for executing an AIS VHF Datalink Health Check.
+ * 
  */
 public class HealthCheckHandler {
 
@@ -84,14 +85,42 @@ public class HealthCheckHandler {
 
 	private boolean cancelled = false;
 	
+	/**
+	 * Builds the HealthCheckHandler object with the given data. 
+	 * 
+	 * @param data Data to be used for the health check
+	 */
 	public HealthCheckHandler(EAVDAMData data){
 		if(data == null) System.out.println("Health Check started with null data...");
 		this.data = data;
 	}
 	
+	/**
+	 * Does the health check with the given rules. If the checkRuleX is false, the rule will not be checked.
+	 * 
+	 * 
+	 * 
+	 * @param listener Progress and results of the process are stored to here. 
+	 * @param checkRule1
+	 * @param checkRule2
+	 * @param checkRule3
+	 * @param checkRule4
+	 * @param checkRule5
+	 * @param checkRule6
+	 * @param checkRule7
+	 * @param includePlanned Indicates if the planned stations are used for health check.
+	 * @param topLeftLatitude Latitude of the screen's top left point.
+	 * @param topLeftLongitude Longitude of the screen's top left point.
+	 * @param lowerRightLatitude Latitude of the screen's bottom right point.
+	 * @param lowerRightLongitude Longitude of the screen's bottom right point.
+	 * @param resolution Resolution of the health check in nautical miles.
+	 * @return Results of the health check. The result holds both area and station based health check results.
+	 */
 	public AISDatalinkCheckResult startAISDatalinkCheck(AISDatalinkCheckListener listener, boolean checkRule1, boolean checkRule2, boolean checkRule3, 
 			boolean checkRule4, boolean checkRule5, boolean checkRule6, boolean checkRule7, boolean includePlanned,
 			double topLeftLatitude, double topLeftLongitude, double lowerRightLatitude, double lowerRightLongitude, double resolution){
+		
+		if(listener == null) return null;
 		
 		listener.progressed(0);
 		this.areaIssueMap = new HashMap<String, String>();
@@ -416,7 +445,7 @@ public class HealthCheckHandler {
 					
 					String problemName = "RULE5_"+s1.getOrganizationName()+"_"+s1.getStationName();
 					if(!foundProblems.contains(problemName)){
-						AISDatalinkCheckIssue issue = new AISDatalinkCheckIssue(-1,AISDatalinkCheckRule.RULE5,getRuleSeverity(AISDatalinkCheckRule.RULE4),stations,null);
+						AISDatalinkCheckIssue issue = new AISDatalinkCheckIssue(-1,AISDatalinkCheckRule.RULE5,getRuleSeverity(AISDatalinkCheckRule.RULE5),stations,null);
 						
 						foundProblems.add(problemName);
 						
@@ -424,6 +453,27 @@ public class HealthCheckHandler {
 					}
 				}
 			}
+			listener.progressed(0.96);
+			if(checkRule6){
+				List<AISTimeslot> slots = this.checkRule6(station);
+				if(slots != null && slots.size() > 0){
+					
+					List<AISStation> stations = new ArrayList<AISStation>();
+					AISStation s1 = new AISStation(station.getOperator().getOrganizationName(), station.getStationName(), station.getLat(), station.getLon());
+					s1.setDbId(station.getStationDBID());
+					stations.add(s1);
+					
+					String problemName = "RULE6_"+s1.getOrganizationName()+"_"+s1.getStationName();
+					if(!foundProblems.contains(problemName)){
+						AISDatalinkCheckIssue issue = new AISDatalinkCheckIssue(-1,AISDatalinkCheckRule.RULE6,getRuleSeverity(AISDatalinkCheckRule.RULE6),stations,slots);
+						
+						foundProblems.add(problemName);
+						
+						issues.add(issue);
+					}
+				}
+			}
+			
 			listener.progressed(0.97);
 			
 			for(String v : overlappingStations.get(s).keySet()){
@@ -536,11 +586,33 @@ public class HealthCheckHandler {
 	}
 	
 	
-	
+	/**
+	 * Does the rule 5 check. 
+	 * 
+	 * @param station Station to be checked
+	 * @return True if there are no problems, false if there is a problem.
+	 */
 	private boolean checkRule5(AISFixedStationData station) {
 		return FATDMAUtils.areReservedBlocksAccordingToFATDMAScheme((float)station.getLat(), (float)station.getLon(), station.getReservedBlocksForChannelA(), station.getReservedBlocksForChannelB());
 	}
 
+	/**
+	 * Checks the rule 6: Slots reserved outside overall slot pattern for fixed stations (IALA A-124)
+	 * 
+	 * @param station Station to be checked
+	 * @return List of problematic timeslots. 
+	 */
+	private List<AISTimeslot> checkRule6(AISFixedStationData station){
+		if(!station.getStationType().equals(AISFixedStationType.BASESTATION)) return null;
+		
+		return FATDMAUtils.areReservedBlocksAccordingToFATDMASlotPattern(station.getReservedBlocksForChannelA(), station.getReservedBlocksForChannelB());
+	}
+	
+	/**
+	 * Gets stop points used for optimization.
+	 * 
+	 * @return
+	 */
 	private List<AISFixedStationData> getLatitudeStopPoints() {
 		List<AISFixedStationData> latitudeStopPoints = new ArrayList<AISFixedStationData>();
 		
@@ -605,9 +677,9 @@ public class HealthCheckHandler {
 	/**
 	 * Checks the Rule 1: two stations have the same FATDMA slots reserved (both of them for local and neither of them are AtoN stations).
 	 * 
-	 * @param s1
-	 * @param s2
-	 * @return  Timelslots with problems
+	 * @param s1 Station to be compared
+	 * @param s2 Station to be compared
+	 * @return  Timeslots with problems
 	 */
 	public List<AISTimeslot> checkRule1(AISFixedStationData s1, AISFixedStationData s2){
 		if(s1 == null || s2 == null){
@@ -690,7 +762,7 @@ public class HealthCheckHandler {
 	 * 
 	 * @param s1
 	 * @param s2
-	 * @return
+	 * @return Timeslots with problems
 	 */
 	private List<AISTimeslot> checkRule2(AISFixedStationData s1, Map<String,AISFixedStationData> stations) {
 		if(s1 == null || stations == null){
@@ -765,6 +837,12 @@ public class HealthCheckHandler {
 
 	}
 
+	/**
+	 * Checks the rule 4.
+	 * 
+	 * @param s1 Station to be checked.
+	 * @return Timeslots with problems.
+	 */
 	private List<AISTimeslot> checkRule4(AISFixedStationData s1) {
 		if(s1 == null || s1.getReservedBlocksForChannelA() == null || s1.getReservedBlocksForChannelB() == null){
 			
@@ -1289,6 +1367,21 @@ public class HealthCheckHandler {
 		return slotmap;
 	}
 	
+	/**
+	 * Trims the issue list by removing duplicate issues.
+	 * 
+	 * Removes the issues that have false in its checkRuleX.
+	 * 
+	 * @param issues List of found issues
+	 * @param checkRule1
+	 * @param checkRule2
+	 * @param checkRule3
+	 * @param checkRule4
+	 * @param checkRule5
+	 * @param checkRule6
+	 * @param checkRule7
+	 * @return Trimmed list of issues
+	 */
 	private List<AISDatalinkCheckIssue> trimIssueList(List<AISDatalinkCheckIssue> issues, boolean checkRule1, boolean checkRule2, boolean checkRule3, boolean checkRule4, boolean checkRule5, boolean checkRule6, boolean checkRule7){
 		if(issues == null || issues.size() == 0){
 			System.out.println("No issues to trim...");
@@ -2087,6 +2180,15 @@ public class HealthCheckHandler {
 		return filtered;
 	}
 	
+	/**
+	 * Gets the minimum resolution for the given screen sizes.
+	 * 
+	 * @param topLeftLatitude
+	 * @param topLeftLongitude
+	 * @param lowerRightLatitude
+	 * @param lowerRightLongitude
+	 * @return Value for the resolution that can be used given the size of the zoom level.
+	 */
 	public static double getMinResolution(double topLeftLatitude, double topLeftLongitude, double lowerRightLatitude, double lowerRightLongitude){
 		
 		for(double resolution = 0.1 ; resolution <= 10.0; resolution = 0.25 + resolution){
@@ -2264,26 +2366,7 @@ public class HealthCheckHandler {
 		return filtered;
 	}
 	
-	private double[] getLatitudeBorders(){
-		if(this.data == null) return null;
-		
-		double maxLatitude = Double.MIN_VALUE;
-		double minLatitude = Double.MAX_VALUE;
-		
-		
-		return null;
-	}
-	
 
-	
-	private static double getLatituteChangeForResolution(double resolution, double lat){
-		return 1.0*resolution/(60.0/Math.cos(lat));
-	}
-	
-	private static double getLongitudeChangeForResolution(double resolution, double lon){
-		return 1.0*resolution/(60.0/Math.cos(lon));
-	}
-	
 	/**
 	 * Distance between two points
 	 * 
@@ -2313,7 +2396,16 @@ public class HealthCheckHandler {
 	}
 	
 
-	
+	/**
+	 * Resolution in latitude degrees 
+	 * 
+	 * @param resolution
+	 * @param startLat
+	 * @param startLon
+	 * @param endLat
+	 * @param endLon
+	 * @return
+	 */
 	private static double getLatitudeIncrement(double resolution, double startLat, double startLon, double endLat, double endLon){
 		double distanceInLatitude = distanceBetweenPoints(startLat, startLon, endLat, startLon); //Keep the longitude the same
 		
@@ -2323,6 +2415,16 @@ public class HealthCheckHandler {
 		
 	}
 	
+	/**
+	 * Resolution in longitude degrees.
+	 * 
+	 * @param resolution
+	 * @param startLat
+	 * @param startLon
+	 * @param endLat
+	 * @param endLon
+	 * @return
+	 */
 	private static double getLongitudeIncrement(double resolution, double startLat, double startLon, double endLat, double endLon){
 		double distanceInLatitude = distanceBetweenPoints(startLat, startLon, startLat, endLon); //Keep the latitude the same
 		
@@ -2335,6 +2437,12 @@ public class HealthCheckHandler {
 		
 	}
 	
+	/**
+	 * Returns the severity given the rule number.
+	 * 
+	 * @param rule
+	 * @return
+	 */
 	public static AISDatalinkCheckSeverity getRuleSeverity(AISDatalinkCheckRule rule){
 		//Rule 1:
 		if(rule.equals(AISDatalinkCheckRule.RULE1)){
@@ -2348,7 +2456,7 @@ public class HealthCheckHandler {
 		}else if(rule.equals(AISDatalinkCheckRule.RULE5)){
 			return AISDatalinkCheckSeverity.MINOR;
 		}else if(rule.equals(AISDatalinkCheckRule.RULE6)){
-			return AISDatalinkCheckSeverity.MINOR;
+			return AISDatalinkCheckSeverity.MAJOR;
 		}else if(rule.equals(AISDatalinkCheckRule.RULE7)){
 			return AISDatalinkCheckSeverity.MAJOR;
 		}
@@ -2356,6 +2464,12 @@ public class HealthCheckHandler {
 		return null;
 	}
 	
+	/**
+	 * Returns the AISDatalinkCheckRule object given the rule number.
+	 * 
+	 * @param ruleNumber
+	 * @return
+	 */
 	public static AISDatalinkCheckRule getRule(int ruleNumber){
 		//Rule 1:
 		if(ruleNumber == 1) return AISDatalinkCheckRule.RULE1;
@@ -2369,6 +2483,12 @@ public class HealthCheckHandler {
 		return null;
 	}
 
+	/**
+	 * Returns the rule number given the AISDatalinkCheckRule
+	 * 
+	 * @param ruleViolated
+	 * @return
+	 */
 	public static int getRuleInt(AISDatalinkCheckRule ruleViolated) {
 		//Rule 1:
 		if(ruleViolated.equals(AISDatalinkCheckRule.RULE1)) return 1;
@@ -2383,30 +2503,14 @@ public class HealthCheckHandler {
 		return 0;
 	}
 	
+	/**
+	 * Cancels the health check process (used when the cancel button is pressed in GUI) 
+	 * 
+	 * @param cancelled
+	 */
 	public void setCancelled(boolean cancelled){
 		this.cancelled = cancelled;
 	}
 	
-	private EAVDAMData copyCoverageAreasToEAVDAMData(Map<String,AISFixedStationCoverage> cov){
-		if(this.data != null && this.data.getOtherUsersStations() != null && this.data.getOtherUsersStations().size() > 0){
-			for(OtherUserStations ous : this.data.getOtherUsersStations()){
-				EAVDAMUser user = ous.getUser();
-				
-				if(ous.getStations() != null){
-					for(ActiveStation as : ous.getStations()){
-						if(as.getStations() != null){
-							for(AISFixedStationData s : as.getStations()){
-								
-								s.setTransmissionCoverage(cov.get("T:"+user.getOrganizationName()+"-"+s.getStationName()));
-								s.setInterferenceCoverage(cov.get("I:"+user.getOrganizationName()+"-"+s.getStationName()));
-								s.setReceiveCoverage(cov.get("R:"+user.getOrganizationName()+"-"+s.getStationName()));
-							}
-						}
-					}
-				}
-			}
-		}
-		
-		return this.data;
-	}
+	
 }
