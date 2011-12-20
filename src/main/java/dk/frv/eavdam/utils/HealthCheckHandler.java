@@ -454,7 +454,7 @@ public class HealthCheckHandler {
 				}
 			}
 			listener.progressed(0.96);
-			if(checkRule6){
+			if(checkRule6 || true){
 				List<AISTimeslot> slots = this.checkRule6(station);
 				if(slots != null && slots.size() > 0){
 					
@@ -2454,7 +2454,7 @@ public class HealthCheckHandler {
 		}else if(rule.equals(AISDatalinkCheckRule.RULE4)){
 			return AISDatalinkCheckSeverity.MAJOR;
 		}else if(rule.equals(AISDatalinkCheckRule.RULE5)){
-			return AISDatalinkCheckSeverity.MINOR;
+			return AISDatalinkCheckSeverity.MAJOR;
 		}else if(rule.equals(AISDatalinkCheckRule.RULE6)){
 			return AISDatalinkCheckSeverity.MAJOR;
 		}else if(rule.equals(AISDatalinkCheckRule.RULE7)){
