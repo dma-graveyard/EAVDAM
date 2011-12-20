@@ -194,6 +194,10 @@ public class FTPHandler {
 			throw new IOException("FTP Client not connected");
 		}
 		
+		if (ownFileName == null) {
+			return;
+		}
+		
 		if (ownFileName != null) {
 			if (ownFileName.indexOf("/") != -1) {
 				ownFileName = ownFileName.substring(ownFileName.lastIndexOf("/")+1);
