@@ -101,6 +101,54 @@ public class FATDMAUtils {
 		return true;		
 	}
 	
+	/**
+	 * Checks whether given reserved blocks are according to IALA A-124 default FATDMA scheme in the given latitude/longitude point.
+	 *
+	 * @param lat             Latitude for a point
+	 * @param lon             Longitude for a point
+	 * @param reservedBlocks  Reserved blocks for channel A or B
+	 * @param frequency       Channel A (AISFrequency.AIS1) or channel B (AISFrequency.AIS2)
+	 * @return                Reserved blocks that are not according to the IALA A-124 default FATDMA scheme
+	 */
+	public static List<Integer> getBlocksViolatingFATDMAScheme(double lat, double lon, List<Integer> reservedBlocks, AISFrequency frequency) {
+	
+		List<Integer> blocksViolatingFATDMAScheme = null;
+	
+		int singleCellSizeInNauticalMiles = 30;
+		int noOfSingleCellsAlongOneSideOfMasterCell = 6;		
+		int cellNumber =  FATDMAGridLayer.calculateCellNo(singleCellSizeInNauticalMiles, noOfSingleCellsAlongOneSideOfMasterCell, lat, lon);									
+		
+		if (fatdmaCellsMap == null) {
+			fatdmaCellsMap = DefaultFATDMAReader.readDefaultValues(null, null);
+		}
+		
+		List<Integer> acceptedFATDMABlocks = new ArrayList<Integer>();
+
+		List<FATDMACell> fatdmaICells = fatdmaCellsMap.get(String.valueOf(cellNumber) + "-I");
+		List<FATDMACell> fatdmaIICells = fatdmaCellsMap.get(String.valueOf(cellNumber) + "-II");	
+		
+		if (frequency == AISFrequency.AIS1) {
+			acceptedFATDMABlocks = processFATDMACellsChannelA(fatdmaICells, acceptedFATDMABlocks);
+			acceptedFATDMABlocks = processFATDMACellsChannelA(fatdmaIICells, acceptedFATDMABlocks);
+		} else if (frequency == AISFrequency.AIS2) {
+			acceptedFATDMABlocks = processFATDMACellsChannelB(fatdmaICells, acceptedFATDMABlocks);
+			acceptedFATDMABlocks = processFATDMACellsChannelB(fatdmaIICells, acceptedFATDMABlocks);
+		}
+
+		if (reservedBlocks != null) {
+			for (Integer block : reservedBlocks) {
+				if (!acceptedFATDMABlocks.contains(block)) {
+					if (blocksViolatingFATDMAScheme == null) {
+						blocksViolatingFATDMAScheme = new ArrayList<Integer>();
+					}
+					blocksViolatingFATDMAScheme.add(block);
+				}
+			}
+		}
+
+		return blocksViolatingFATDMAScheme;		
+	}	
+	
 	private static List<Integer> processFATDMACellsChannelA(List<FATDMACell> fatdmaCells, List<Integer> acceptedFATDMABlocks) {
 		if(fatdmaCells == null) return new ArrayList<Integer>();
 		if(acceptedFATDMABlocks == null) acceptedFATDMABlocks = new ArrayList<Integer>();

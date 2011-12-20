@@ -367,7 +367,7 @@ class IssuesMenuItemActionListener implements ActionListener {
 						severityStr = "  Severe  ";		
 					} else if (severity == AISDatalinkCheckSeverity.MAJOR) {
 						severityStr = "  Major  ";	
-					} else if (severity == AISDatalinkCheckSeverity.MAJOR) {
+					} else if (severity == AISDatalinkCheckSeverity.MINOR) {
 						severityStr = "  Minor  ";	
 					}
 				}				
