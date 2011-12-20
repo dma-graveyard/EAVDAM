@@ -252,10 +252,10 @@ public class FATDMAUtils {
 				}
 			}
 			
-			for(String s : FATDMASlotPattern){
-				System.out.println(s);
-			}
-			
+//			for(String s : FATDMASlotPattern){
+//				System.out.println(s);
+//			}
+//			
 			return FATDMASlotPattern;
 		}else{
 			return FATDMASlotPattern;
