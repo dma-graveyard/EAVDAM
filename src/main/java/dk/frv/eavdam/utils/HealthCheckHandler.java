@@ -435,8 +435,8 @@ public class HealthCheckHandler {
 			listener.progressed(0.95);
 			
 			if(checkRule5){
-				
-				if(!this.checkRule5(station)){
+				List<AISTimeslot> slots = this.checkRule5(station); 
+				if(slots != null && slots.size() > 0){
 					
 					List<AISStation> stations = new ArrayList<AISStation>();
 					AISStation s1 = new AISStation(station.getOperator().getOrganizationName(), station.getStationName(), station.getLat(), station.getLon());
@@ -445,7 +445,7 @@ public class HealthCheckHandler {
 					
 					String problemName = "RULE5_"+s1.getOrganizationName()+"_"+s1.getStationName();
 					if(!foundProblems.contains(problemName)){
-						AISDatalinkCheckIssue issue = new AISDatalinkCheckIssue(-1,AISDatalinkCheckRule.RULE5,getRuleSeverity(AISDatalinkCheckRule.RULE5),stations,null);
+						AISDatalinkCheckIssue issue = new AISDatalinkCheckIssue(-1,AISDatalinkCheckRule.RULE5,getRuleSeverity(AISDatalinkCheckRule.RULE5),stations,slots);
 						
 						foundProblems.add(problemName);
 						
@@ -592,8 +592,40 @@ public class HealthCheckHandler {
 	 * @param station Station to be checked
 	 * @return True if there are no problems, false if there is a problem.
 	 */
-	private boolean checkRule5(AISFixedStationData station) {
-		return FATDMAUtils.areReservedBlocksAccordingToFATDMAScheme((float)station.getLat(), (float)station.getLon(), station.getReservedBlocksForChannelA(), station.getReservedBlocksForChannelB());
+	private List<AISTimeslot> checkRule5(AISFixedStationData station) {
+//		if(!FATDMAUtils.areReservedBlocksAccordingToFATDMAScheme((float)station.getLat(), (float)station.getLon(), station.getReservedBlocksForChannelA(), station.getReservedBlocksForChannelB())){
+//			return null;
+//		}else{
+			List<Integer> rvA = FATDMAUtils.getBlocksViolatingFATDMAScheme((float)station.getLat(), (float)station.getLon(), station.getReservedBlocksForChannelA(), AISFrequency.AIS1);
+			List<Integer> rvB = FATDMAUtils.getBlocksViolatingFATDMAScheme((float)station.getLat(), (float)station.getLon(), station.getReservedBlocksForChannelB(), AISFrequency.AIS2);
+			
+			List<AISTimeslot> slots = new ArrayList<AISTimeslot>();
+			if(rvA != null && rvA.size() > 0){
+				for(Integer s : rvA){
+					AISTimeslot slot = new AISTimeslot();
+					slot.setFrequency(AISFrequency.AIS1);
+					slot.setFree(false);
+					slot.setPossibleConflicts(true);
+					slot.setSlotNumber(s.intValue());
+					slots.add(slot);
+				}
+				
+			}
+
+			if(rvB != null && rvB.size() > 0){
+				for(Integer s : rvB){
+					AISTimeslot slot = new AISTimeslot();
+					slot.setFrequency(AISFrequency.AIS2);
+					slot.setFree(false);
+					slot.setPossibleConflicts(true);
+					slot.setSlotNumber(s.intValue());
+					slots.add(slot);
+				}
+				
+			}
+			
+			return slots;
+//		}
 	}
 
 	/**
