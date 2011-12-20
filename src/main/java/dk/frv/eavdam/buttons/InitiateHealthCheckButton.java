@@ -190,34 +190,32 @@ public class InitiateHealthCheckButton extends OMToolComponent implements Action
 			
 			c.gridy = 1;
 			rule2CheckBox = new JCheckBox("Rule 2: Reservation, but no intended use");
-			//rule2CheckBox.setSelected(true);
+			rule2CheckBox.setSelected(true);
 			rulesPanel.add(rule2CheckBox, c);				
 
 			c.gridy = 2;
 			rule3CheckBox = new JCheckBox("Rule 3: Intended FATDMA use, but no reservation");
-			//rule3CheckBox.setSelected(true);
+			rule3CheckBox.setSelected(true);
 			rulesPanel.add(rule3CheckBox, c);		
 
 			c.gridy = 3;
 			rule4CheckBox = new JCheckBox("Rule 4: Simultaneous use of several frequencies");
-			//rule4CheckBox.setSelected(true);
+			rule4CheckBox.setSelected(true);
 			rulesPanel.add(rule4CheckBox, c);		
 
 			c.gridy = 4;
 			rule5CheckBox = new JCheckBox("Rule 5: Slots reserved outside IALA A-124 recommended default FATDMA schemes");
-			//rule5CheckBox.setSelected(true);
+			rule5CheckBox.setSelected(true);
 			rulesPanel.add(rule5CheckBox, c);		
 
 			c.gridy = 5;
 			rule6CheckBox = new JCheckBox("Rule 6: Slots reserved outside overall slot pattern for fixed statons (IALA A-124)");
-			//rule6CheckBox.setSelected(true);
-			rule6CheckBox.setEnabled(false);  // XXX: not implemented in HealthCheckHandler
-			rule6CheckBox.setToolTipText("Not yet implemented");
+			rule6CheckBox.setSelected(true);
 			rulesPanel.add(rule6CheckBox, c);					
 
 			c.gridy = 6;
 			rule7CheckBox = new JCheckBox("Rule 7: Free Bandwith below 50%");
-			//rule7CheckBox.setSelected(true);
+			rule7CheckBox.setSelected(true);
 			rulesPanel.add(rule7CheckBox, c);
 			
 			c.gridy = 7;
