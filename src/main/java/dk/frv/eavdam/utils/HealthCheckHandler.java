@@ -454,7 +454,7 @@ public class HealthCheckHandler {
 				}
 			}
 			listener.progressed(0.96);
-			if(checkRule6 || true){
+			if(checkRule6){
 				List<AISTimeslot> slots = this.checkRule6(station);
 				if(slots != null && slots.size() > 0){
 					
