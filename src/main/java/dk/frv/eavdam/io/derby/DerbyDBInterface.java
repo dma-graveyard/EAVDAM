@@ -4130,7 +4130,7 @@ public class DerbyDBInterface {
 				System.out.println("\nICONSIZE");
 				while(rs.next()){
 					System.out.println(rs.getInt(1));
-				}
+				} 
 				
 				sql = "select id, name from SIMULATION";
 				ps = conn.prepareStatement(sql);
