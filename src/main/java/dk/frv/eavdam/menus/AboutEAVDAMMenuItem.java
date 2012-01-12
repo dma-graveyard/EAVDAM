@@ -64,7 +64,7 @@ public class AboutEAVDAMMenuItem extends JMenuItem implements ActionListener, Li
 	/**
 	 * Application's version. This is updated automatically from the build.xml file when the application is compiled.
 	 */
-	public static String version = "xx.xx";
+	public static String version = "1.6";
 	
     private InformationDelegator informationDelegator = null;
 	
