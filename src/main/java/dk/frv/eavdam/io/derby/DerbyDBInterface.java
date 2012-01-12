@@ -77,6 +77,8 @@ import dk.frv.eavdam.utils.HealthCheckHandler;
 
 /**
  * Class for accessing the database.
+ * 
+ * This class holds all the database functions including the database creation.
  */
 public class DerbyDBInterface {
 	/* the default framework is embedded*/
@@ -116,6 +118,10 @@ public class DerbyDBInterface {
 		this.protocol = protocol;
 	}
 	
+	/**
+	 * Creates the database connection (and the database if it is not yet created).
+	 * 
+	 */
 	public DerbyDBInterface(){
 		try{
 			if(this.conn == null)
@@ -125,6 +131,11 @@ public class DerbyDBInterface {
 		}
 	}
 	
+	/**
+	 * Just for testing.
+	 * 
+	 * @param args
+	 */
 	public static void main(String[] args) {
 		
 		if(args == null || (args.length > 0 && args[0].equalsIgnoreCase("test"))){
@@ -200,23 +211,13 @@ public class DerbyDBInterface {
 		}
 	}
 	
+
 	/**
-	 * Inserts the data to the database. Depending on the data 
+	 * Inserts the EAVDAMData object to the database. This includes the user information, station information and everything related to them. 
 	 * 
-	 * @param data 
-	 * @return Boolean value that indicates if the insert was successful
+	 * @param data
+	 * @return
 	 */
-	public boolean insertEAVDAMData(ArrayList<EAVDAMData> data){
-		boolean success = true;
-		for(EAVDAMData d : data){
-			if(!this.insertEAVDAMData(d)){
-				success = false;
-			}
-		}
-		
-		return success;
-	}
-	
 	public boolean insertEAVDAMData(EAVDAMData data){
 
 		boolean success = true;
@@ -333,6 +334,14 @@ public class DerbyDBInterface {
 		return addressID;
 	}
 	
+	/**
+	 * Inserts the address object linked to the given organization id.
+	 * 
+	 * @param address
+	 * @param id
+	 * @return
+	 * @throws Exception
+	 */
 	private int insertAddress(Address address, int id) throws Exception{
 		if(address == null) return 0;
 		
@@ -350,6 +359,13 @@ public class DerbyDBInterface {
 		return id;
 	}
 	
+	/**
+	 * Retrieves the person id for the given person. If none is found, the max+1 number is returned and the station is inserted to the database.
+	 * 
+	 * @param person
+	 * @return
+	 * @throws Exception
+	 */
 	private int getPersonID(Person person) throws Exception{
 		if(person == null){
 			return 0;
@@ -389,6 +405,13 @@ public class DerbyDBInterface {
 		return contactID;
 	}
 	
+	/**
+	 * Inserts the person to the database with the given person id.
+	 * 
+	 * @param person
+	 * @param id
+	 * @throws Exception
+	 */
 	private void insertPerson(Person person, int id) throws Exception{
 		//Find if the addresses exists.
 		int personPostalAddress = this.getAddressID(person.getPostalAddress());
@@ -412,6 +435,14 @@ public class DerbyDBInterface {
 
 	}
 	
+	/**
+	 * Gets the station id from the database. If none is found, the max+1 number is returned.
+	 * 
+	 * @param stationName
+	 * @param organizationName
+	 * @return
+	 * @throws Exception
+	 */
 	private int getStationID(String stationName, String organizationName) throws Exception{
 		PreparedStatement ps  = this.conn.prepareStatement("select FIXEDSTATION.id from FIXEDSTATION,ORGANIZATION where FIXEDSTATION.name = ? AND ORGANIZATION.organizationname = ?");
 		ps.setString(1, stationName);
@@ -425,6 +456,14 @@ public class DerbyDBInterface {
 		return -1;
 	}
 	
+	/**
+	 * Gets the organization id from the database. If none is found, the max+1 number is returned and the organization is stored to the database.
+	 * 
+	 * @param user
+	 * @param defaultUser Is this the default user for this application instance (all the stations will belong to the default user).
+	 * @return
+	 * @throws Exception
+	 */
 	private int getOrganizationID(EAVDAMUser user, boolean defaultUser) throws Exception{
 		
 		if(this.conn == null) this.conn = this.getDBConnection(null, false);
@@ -490,6 +529,14 @@ public class DerbyDBInterface {
 		return this.getOrganizationID(user, defaultUser);
 	}
 	
+	/**
+	 * Inserts the organization under the given organization id.
+	 * 
+	 * @param user
+	 * @param id
+	 * @param defaultUser Indicates if the user is the default one = the one who is loaded at initialization and who controls the stations inserted from this instance of the application.
+	 * @throws Exception
+	 */
 	private void insertOrganization(EAVDAMUser user, int id, boolean defaultUser) throws Exception{
 		//Start with the POSTAL address
 		int postalID = 0;
@@ -728,7 +775,15 @@ public class DerbyDBInterface {
 		return stationID;
 	}
 	
-	public void insertAntenna(Antenna antenna, int stationID, int antennaType) throws Exception{
+	/**
+	 * Inserts the antenna for the given station id.
+	 * 
+	 * @param antenna
+	 * @param stationID
+	 * @param antennaType
+	 * @throws Exception
+	 */
+	private void insertAntenna(Antenna antenna, int stationID, int antennaType) throws Exception{
 		if(antenna == null) return;
 		
 		PreparedStatement psc = conn.prepareStatement("insert into ANTENNA values (?,?,?,?,?,?,?)");
@@ -748,7 +803,16 @@ public class DerbyDBInterface {
 		
 	}
 	
-	public void insertStatus(AISFixedStationStatus status, int refstation, int statusID, int stationID) throws Exception{
+	/**
+	 * Inserts the status for the given station
+	 * 
+	 * @param status
+	 * @param refstation If the status is planned and there is a station with active status, they are linked using this id.
+	 * @param statusID
+	 * @param stationID
+	 * @throws Exception
+	 */
+	private void insertStatus(AISFixedStationStatus status, int refstation, int statusID, int stationID) throws Exception{
 		PreparedStatement psc = conn.prepareStatement("insert into STATUS values (?,?,?,?,?)");
 		
 		psc.setInt(1, stationID);
@@ -876,6 +940,14 @@ public class DerbyDBInterface {
 		
 	}
 	
+	/**
+	 * Inserts AtoN information.
+	 * 
+	 * @param r
+	 * @param channelID
+	 * @return
+	 * @throws Exception
+	 */
 	private int insertAtonMessageBroadcastRate(AtonMessageBroadcastRate r, int channelID) throws Exception{
 
 		
@@ -912,6 +984,14 @@ public class DerbyDBInterface {
 		return r.getDbID();
 	}
 	
+	/**
+	 * Inserts FATDMA reservations.
+	 * 
+	 * @param r
+	 * @param channelID
+	 * @return
+	 * @throws Exception
+	 */
 	private int insertFATDMAReservation(FATDMAReservation r, int channelID) throws Exception{
 
 		if(r.getDbID() == null || r.getDbID() <= 0){
@@ -943,6 +1023,14 @@ public class DerbyDBInterface {
 		return r.getDbID();
 	}
 	
+	/**
+	 * Inserts coverage for the given station.
+	 * 
+	 * @param coverage
+	 * @param stationID
+	 * @param coverageType Type of coverage.
+	 * @throws Exception
+	 */
 	public void insertCoverage(AISFixedStationCoverage coverage, int stationID, int coverageType) throws Exception{
 		if(coverage == null || coverage.getCoveragePoints() == null) return;
 		
@@ -975,6 +1063,12 @@ public class DerbyDBInterface {
 		
 	}
 	
+	/**
+	 * Acknowledges the issue.
+	 * 
+	 * @param issues
+	 * @throws Exception
+	 */
 	public void acknowledgeIssues(List<AISDatalinkCheckIssue> issues) throws Exception{
 		for(AISDatalinkCheckIssue issue : issues){
 			if(issue.getId() <= 0){
@@ -991,6 +1085,12 @@ public class DerbyDBInterface {
 		
 	}
 	
+	/**
+	 * Deletes the issue from the database.
+	 * 
+	 * @param issues
+	 * @throws Exception
+	 */
 	public void deleteIssues(List<AISDatalinkCheckIssue> issues) throws Exception{
 		for(AISDatalinkCheckIssue issue : issues){
 			if(issue.getId() <= 0){
@@ -1188,6 +1288,12 @@ public class DerbyDBInterface {
 
 	}
 	
+	/**
+	 * Retrieves all the issues.
+	 * 
+	 * @return
+	 * @throws Exception
+	 */
 	private List<AISDatalinkCheckIssue> retrieveAllIssues() throws Exception{
 		List<AISDatalinkCheckIssue> issues = new ArrayList<AISDatalinkCheckIssue>();
 		
@@ -1277,85 +1383,14 @@ public class DerbyDBInterface {
 		return issues;
 	}
 	
-	private void deleteIssue(int id) throws Exception{
-		PreparedStatement ps = this.conn.prepareStatement("delete from ISSUESTIMESLOT where ISSUE = "+id);
-		ps.executeUpdate();
-
-		ps = this.conn.prepareStatement("delete from ISSUESSTATION where ISSUE = "+id);
-		ps.executeUpdate();
-		
-		ps = this.conn.prepareStatement("delete from ISSUES where ID = "+id);
-		ps.executeUpdate();
-		
-		ps.close();
-		
-	}
-	
-	private List<AISDatalinkCheckIssue> retrieveIssuesWithinArea(double topLat, double leftLon, double lowLat, double rightLon) throws Exception{
-		List<AISDatalinkCheckIssue> issues = new ArrayList<AISDatalinkCheckIssue>();
-		
-		
-		PreparedStatement ps = this.conn.prepareStatement("select ID, RULEVIOLATED, ACKNOWLEDGED, DELETED from ISSUES,ISSUESSTATION,FIXEDSTATION where ISSUES.id = ISSUESSTATION.issue " +
-				"AND ISSUESSTATION.station = FIXEDSTATION.id AND FIXEDSTATION.lat >= "+lowLat+" AND FIXEDSTATION.lat <= "+topLat+" AND FIXEDSTATION.lon >= "+leftLon+" AND FIXEDSTATION.lon <= "+rightLon);
-		ResultSet rs = ps.executeQuery();
-		while(rs.next()){
-			AISDatalinkCheckIssue issue = new AISDatalinkCheckIssue();
-			issue.setId(rs.getInt(1));
-			issue.setRuleViolated(dk.frv.eavdam.utils.HealthCheckHandler.getRule(rs.getInt(2)));
-			issue.setSeverity(dk.frv.eavdam.utils.HealthCheckHandler.getRuleSeverity(issue.getRuleViolated()));
-			issue.setAcknowledged((rs.getInt(3) == 1));
-			issue.setDeleted((rs.getInt(4)==1));
-			
-			PreparedStatement stations = conn.prepareStatement("select ORGANIZATION.organizationName, FIXEDSTATION.name, FIXEDSTATION.lat, FIXEDSTATION.lon, FIXEDSTATION.id " +
-					"from FIXEDSTATION, ORGANIZATION, ISSUESSTATION " +
-					"where ISSUESSTATION.issue = ? AND ISSUESSTATION.station = FIXEDSTATION.id AND FIXEDSTATION.owner = ORGANIZATION.name");
-			stations.setInt(1, issue.getId());
-			ResultSet stationsRS = stations.executeQuery();
-			
-			List<AISStation> sta = new ArrayList<AISStation>();
-			while(stationsRS.next()){
-				AISStation as = new AISStation(rs.getString(1), rs.getString(2), rs.getDouble(3), rs.getDouble(4));
-				as.setDbId(rs.getInt(5));
-				sta.add(as);
-			}
-			
-			issue.setInvolvedStations(sta);
-			
-			stations.close();
-			stationsRS.close();
-
-			PreparedStatement slots = conn.prepareStatement("select TIMESLOT, FREQUENCY from ISSUESTIMESLOT where ISSUE = ?");
-			slots.setInt(1, issue.getId());
-			ResultSet slotRS = slots.executeQuery();
-			
-			List<AISTimeslot> timeslots = new ArrayList<AISTimeslot>();
-			while(slotRS.next()){
-				AISTimeslot s = new AISTimeslot();
-				s.setSlotNumber(slotRS.getInt(1));
-				if(slotRS.getInt(2) == 2) s.setFrequency(AISFrequency.AIS2);
-				else s.setFrequency(AISFrequency.AIS1);
-				
-				s.setFree(new Boolean(false));
-				s.setPossibleConflicts(new Boolean(true));
-			
-				timeslots.add(s);
-			}	
-			issue.setInvolvedTimeslots(timeslots);
-			
-			slotRS.close();
-			slots.close();
-			
-			issues.add(issue);
-			
-		}
-
-		
-		
-		ps.close();
-		
-		return issues;
-	}
-			
+	/**
+	 * Retrieves the FATDMA allocation of the station.
+	 * 
+	 * @param stationID
+	 * @param channelType
+	 * @return
+	 * @throws Exception
+	 */
 	private FATDMAChannel retrieveFATDMAAllocations(int stationID, int channelType) throws Exception{
 		if(log) System.out.print("Retrieving FATDMA Channel "+(channelType == FATDMA_CHANNEL_A ? "A" : "B"));
 		
@@ -1512,6 +1547,13 @@ public class DerbyDBInterface {
 
 	}
 	
+	/**
+	 * Inserts simulation dataset to the given organization.
+	 * 
+	 * @param sim
+	 * @param organizationID
+	 * @throws Exception
+	 */
 	private void insertSimulationDataset(Simulation sim, int organizationID) throws Exception{
 		if(this.conn == null) this.conn = this.getDBConnection(null, false);
 		
@@ -1545,6 +1587,14 @@ public class DerbyDBInterface {
 		
 	}
 	
+	/**
+	 * Inserts a simulated station.
+	 * 
+	 * @param station
+	 * @param simulationID
+	 * @param orgID
+	 * @throws Exception
+	 */
 	private void insertSimulatedStation(AISFixedStationData station, int simulationID, int orgID) throws Exception{
 		int stationID = this.insertStation(station, -1, orgID, 0);
 		
@@ -1869,6 +1919,14 @@ public class DerbyDBInterface {
 		}
 	} 
 	
+	/**
+	 * Updates the coverage area.
+	 * 
+	 * @param coverage
+	 * @param stationDBID
+	 * @param coverageType
+	 * @throws Exception
+	 */
 	private void updateCoverage(AISFixedStationCoverage coverage, int stationDBID, int coverageType) throws Exception{
 
 		//Check if the coverage can be found
@@ -1882,6 +1940,14 @@ public class DerbyDBInterface {
 		
 	}
 
+	/**
+	 * Updates the FATDMA allocation.
+	 * 
+	 * @param f
+	 * @param stationDBID
+	 * @param channelType
+	 * @throws Exception
+	 */
 	private void updateFATDMAChannel(FATDMAChannel f, int stationDBID, int channelType) throws Exception{
 
 		if(log) System.out.println("Updating FATDMA Allocations");
@@ -1935,6 +2001,7 @@ public class DerbyDBInterface {
 		
 	}
 	
+	
 	private void updateAtonMessageBroadcastRate(AtonMessageBroadcastRate r) throws Exception{
 		//Update
 		String sql = "update FATDMAATON set " 
@@ -1978,6 +2045,13 @@ public class DerbyDBInterface {
 		ps.executeUpdate();
 	}
 	
+	/**
+	 * Updates antenna.
+	 * 
+	 * @param antenna
+	 * @param stationId
+	 * @throws Exception
+	 */
 	private void updateAntenna(Antenna antenna, int stationId) throws Exception{
 		
 		
@@ -2024,6 +2098,14 @@ public class DerbyDBInterface {
 		
 	}
 	
+	/**
+	 * Updates the status of the station.
+	 * 
+	 * @param status
+	 * @param stationId
+	 * @param refstation
+	 * @throws Exception
+	 */
 	private void updateStatus(AISFixedStationStatus status, int stationId, int refstation) throws Exception{
 		
 		String sql = "update STATUS set " +
@@ -2048,11 +2130,13 @@ public class DerbyDBInterface {
 	
 
 	
-	
 	/**
-	 * Retrieves all the data from the database.
+	 * Retrieves all the information needed in the GUI. This includes the station and user information.
 	 * 
-	 * This includes ...
+	 * 
+	 * @param defaultUser The information of the default user. The data from this user are editable.
+	 * @return EAVDAMData object holding all the information to be shown in GUI.
+	 * @throws Exception
 	 */
 	public EAVDAMData retrieveAllEAVDAMData(EAVDAMUser defaultUser) throws Exception{
 		
@@ -2482,6 +2566,13 @@ public class DerbyDBInterface {
 		return data;
 	}
 	
+	/**
+	 * Retrieves all the active stations for the given user.
+	 * 
+	 * @param user Organization id.
+	 * @return
+	 * @throws Exception
+	 */
 	private List<ActiveStation> retrieveActiveStations(int user) throws Exception{
 		List<ActiveStation> activeStations = new ArrayList<ActiveStation>();
 		if(user < 0) return null;
@@ -2975,6 +3066,14 @@ public class DerbyDBInterface {
 		return data;
 	}
 	
+	/**
+	 * Retrieves the coverage area for the given station.
+	 * 
+	 * @param stationID
+	 * @param coverageType
+	 * @return
+	 * @throws Exception
+	 */
 	private AISFixedStationCoverage retrieveCoverageArea(int stationID, int coverageType) throws Exception{
 		AISFixedStationCoverage c = new AISFixedStationCoverage();
 		
@@ -3203,16 +3302,6 @@ public class DerbyDBInterface {
 	}
 
 	/**
-	 * Reports a data verification failure to System.err with the given message.
-	 *
-	 * @param message A message describing what failed.
-	 */
-	private void reportFailure(String message) {
-		System.err.println("\nData verification failed:");
-		System.err.println('\t' + message);
-	}
-
-	/**
 	 * Prints details of an SQLException chain to <code>System.err</code>.
 	 * Details included are SQL State, Error code, Exception message.
 	 *
@@ -3235,29 +3324,10 @@ public class DerbyDBInterface {
 	}
 
 	/**
-	 * Parses the arguments given and sets the values of this class' instance
-	 * variables accordingly - that is which framework to use, the name of the
-	 * JDBC driver class, and which connection protocol protocol to use. The
-	 * protocol should be used as part of the JDBC URL when connecting to Derby.
-	 * <p>
-	 * If the argument is "embedded" or invalid, this method will not change
-	 * anything, meaning that the default values will be used.</p>
-	 * <p>
-	 * @param args JDBC connection framework, either "embedded", "derbyclient".
-	 * Only the first argument will be considered, the rest will be ignored.
+	 * Drops the old database and recreates it. 
+	 * 
+	 * @param dbName
 	 */
-	private void parseArguments(String[] args)
-	{
-		if (args.length > 0) {
-			if (args[0].equalsIgnoreCase("derbyclient"))
-			{
-				framework = "derbyclient";
-				driver = "org.apache.derby.jdbc.ClientDriver";
-				protocol = "jdbc:derby://localhost:1527/";
-			}
-		}
-	}
-	
 	public void createDatabase(String dbName){
 		boolean log = false;
 		
@@ -3747,6 +3817,10 @@ public class DerbyDBInterface {
 		}
 	}
 	
+	/**
+	 * Updates the database to the current version if there are changes (and we can verify that the database is an older version).
+	 * 
+	 */
 	private void updateDatabaseVersion(){
 		
 		//Version alpha: update table if the ftp-directory is too short...
@@ -3968,6 +4042,12 @@ public class DerbyDBInterface {
 		
 	}
 	
+	/**
+	 * Inserts the ftp settings. 
+	 * 
+	 * @param ftps
+	 * @throws Exception
+	 */
 	private void insertFTPSettings(List<FTP> ftps) throws Exception{
 		PreparedStatement del = conn.prepareStatement("delete from SENDTOFTP");
 		del.executeUpdate();
@@ -3985,6 +4065,10 @@ public class DerbyDBInterface {
 	}
 	
 	
+	/**
+	 * Runs some tests to the database. Use for testing.
+	 * 
+	 */
 	public static void dbTester(){
 		try{
 
